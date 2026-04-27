@@ -1,11 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { viewToPath } from "@/lib/url";
 import type { User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
+
+/**
+ * Returns true when the user is currently typing in a field. We use it
+ * to ignore the global "/" shortcut while focus is in an input — pressing
+ * "/" in the address bar of a form should type the slash, not steal
+ * focus to the search box.
+ */
+function isTypingInField(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  return target.isContentEditable;
+}
 
 interface Props {
   user: User | null;
@@ -37,6 +51,22 @@ export default function Header({
       return target.section === view.section;
     return true;
   };
+
+  // Global "/" shortcut focuses the search box — same idiom as GitHub
+  // and Linear. Ignored when the user is already typing in a field.
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTypingInField(e.target)) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <header className="app-header">
       <div className="header-inner">
@@ -82,12 +112,17 @@ export default function Header({
         <div className="header-search" role="search">
           <Icon.search />
           <input
+            ref={searchRef}
             type="search"
             placeholder="Buscar casos, hallazgos, etiquetas…"
             aria-label="Buscar casos, hallazgos y etiquetas"
+            aria-keyshortcuts="/"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <kbd className="header-search-kbd" aria-hidden="true">
+            /
+          </kbd>
         </div>
         <div className="header-right">
           <ThemeToggle />

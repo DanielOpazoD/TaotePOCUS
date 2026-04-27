@@ -66,11 +66,14 @@ function speckle(ctx: Ctx, W: number, H: number, _t: number, density = 0.5, inte
   const img = ctx.getImageData(0, 0, W, H);
   const d = img.data;
   for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] === 0) continue;
+    // Indices i..i+3 are guaranteed in-bounds by the loop guard
+    // (i < d.length and i steps by 4); the `!` quiets
+    // noUncheckedIndexedAccess on this hot path.
+    if (d[i + 3]! === 0) continue;
     const r = Math.random();
     if (r < density) {
       const v = Math.pow(Math.random(), 2.2) * 255 * intensity;
-      d[i] = d[i + 1] = d[i + 2] = clamp(d[i] + v, 0, 255);
+      d[i] = d[i + 1] = d[i + 2] = clamp(d[i]! + v, 0, 255);
     }
   }
   ctx.putImageData(img, 0, 0);

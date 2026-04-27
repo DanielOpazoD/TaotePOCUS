@@ -30,6 +30,25 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
   const parts = caso.author.split(/\s+/);
   const initials = (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
 
+  // schema.org structured data for the case. Search engines and rich-
+  // result tools (e.g. Google Search Console) parse this JSON-LD to
+  // surface the case in articles / medical content panels. We use
+  // MedicalScholarlyArticle as the closest fit for an educational
+  // clinical case.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "MedicalScholarlyArticle",
+    headline: caso.title,
+    description: caso.summary,
+    author: { "@type": "Person", name: caso.author, jobTitle: caso.role },
+    datePublished: caso.date,
+    articleSection: cat?.label ?? "POCUS",
+    keywords: caso.tags.join(", "),
+    inLanguage: "es",
+    isAccessibleForFree: true,
+    publisher: { "@type": "Organization", name: "Taote POCUS" },
+  };
+
   // Open the native dialog on mount, close on unmount.
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -70,6 +89,12 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
       aria-labelledby="case-modal-title"
       aria-describedby="case-modal-summary"
     >
+      {/* JSON-LD structured data — search engines surface the case in
+          rich results when the deep-link URL is shared. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="modal" style={{ position: "relative" }} ref={trapRef}>
         <button className="modal-close" onClick={onClose} aria-label="Cerrar caso">
           {Icon.close()}

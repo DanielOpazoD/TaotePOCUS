@@ -78,9 +78,10 @@ function FeaturedCard({
 
 export default function FeaturedRow({ cases, favs, onOpen, onFav }: Props) {
   const featured = cases.filter((c) => c.featured).slice(0, 3);
-  if (featured.length === 0) return null;
-
   const [hero, ...side] = featured;
+  // The early return both skips an empty row and narrows `hero` from
+  // `CaseRecord | undefined` to `CaseRecord` for the rest of the JSX.
+  if (!hero) return null;
   return (
     <section className="featured-row">
       <div className="featured-head">

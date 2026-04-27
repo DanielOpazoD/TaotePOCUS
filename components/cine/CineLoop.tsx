@@ -46,7 +46,10 @@ export default function CineLoop({
     const el = wrapRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
-      ([entry]) => setVisible(entry.isIntersecting),
+      (entries) => {
+        const entry = entries[0];
+        if (entry) setVisible(entry.isIntersecting);
+      },
       { rootMargin: "200px" }, // start drawing slightly before scroll-in
     );
     io.observe(el);

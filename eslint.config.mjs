@@ -47,10 +47,47 @@ export default tseslint.config(
     },
   },
   {
-    // Tests can use a couple of unsafe patterns (mock typing escape hatches).
-    files: ["tests/**/*.ts"],
+    // Architectural guards on production code. Components and routes go
+    // through the repo facade and the typed log; they do not touch
+    // `localStorage` or `console` directly. Tests opt out below.
+    files: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "hooks/**/*.{ts,tsx}"],
+    rules: {
+      // `console.log` slips into production by accident — use lib/log.
+      // Allow `console.error` (e.g. in error boundaries), but warn on
+      // `log` / `info` / `debug` so we notice them.
+      "no-console": ["warn", { allow: ["error", "warn"] }],
+      // Components must go through `lib/repo`, not `lib/store`. The
+      // store is a backend detail — leaking it through component code
+      // makes the eventual swap to Firebase/Supabase impossible without
+      // chasing imports.
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/lib/store", "**/lib/store"],
+              message:
+                "Components must go through `lib/repo`, not `lib/store` (the backend layer is hidden behind the repo facade — see docs/adr/0003-repository-facade.md).",
+            },
+            {
+              group: ["@/lib/firebase-*", "**/lib/firebase-*"],
+              message:
+                "Firebase implementations are private to `lib/repo.ts`. Do not import them from components.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Tests can use a couple of unsafe patterns (mock typing escape
+    // hatches) and need to reach into the store directly to set up
+    // fixtures.
+    files: ["tests/**/*.{ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      "no-console": "off",
+      "no-restricted-imports": "off",
     },
   },
   {

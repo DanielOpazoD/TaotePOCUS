@@ -109,7 +109,7 @@ describe("repo.cases", () => {
     await repo.cases.save(updated, user);
     user = await repo.cases.listUser();
     expect(user).toHaveLength(1);
-    expect(user[0].title).toBe("Updated");
+    expect(user[0]!.title).toBe("Updated");
   });
 
   it("remove drops the case by id", async () => {
@@ -123,7 +123,7 @@ describe("repo.cases", () => {
   it("listAll merges user cases ahead of seed", async () => {
     await repo.cases.save(mkCase({ id: "u_1", title: "Mine" }), []);
     const all = await repo.cases.listAll();
-    expect(all[0].id).toBe("u_1");
+    expect(all[0]!.id).toBe("u_1");
     expect(all.length).toBeGreaterThan(10);
   });
 
@@ -133,8 +133,8 @@ describe("repo.cases", () => {
     let raw = await repo.cases.listUserRaw();
     await repo.cases.remove(c.id, raw, "admin@taote.pocus");
     raw = await repo.cases.listUserRaw();
-    expect(raw[0].deletedAt).toBeTruthy();
-    expect(raw[0].deletedBy).toBe("admin@taote.pocus");
+    expect(raw[0]!.deletedAt).toBeTruthy();
+    expect(raw[0]!.deletedBy).toBe("admin@taote.pocus");
     // listUser excludes soft-deleted; listTrashed surfaces them.
     expect(await repo.cases.listUser()).toEqual([]);
     const trashed = await repo.cases.listTrashed();
@@ -160,7 +160,7 @@ describe("repo.cases", () => {
     await repo.cases.restore(c.id, raw2);
     const live = await repo.cases.listUser();
     expect(live).toHaveLength(1);
-    expect(live[0].deletedAt).toBeUndefined();
+    expect(live[0]!.deletedAt).toBeUndefined();
   });
 
   it("purge hard-deletes from storage", async () => {

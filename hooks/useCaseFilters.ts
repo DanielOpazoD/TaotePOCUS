@@ -47,11 +47,11 @@ export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }:
   const sectionCategories = useMemo<CategoryWithCount[]>(() => {
     const counts: Record<string, number> = {};
     scopedCases.forEach((c) => {
-      counts[c.category] = (counts[c.category] || 0) + 1;
+      counts[c.category] = (counts[c.category] ?? 0) + 1;
     });
-    return CATEGORIES.filter((c) => counts[c.id] > 0).map((c) => ({
+    return CATEGORIES.filter((c) => (counts[c.id] ?? 0) > 0).map((c) => ({
       ...c,
-      count: counts[c.id],
+      count: counts[c.id] ?? 0,
     }));
   }, [scopedCases]);
 
@@ -59,10 +59,10 @@ export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }:
     const counts: Record<string, number> = {};
     scopedCases.forEach((c) =>
       c.tags.forEach((t) => {
-        counts[t] = (counts[t] || 0) + 1;
+        counts[t] = (counts[t] ?? 0) + 1;
       }),
     );
-    return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    return Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
   }, [scopedCases]);
 
   const filtered = useMemo(() => {

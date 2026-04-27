@@ -33,20 +33,25 @@ const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
 const USER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 
 function toAppUser(fb: FirebaseUser, displayName?: string): User {
-  const isAdmin = (fb.email || "").toLowerCase() === ADMIN_CREDENTIALS.email;
-  const name = isAdmin ? "Administrador" : displayName || fb.displayName || fb.email!.split("@")[0];
+  // Firebase users without an email shouldn't reach here (sign-in
+  // requires email). Defensive fallback to "" keeps types honest.
+  const email = fb.email ?? "";
+  const isAdmin = email.toLowerCase() === ADMIN_CREDENTIALS.email;
+  const name = isAdmin
+    ? "Administrador"
+    : displayName || fb.displayName || email.split("@")[0] || email;
   const initials = isAdmin
     ? "AD"
     : name
         .split(/[\s.@]/)
         .filter(Boolean)
         .slice(0, 2)
-        .map((s) => s[0].toUpperCase())
+        .map((s) => (s[0] ?? "").toUpperCase())
         .join("");
   const issuedAt = Date.now();
   const expiresAt = issuedAt + (isAdmin ? ADMIN_SESSION_MS : USER_SESSION_MS);
   return {
-    email: fb.email!,
+    email,
     name,
     initials,
     role: isAdmin ? "admin" : "user",

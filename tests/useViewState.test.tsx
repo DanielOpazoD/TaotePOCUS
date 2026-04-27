@@ -19,7 +19,7 @@ const replaceSpy = vi.fn((url: string, _opts?: { scroll?: boolean }) => {
 });
 
 function applyUrl(url: string) {
-  const [path, search = ""] = url.split("?");
+  const [path = "/", search = ""] = url.split("?");
   currentPathname = path;
   currentParams = new URLSearchParams(search);
 }
@@ -68,7 +68,7 @@ describe("useViewState", () => {
     });
     expect(replaceSpy).toHaveBeenCalledTimes(1);
     expect(pushSpy).not.toHaveBeenCalled();
-    expect(replaceSpy.mock.calls[0][0]).toBe("/?q=abdomen");
+    expect(replaceSpy.mock.calls[0]![0]).toBe("/?q=abdomen");
   });
 
   it("pushPatch calls router.push (adds history entry)", () => {
@@ -78,7 +78,7 @@ describe("useViewState", () => {
     });
     expect(pushSpy).toHaveBeenCalledTimes(1);
     expect(replaceSpy).not.toHaveBeenCalled();
-    expect(pushSpy.mock.calls[0][0]).toBe("/?caso=c001");
+    expect(pushSpy.mock.calls[0]![0]).toBe("/?caso=c001");
   });
 
   it("changing the view rewrites the pathname", () => {
@@ -86,7 +86,7 @@ describe("useViewState", () => {
     act(() => {
       result.current.replacePatch({ view: { kind: "section", section: "ecg" } });
     });
-    const url = replaceSpy.mock.calls[0][0];
+    const url = replaceSpy.mock.calls[0]![0]!;
     expect(url).toBe("/ecg");
   });
 
@@ -95,7 +95,7 @@ describe("useViewState", () => {
     act(() => {
       result.current.replacePatch({ view: { kind: "favs" } });
     });
-    expect(replaceSpy.mock.calls[0][0]).toBe("/favoritos");
+    expect(replaceSpy.mock.calls[0]![0]).toBe("/favoritos");
   });
 
   it("clearing a filter omits the param entirely", () => {
@@ -106,7 +106,7 @@ describe("useViewState", () => {
       result.current.replacePatch({ query: "" });
     });
     // Empty query should drop the param entirely, leaving a bare path.
-    expect(replaceSpy.mock.calls[0][0]).toBe("/");
+    expect(replaceSpy.mock.calls[0]![0]).toBe("/");
   });
 
   it("scroll: false is passed to the router", () => {
@@ -114,7 +114,7 @@ describe("useViewState", () => {
     act(() => {
       result.current.replacePatch({ query: "x" });
     });
-    const opts = replaceSpy.mock.calls[0][1];
+    const opts = replaceSpy.mock.calls[0]![1];
     expect(opts).toEqual({ scroll: false });
   });
 });

@@ -27,14 +27,17 @@ const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000; // 8 hours
 const USER_SESSION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 function makeUser(email: string, name: string | undefined, isAdmin: boolean): User {
-  const displayName = isAdmin ? "Administrador" : name || email.split("@")[0];
+  // `email.split("@")[0]` may be undefined under noUncheckedIndexedAccess,
+  // even though split always yields at least one element. Coalesce to
+  // the email itself rather than asserting.
+  const displayName = isAdmin ? "Administrador" : name || email.split("@")[0] || email;
   const initials = isAdmin
     ? "AD"
     : displayName
         .split(/[\s.@]/)
         .filter(Boolean)
         .slice(0, 2)
-        .map((s) => s[0].toUpperCase())
+        .map((s) => (s[0] ?? "").toUpperCase())
         .join("");
   const issuedAt = Date.now();
   const expiresAt = issuedAt + (isAdmin ? ADMIN_SESSION_MS : USER_SESSION_MS);

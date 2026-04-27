@@ -54,19 +54,19 @@ export function useFocusTrap<T extends HTMLElement>(active: boolean) {
       );
 
     const initial = focusables();
-    if (initial.length && !container.contains(document.activeElement)) {
+    if (initial[0] && !container.contains(document.activeElement)) {
       initial[0].focus();
     }
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const items = focusables();
-      if (items.length === 0) {
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) {
         e.preventDefault();
         return;
       }
-      const first = items[0];
-      const last = items[items.length - 1];
       const current = document.activeElement as HTMLElement | null;
       if (e.shiftKey) {
         if (current === first || !container.contains(current)) {
