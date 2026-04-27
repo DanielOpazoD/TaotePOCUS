@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Architecture & decisions
+    url: https://github.com/REPLACE/REPLACE/tree/main/docs/adr
+    about: Read the ADRs before proposing significant architectural changes.
+  - name: Security report
+    url: mailto:security@example.com
+    about: Report a security issue privately. Do not open a public issue.

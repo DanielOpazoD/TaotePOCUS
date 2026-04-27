@@ -1,0 +1,89 @@
+export type SectionId = "atlas" | "ecg" | "cases" | "info";
+
+export interface Section {
+  id: SectionId;
+  label: string;
+  sub: string;
+}
+
+export type CategoryId =
+  | "cardiac"
+  | "lung"
+  | "abdominal"
+  | "fast"
+  | "vascular"
+  | "ob"
+  | "ms"
+  | "proc";
+
+export interface Category {
+  id: CategoryId;
+  label: string;
+  count: number;
+}
+
+export type LoopKind =
+  | "blines"
+  | "tamponade"
+  | "morrison"
+  | "seashore"
+  | "ijv"
+  | "dvt"
+  | "hydro"
+  | "ob"
+  | "lvfunction"
+  | "aaa"
+  | "consolidation"
+  | "gallstone"
+  | "ecg-stemi"
+  | "ecg-afib"
+  | "ecg-block"
+  | "info-blue"
+  | "info-rush"
+  | "info-fast";
+
+export type MediaKind = "video" | "image" | "gif";
+
+export interface Media {
+  kind: MediaKind;
+  src: string;
+  name?: string;
+  type?: string;
+  modality?: string;
+}
+
+export interface CaseRecord {
+  id: string;
+  section: SectionId;
+  title: string;
+  category: CategoryId;
+  tags: string[];
+  modality: string;
+  loop: LoopKind | string;
+  author: string;
+  role: string;
+  date: string;
+  findings: string;
+  diagnosis: string;
+  summary: string;
+  featured?: boolean;
+  media?: Media | null;
+  // Soft-delete metadata. Audit trail visible to admins; hidden from
+  // public views. The case record stays in storage so a deletion can
+  // be reverted without losing the underlying media.
+  deletedAt?: string; // ISO timestamp
+  deletedBy?: string; // email of the admin who deleted it
+}
+
+export interface User {
+  email: string;
+  name: string;
+  initials: string;
+  role: "user" | "admin";
+  /** Epoch millis. Sessions are rejected after this time on next read. */
+  expiresAt: number;
+  /** When the session was issued. Useful for audit trails. */
+  issuedAt: number;
+}
+
+export type View = { kind: "section"; section: SectionId } | { kind: "favs" } | { kind: "admin" };
