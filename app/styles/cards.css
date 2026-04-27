@@ -7,7 +7,7 @@
 .featured-head {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
   margin-bottom: 18px;
 }
 .featured-head h2 {
@@ -27,7 +27,7 @@
 .featured-grid {
   display: grid;
   grid-template-columns: 1.65fr 1fr;
-  gap: 24px;
+  gap: var(--space-6);
 }
 .featured-grid.single {
   grid-template-columns: 1fr;
@@ -183,7 +183,7 @@
 }
 .layout[data-section="cases"] .case-meta {
   flex: 1;
-  gap: 8px;
+  gap: var(--space-2);
   justify-content: center;
 }
 .layout[data-section="cases"] .case-title {
@@ -220,7 +220,7 @@
 .case-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
   cursor: pointer;
   transition: transform 0.18s ease;
   background: transparent;
@@ -367,7 +367,7 @@
   color: var(--ink-mute);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .case-byline .dot {
   width: 2px;
@@ -379,7 +379,7 @@
 .case-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--space-1);
   margin-top: 4px;
 }
 .case-tag-mini {

@@ -10,7 +10,7 @@
   border-radius: var(--radius-sm);
 }
 .auth-error {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   padding: 10px 12px;
   background: var(--crit-soft);
   color: var(--crit);
@@ -57,7 +57,7 @@
 .admin-form-grid {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 32px;
+  gap: var(--space-8);
   padding: 24px 32px;
 }
 @media (max-width: 880px) {
@@ -104,7 +104,7 @@ textarea.admin-input {
 .admin-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .admin-hint {
   display: block;
@@ -132,10 +132,10 @@ textarea.admin-input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--ink-mute);
   text-align: center;
-  padding: 20px;
+  padding: var(--space-5);
 }
 .admin-upload-empty svg {
   width: 32px;
@@ -161,7 +161,7 @@ textarea.admin-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: var(--space-2);
   font-size: 12px;
 }
 .admin-media-name {
@@ -183,7 +183,7 @@ textarea.admin-input {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 8px;
+  padding: var(--space-2);
   border: 1px solid var(--hairline-strong);
   border-radius: var(--radius-md);
   background: var(--input-bg);
@@ -205,14 +205,14 @@ textarea.admin-input {
   outline: none;
   font-size: 13px;
   font-family: var(--sans);
-  padding: 4px;
+  padding: var(--space-1);
 }
 
 .admin-checkbox {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: var(--space-4);
   font-size: 14px;
   cursor: pointer;
 }
@@ -225,7 +225,7 @@ textarea.admin-input {
 .admin-form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 16px 32px;
   border-top: 1px solid var(--hairline);
   background: var(--surface-2);
@@ -235,12 +235,12 @@ textarea.admin-input {
 .admin-panel {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-8);
 }
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
 }
 @media (max-width: 880px) {
   .admin-stats {
@@ -254,7 +254,7 @@ textarea.admin-input {
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .admin-stat-num {
   font-family: var(--serif);
@@ -316,7 +316,7 @@ textarea.admin-input {
   border-bottom: 1px solid var(--hairline);
 }
 .admin-table td {
-  padding: 12px;
+  padding: var(--space-3);
   border-bottom: 1px solid var(--hairline);
   vertical-align: middle;
 }
@@ -417,8 +417,8 @@ textarea.admin-input {
 @media (max-width: 880px) {
   .layout {
     grid-template-columns: 1fr;
-    padding: 20px;
-    gap: 24px;
+    padding: var(--space-5);
+    gap: var(--space-6);
   }
   .sidebar {
     position: relative;
@@ -426,7 +426,7 @@ textarea.admin-input {
   }
   .case-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: var(--space-4);
   }
   .case-title {
     font-size: 15px;

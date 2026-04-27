@@ -100,7 +100,7 @@
 }
 .nav {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .nav button {
   background: transparent;
@@ -154,11 +154,33 @@
   color: var(--ink-mute);
   pointer-events: none;
 }
+/* `/` keyboard-shortcut hint, GitHub-style. Hides while focused so it
+   doesn't overlap typed text. */
+.header-search-kbd {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  line-height: 1.4;
+  transition: opacity var(--duration-fast) ease;
+}
+.header-search input:focus + .header-search-kbd,
+.header-search input:not(:placeholder-shown) + .header-search-kbd {
+  opacity: 0;
+}
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin-left: auto;
 }
 .btn-ghost,
@@ -172,7 +194,7 @@
   color: var(--ink);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   transition: all 0.12s;
 }
 .btn-ghost:hover {

@@ -2,7 +2,7 @@
 .layout {
   max-width: 1480px;
   margin: 0 auto;
-  padding: 32px;
+  padding: var(--space-8);
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: 48px;
