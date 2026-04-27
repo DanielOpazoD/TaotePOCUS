@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { ADMIN_CREDENTIALS } from "@/lib/env";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
@@ -22,14 +22,30 @@ export default function AuthModal({ onClose, onLogin }: Props) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const trapRef = useFocusTrap<HTMLFormElement>(true);
 
+  // Open the native dialog on mount; auto-close on unmount.
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
     return () => {
-      document.body.style.overflow = "";
+      if (dialog.open) dialog.close();
     };
   }, []);
+
+  // Belt-and-braces Escape handling — see ConfirmDialog for the why.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,20 +60,24 @@ export default function AuthModal({ onClose, onLogin }: Props) {
     }
   };
 
+  // Click on the dialog element itself = backdrop click = close.
+  const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   return (
-    <div
-      className="modal-backdrop"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      ref={dialogRef}
+      className="auth-modal-host"
+      onClose={onClose}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={onClickDialog}
       aria-labelledby="auth-title"
     >
-      <form
-        className="auth-modal"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={submit}
-        ref={trapRef}
-      >
+      <form className="auth-modal" onSubmit={submit} ref={trapRef}>
         <button
           type="button"
           className="modal-close"
@@ -128,6 +148,6 @@ export default function AuthModal({ onClose, onLogin }: Props) {
           <strong>Demo admin:</strong> {ADMIN_CREDENTIALS.email} · {ADMIN_CREDENTIALS.password}
         </div>
       </form>
-    </div>
+    </dialog>
   );
 }

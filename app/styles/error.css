@@ -1,0 +1,46 @@
+/* =================== ERROR FALLBACK =================== */
+.error-fallback {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 32px;
+}
+.error-fallback-inner {
+  max-width: 480px;
+  text-align: center;
+}
+.error-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--crit);
+  margin-bottom: 8px;
+}
+.error-fallback h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.error-fallback p {
+  color: var(--ink-soft);
+  margin: 0 0 18px;
+}
+.error-digest {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface-2);
+  color: var(--ink-mute);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 18px;
+}
+.error-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}

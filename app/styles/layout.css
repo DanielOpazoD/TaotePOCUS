@@ -1,0 +1,47 @@
+/* =================== LAYOUT =================== */
+.layout {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 48px;
+  align-items: start;
+  --section-accent: var(--accent);
+  --section-accent-ink: var(--accent-ink);
+  --section-accent-soft: var(--accent-soft);
+}
+.layout[data-section="ecg"] {
+  --section-accent: var(--signal);
+  --section-accent-ink: var(--signal);
+  --section-accent-soft: oklch(from var(--signal) l c h / 0.12);
+}
+.layout[data-section="cases"] {
+  --section-accent: var(--editorial);
+  --section-accent-ink: var(--editorial);
+  --section-accent-soft: oklch(from var(--editorial) l c h / 0.1);
+}
+.layout[data-section="info"] {
+  --section-accent: var(--poster);
+  --section-accent-ink: var(--poster);
+  --section-accent-soft: oklch(from var(--poster) l c h / 0.12);
+}
+
+/* Section accents flow into the case-cat label and the diagnosis box */
+.layout .case-cat {
+  color: var(--section-accent-ink);
+}
+.layout .modal-diagnosis {
+  background: var(--section-accent-soft);
+  border-left-color: var(--section-accent);
+}
+.layout .modal-diagnosis h5 {
+  color: var(--section-accent-ink);
+}
+
+/* The crumb dot inherits color naturally; nudge the crumb tone subtly */
+.layout[data-section="ecg"] .section-head .crumb,
+.layout[data-section="cases"] .section-head .crumb,
+.layout[data-section="info"] .section-head .crumb {
+  color: var(--section-accent-ink);
+}

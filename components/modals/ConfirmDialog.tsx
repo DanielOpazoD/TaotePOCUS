@@ -1,11 +1,16 @@
 "use client";
 
 // Replaces window.confirm() — see audit §8 (UX/UI). The native confirm is
-// unstyled, blocking, and breaks the visual language of the app; this
-// keeps the same affordance with the modal aesthetic and Esc/click-out
-// dismissal semantics.
+// unstyled, blocking, and breaks the visual language of the app.
+//
+// Built on the native <dialog> element opened via showModal(): the
+// browser handles top-layer rendering, makes the rest of the page
+// inert (real focus trap, Tab cannot escape), and styles the backdrop
+// via ::backdrop. We still listen for Escape ourselves so we can fire
+// onCancel synchronously and we layer useFocusTrap as belt-and-braces
+// for older browsers.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface Props {
@@ -29,33 +34,57 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(open);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    else if (!open && dialog.open) dialog.close();
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-      else if (e.key === "Enter") onConfirm();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onConfirm();
+      } else if (e.key === "Escape") {
+        // The native <dialog> dispatches a `cancel` event on Escape,
+        // but only when focus is inside it. Belt-and-braces: a global
+        // listener guarantees we catch it.
+        e.preventDefault();
+        onCancel();
+      }
     };
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onCancel, onConfirm]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onConfirm, onCancel]);
 
-  if (!open) return null;
+  // Native dialog: clicking on the dialog element itself (not its
+  // children) means the user clicked the backdrop — close.
+  const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === e.currentTarget) onCancel();
+  };
 
   return (
-    <div
-      className="modal-backdrop"
-      onClick={onCancel}
+    <dialog
+      ref={dialogRef}
+      className="confirm-dialog-host"
+      onClose={onCancel}
+      onCancel={(e) => {
+        // Built-in Escape behavior; intercept so we can call our
+        // handler synchronously.
+        e.preventDefault();
+        onCancel();
+      }}
+      onClick={onClickDialog}
       role="alertdialog"
-      aria-modal="true"
       aria-labelledby="confirm-title"
       aria-describedby={message ? "confirm-message" : undefined}
     >
-      <div className="auth-modal confirm-dialog" onClick={(e) => e.stopPropagation()} ref={trapRef}>
+      <div className="auth-modal confirm-dialog" ref={trapRef}>
         <h2 id="confirm-title">{title}</h2>
         {message && <p id="confirm-message">{message}</p>}
         <div className="confirm-actions">
@@ -71,6 +100,6 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

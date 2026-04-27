@@ -55,7 +55,12 @@ export default tseslint.config(
   },
   {
     // Build-time / Node-only files run outside the browser.
-    files: ["next.config.mjs", "vitest.config.ts", "*.config.{js,mjs,ts}"],
+    files: [
+      "next.config.mjs",
+      "vitest.config.ts",
+      "*.config.{js,mjs,ts}",
+      "scripts/**/*.{js,mjs,ts}",
+    ],
     languageOptions: {
       globals: { ...globals.node },
     },

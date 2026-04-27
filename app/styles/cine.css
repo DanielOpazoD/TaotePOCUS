@@ -1,0 +1,58 @@
+/* =================== CINE LOOP CANVAS =================== */
+.cine-wrap {
+  position: relative;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+}
+.cine-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(40, 50, 70, 0.45), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
+  animation: cinePulse 1.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes cinePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.cine-canvas,
+.cine-video {
+  position: relative;
+  z-index: 1;
+}
+.cine-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* =================== CINE VIDEO/IMAGE =================== */
+.cine-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+.cine-chrome {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 2;
+}

@@ -1,0 +1,95 @@
+/* =================== PRINT =================== */
+/* Clinicians print materials. Strip the chrome, force light theme,
+   keep typography readable, and avoid splitting case cards across
+   pages. The cine-loop canvas is a black box on paper — we replace it
+   with a placeholder note. */
+@media print {
+  :root,
+  [data-theme="dark"] {
+    /* Force the light palette regardless of the user's saved theme. */
+    --bg: #ffffff;
+    --bg-translucent: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f5f5f3;
+    --ink: #15171a;
+    --ink-soft: #2a2d33;
+    --ink-mute: #4a4d52;
+    --hairline: #d2cfc6;
+    --hairline-strong: #a8a59c;
+    --shadow: none;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide interactive chrome that doesn't belong on paper. */
+  .app-header,
+  .sidebar,
+  .toolbar,
+  .skip-to-content,
+  .modal-backdrop,
+  .toast,
+  .case-thumb-fav,
+  .case-thumb-overlay,
+  .modal-loop-controls,
+  .presentation,
+  .hamburger {
+    display: none !important;
+  }
+
+  /* Pull the main content into the page. */
+  .layout {
+    display: block !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .main {
+    padding: 0 !important;
+  }
+
+  /* Cine-loops are interactive canvases — useless on paper. Replace
+     with a labelled placeholder so the printed copy still flags
+     where the imaging would be. */
+  .cine-wrap {
+    background: #f5f5f3 !important;
+    border: 1px solid var(--hairline-strong);
+  }
+  .cine-canvas,
+  .cine-video {
+    display: none !important;
+  }
+  .cine-wrap::after {
+    content: "Imagen ecográfica — ver versión digital";
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    text-align: center;
+    padding: 32px 0;
+  }
+
+  /* Avoid awkward page splits. */
+  .case-card,
+  .featured-card,
+  .modal-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  /* Show link targets next to anchors so the printed page is still
+     useful as a reference. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: var(--ink-mute);
+  }
+}

@@ -45,6 +45,9 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://taote-pocus.example.com
 
+      - name: Bundle size budget
+        run: npm run size:check
+
   e2e:
     name: Playwright e2e
     runs-on: ubuntu-latest

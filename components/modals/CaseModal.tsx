@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
@@ -19,6 +19,7 @@ interface Props {
 export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(true);
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const dateStr = new Date(caso.date).toLocaleDateString("es", {
@@ -29,33 +30,47 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
   const parts = caso.author.split(/\s+/);
   const initials = (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
 
+  // Open the native dialog on mount, close on unmount.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, []);
+
+  // Belt-and-braces Escape — see ConfirmDialog for the why.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
     };
     window.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
+    return () => window.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Click on the dialog element itself = backdrop click = close.
+  const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   return (
-    <div
-      className="modal-backdrop"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      ref={dialogRef}
+      className="case-modal-host"
+      onClose={onClose}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={onClickDialog}
       aria-labelledby="case-modal-title"
       aria-describedby="case-modal-summary"
     >
-      <div
-        className="modal"
-        onClick={(e) => e.stopPropagation()}
-        style={{ position: "relative" }}
-        ref={trapRef}
-      >
+      <div className="modal" style={{ position: "relative" }} ref={trapRef}>
         <button className="modal-close" onClick={onClose} aria-label="Cerrar caso">
           {Icon.close()}
         </button>
@@ -136,6 +151,6 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
