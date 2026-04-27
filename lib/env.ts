@@ -28,11 +28,13 @@ function readUrl(name: string, fallback: string): string {
     new URL(raw);
     return raw.replace(/\/+$/, ""); // strip trailing slash for consistency
   } catch {
+    /* v8 ignore start — only triggered by a misconfigured deployment */
     if (typeof window === "undefined") {
       // Server boot: log and use fallback so the build doesn't die in CI.
       console.warn(`[env] ${name}="${raw}" is not a valid URL — using ${fallback}`);
     }
     return fallback;
+    /* v8 ignore stop */
   }
 }
 
@@ -56,3 +58,53 @@ export const ADMIN_CREDENTIALS = {
 
 /** Convenience: are we running in a production build? */
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Firebase
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// All `NEXT_PUBLIC_FIREBASE_*` values are safe to ship to the client — by
+// design Firebase API keys are not secrets, only Firestore Security Rules
+// are. Setting them up flips `IS_FIREBASE_ENABLED` to true and the repo
+// facade switches to the network backend automatically.
+//
+// If any required field is missing, the app falls back to localStorage so
+// dev / demo work without an account. See `lib/firebase.ts` and ADR-0004.
+
+const firebaseRaw = {
+  apiKey: readString("NEXT_PUBLIC_FIREBASE_API_KEY", ""),
+  authDomain: readString("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", ""),
+  projectId: readString("NEXT_PUBLIC_FIREBASE_PROJECT_ID", ""),
+  storageBucket: readString("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", ""),
+  messagingSenderId: readString("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", ""),
+  appId: readString("NEXT_PUBLIC_FIREBASE_APP_ID", ""),
+};
+
+/** True when every required Firebase field is configured. */
+export const IS_FIREBASE_ENABLED =
+  firebaseRaw.apiKey !== "" &&
+  firebaseRaw.authDomain !== "" &&
+  firebaseRaw.projectId !== "" &&
+  firebaseRaw.appId !== "";
+
+/**
+ * Firebase Web SDK config, ready to pass to `initializeApp`. Always
+ * exported (never `null`) so consumers can pass it; check
+ * `IS_FIREBASE_ENABLED` first to decide whether to initialize.
+ */
+export const FIREBASE_CONFIG = firebaseRaw;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sentry
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Optional. When `NEXT_PUBLIC_SENTRY_DSN` is set, errors and unhandled
+// rejections are forwarded via `lib/log.ts` and the SDK auto-instruments
+// route changes. Empty DSN → SDK is a no-op.
+
+export const SENTRY_DSN = readString("NEXT_PUBLIC_SENTRY_DSN", "");
+export const SENTRY_ENVIRONMENT = readString(
+  "NEXT_PUBLIC_SENTRY_ENV",
+  IS_PRODUCTION ? "production" : "development",
+);
+export const IS_SENTRY_ENABLED = SENTRY_DSN !== "";

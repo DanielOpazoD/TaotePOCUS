@@ -1,13 +1,20 @@
 // Repository facade — single boundary between the UI and persistence.
-// Today every method delegates to the localStorage-backed `Store`.
-// To migrate to Firebase (or any backend), replace the bodies below;
-// the rest of the app does not change because it only sees this module.
 //
-// All methods are async on purpose so swapping in network calls later
-// requires no caller refactor.
+// At runtime the facade dispatches to one of two backends:
+//
+//   - Firebase Auth + Firestore, when `IS_FIREBASE_ENABLED` is true
+//     (see `lib/firebase.ts` and ADR-0004).
+//   - localStorage via `lib/store.ts`, otherwise. This is the dev /
+//     demo default and the path that the unit tests exercise.
+//
+// Components import only `auth`, `cases`, `favs`, `repo`. They never
+// see the dispatch boundary. To migrate fully, drop the local backend
+// entirely and re-route the exports to the firebase modules — but
+// keeping both side by side simplifies dev (no account needed) and
+// gives a clear local fallback if Firebase is misconfigured.
 
 import { Store, type WriteResult } from "./store";
-import { ADMIN_CREDENTIALS } from "./env";
+import { ADMIN_CREDENTIALS, IS_FIREBASE_ENABLED } from "./env";
 import { SEED_CASES } from "./data";
 import { log } from "./log";
 import { AuthError } from "./errors";
@@ -16,11 +23,6 @@ import type { CaseRecord, User } from "./types";
 // Session lifetimes. Admin sessions expire faster — they hold privileges,
 // so the smaller blast radius if the device is left unattended matters
 // more than the convenience of staying logged in.
-//
-// NOTE: this is a mock auth backed by localStorage. A determined user
-// can edit the JSON to forge any role or extend any expiry. Real auth
-// (Firebase Auth / Auth.js / a server session) is the only sound fix.
-// Expiration here mainly limits the blast radius of forgotten devices.
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000; // 8 hours
 const USER_SESSION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -58,16 +60,12 @@ function isValidUser(u: unknown): u is User {
   );
 }
 
-export const auth = {
-  /**
-   * Returns the current session if it exists and hasn't expired.
-   * Auto-clears stale sessions so callers don't need to repeat the
-   * check.
-   */
+// ─── Local (localStorage) backend ─────────────────────────────────────────────
+
+const localAuth = {
   async current(): Promise<User | null> {
     const raw = Store.getUser();
     if (!raw) return null;
-    // Migrate / reject sessions that don't carry the new fields.
     if (!isValidUser(raw)) {
       log.warn("Discarding malformed session", { area: "auth" });
       Store.clearUser();
@@ -80,11 +78,6 @@ export const auth = {
     }
     return raw;
   },
-  /**
-   * Mock login. The admin tier is gated by hardcoded credentials — this
-   * is acceptable for a demo backed by localStorage but MUST be replaced
-   * by real auth (Firebase Auth / Auth.js) before any production use.
-   */
   async login(email: string, password: string, name?: string): Promise<User> {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) {
@@ -115,7 +108,6 @@ export const auth = {
     if (u) log.info("Logout", { area: "auth", email: u.email });
     Store.clearUser();
   },
-  /** Time remaining in the current session (ms). 0 if no session. */
   async msUntilExpiry(): Promise<number> {
     const u = await this.current();
     if (!u) return 0;
@@ -127,24 +119,19 @@ function isDeleted(c: CaseRecord) {
   return Boolean(c.deletedAt);
 }
 
-export const cases = {
-  /** Seed cases shipped with the app (read-only). */
+const localCases = {
   async listSeed(): Promise<CaseRecord[]> {
     return SEED_CASES;
   },
-  /** All admin-authored cases including soft-deleted ones. */
   async listUserRaw(): Promise<CaseRecord[]> {
     return Store.getUserCases();
   },
-  /** Live admin-authored cases (excludes soft-deleted). */
   async listUser(): Promise<CaseRecord[]> {
     return (await this.listUserRaw()).filter((c) => !isDeleted(c));
   },
-  /** Soft-deleted cases — visible to admin only, in the trash view. */
   async listTrashed(): Promise<CaseRecord[]> {
     return (await this.listUserRaw()).filter(isDeleted);
   },
-  /** Combined list as shown in the public UI. Excludes soft-deleted. */
   async listAll(): Promise<CaseRecord[]> {
     const [seed, user] = await Promise.all([this.listSeed(), this.listUser()]);
     return [...user, ...seed];
@@ -154,11 +141,6 @@ export const cases = {
     const next = exists ? current.map((x) => (x.id === c.id ? c : x)) : [c, ...current];
     return Store.setUserCases(next);
   },
-  /**
-   * Soft-delete: marks the case as deleted but keeps the row in storage
-   * so it can be restored. The audit trail (`deletedAt`, `deletedBy`)
-   * is visible from the admin trash view.
-   */
   async remove(id: string, current: CaseRecord[], by?: string): Promise<WriteResult> {
     const stamp = new Date().toISOString();
     const next = current.map((c) =>
@@ -174,7 +156,6 @@ export const cases = {
     log.info("Case restored", { area: "cases", id });
     return Store.setUserCases(next);
   },
-  /** Hard-delete from storage. Use only from the trash view. */
   async purge(id: string, current: CaseRecord[]): Promise<WriteResult> {
     const next = current.filter((c) => c.id !== id);
     log.info("Case purged", { area: "cases", id });
@@ -182,7 +163,7 @@ export const cases = {
   },
 };
 
-export const favs = {
+const localFavs = {
   async list(email?: string | null): Promise<string[]> {
     return Store.getFavs(email);
   },
@@ -195,6 +176,73 @@ export const favs = {
     const result = Store.setFavs(email, next);
     return { result, next };
   },
+};
+
+// ─── Dispatch ────────────────────────────────────────────────────────────────
+//
+// The Firebase backend lives in sibling files. We import lazily so that
+// when the feature flag is off, the firebase JS SDK isn't pulled into
+// the bundle for the dev/demo path.
+
+type AuthRepo = typeof localAuth;
+type CasesRepo = typeof localCases;
+type FavsRepo = typeof localFavs;
+
+let _auth: AuthRepo = localAuth;
+let _cases: CasesRepo = localCases;
+let _favs: FavsRepo = localFavs;
+
+/* v8 ignore start — Firebase dispatch path requires a configured project */
+if (IS_FIREBASE_ENABLED) {
+  // Sync require would force eager bundling; we use import() at module
+  // load and synchronously assign once resolved. There's a brief
+  // microtask window where the local backend answers — in practice the
+  // app awaits hydration before any read, so this is safe.
+  void (async () => {
+    try {
+      const [{ firebaseAuthRepo }, { firebaseCasesRepo }, { firebaseFavsRepo }] = await Promise.all(
+        [import("./firebase-auth"), import("./firebase-cases"), import("./firebase-favs")],
+      );
+      _auth = firebaseAuthRepo;
+      _cases = firebaseCasesRepo;
+      _favs = firebaseFavsRepo;
+      log.info("Firebase backend active", { area: "repo" });
+    } catch (err) {
+      log.error("Failed to load Firebase backend; staying on localStorage", { area: "repo" }, err);
+    }
+  })();
+}
+/* v8 ignore stop */
+
+/**
+ * Auth namespace. Discriminates by `IS_FIREBASE_ENABLED` at boot;
+ * during the brief async window before Firebase loads, the local
+ * backend answers — no observable effect on the UI because hydration
+ * runs after a tick anyway.
+ */
+export const auth = {
+  current: () => _auth.current(),
+  login: (email: string, password: string, name?: string) => _auth.login(email, password, name),
+  logout: () => _auth.logout(),
+  msUntilExpiry: () => _auth.msUntilExpiry(),
+};
+
+export const cases = {
+  listSeed: () => _cases.listSeed(),
+  listUserRaw: () => _cases.listUserRaw(),
+  listUser: () => _cases.listUser(),
+  listTrashed: () => _cases.listTrashed(),
+  listAll: () => _cases.listAll(),
+  save: (c: CaseRecord, current: CaseRecord[]) => _cases.save(c, current),
+  remove: (id: string, current: CaseRecord[], by?: string) => _cases.remove(id, current, by),
+  restore: (id: string, current: CaseRecord[]) => _cases.restore(id, current),
+  purge: (id: string, current: CaseRecord[]) => _cases.purge(id, current),
+};
+
+export const favs = {
+  list: (email?: string | null) => _favs.list(email),
+  toggle: (email: string | null | undefined, id: string, current: string[]) =>
+    _favs.toggle(email, id, current),
 };
 
 export const repo = { auth, cases, favs };

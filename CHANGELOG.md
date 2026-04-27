@@ -9,18 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Firebase Auth + Firestore backend, feature-flagged.** Six `NEXT_PUBLIC_FIREBASE_*` env vars switch the repo facade from localStorage to Firebase without a code change. Local dev stays on localStorage by default. See [ADR-0004](./docs/adr/0004-firebase-as-primary-persistence.md).
+- **Sentry observability, feature-flagged.** `NEXT_PUBLIC_SENTRY_DSN` activates client + server SDKs and source-map upload via `withSentryConfig`. `lib/log.ts` forwards `error` / `warn` to Sentry as captured exceptions, all levels as breadcrumbs. Empty DSN means zero overhead. See [ADR-0005](./docs/adr/0005-observability-with-sentry.md).
+- **Netlify deploy config (`netlify.toml`)** with `@netlify/plugin-nextjs`, security headers, and legacy query-param redirects.
+- **Lighthouse CI** (`.lighthouserc.json` + `npm run lighthouse`) with budgets enforced on every push to `main`: Performance ≥ 0.85, Accessibility ≥ 0.95, Best Practices ≥ 0.9, SEO ≥ 0.95, CLS ≤ 0.1.
 - Project foundation files: `LICENSE`, `CHANGELOG.md`, `.editorconfig`, `.nvmrc`, `.env.example`.
 - `docs/ARCHITECTURE.md` and Architecture Decision Records (`docs/adr/`).
 - GitHub templates: `pull_request_template.md`, `ISSUE_TEMPLATE/{bug,feature}.md`.
-- Typed environment access via `lib/env.ts` — admin credentials configurable via `NEXT_PUBLIC_ADMIN_EMAIL` / `NEXT_PUBLIC_ADMIN_PASSWORD`.
+- Typed environment access via `lib/env.ts` — admin credentials configurable via `NEXT_PUBLIC_ADMIN_EMAIL` / `NEXT_PUBLIC_ADMIN_PASSWORD`. Firebase + Sentry config also typed.
 - Error hierarchy in `lib/errors.ts`: `AuthError`, `StorageError`, `Result<T,E>`.
 - Prettier config + `format` / `format:check` scripts.
 - Husky pre-commit hook + `lint-staged` for format/lint/typecheck on staged files.
 - Vitest setup file with `matchMedia` / `IntersectionObserver` polyfills.
-- Coverage thresholds (≥ 80% in `lib/`).
+- Coverage thresholds (≥ 90% statements, ≥ 80% branches in `lib/`).
 - Bundle analyzer: `npm run analyze`.
 - JSDoc on all public exports of `lib/*` and `hooks/*`.
 - Component reorganization by responsibility (`chrome/`, `cards/`, `modals/`, `cine/`, `admin/`).
+
+### Changed
+
+- `lib/repo.ts` is now a dispatcher that selects between localStorage and Firebase backends at boot based on `IS_FIREBASE_ENABLED`.
+- CSP in `next.config.mjs` allows connections to `*.googleapis.com`, `*.firebaseio.com`, `*.firebaseapp.com`, `*.sentry.io` so the live SDKs work without unsafe-fallback.
+- CI workflow now also runs `format:check` and `test:coverage`; Lighthouse runs on push to `main`.
 
 ### Changed
 

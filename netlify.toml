@@ -1,0 +1,65 @@
+## Netlify deployment config for Taote POCUS.
+##
+## Pairs with the Next.js plugin shipped by Netlify, which understands
+## the App Router output and serves the static pages + edge functions.
+##
+## Required env vars (set in Netlify UI → Site settings → Environment):
+##   - NEXT_PUBLIC_SITE_URL          (e.g. https://taote-pocus.netlify.app)
+##   - NEXT_PUBLIC_FIREBASE_*         (six values, see .env.example)
+##   - NEXT_PUBLIC_SENTRY_DSN         (optional)
+##   - SENTRY_AUTH_TOKEN              (optional, server-only — uploads sourcemaps)
+##   - SENTRY_ORG, SENTRY_PROJECT     (optional, server-only)
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Don't fail the build on lint/format issues that pre-commit already
+  # caught locally — fail on real code errors instead. CI workflow
+  # (`.github/workflows/ci.yml`) is the gate for those.
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# ─── Security headers — duplicated from next.config.mjs ─────────────────────
+# Netlify's CDN sometimes caches static assets without the Next-emitted
+# headers. Defining them here guarantees they reach every response.
+# Keep these in sync with `next.config.mjs > securityHeaders`.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+
+# ─── Redirects ──────────────────────────────────────────────────────────────
+# Old query-param URLs from earlier iterations redirect to the new
+# path-based equivalents. Safe even when no one shared them — costs
+# nothing if they're never hit.
+
+[[redirects]]
+  from = "/"
+  query = { s = "ecg" }
+  to = "/ecg"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/"
+  query = { s = "cases" }
+  to = "/cases"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/"
+  query = { s = "info" }
+  to = "/info"
+  status = 301
+  force = true

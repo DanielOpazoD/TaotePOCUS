@@ -91,15 +91,77 @@ npm run analyze        # Bundle analyzer
 
 ## Variables de entorno
 
-| Variable                     | Required | Default                 | Notes                                               |
-| ---------------------------- | -------- | ----------------------- | --------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`       | no       | `http://localhost:3000` | Used by sitemap.xml, robots.txt, OpenGraph metadata |
-| `NEXT_PUBLIC_ADMIN_EMAIL`    | no       | `admin@taote.pocus`     | Demo admin email. **Replace before production.**    |
-| `NEXT_PUBLIC_ADMIN_PASSWORD` | no       | `admin123`              | Demo admin password. **Replace before production.** |
+Copy `.env.example` to `.env.local` and edit. Every value is optional — the app runs out of the box on the localStorage fallback. Set the Firebase block to activate real auth + persistence; set the Sentry block to activate observability.
 
-Copy `.env.example` to `.env.local` and edit.
+| Variable                                                                             | Required                   | Default                          | Activates                     |
+| ------------------------------------------------------------------------------------ | -------------------------- | -------------------------------- | ----------------------------- |
+| `NEXT_PUBLIC_SITE_URL`                                                               | no                         | `http://localhost:3000`          | Sitemap, robots, OG           |
+| `NEXT_PUBLIC_ADMIN_EMAIL` / `NEXT_PUBLIC_ADMIN_PASSWORD`                             | no (demo only)             | `admin@taote.pocus` / `admin123` | Mock-auth admin credentials   |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` and 5 siblings (see [`.env.example`](./.env.example)) | all six together           | empty                            | **Firebase Auth + Firestore** |
+| `NEXT_PUBLIC_SENTRY_DSN`                                                             | no                         | empty                            | **Sentry** error reporting    |
+| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`                                  | only with DSN, server-only | empty                            | Sentry sourcemap upload       |
 
-> ⚠️ Anything starting with `NEXT_PUBLIC_` is **bundled into the client**. Never put real secrets there. The admin credentials above are intentionally public — this is a mock auth for the demo. Real auth comes from Firebase / Auth.js / your provider.
+> ⚠️ Anything starting with `NEXT_PUBLIC_` is **bundled into the client**. Never put real secrets there. Firebase API keys are public by design — security comes from Firestore Rules, not from secrecy. Sentry DSNs are write-only tokens. Other server-side tokens (`SENTRY_AUTH_TOKEN`) live only in your CI / Netlify env config.
+
+## Activación: Firebase + Sentry + Netlify
+
+The repo ships everything cabled-up but **dormant** behind feature flags. To go from local-only to a real public deploy, you do the cloud-side setup once and paste credentials in. No code changes needed.
+
+### 1. Firebase Auth + Firestore (recommended)
+
+1. **Create the Firebase project**: https://console.firebase.google.com → "Add project". Name it `taote-pocus` or similar.
+2. **Enable Email/Password sign-in**: Authentication → Sign-in method → Email/Password → Enable.
+3. **Create the admin account**: Authentication → Users → Add user. Use the email you'll set as `NEXT_PUBLIC_ADMIN_EMAIL` and a strong password. This account becomes the admin because of the email match — there's no other gating yet.
+4. **Create the Firestore database**: Firestore Database → Create database → Production mode → choose a location near your users (e.g. `southamerica-east1`).
+5. **Apply the security rules**: Firestore → Rules tab. The rules below restrict `cases/*` writes to the admin email and let anyone read public content. Paste and publish:
+
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       function isAdmin() {
+         return request.auth != null
+           && request.auth.token.email == "REPLACE_WITH_ADMIN_EMAIL";
+       }
+       match /cases/{caseId} {
+         allow read: if true;
+         allow write: if isAdmin();
+       }
+       match /favorites/{email} {
+         allow read, write: if request.auth != null
+           && request.auth.token.email == email;
+       }
+     }
+   }
+   ```
+
+6. **Copy the Web SDK config**: Project settings → General → "Your apps" → register a Web app (give it any nickname). Copy the six values from the `firebaseConfig` object.
+7. **Paste into env**: drop the six values into `.env.local` (for local dev) or your Netlify env (for production). The next build / dev start picks them up automatically.
+
+Local verification: open the app, log in as the admin, publish a case → reload → it's still there because it lives in Firestore. Try the same with a non-admin email — the Publish button errors out (rules block).
+
+### 2. Sentry (optional but recommended for production)
+
+1. **Create a Sentry account**: https://sentry.io. Free plan is fine.
+2. **New project**: choose the **Next.js** platform.
+3. **Copy the DSN**: it appears in Project Settings → Client Keys. Looks like `https://abc123@o0.ingest.sentry.io/0`.
+4. **Optional — Sourcemap upload**: Settings → Auth Tokens → create a token with `project:write` scope. Note the org slug and project slug from the URL.
+5. **Paste into env**: `NEXT_PUBLIC_SENTRY_DSN` (and optionally `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` + `SENTRY_PROJECT`).
+
+The SDK initializes only when DSN is set, so leaving it empty is the right answer for local dev.
+
+### 3. Netlify deploy
+
+1. **Connect the repo**: Netlify dashboard → Add new site → Import from Git → pick `TaotePOCUS`.
+2. **Build settings**: Netlify auto-detects Next.js. Confirm the values match [`netlify.toml`](./netlify.toml):
+   - Build command: `npm run build`
+   - Publish directory: `.next`
+   - Node version: `20`
+3. **Environment variables**: Site settings → Environment variables → paste everything from your `.env.local` (Firebase six, Sentry, site URL set to the production domain).
+4. **Plugin**: Netlify automatically installs `@netlify/plugin-nextjs` from `netlify.toml`.
+5. **Deploy**: trigger a deploy from the dashboard. After it succeeds, visit `https://<your-site>/robots.txt` and `https://<your-site>/sitemap.xml` to confirm.
+
+Lighthouse and the security headers are validated by CI on every push to `main` (`.github/workflows/ci.yml`).
 
 ## Rutas
 

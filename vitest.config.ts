@@ -15,6 +15,12 @@ export default defineConfig({
         "**/index.ts", // barrel files have no logic
         "lib/data.ts", // seed dataset, not behavior
         "lib/icons.tsx",
+        // Firebase modules require a configured project (or the emulator
+        // suite) to exercise. Covered by an integration test suite that
+        // is out of scope for `npm test`. Excluded so the unit threshold
+        // reflects the code we actually exercise locally.
+        "lib/firebase.ts",
+        "lib/firebase-*.ts",
       ],
       // Hard floor for `lib/`. CI fails if a PR drops coverage below
       // these without justification — keeps the unit-test contract real.

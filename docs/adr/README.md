@@ -6,11 +6,13 @@ forward.
 
 ## Index
 
-| #    | Title                                                                                 | Status                  |
-| ---- | ------------------------------------------------------------------------------------- | ----------------------- |
-| 0001 | [Mock authentication backed by `localStorage`](./0001-mock-auth-with-localstorage.md) | Accepted (transitional) |
-| 0002 | [URL is the source of truth for view state](./0002-url-driven-state.md)               | Accepted                |
-| 0003 | [Repository facade between UI and persistence](./0003-repository-facade.md)           | Accepted                |
+| #    | Title                                                                                          | Status                                             |
+| ---- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| 0001 | [Mock authentication backed by `localStorage`](./0001-mock-auth-with-localstorage.md)          | Accepted (transitional, partly superseded by 0004) |
+| 0002 | [URL is the source of truth for view state](./0002-url-driven-state.md)                        | Accepted                                           |
+| 0003 | [Repository facade between UI and persistence](./0003-repository-facade.md)                    | Accepted (extended by 0004)                        |
+| 0004 | [Firebase as primary persistence (feature-flagged)](./0004-firebase-as-primary-persistence.md) | Accepted                                           |
+| 0005 | [Observability with Sentry](./0005-observability-with-sentry.md)                               | Accepted                                           |
 
 ## How to add an ADR
 

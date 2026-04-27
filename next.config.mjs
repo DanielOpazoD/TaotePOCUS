@@ -1,9 +1,10 @@
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // Security headers applied to all routes. Tuned for a public, mostly-
 // static educational site — strict CSP, no third-party iframes, deny
-// embedding, no MIME sniffing. Adjust the connect-src/img-src lists if
-// you add Firebase, Cloudinary, analytics, etc.
+// embedding, no MIME sniffing. Hosts allowed in connect-src cover
+// Firebase Auth + Firestore + Sentry; remove what you don't use.
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
@@ -17,7 +18,17 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
       "media-src 'self' data: blob: https:",
-      "connect-src 'self'",
+      [
+        "connect-src 'self'",
+        // Firebase
+        "https://*.googleapis.com",
+        "https://*.firebaseio.com",
+        "https://*.firebaseapp.com",
+        "wss://*.firebaseio.com",
+        // Sentry
+        "https://*.sentry.io",
+        "https://*.ingest.sentry.io",
+      ].join(" "),
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -62,4 +73,23 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-export default withBundleAnalyzer(nextConfig);
+// Wrap with Sentry only when a DSN is present. The wrapper is heavier
+// than the plain SDK init (it injects route instrumentation, source-map
+// uploads, etc.) so we skip it entirely on dev / demo paths.
+const baseConfig = withBundleAnalyzer(nextConfig);
+
+const sentryEnabled = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN);
+
+export default sentryEnabled
+  ? withSentryConfig(baseConfig, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      // Suppress sourcemap upload errors when the auth token is missing
+      // (e.g. on contributor builds). Real prod CI sets SENTRY_AUTH_TOKEN.
+      silent: !process.env.SENTRY_AUTH_TOKEN,
+      // Don't add the Sentry tunnel route — it requires server config
+      // we don't have on a static export.
+      tunnelRoute: undefined,
+      disableLogger: true,
+    })
+  : baseConfig;
