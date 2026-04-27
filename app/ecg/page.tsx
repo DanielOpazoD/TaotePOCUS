@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import App from "@/components/App";
+import { pageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "ECG",
   description: "Electrocardiogramas con interpretación clínica y razonamiento.",
-  alternates: { canonical: "/ecg" },
-};
+  path: "/ecg",
+});
 
 export default function Page() {
   return (

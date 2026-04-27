@@ -1,7 +1,7 @@
 "use client";
 
 import { CategoryGlyph } from "@/lib/icons";
-import type { Category, CategoryId } from "@/lib/types";
+import type { CategoryId, CategoryWithCount } from "@/lib/types";
 
 interface Props {
   activeCat: CategoryId | null;
@@ -9,7 +9,7 @@ interface Props {
   activeTags: string[];
   toggleTag: (t: string) => void;
   totalCount: number;
-  categories: Category[];
+  categories: CategoryWithCount[];
   tags: string[];
 }
 

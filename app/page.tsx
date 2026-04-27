@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import App from "@/components/App";
+import { pageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Atlas POCUS",
   description:
     "Imágenes y videos ecográficos por tema: cardíaco, pulmonar, abdominal, FAST, vascular, obstétrico, procedimientos.",
-  alternates: { canonical: "/" },
-};
+  path: "/",
+});
 
 export default function Page() {
   return (

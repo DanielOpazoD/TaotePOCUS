@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import App from "@/components/App";
+import { pageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Casos clínicos",
   description: "Historias clínicas integradas con razonamiento y hallazgos POCUS.",
-  alternates: { canonical: "/cases" },
-};
+  path: "/cases",
+});
 
 export default function Page() {
   return (

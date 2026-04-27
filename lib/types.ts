@@ -19,6 +19,14 @@ export type CategoryId =
 export interface Category {
   id: CategoryId;
   label: string;
+}
+
+/**
+ * `Category` enriched with the number of cases that fall under it
+ * within a given scope. Computed by `useCaseFilters` and consumed by
+ * the sidebar — never stored, always derived.
+ */
+export interface CategoryWithCount extends Category {
   count: number;
 }
 
@@ -59,7 +67,12 @@ export interface CaseRecord {
   category: CategoryId;
   tags: string[];
   modality: string;
-  loop: LoopKind | string;
+  /**
+   * Identifies the synthetic cine-loop scene to render when no real
+   * media is attached. The narrow union is enforced — adding a new
+   * scene means extending `LoopKind` here AND `cineScenes.drawScene`.
+   */
+  loop: LoopKind;
   author: string;
   role: string;
   date: string;
@@ -67,7 +80,8 @@ export interface CaseRecord {
   diagnosis: string;
   summary: string;
   featured?: boolean;
-  media?: Media | null;
+  /** Optional uploaded media. Absence (undefined) means "use the synthetic loop". */
+  media?: Media;
   // Soft-delete metadata. Audit trail visible to admins; hidden from
   // public views. The case record stays in storage so a deletion can
   // be reverted without losing the underlying media.

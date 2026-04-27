@@ -41,8 +41,8 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
     category: "cardiac",
     tags: [],
     modality: "",
-    loop: "blines" as LoopKind,
-    media: null,
+    loop: "blines",
+    media: undefined,
     author: currentUser?.name || "Administrador",
     role: "Administrador",
     date: new Date().toISOString().slice(0, 10),
@@ -140,8 +140,22 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
 
           <div className="admin-form-grid">
             <div className="admin-form-media">
-              <label className="admin-label">Imagen / Video / GIF</label>
-              <div className="admin-uploader" onClick={() => fileRef.current?.click()}>
+              <label className="admin-label" htmlFor="case-media-upload">
+                Imagen / Video / GIF
+              </label>
+              <div
+                className="admin-uploader"
+                onClick={() => fileRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileRef.current?.click();
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Seleccionar archivo de imagen, video o GIF"
+              >
                 {form.media ? (
                   form.media.kind === "video" ? (
                     <video
@@ -163,6 +177,7 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
                   </div>
                 )}
                 <input
+                  id="case-media-upload"
                   ref={fileRef}
                   type="file"
                   accept="image/*,video/*"
@@ -176,7 +191,7 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
                   <button
                     type="button"
                     className="link-btn"
-                    onClick={() => update({ media: null })}
+                    onClick={() => update({ media: undefined })}
                   >
                     Quitar
                   </button>

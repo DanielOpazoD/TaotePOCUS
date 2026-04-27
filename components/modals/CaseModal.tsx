@@ -48,6 +48,7 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
       role="dialog"
       aria-modal="true"
       aria-labelledby="case-modal-title"
+      aria-describedby="case-modal-summary"
     >
       <div
         className="modal"
@@ -103,7 +104,7 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
             </div>
             <div className="modal-section">
               <h5>Resumen del caso</h5>
-              <p>{caso.summary}</p>
+              <p id="case-modal-summary">{caso.summary}</p>
             </div>
             <div className="modal-section">
               <h5>Hallazgos ecográficos</h5>

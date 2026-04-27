@@ -1,0 +1,35 @@
+{
+  // Format on save — matches what the pre-commit hook does, but you
+  // see the result immediately instead of waiting for git.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
+  },
+
+  // TypeScript: prefer the workspace version over VS Code's bundled one
+  // so editor and CLI agree.
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  // ESLint flat config is the future; opt in.
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+
+  // Tests: enable inline run buttons.
+  "vitest.enable": true,
+
+  // Hide build artifacts and machine-managed output from the file tree.
+  "files.exclude": {
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/node_modules": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/test-results": true,
+    "**/.husky/_": true
+  },
+
+  // Stash mode: never auto-save unsaved files.
+  "files.autoSave": "off"
+}

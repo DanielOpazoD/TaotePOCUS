@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import App from "@/components/App";
+import { pageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Panel de administración",
   description: "Subir, editar y gestionar casos publicados.",
-  alternates: { canonical: "/admin" },
-  robots: { index: false, follow: false },
-};
+  path: "/admin",
+  noindex: true,
+});
 
 export default function Page() {
   return (

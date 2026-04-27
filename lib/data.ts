@@ -8,14 +8,14 @@ export const SECTIONS: Section[] = [
 ];
 
 export const CATEGORIES: Category[] = [
-  { id: "cardiac", label: "Cardíaco", count: 0 },
-  { id: "lung", label: "Pulmonar", count: 0 },
-  { id: "abdominal", label: "Abdominal", count: 0 },
-  { id: "fast", label: "FAST / Trauma", count: 0 },
-  { id: "vascular", label: "Vascular", count: 0 },
-  { id: "ob", label: "Obstétrico", count: 0 },
-  { id: "ms", label: "Musculoesquelético", count: 0 },
-  { id: "proc", label: "Procedimientos", count: 0 },
+  { id: "cardiac", label: "Cardíaco" },
+  { id: "lung", label: "Pulmonar" },
+  { id: "abdominal", label: "Abdominal" },
+  { id: "fast", label: "FAST / Trauma" },
+  { id: "vascular", label: "Vascular" },
+  { id: "ob", label: "Obstétrico" },
+  { id: "ms", label: "Musculoesquelético" },
+  { id: "proc", label: "Procedimientos" },
 ];
 
 export const COMMON_TAGS = [

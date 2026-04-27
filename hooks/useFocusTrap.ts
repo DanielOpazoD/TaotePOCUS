@@ -44,10 +44,13 @@ export function useFocusTrap<T extends HTMLElement>(active: boolean) {
     if (!container) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
-    // Move focus into the dialog if it isn't already there.
+    // Move focus into the dialog if it isn't already there. We exclude
+    // disabled and `hidden`-attribute elements, but not `display:none`
+    // ones — relying on layout (`offsetParent`) breaks in jsdom/happy-dom
+    // and the practical risk inside a modal is low.
     const focusables = () =>
       Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-        (el) => !el.hasAttribute("disabled") && el.offsetParent !== null,
+        (el) => !el.hasAttribute("disabled") && !el.hasAttribute("hidden"),
       );
 
     const initial = focusables();

@@ -6,6 +6,7 @@
 // richer behavior can override on a per-suite basis.
 
 import { afterEach, beforeEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
 
 // ─── matchMedia ───────────────────────────────────────────────────────────
 if (!window.matchMedia) {
@@ -55,6 +56,10 @@ if (!("ResizeObserver" in window)) {
 // mounts one DOM. Clear after each test so suites stay independent
 // regardless of order.
 afterEach(() => {
+  // RTL doesn't auto-cleanup with the Vitest runner — explicit unmount
+  // here keeps each test's DOM independent. Without this, querying by
+  // data-testid finds elements from previous tests.
+  cleanup();
   localStorage.clear();
   sessionStorage.clear();
   vi.clearAllMocks();

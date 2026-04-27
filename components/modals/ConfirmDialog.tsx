@@ -50,13 +50,14 @@ export default function ConfirmDialog({
     <div
       className="modal-backdrop"
       onClick={onCancel}
-      role="dialog"
+      role="alertdialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
+      aria-describedby={message ? "confirm-message" : undefined}
     >
       <div className="auth-modal confirm-dialog" onClick={(e) => e.stopPropagation()} ref={trapRef}>
         <h2 id="confirm-title">{title}</h2>
-        {message && <p>{message}</p>}
+        {message && <p id="confirm-message">{message}</p>}
         <div className="confirm-actions">
           <button type="button" className="btn-ghost" onClick={onCancel} autoFocus>
             {cancelLabel}

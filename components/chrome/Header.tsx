@@ -79,11 +79,12 @@ export default function Header({
             </Link>
           )}
         </nav>
-        <div className="header-search">
+        <div className="header-search" role="search">
           <Icon.search />
           <input
-            type="text"
+            type="search"
             placeholder="Buscar casos, hallazgos, etiquetas…"
+            aria-label="Buscar casos, hallazgos y etiquetas"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

@@ -1,14 +1,13 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import App from "@/components/App";
+import { pageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Tu colección",
   description: "Casos guardados para revisar más tarde.",
-  alternates: { canonical: "/favoritos" },
-  // Personal collection — don't index.
-  robots: { index: false, follow: false },
-};
+  path: "/favoritos",
+  noindex: true,
+});
 
 export default function Page() {
   return (

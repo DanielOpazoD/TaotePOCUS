@@ -10,7 +10,7 @@ interface Props {
   speed?: number;
   paused?: boolean;
   showChrome?: boolean;
-  media?: Media | null;
+  media?: Media;
   /**
    * "thumb"  — clamps DPR to 1 to keep many cards in the grid cheap.
    * "full"   — clamps DPR to 2 for the modal/presentation where quality matters.
@@ -25,7 +25,7 @@ export default function CineLoop({
   speed = 1,
   paused = false,
   showChrome = true,
-  media = null,
+  media,
   quality = "thumb",
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
