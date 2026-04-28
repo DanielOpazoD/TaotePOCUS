@@ -191,7 +191,11 @@ dialog.case-modal-host[open] {
 }
 .modal-body h2 {
   font-family: var(--serif);
-  font-size: 30px;
+  /* Variable font: at h2 sizes the medium optical drawing reads
+     better than the display drawing (which is too narrow). Fluid
+     size via the global token scale. */
+  font-variation-settings: var(--serif-h2);
+  font-size: var(--fs-h2);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.02em;

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { CategoryGlyph } from "@/lib/icons";
+import { useCountUp } from "@/hooks/useCountUp";
 import type { CaseRecord, CategoryId, View } from "@/lib/types";
 import type { PageHead } from "@/lib/headers";
 
@@ -86,6 +87,12 @@ function AtlasHero({
   // legítima: si no publicas, la línea cae.
   const sparkPoints = useMemo(() => buildSparkline(cases, 6), [cases]);
 
+  // Number count-up: stats animate from 0 → target the first time the
+  // hero scrolls into view. Vercel / Linear / Stripe pattern — snaps
+  // to final value under reduced motion.
+  const totalCount = useCountUp<HTMLElement>(stats.total);
+  const catsCount = useCountUp<HTMLElement>(stats.cats);
+
   const featured = useMemo<CaseRecord | null>(
     () => cases.find((c) => c.featured) ?? cases[0] ?? null,
     [cases],
@@ -104,11 +111,11 @@ function AtlasHero({
         <dl className="hero-stats" aria-label="Resumen de la sección">
           <div>
             <dt>Casos</dt>
-            <dd>{stats.total}</dd>
+            <dd ref={totalCount.ref}>{totalCount.value}</dd>
           </div>
           <div>
             <dt>Categorías</dt>
-            <dd>{stats.cats}</dd>
+            <dd ref={catsCount.ref}>{catsCount.value}</dd>
           </div>
           <div>
             <dt>Actualizado</dt>

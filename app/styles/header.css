@@ -137,45 +137,60 @@
   gap: 6px;
   transition: color var(--duration-fast) ease;
 }
-.nav a::after {
-  /* Animated underline. Each link draws its own; the active one
-     shows it. View-transition-name on the active underline lets the
-     browser cross-fade the indicator between links during route
-     changes — falls back to opacity transition on Firefox. */
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 4px;
-  height: 2px;
-  background: var(--ink);
-  border-radius: 2px;
-  opacity: 0;
-  transform: scaleX(0.4);
-  transform-origin: center;
-  transition:
-    opacity var(--duration-base) var(--ease-emphasized),
-    transform var(--duration-base) var(--ease-emphasized);
-}
-.nav a:hover::after {
-  opacity: 0.35;
-  transform: scaleX(0.7);
+.nav a:hover {
+  color: var(--ink);
 }
 .nav a.active {
   color: var(--ink);
 }
-.nav a.active::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-@supports (view-transition-name: nav-active) {
-  .nav a.active::after {
-    view-transition-name: nav-active;
-  }
-}
 .nav {
   display: flex;
   gap: var(--space-1);
+  position: relative;
+  /* Hosting context for the magnetic indicator below. */
+}
+
+/* Magnetic underline. A single floating bar that anchors under the
+   active link and slides to whatever link the cursor is over. Spring
+   easing gives it a subtle Apple rebound at the end of each move.
+   Falls back gracefully: when no JS positions are computed yet (SSR,
+   hydration, or no active link), the indicator stays hidden via the
+   .is-visible toggle. */
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  height: 2px;
+  width: var(--ind-w, 0);
+  transform: translate3d(var(--ind-x, 0), 0, 0);
+  background: var(--ink);
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition:
+    transform 0.45s var(--ease-spring),
+    width 0.45s var(--ease-spring),
+    opacity var(--duration-base) ease;
+}
+.nav-indicator.is-visible {
+  opacity: 1;
+}
+
+/* View-transition handoff on route change so the indicator morphs
+   between sections rather than fading. The browser uses the same
+   `nav-active` snapshot for the indicator before/after the route
+   swap — supported in Chrome/Safari, no-op in Firefox. */
+@supports (view-transition-name: nav-active) {
+  .nav-indicator {
+    view-transition-name: nav-active;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-indicator {
+    transition: opacity var(--duration-base) ease;
+  }
 }
 .nav button {
   background: transparent;

@@ -1,16 +1,27 @@
 :root {
-  /* light (default) */
-  --bg: #fafaf7;
-  --bg-translucent: rgba(250, 250, 247, 0.92);
-  --surface: #ffffff;
-  --surface-2: #f4f3ef;
-  --input-bg: #ffffff;
-  --ink: #15171a;
-  --ink-hover: #2a2d33;
-  --ink-soft: #4a4d52;
-  --ink-mute: #8b8e93;
-  --hairline: #e6e4dd;
-  --hairline-strong: #d2cfc6;
+  /* light (default)
+   *
+   * All color values now live in OKLCH. Benefits:
+   *   - perceptually uniform — equal lightness deltas read as equal
+   *     to the eye (unlike sRGB hex)
+   *   - no "muddy gray middle" when interpolating two colors
+   *   - color-mix() generates clean hover/active states programmatically
+   *   - wider gamut on P3 displays (Apple/Pixel) when channels exceed sRGB
+   *
+   * The neutral hues sit at hue ~250 (cool) for inks and ~90 (warm) for
+   * surfaces — tiny chroma keeps them off pure gray, which makes the
+   * page feel like printed paper rather than a Figma fill. */
+  --bg: oklch(0.984 0.003 90);
+  --bg-translucent: oklch(0.984 0.003 90 / 0.92);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.004 90);
+  --input-bg: oklch(1 0 0);
+  --ink: oklch(0.198 0.005 254);
+  --ink-hover: oklch(0.298 0.008 254);
+  --ink-soft: oklch(0.453 0.007 254);
+  --ink-mute: oklch(0.655 0.005 254);
+  --hairline: oklch(0.922 0.006 90);
+  --hairline-strong: oklch(0.853 0.008 90);
   --accent: oklch(0.52 0.08 220);
   --accent-soft: oklch(0.96 0.02 220);
   --accent-ink: oklch(0.32 0.08 220);
@@ -19,7 +30,7 @@
   --signal: oklch(0.62 0.12 145); /* verde señal — ECG */
   --editorial: oklch(0.55 0.1 35); /* cálido editorial — casos */
   --poster: oklch(0.5 0.1 285); /* índigo — infografías */
-  --shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(20, 30, 50, 0.08);
+  --shadow: 0 1px 0 oklch(0.198 0.005 254 / 0.04), 0 8px 24px -12px oklch(0.198 0.005 254 / 0.08);
 
   /* Layered shadow scale — three stops in physical proximity.
      Each token stacks 3-4 shadows so the falloff feels like natural
@@ -27,19 +38,35 @@
        --shadow-1 — hairline contact (resting cards, inputs)
        --shadow-2 — lift (hover state, floating chips, toasts)
        --shadow-3 — float (modals, drawers, presentation overlay) */
-  --shadow-1: 0 1px 1px rgba(15, 17, 21, 0.04), 0 2px 4px rgba(15, 17, 21, 0.04);
+  --shadow-1: 0 1px 1px oklch(0.198 0.005 254 / 0.04), 0 2px 4px oklch(0.198 0.005 254 / 0.04);
   --shadow-2:
-    0 1px 1px rgba(15, 17, 21, 0.04), 0 4px 8px rgba(15, 17, 21, 0.04),
-    0 8px 16px rgba(15, 17, 21, 0.05);
+    0 1px 1px oklch(0.198 0.005 254 / 0.04), 0 4px 8px oklch(0.198 0.005 254 / 0.04),
+    0 8px 16px oklch(0.198 0.005 254 / 0.05);
   --shadow-3:
-    0 1px 1px rgba(15, 17, 21, 0.05), 0 4px 8px rgba(15, 17, 21, 0.05),
-    0 16px 32px rgba(15, 17, 21, 0.06), 0 32px 64px rgba(15, 17, 21, 0.08);
+    0 1px 1px oklch(0.198 0.005 254 / 0.05), 0 4px 8px oklch(0.198 0.005 254 / 0.05),
+    0 16px 32px oklch(0.198 0.005 254 / 0.06), 0 32px 64px oklch(0.198 0.005 254 / 0.08);
 
-  --skeleton: linear-gradient(90deg, #e9e7e0 0%, #f4f3ef 50%, #e9e7e0 100%);
+  --skeleton: linear-gradient(
+    90deg,
+    oklch(0.93 0.005 90) 0%,
+    oklch(0.965 0.004 90) 50%,
+    oklch(0.93 0.005 90) 100%
+  );
 
   --serif: "Newsreader", Georgia, serif;
   --sans: "IBM Plex Sans", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Variable-font axis presets for Newsreader. The font ships an
+     `opsz` (optical size) axis from 6 to 72 and a `wght` axis from
+     400 to 700. Pick a preset per usage so display sizes get the
+     sharper, narrower drawing and small body sizes get the sturdier,
+     more readable one. */
+  --serif-display: "opsz" 60, "wght" 480;
+  --serif-h1: "opsz" 38, "wght" 500;
+  --serif-h2: "opsz" 26, "wght" 500;
+  --serif-h3: "opsz" 20, "wght" 500;
+  --serif-body: "opsz" 14, "wght" 420;
 
   /* Spacing scale — multiples of 4. Use these instead of magic
      numbers in new CSS. Existing rules will migrate gradually. */
@@ -52,6 +79,17 @@
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
+
+  /* Fluid typographic scale. Each token is a `clamp(min, fluid, max)`
+     — adios to media queries for typography. Values calibrated so the
+     desktop max matches the previous hardcoded sizes; the floor keeps
+     phones legible without forcing micro-text. */
+  --fs-display: clamp(40px, 6vw, 72px); /* CasesHero h1 */
+  --fs-h1: clamp(28px, 1.6vw + 24px, 38px); /* hero h1 */
+  --fs-h2: clamp(22px, 0.8vw + 20px, 30px); /* modal h2 */
+  --fs-h3: clamp(16px, 0.3vw + 15px, 18px); /* card titles */
+  --fs-body: clamp(14px, 0.2vw + 13.5px, 16px); /* prose body */
+  --fs-small: clamp(11px, 0.15vw + 10.5px, 13px); /* meta / mono */
 
   /* Border radii. Larger values are deliberate exceptions (modals). */
   --radius-sm: 3px;
@@ -66,6 +104,11 @@
   --duration-slow: 0.25s;
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Spring (overshoot). Used for hover lifts and the magnetic nav
+     indicator — gives a subtle Apple-style rebound at the end of the
+     motion. Don't use for everything; reserve for moments that should
+     feel "alive". */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Z-index scale. Avoid raw numbers; pick from this scale. */
   --z-sticky: 50;
@@ -76,17 +119,17 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0e1013;
-  --bg-translucent: rgba(14, 16, 19, 0.85);
-  --surface: #16191e;
-  --surface-2: #1d2025;
-  --input-bg: #1d2025;
-  --ink: #e8eaed;
-  --ink-hover: #d8dadd;
-  --ink-soft: #b0b3b8;
-  --ink-mute: #71757b;
-  --hairline: #262930;
-  --hairline-strong: #363941;
+  --bg: oklch(0.157 0.005 254);
+  --bg-translucent: oklch(0.157 0.005 254 / 0.85);
+  --surface: oklch(0.205 0.006 254);
+  --surface-2: oklch(0.244 0.006 254);
+  --input-bg: oklch(0.244 0.006 254);
+  --ink: oklch(0.918 0.004 254);
+  --ink-hover: oklch(0.866 0.004 254);
+  --ink-soft: oklch(0.738 0.005 254);
+  --ink-mute: oklch(0.53 0.007 254);
+  --hairline: oklch(0.29 0.007 254);
+  --hairline-strong: oklch(0.385 0.007 254);
   --accent: oklch(0.72 0.1 220);
   --accent-soft: oklch(0.3 0.06 220);
   --accent-ink: oklch(0.82 0.08 220);
@@ -95,18 +138,23 @@
   --signal: oklch(0.75 0.15 145);
   --editorial: oklch(0.72 0.12 35);
   --poster: oklch(0.7 0.13 285);
-  --shadow: 0 1px 0 rgba(0, 0, 0, 0.5), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow: 0 1px 0 oklch(0 0 0 / 0.5), 0 8px 24px -12px oklch(0 0 0 / 0.6);
 
   /* Dark-mode layered shadows. Higher opacities because dark
      surfaces hide subtle shadows. Same three-step rhythm. */
-  --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-1: 0 1px 1px oklch(0 0 0 / 0.4), 0 2px 4px oklch(0 0 0 / 0.3);
   --shadow-2:
-    0 1px 1px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.4);
+    0 1px 1px oklch(0 0 0 / 0.4), 0 4px 8px oklch(0 0 0 / 0.4), 0 8px 16px oklch(0 0 0 / 0.4);
   --shadow-3:
-    0 1px 1px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.5), 0 16px 32px rgba(0, 0, 0, 0.6),
-    0 32px 64px rgba(0, 0, 0, 0.7);
+    0 1px 1px oklch(0 0 0 / 0.5), 0 4px 8px oklch(0 0 0 / 0.5), 0 16px 32px oklch(0 0 0 / 0.6),
+    0 32px 64px oklch(0 0 0 / 0.7);
 
-  --skeleton: linear-gradient(90deg, #1a1d22 0%, #22262c 50%, #1a1d22 100%);
+  --skeleton: linear-gradient(
+    90deg,
+    oklch(0.22 0.006 254) 0%,
+    oklch(0.27 0.006 254) 50%,
+    oklch(0.22 0.006 254) 100%
+  );
 }
 
 /* Single source of truth for the dark theme is [data-theme="dark"] above.

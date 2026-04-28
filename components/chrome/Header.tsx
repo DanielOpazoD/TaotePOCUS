@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { viewToPath } from "@/lib/url";
@@ -85,6 +85,58 @@ export default function Header({
     return () => window.removeEventListener("scroll", update);
   }, []);
 
+  // Magnetic nav underline. A single floating indicator sits below
+  // the nav links and slides between them with spring easing. By
+  // default it's anchored under the active link; on hover it follows
+  // the cursor's nearest link. On leave it springs back. The
+  // `view-transition-name` already wired into CSS keeps the indicator
+  // consistent across route changes.
+  const navRef = useRef<HTMLElement>(null);
+  const [indicator, setIndicator] = useState<{ x: number; w: number; visible: boolean }>({
+    x: 0,
+    w: 0,
+    visible: false,
+  });
+
+  const recomputeFromActive = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const active = nav.querySelector<HTMLAnchorElement>("a.active");
+    if (!active) {
+      setIndicator((prev) => ({ ...prev, visible: false }));
+      return;
+    }
+    const navBox = nav.getBoundingClientRect();
+    const box = active.getBoundingClientRect();
+    // Match the previous ::after underline padding (left/right 14px)
+    // so the new indicator lines up with where the underline used to be.
+    setIndicator({ x: box.left - navBox.left + 14, w: box.width - 28, visible: true });
+  }, []);
+
+  // Layout-effect so the indicator paints in its correct spot on the
+  // first frame — no fade-in flicker on initial render or route swap.
+  useLayoutEffect(() => {
+    recomputeFromActive();
+  }, [view, favCount, isAdmin, recomputeFromActive]);
+
+  // Recompute on viewport resize — link bboxes change when the nav
+  // wraps or the search field stretches.
+  useEffect(() => {
+    const onResize = () => recomputeFromActive();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [recomputeFromActive]);
+
+  const onNavMove = (e: React.PointerEvent<HTMLElement>) => {
+    const link = (e.target as HTMLElement | null)?.closest?.("a");
+    const nav = navRef.current;
+    if (!link || !nav || !nav.contains(link)) return;
+    const navBox = nav.getBoundingClientRect();
+    const box = (link as HTMLAnchorElement).getBoundingClientRect();
+    setIndicator({ x: box.left - navBox.left + 14, w: box.width - 28, visible: true });
+  };
+  const onNavLeave = () => recomputeFromActive();
+
   return (
     <header className="app-header" ref={headerRef}>
       <div className="header-inner">
@@ -119,7 +171,13 @@ export default function Header({
           </span>
           <span className="brand-tag">ES</span>
         </Link>
-        <nav className="nav" aria-label="Secciones">
+        <nav
+          className="nav"
+          aria-label="Secciones"
+          ref={navRef}
+          onPointerMove={onNavMove}
+          onPointerLeave={onNavLeave}
+        >
           {SECTIONS.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
@@ -149,6 +207,16 @@ export default function Header({
               Administrar
             </Link>
           )}
+          <span
+            className={`nav-indicator${indicator.visible ? " is-visible" : ""}`}
+            aria-hidden="true"
+            style={
+              {
+                "--ind-x": `${indicator.x}px`,
+                "--ind-w": `${indicator.w}px`,
+              } as React.CSSProperties
+            }
+          />
         </nav>
         <div className="header-search" role="search">
           <Icon.search />

@@ -232,7 +232,12 @@
   flex-direction: column;
   gap: var(--space-3);
   cursor: pointer;
-  transition: transform 0.18s ease;
+  /* Spring overshoot on the lift — the card "rebotes" subtly at the
+     top of its travel, the way Apple cards do. The shadow transition
+     stays on a calm cubic ease so the depth doesn't bounce too. */
+  transition:
+    transform 0.4s var(--ease-spring),
+    box-shadow 0.18s ease;
   background: transparent;
   border: none;
   padding: 0;
@@ -240,7 +245,15 @@
   font-family: inherit;
 }
 .case-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-card {
+    transition: none;
+  }
+  .case-card:hover {
+    transform: none;
+  }
 }
 .case-card:hover .case-thumb {
   /* Card lift: layered shadow simulating natural light falloff,

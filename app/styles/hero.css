@@ -13,6 +13,7 @@
 .hero {
   margin-bottom: var(--space-6);
   position: relative;
+  isolation: isolate;
 }
 
 .hero .crumb {
@@ -37,7 +38,12 @@
 .hero h1 {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: 38px;
+  /* Variable-font axis: at 38px we want the display drawing of
+     Newsreader with slightly lighter weight — sharper terminals,
+     more letter contrast. Falls back silently for fixed-instance
+     fonts. */
+  font-variation-settings: var(--serif-h1);
+  font-size: var(--fs-h1);
   letter-spacing: -0.025em;
   margin: 0 0 4px;
   line-height: 1.05;
@@ -85,8 +91,59 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-6);
   align-items: end;
-  padding-bottom: var(--space-5);
+  padding: var(--space-3) 0 var(--space-5);
   border-bottom: 1px solid var(--hairline);
+  position: relative;
+}
+
+/* Aurora mesh — three soft radial gradients drift slowly behind the
+   hero text. Stripe / Vercel use this pattern on landing pages; here
+   it stays editorial because it sits at low opacity behind a serif
+   title and is heavily blurred. The colors come from --section-accent
+   so the mood matches the route. The drift is a 60s slow ease so it
+   never grabs attention. */
+.hero--atlas::before {
+  content: "";
+  position: absolute;
+  inset: -60px -40px -40px -40px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.6;
+  background:
+    radial-gradient(
+      40% 60% at 12% 30%,
+      color-mix(in oklch, var(--section-accent, var(--accent)) 10%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      45% 55% at 78% 18%,
+      color-mix(in oklch, var(--section-accent, var(--accent)) 7%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      55% 70% at 50% 110%,
+      color-mix(in oklch, var(--section-accent, var(--accent)) 8%, transparent),
+      transparent 75%
+    );
+  filter: blur(40px) saturate(1.1);
+  animation: aurora-drift 60s ease-in-out infinite;
+}
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(2%, -2%) scale(1.04);
+  }
+  66% {
+    transform: translate(-2%, 2%) scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero--atlas::before {
+    animation: none;
+  }
 }
 .hero--atlas .hero-stats {
   display: flex;
@@ -109,6 +166,7 @@
 }
 .hero--atlas .hero-stats dd {
   font-family: var(--serif);
+  font-variation-settings: var(--serif-h2);
   font-size: 26px;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -287,16 +345,41 @@
 }
 .hero-cases-title {
   font-family: var(--serif);
-  font-size: clamp(40px, 6vw, 72px);
+  /* Display-drawing of Newsreader at maximum optical size. Lighter
+     weight reads as more elegant when the type is this big. */
+  font-variation-settings: var(--serif-display);
+  font-size: var(--fs-display);
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 0.96;
   margin: 0;
+  /* Gradient text — the title fades from full ink at the top to ~65%
+     ink at the bottom, mixed against bg in OKLCH so the falloff stays
+     perceptually even (no muddy gray middle). Supported everywhere
+     that ships -webkit-background-clip; falls back to solid ink. */
   color: var(--ink);
+  background: linear-gradient(
+    180deg,
+    var(--ink) 0%,
+    color-mix(in oklch, var(--ink) 65%, var(--bg)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .hero-cases-title em {
   font-style: italic;
+  /* Italic accent gets its own gradient using the section accent so
+     it pops against the ink-graded surrounding text. */
   color: var(--section-accent-ink, var(--ink));
+  background: linear-gradient(
+    180deg,
+    var(--section-accent, var(--ink)) 0%,
+    color-mix(in oklch, var(--section-accent, var(--ink)) 70%, var(--bg)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .hero-cases-accent {
   position: relative;
@@ -315,6 +398,11 @@
 }
 .hero-cases-lede {
   font-family: var(--serif);
+  /* Body-drawing of Newsreader at 17px — sturdier strokes for
+     reading at this size than the display drawing. */
+  font-variation-settings:
+    "opsz" 17,
+    "wght" 440;
   font-size: 17px;
   line-height: 1.55;
   color: var(--ink-soft);
@@ -342,6 +430,32 @@
   opacity: 0.85;
   mask-image: linear-gradient(to left, black 60%, transparent 100%);
   -webkit-mask-image: linear-gradient(to left, black 60%, transparent 100%);
+}
+
+/* Scroll-driven parallax on the info poster. As the hero enters and
+   leaves the viewport the backdrop drifts at a different pace from
+   the text, giving a magazine-spread depth effect — zero JS, purely
+   declarative. The `view()` timeline ties the animation progress to
+   the element's position relative to the viewport. */
+@supports (animation-timeline: view()) {
+  .hero-info-poster {
+    animation: info-poster-parallax linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+  @keyframes info-poster-parallax {
+    from {
+      transform: translateY(-22px) scale(1.04);
+    }
+    to {
+      transform: translateY(22px) scale(1.04);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-info-poster {
+    animation: none;
+  }
 }
 .hero-info-poster svg {
   width: 100%;
