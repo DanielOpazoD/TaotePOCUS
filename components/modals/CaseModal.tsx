@@ -26,7 +26,9 @@ interface Props {
 export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [readProgress, setReadProgress] = useState(0);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(true);
   const swipe = useSwipeToClose<HTMLDivElement>({ onClose });
   const cat = CATEGORIES.find((c) => c.id === caso.category);
@@ -65,6 +67,20 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
     return () => {
       if (dialog.open) dialog.close();
     };
+  }, []);
+
+  // Read progress for the modal-body scroll. The bar at the top of
+  // the dialog grows from 0 to 1 — fricción cero, satisface.
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const update = () => {
+      const max = el.scrollHeight - el.clientHeight;
+      setReadProgress(max > 0 ? Math.min(1, Math.max(0, el.scrollTop / max)) : 0);
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    return () => el.removeEventListener("scroll", update);
   }, []);
 
   // Belt-and-braces Escape — see ConfirmDialog for the why.
@@ -118,6 +134,11 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
           swipe.ref.current = el;
         }}
       >
+        <div
+          className="modal-progress"
+          aria-hidden="true"
+          style={{ transform: `scaleX(${readProgress})` }}
+        />
         <button className="modal-close" onClick={onClose} aria-label="Cerrar caso">
           {Icon.close()}
         </button>
@@ -153,7 +174,7 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
               <span style={{ fontSize: 10, opacity: 0.7 }}>CINE-LOOP</span>
             </div>
           </div>
-          <div className="modal-body">
+          <div className="modal-body" ref={bodyRef}>
             <div className="case-cat">{cat?.label}</div>
             <h2 id="case-modal-title">{caso.title}</h2>
             <div className="modal-meta-pills">

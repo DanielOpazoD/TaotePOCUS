@@ -116,6 +116,32 @@
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
+/* Sparkline sits next to the "Actualizado" date; the date keeps its
+   serif size, the line acts as decoration giving the cadence at a
+   glance. Inherits section accent so it carries the page color. */
+.hero-stat-with-spark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.hero-sparkline {
+  width: 60px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: baseline;
+  /* Lower the baseline so the line aligns with the x-height of the
+     date next to it, not the cap-height. */
+  transform: translateY(-2px);
+}
+.hero-sparkline polyline {
+  fill: none;
+  stroke: var(--section-accent, var(--ink));
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
 .hero-cta {
   display: grid;
   grid-template-columns: auto 1fr auto;

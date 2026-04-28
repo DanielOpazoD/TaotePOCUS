@@ -503,3 +503,44 @@
   margin: 0 0 8px;
   color: var(--ink);
 }
+
+/* Illustrated variant: line-art glyph above the heading. The glyph
+   inherits ink-soft via currentColor on stroke, so it lives in light
+   and dark equally. A soft entrance keeps it from feeling like an
+   error state. */
+.empty--illustrated {
+  padding: 64px 20px 80px;
+}
+.empty-glyph {
+  width: 96px;
+  height: 72px;
+  margin: 0 auto var(--space-4);
+  color: var(--section-accent-ink, var(--ink-soft));
+  opacity: 0.7;
+  animation: empty-fade-in var(--duration-slow) var(--ease-emphasized);
+}
+.empty-svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+@keyframes empty-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .empty-glyph {
+    animation: none;
+  }
+}

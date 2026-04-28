@@ -81,6 +81,11 @@ function AtlasHero({
     return { total, cats, lastDate: lastDate ? formatShortDate(lastDate) : "—" };
   }, [cases]);
 
+  // Monthly publication cadence over the last 6 months — rendered as
+  // a tiny sparkline alongside "Actualizado". Datos como decoración
+  // legítima: si no publicas, la línea cae.
+  const sparkPoints = useMemo(() => buildSparkline(cases, 6), [cases]);
+
   const featured = useMemo<CaseRecord | null>(
     () => cases.find((c) => c.featured) ?? cases[0] ?? null,
     [cases],
@@ -107,7 +112,20 @@ function AtlasHero({
           </div>
           <div>
             <dt>Actualizado</dt>
-            <dd>{stats.lastDate}</dd>
+            <dd className="hero-stat-with-spark">
+              <span>{stats.lastDate}</span>
+              {sparkPoints && (
+                <svg
+                  className="hero-sparkline"
+                  viewBox="0 0 60 16"
+                  preserveAspectRatio="none"
+                  role="img"
+                  aria-label="Cadencia de publicaciones, últimos 6 meses"
+                >
+                  <polyline points={sparkPoints} fill="none" />
+                </svg>
+              )}
+            </dd>
           </div>
         </dl>
       </div>
@@ -246,6 +264,46 @@ function InfoHero({ head, count }: { head: PageHead; count: number }) {
       </div>
     </header>
   );
+}
+
+/**
+ * Build a sparkline polyline ("x,y x,y …") of monthly case counts
+ * over the last `months` calendar months ending on today. The path
+ * is normalized to a 60×16 viewBox so the SVG can stretch with CSS.
+ *
+ * Returns `null` when there's not enough variation to be worth
+ * drawing — a flat line at zero would just look like a dash.
+ */
+function buildSparkline(cases: CaseRecord[], months: number): string | null {
+  if (cases.length === 0) return null;
+  const now = new Date();
+  const buckets = new Array<number>(months).fill(0);
+  for (const c of cases) {
+    const d = parseIsoDate(c.date);
+    if (!d) continue;
+    const monthsAgo = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+    if (monthsAgo >= 0 && monthsAgo < months) {
+      const idx = months - 1 - monthsAgo;
+      buckets[idx] = (buckets[idx] ?? 0) + 1;
+    }
+  }
+  const max = Math.max(...buckets, 1);
+  if (max === 0) return null;
+  const step = months > 1 ? 60 / (months - 1) : 0;
+  return buckets
+    .map((v, i) => {
+      const x = i * step;
+      // Invert y because SVG y grows downward; pad 2px top/bottom.
+      const y = 14 - (v / max) * 12;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+function parseIsoDate(iso: string): Date | null {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
 }
 
 /** Format an ISO date as "2 abr" (Spanish short month, no year). */

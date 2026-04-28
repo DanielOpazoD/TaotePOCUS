@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
+import EmptyState from "./EmptyState";
 import { Header } from "./chrome";
 import { CaseCard } from "./cards";
 import { CaseModal, AuthModal } from "./modals";
@@ -272,14 +273,7 @@ function AppInner() {
               onNew={onNewCase}
             />
           ) : filtered.length === 0 ? (
-            <div className="empty">
-              <h3>{view.kind === "favs" ? "Aún no has guardado casos" : "Sin resultados"}</h3>
-              <p>
-                {view.kind === "favs"
-                  ? "Toca el corazón en cualquier caso para añadirlo a tu colección."
-                  : "Prueba quitando filtros o buscando por otra palabra."}
-              </p>
-            </div>
+            <EmptyState view={view} />
           ) : (
             <div className="case-grid">
               {filtered.map((c) => (

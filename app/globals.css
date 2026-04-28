@@ -26,6 +26,9 @@
 /* Cards (case grid, featured row, hover preview) */
 @import "./styles/cards.css";
 
+/* Loading placeholders that mimic real content silhouettes */
+@import "./styles/skeleton.css";
+
 /* Cine-loop renderer */
 @import "./styles/cine.css";
 

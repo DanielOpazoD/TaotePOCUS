@@ -85,6 +85,25 @@ dialog.case-modal-host[open] {
     animation: none;
   }
 }
+/* Read-progress bar pinned to the top edge of the modal. Grows from
+   left to right via scaleX, transformed by the body's scrollTop ratio.
+   Uses the section accent so it inherits the page's color narrative. */
+.modal-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--section-accent, var(--accent));
+  transform-origin: left center;
+  transform: scaleX(0);
+  z-index: 120;
+  pointer-events: none;
+  border-radius: 0 2px 2px 0;
+  /* `transform` updates fire on every scroll frame; keep transition
+     off so we don't lag behind the finger / wheel. */
+}
+
 .modal-close {
   position: absolute;
   top: 24px;

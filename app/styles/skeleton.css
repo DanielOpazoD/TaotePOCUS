@@ -1,0 +1,139 @@
+/* =================== TYPOGRAPHIC SKELETONS ===================
+ *
+ * Skeletons that mimic the silhouette of real content. Heights match
+ * the actual line-heights of titles / meta in production so the page
+ * doesn't reflow when the real data swaps in.
+ *
+ * Shimmer is a subtle gradient sweep, not a flashing pulse — the
+ * latter is exhausting to look at. Respects reduced-motion.
+ */
+
+.skeleton-line {
+  display: block;
+  background: var(--surface-2);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ink) 4%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line::after {
+    animation: none;
+    opacity: 0.5;
+    transform: none;
+  }
+}
+
+/* ---------- card ---------- */
+.skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.skeleton-thumb {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  background: var(--surface-2);
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ink) 4%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+.skeleton-card-body {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton-line--cat {
+  height: 10px;
+  width: 35%;
+  margin-bottom: 4px;
+}
+.skeleton-line--title {
+  /* Match `.case-card h3` size so the swap doesn't shift. */
+  height: 18px;
+  width: 90%;
+}
+.skeleton-line--title-2 {
+  height: 18px;
+  width: 65%;
+}
+.skeleton-line--meta {
+  height: 10px;
+  width: 50%;
+  margin-top: 6px;
+}
+
+/* ---------- hero ---------- */
+.skeleton-hero {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.skeleton-line--crumb {
+  height: 11px;
+  width: 180px;
+}
+.skeleton-line--h1 {
+  /* Match the hero serif h1 (38px). */
+  height: 36px;
+  width: 60%;
+  margin-top: 4px;
+}
+.skeleton-line--lede {
+  height: 14px;
+  width: 45%;
+}
+.skeleton-stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+}
+.skeleton-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.skeleton-line--stat-label {
+  height: 10px;
+  width: 70px;
+}
+.skeleton-line--stat-value {
+  height: 24px;
+  width: 50px;
+}
