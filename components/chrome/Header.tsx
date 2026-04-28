@@ -251,8 +251,13 @@ export default function Header({
               </button>
             </>
           ) : (
-            <button className="btn-primary" onClick={onLogin}>
-              <Icon.user /> Entrar
+            <button
+              className="btn-primary btn-icon-only"
+              onClick={onLogin}
+              aria-label="Entrar"
+              title="Entrar"
+            >
+              <Icon.user />
             </button>
           )}
         </div>

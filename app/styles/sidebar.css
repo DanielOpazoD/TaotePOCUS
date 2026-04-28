@@ -179,7 +179,7 @@
 .tags-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 .tag-chip {
   font-size: 12px;
@@ -191,6 +191,15 @@
   cursor: pointer;
   transition: all 0.12s;
   font-family: var(--sans);
+}
+/* Sidebar variant: tighter type and padding so 14 chips fit in the
+   240px column without wrapping forever. The cloud reads as a dense
+   index, not as a row of buttons. */
+.tags-cloud .tag-chip {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  letter-spacing: 0.005em;
+  line-height: 1.5;
 }
 /* Tag prefix on the sidebar tag cloud — visual cue that they're
    filterable tokens. Skipped on inactive chips elsewhere (modal,

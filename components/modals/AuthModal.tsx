@@ -69,7 +69,10 @@ export default function AuthModal({ onClose, onLogin }: Props) {
     <dialog
       ref={dialogRef}
       className="auth-modal-host"
-      onClose={onClose}
+      // See CaseModal for why we don't listen to the dialog's native
+      // `close` event — it re-fires during unmount cleanup and can
+      // cancel a freshly-mounted modal. All explicit close paths
+      // (Escape, backdrop, cancel) below call onClose directly.
       onCancel={(e) => {
         e.preventDefault();
         onClose();

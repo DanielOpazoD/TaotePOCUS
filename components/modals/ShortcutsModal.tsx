@@ -46,7 +46,9 @@ export default function ShortcutsModal({ open, onClose }: Props) {
     <dialog
       ref={dialogRef}
       className="confirm-dialog-host"
-      onClose={onClose}
+      // See CaseModal for why the native `close` event isn't wired —
+      // it re-enters during unmount cleanup. Escape / backdrop /
+      // close button all call onClose explicitly.
       onCancel={(e) => {
         e.preventDefault();
         onClose();

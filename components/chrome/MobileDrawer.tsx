@@ -175,13 +175,15 @@ export default function MobileDrawer({
           ) : (
             <button
               type="button"
-              className="btn-primary"
+              className="btn-primary btn-icon-only"
               onClick={() => {
                 onClose();
                 onLogin();
               }}
+              aria-label="Entrar"
+              title="Entrar"
             >
-              <Icon.user /> Entrar
+              <Icon.user />
             </button>
           )}
           <div className="drawer-theme">

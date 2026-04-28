@@ -299,6 +299,23 @@
   background: var(--ink-hover);
 }
 
+/* Icon-only variant. Square hit-target with the icon centered; the
+   accessible name comes from aria-label, the visible cue from the
+   icon plus a tooltip. Used for the user/login affordance in chrome
+   contexts where horizontal space is precious. */
+.btn-icon-only {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  gap: 0;
+}
+.btn-icon-only svg {
+  width: 16px;
+  height: 16px;
+}
+
 .fav-count {
   font-family: var(--mono);
   font-size: 11px;

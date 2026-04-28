@@ -104,7 +104,14 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
     <dialog
       ref={dialogRef}
       className="case-modal-host"
-      onClose={onClose}
+      // Intentionally no `onClose` event handler — we rely on the
+      // explicit close paths (Escape keydown, onCancel, backdrop click,
+      // close button, swipe gesture) which all call the parent's
+      // `onClose` prop. Listening to the dialog's native `close` event
+      // would also fire when the unmount cleanup calls `dialog.close()`,
+      // which can re-enter the parent's URL update during transient
+      // remounts (React strict mode, unrelated re-renders) and close
+      // the modal milliseconds after it opens.
       onCancel={(e) => {
         e.preventDefault();
         onClose();

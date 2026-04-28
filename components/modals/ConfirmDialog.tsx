@@ -72,10 +72,11 @@ export default function ConfirmDialog({
     <dialog
       ref={dialogRef}
       className="confirm-dialog-host"
-      onClose={onCancel}
+      // No native `close` listener — the unmount cleanup calls
+      // `dialog.close()`, which fires the `close` event and would
+      // re-enter `onCancel` on transient remounts. Escape, backdrop,
+      // and the cancel button all call onCancel directly below.
       onCancel={(e) => {
-        // Built-in Escape behavior; intercept so we can call our
-        // handler synchronously.
         e.preventDefault();
         onCancel();
       }}
