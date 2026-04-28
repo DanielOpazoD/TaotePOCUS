@@ -88,10 +88,11 @@
    Skipped under prefers-reduced-motion: the marks render statically. */
 .brand-mark circle,
 .brand-mark path {
-  /* `pathLength: 100` lets us treat both stroke types with the same
-     dasharray normalization; otherwise circle vs. path measurements
-     would need separate values. */
-  pathlength: 100;
+  /* The SVG elements declare `pathLength={100}` directly, which
+     normalizes their geometric length to 100 units — letting both
+     the circle (perimeter ~78) and the wave (length ~30) share one
+     dasharray scale. From offset:100 to offset:0 the stroke draws
+     itself end to end. */
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   animation: brand-trace 1s var(--ease-emphasized) 0.1s forwards;

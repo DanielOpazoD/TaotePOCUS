@@ -146,7 +146,9 @@ export default function Header({
         <TransitionLink className="brand" href="/" aria-label="Taote POCUS — inicio">
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-              {/* Outer ring: ultrasound field. */}
+              {/* Outer ring: ultrasound field. `pathLength={100}`
+                  normalizes both shapes to 100 units so the same
+                  stroke-dasharray drives the trace animation in CSS. */}
               <circle
                 cx="14"
                 cy="14"
@@ -155,6 +157,7 @@ export default function Header({
                 stroke="currentColor"
                 strokeWidth="1.25"
                 opacity="0.35"
+                pathLength={100}
               />
               {/* Sine wave: the sound wave through the field. */}
               <path
@@ -163,6 +166,7 @@ export default function Header({
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
+                pathLength={100}
               />
             </svg>
           </span>
