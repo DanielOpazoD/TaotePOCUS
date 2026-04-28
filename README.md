@@ -64,10 +64,13 @@ npm run analyze        # Bundle analyzer
 │   └── admin/            # /admin
 ├── components/           # React components (organized by responsibility)
 │   ├── App.tsx           # Top-level orchestrator, hydration, modals
-│   ├── Sidebar.tsx
-│   ├── chrome/           # Header, MobileDrawer, ThemeToggle
-│   ├── cards/            # CaseCard, FeaturedRow
-│   ├── modals/           # CaseModal, AuthModal, ConfirmDialog
+│   ├── Sidebar.tsx       # Categories + collapsible tag cloud
+│   ├── SectionHero.tsx   # Per-section hero (atlas / ecg / cases / info)
+│   ├── EmptyState.tsx    # Illustrated empty state w/ optional CTA
+│   ├── Skeleton.tsx      # Typographic loading placeholders
+│   ├── chrome/           # Header, MobileDrawer, ThemeToggle, Footer, TransitionLink
+│   ├── cards/            # CaseCard, FeaturedRow, BentoGrid, QuoteCard
+│   ├── modals/           # CaseModal, AuthModal, ConfirmDialog, ShortcutsModal
 │   ├── cine/             # CineLoop + scenes + PresentationMode
 │   └── admin/            # AdminPanel, CaseForm
 ├── lib/                  # Pure modules (no React)
@@ -77,16 +80,31 @@ npm run analyze        # Bundle analyzer
 │   ├── store.ts          # localStorage adapter w/ defensive read/write
 │   ├── url.ts            # URL <-> view-state translation
 │   ├── headers.ts        # Page heading derivation
+│   ├── case-meta.ts      # Reading time / difficulty / lastUpdated helpers
+│   ├── relative-date.ts  # "hace 3 días" formatting (Spanish, no deps)
 │   ├── env.ts            # Typed env access
 │   ├── errors.ts         # AuthError, StorageError, Result<T,E>
 │   ├── log.ts            # Logging seam (drop-in for Sentry)
-│   └── icons.tsx         # Inline SVG icon set
-├── hooks/                # Custom React hooks
+│   └── icons.tsx         # Unified SVG icon set (24×24, stroke 1.5)
+├── hooks/                # Custom React hooks (each a single responsibility)
 │   ├── useViewState.ts   # URL-driven view/filter state
-│   └── useFocusTrap.ts   # Modal focus management
+│   ├── useFocusTrap.ts   # Modal focus management
+│   ├── useFavs.ts        # Favorites set + persistence
+│   ├── useUserCases.ts   # User-uploaded cases (live + trashed)
+│   ├── useSession.ts     # Auth state + expiry refresh on focus
+│   ├── useCaseFilters.ts # Pure filter derivation (memoized)
+│   ├── useToast.ts       # Toast queue + auto-dismiss
+│   ├── useShortcuts.ts   # Global keyboard shortcuts
+│   ├── useSwipeToClose.ts# Mobile swipe-down dismissal
+│   └── useCountUp.ts     # IntersectionObserver-driven number reveal
+├── app/styles/           # CSS partials, aggregated by app/globals.css
+│   ├── tokens.css        # OKLCH palette, fluid type, easings, shadows
+│   ├── surfaces.css      # Page chrome (noise, accent scrollbars)
+│   ├── hero.css          # SectionHero variants
+│   ├── footer.css, cards.css, sidebar.css, ...
 ├── tests/                # Vitest unit tests
 ├── e2e/                  # Playwright end-to-end tests
-└── docs/                 # Architecture + ADRs
+└── docs/                 # ARCHITECTURE.md + ADRs
 ```
 
 ## Variables de entorno

@@ -107,7 +107,14 @@ under keys. Domain logic lives in `repo`.
 - `lib/data.ts` — seed cases, sections, categories, common tags.
 - `lib/types.ts` — domain types (`CaseRecord`, `User`, `View`, etc.).
 - `lib/headers.ts` — pure: `(view, cat) → { title, sub, crumb }`.
-- `lib/icons.tsx` — inline SVGs grouped by purpose.
+- `lib/icons.tsx` — inline SVGs grouped by purpose. Unified stroke
+  grammar (24×24 viewBox, stroke-width 1.5, round caps + joins,
+  currentColor).
+- `lib/case-meta.ts` — derived case metadata (reading time, difficulty
+  label, last-updated tracking).
+- `lib/relative-date.ts` — Spanish relative-date formatting
+  ("hace 3 días" / "ayer" / "hoy"; falls back to absolute "16 abr 2026"
+  beyond ~6 weeks).
 - `lib/log.ts` — single seam for logging. Drop-in for Sentry.
 - `lib/env.ts` — typed env access; throws fast if a required var is
   missing in production.
@@ -115,21 +122,45 @@ under keys. Domain logic lives in `repo`.
 
 ### 7. Hooks (`hooks/`)
 
-- `useViewState` — URL adapter for React.
-- `useFocusTrap` — modal focus management.
-
 Hooks contain **only React glue**. Anything testable in isolation lives
-in `lib/`.
+in `lib/`. Each one owns a single named responsibility:
+
+| Hook              | Owns                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `useViewState`    | URL adapter — parses path + search params into `{view, cat, tags, query, sort, ...}`.  |
+| `useFocusTrap`    | Tab/Shift+Tab containment inside an open modal; restores focus on unmount.             |
+| `useFavs`         | Favorites set, anonymous-user prompt, localStorage persistence via `repo.favs`.        |
+| `useUserCases`    | User-uploaded cases (live + trashed), CRUD, optimistic UI, soft-delete.                |
+| `useSession`      | Auth state, expiry refresh on focus, login/logout flows.                               |
+| `useCaseFilters`  | Pure derivation of `{scopedCases, sectionCategories, sectionTags, filtered}` via memo. |
+| `useToast`        | Toast queue + auto-dismiss; mirrored in an `aria-live` region.                         |
+| `useShortcuts`    | Global keyboard shortcuts (`?`, `j/k`, `g+letter`); binds once on mount.               |
+| `useSwipeToClose` | Touch swipe-down dismissal for mobile sheets; pointer events, desktop-disabled.        |
+| `useCountUp`      | Integer animates 0 → target via `IntersectionObserver` + RAF; reduced-motion aware.    |
 
 ### 8. Components (`components/`)
 
 Organized by responsibility:
 
 - `App.tsx` — the orchestrator (above).
-- `Sidebar.tsx` — categories + tag cloud (used directly by App).
-- `chrome/` — Header, MobileDrawer, ThemeToggle.
-- `cards/` — CaseCard, FeaturedRow.
-- `modals/` — CaseModal, AuthModal, ConfirmDialog.
+- `Sidebar.tsx` — categories + collapsible tag cloud (used directly by App).
+- `SectionHero.tsx` — section-aware hero dispatcher: AtlasHero (stat row +
+  featured CTA + sparkline + aurora mesh), EcgHero (animated polyline
+  strips), CasesHero (editorial gradient title + lede), InfoHero (poster
+  backdrop with scroll-driven parallax). Compact fallback for
+  favs/admin/category-narrowed views.
+- `EmptyState.tsx` — illustrated per-view empty state (probe, flat ECG,
+  open book, folded poster, dashed heart) with optional CTA action.
+- `Skeleton.tsx` — typographic placeholders (Card / Grid / Hero) sized to
+  match real content silhouettes. Wired but not yet rendered (sync seed).
+- `chrome/` — Header (glass on scroll, magnetic nav indicator,
+  pathLength-traced wordmark), MobileDrawer, ThemeToggle, **Footer**
+  (editorial colophon), **TransitionLink** (`<Link>` wrapped in
+  `document.startViewTransition()`).
+- `cards/` — CaseCard (container-query host), FeaturedRow, **BentoGrid**
+  (atlas landing layout: 2×2 hero + interleaved quote cards), **QuoteCard**
+  (no-image variant, serif italic fragment).
+- `modals/` — CaseModal, AuthModal, ConfirmDialog, ShortcutsModal.
 - `cine/` — CineLoop, cineScenes, PresentationMode.
 - `admin/` — AdminPanel, CaseForm.
 
@@ -144,17 +175,81 @@ flat — they re-export, they don't add logic.
 `<html data-theme="light|dark">` set by a pre-paint script in
 `app/layout.tsx`. The script reads `localStorage["pocus_theme"]`,
 falls back to `prefers-color-scheme`, runs **before** any CSS so there is
-no FOUC. CSS lives in `app/globals.css` keyed off the attribute.
+no FOUC. Stylesheets are split into partials in `app/styles/` and
+aggregated by `app/globals.css`. All color tokens are **OKLCH** (light +
+dark calibrated separately) for perceptually uniform interpolation and
+P3 gamut on capable displays.
+
+### Section accent system
+
+Each top-level route gets its own accent color cascading from the layout
+container:
+
+- `data-section="atlas"` → `--accent` (cool blue)
+- `data-section="ecg"` → `--signal` (green)
+- `data-section="cases"` → `--editorial` (warm amber)
+- `data-section="info"` → `--poster` (indigo)
+
+Three CSS custom properties (`--section-accent`, `--section-accent-ink`,
+`--section-accent-soft`) propagate through every component — case
+category labels, the diagnosis box, the modal scroll-progress bar, the
+sidebar collapsed-state indicator, the page scrollbar (via `:has()` on
+the layout). Changing route changes the entire color narrative without
+touching any component.
+
+### Variable fonts + fluid typography
+
+Newsreader is loaded with the `opsz,wght` axes wired up. Token presets
+in `tokens.css` (`--serif-display`, `--serif-h1`, `--serif-h2`,
+`--serif-h3`, `--serif-body`) tune optical size + weight per usage.
+
+The full typographic scale uses `clamp()` (`--fs-display` through
+`--fs-small`) — no media queries for type sizing, ever.
+
+### Container queries
+
+`.case-card` is a `container-type: inline-size` host. Each card decides
+its own layout from its own width:
+
+- ≥ 720 px → horizontal "long-read" layout (image left, summary right)
+- 380–720 px → standard vertical with bumped title size
+- < 240 px → compact (no byline, no tags)
+
+Section-specific section selectors (`.layout[data-section="cases"]`)
+add aesthetic touches (dividers, hover colors) but never drive the
+responsive logic. The cards are self-sufficient — they look right in
+the 3-col grid, the cases 1-col list, the bento 2×2 hero, anywhere.
+
+### View transitions
+
+The `<TransitionLink>` chrome wrapper calls `document.startViewTransition`
+around `router.push()` so route changes morph elements with matching
+`view-transition-name` instead of cross-fading. Wired today on:
+
+- `hero-h1` / `hero-crumb` — section heros morph to/from the compact head
+- `hero-stat-total` / `hero-stat-cats` / `hero-stat-updated` — atlas stats
+- `nav-active` — the magnetic nav underline
+- `results-count` — the toolbar live count
+
+All wrapped in `@supports (view-transition-name: ...)` — Firefox falls
+back to the default Next.js fade. Modifier-clicks and external links
+bypass the wrapper so opening in a new tab still works.
 
 ### Accessibility
 
 - `role="dialog"` + `aria-modal` + `aria-labelledby` on every modal.
 - Focus trap on every modal (`useFocusTrap`).
-- Skip-to-content link as the first focusable element.
 - Toast announced via `aria-live="polite"` mirror.
-- `prefers-reduced-motion` honored both in CSS (transitions/animations)
-  and in `CineLoop` (renders one frame instead of looping).
-- Visible `:focus-visible` rings.
+- `prefers-reduced-motion` honored throughout — every `animation` and
+  every spring/bounce `transition` has a media-query escape. Reviewers
+  catch unguarded animations in PR.
+- Visible `:focus-visible` rings (custom-tuned in `a11y.css`).
+- Keyboard shortcuts: `?` (help), `j/k` (case nav), `g+letter`
+  (section jump), `/` (search focus), `←/→` (modal prev/next),
+  `F/S/P` (modal favorite/share/present). All shortcuts inert while
+  typing in a field.
+- The `.kbd-hint` pattern renders shortcut badges next to action
+  buttons so power users learn shortcuts in situ.
 
 ### Error handling
 

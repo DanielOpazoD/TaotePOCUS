@@ -80,21 +80,26 @@ If you find yourself wrapping every call in `try/catch`, the call should probabl
 
 ### Styles
 
-- Single CSS file at `app/globals.css`. Sectioned by `=================== HEADER ===================` banners — find your section before adding new rules.
-- Use the design tokens at the top of the file (`--space-*`, `--duration-*`, `--ease-*`, `--radius-*`). New magic numbers get pushed back in review.
+- CSS lives in **partials** under `app/styles/` (one per concern: `tokens.css`, `header.css`, `cards.css`, `hero.css`, ...). `app/globals.css` is the aggregator — it only `@import`s. Find your partial before adding new rules; create a new partial only when an area genuinely doesn't fit elsewhere.
+- All design tokens live in `tokens.css`: `--space-*`, `--duration-*`, `--ease-*` (including `--ease-spring`), `--radius-*`, `--fs-*` (fluid clamp), `--shadow-1/2/3` (layered), `--serif-display/h1/h2/h3/body` (variable-font axis presets).
+- **Color tokens are OKLCH.** Use `color-mix(in oklch, ...)` for derived states (hover/active). Avoid `rgba()` for new code — it doesn't compose correctly with the OKLCH base.
+- Section accents propagate via `--section-accent`, `--section-accent-ink`, `--section-accent-soft` from `.layout[data-section="..."]`. Don't hardcode an accent color in a component — use the variable so the section narrative carries through.
 - Tema oscuro is `[data-theme="dark"]` only — no `@media (prefers-color-scheme)` blocks. The pre-paint script handles the OS default.
-- Respect `prefers-reduced-motion` — if you add an animation, check it ends correctly when motion is off.
+- Respect `prefers-reduced-motion` on **every** animation and on transitions that bounce/spring. Reviewers will check.
+- Prefer **container queries** (`@container card (min-width: ...)`) over media queries when a component should react to its own size, not the viewport's. `.case-card` is already a container; new layout-sensitive components should be too.
 
 ### Components
 
 Organized by responsibility. Pick the right folder when adding a new component:
 
-- `components/chrome/` — top-of-page chrome (header, mobile drawer, theme toggle).
-- `components/cards/` — case cards in any layout (grid, featured row, editorial list).
-- `components/modals/` — overlays. Every modal uses `useFocusTrap` and the `role="dialog" aria-modal aria-labelledby` triad.
+- `components/chrome/` — top-of-page and bottom chrome: Header, MobileDrawer, ThemeToggle, Footer, TransitionLink.
+- `components/cards/` — case cards in any layout (grid, featured row, editorial list, bento). New variants belong here as siblings.
+- `components/modals/` — overlays. Every modal uses `useFocusTrap` + the `role="dialog" aria-modal aria-labelledby` triad. **Never wire `onClose` to the dialog's native `close` event prop** — the unmount cleanup calls `dialog.close()` and re-fires it; route Escape/backdrop/etc. to your own handler instead. (See the comment in `CaseModal.tsx`.)
 - `components/cine/` — synthetic cine-loop renderer + presentation mode.
 - `components/admin/` — admin-only views (lazy-loaded by `App.tsx`).
-- Root: `App.tsx` (orchestrator) and `Sidebar.tsx` (used directly by App).
+- Root: `App.tsx` (orchestrator), `Sidebar.tsx`, `SectionHero.tsx`, `EmptyState.tsx`, `Skeleton.tsx`.
+
+For internal links that should trigger a route view-transition, use `<TransitionLink>` from `components/chrome` instead of `next/link` directly — it wraps `router.push()` in `document.startViewTransition()` when supported, and falls through to default Next.js navigation otherwise.
 
 ### Accessibility
 
@@ -103,6 +108,8 @@ Organized by responsibility. Pick the right folder when adding a new component:
 - Use `<button>` for actions, `<a>` for navigation. Never `<a onClick>` without `href`.
 - Form fields associate their label (`<label htmlFor>`).
 - Live status (toast) gets an `aria-live="polite"` mirror.
+- Icon-only buttons need `aria-label` + `title`. The `.btn-icon-only` modifier is the canonical style.
+- New keyboard shortcuts go through `useShortcuts` (or, for modal-scoped ones, the modal's own keydown listener) and **must check** that the user isn't typing in a field (`isTypingInField` helper pattern). Render a `<kbd className="kbd-hint">` next to the relevant action so the shortcut is discoverable.
 - Test: open the page, press Tab repeatedly, verify the order makes sense and nothing is unreachable.
 
 ---
