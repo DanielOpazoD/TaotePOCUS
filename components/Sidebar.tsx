@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { CategoryGlyph, Icon } from "@/lib/icons";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import type { CategoryId, CategoryWithCount } from "@/lib/types";
 
 interface Props {
@@ -30,30 +30,14 @@ export default function Sidebar({
   collapsed,
   onToggleCollapsed,
 }: Props) {
-  // Tags section collapse state, persisted in localStorage so the
-  // user's preference survives reloads. Default open on first visit
-  // so newcomers see the vocabulary; once they collapse it, it stays.
-  // Active tags force-open so the user can see what they've applied.
-  const [tagsOpen, setTagsOpen] = useState(true);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(TAGS_OPEN_KEY);
-      if (saved === "0") setTagsOpen(false);
-    } catch {
-      /* SSR / privacy mode */
-    }
-  }, []);
-  const toggleTagsOpen = () => {
-    setTagsOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(TAGS_OPEN_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  };
+  // Tags section collapse state. Default open on first visit so
+  // newcomers see the vocabulary; once collapsed, the choice persists.
+  // Active tags force-open below so applied filters never go invisible.
+  const [tagsOpen, setTagsOpen] = usePersistedState(TAGS_OPEN_KEY, true, {
+    serialize: (v) => (v ? "1" : "0"),
+    deserialize: (raw) => (raw === "1" ? true : raw === "0" ? false : undefined),
+  });
+  const toggleTagsOpen = () => setTagsOpen((prev) => !prev);
   // If the user has tags applied but collapsed the section, expand it
   // automatically — otherwise the active filter is invisible.
   const effectivelyOpen = tagsOpen || activeTags.length > 0;

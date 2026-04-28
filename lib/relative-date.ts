@@ -6,7 +6,7 @@
 // honest. Spanish only — there's no locale in the URL or the data
 // model that would justify a locale parameter today.
 
-const MONTHS_SHORT = [
+export const MONTHS_SHORT = [
   "ene",
   "feb",
   "mar",
@@ -20,6 +20,13 @@ const MONTHS_SHORT = [
   "nov",
   "dic",
 ];
+
+/** Format an ISO date as "2 abr" — short month, no year. */
+export function shortDayMonth(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return "—";
+  return `${d} ${MONTHS_SHORT[m - 1] ?? ""}`;
+}
 
 /**
  * Render a date as "hace 3 días" / "ayer" / "hoy" / "hace 2 semanas",

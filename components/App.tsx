@@ -1,17 +1,16 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
-import EmptyState from "./EmptyState";
+import Toolbar from "./Toolbar";
+import MainGrid from "./MainGrid";
 import { Header, Footer } from "./chrome";
-import { CaseCard, BentoGrid } from "./cards";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
 import { derivePageHead } from "@/lib/headers";
 import type { CaseRecord } from "@/lib/types";
-import type { SortOrder } from "@/lib/url";
 import { useViewState } from "@/hooks/useViewState";
 import { useToast } from "@/hooks/useToast";
 import { useSession } from "@/hooks/useSession";
@@ -19,11 +18,12 @@ import { useFavs } from "@/hooks/useFavs";
 import { useUserCases } from "@/hooks/useUserCases";
 import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
+import { usePersistedState } from "@/hooks/usePersistedState";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
-// on the home grid (audit §9).
-const AdminPanel = dynamic(() => import("./admin/AdminPanel"), { ssr: false });
+// on the home grid (audit §9). AdminPanel is lazy-loaded inside MainGrid
+// so it doesn't appear here.
 const CaseForm = dynamic(() => import("./admin/CaseForm"), { ssr: false });
 const PresentationMode = dynamic(() => import("./cine/PresentationMode"), { ssr: false });
 const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: false });
@@ -68,30 +68,14 @@ function AppInner() {
   const [formOpen, setFormOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<CaseRecord | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [clearShaking, setClearShaking] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  // Sidebar collapse — persisted in localStorage so the choice
-  // survives reloads. Default expanded on first visit.
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("sidebarCollapsed");
-      if (saved === "1") setSidebarCollapsed(true);
-    } catch {
-      /* SSR / privacy mode */
-    }
-  }, []);
-  const toggleSidebar = () => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  };
+  // Sidebar collapse — persisted via usePersistedState. Compact "1"/"0"
+  // serialization keeps the localStorage value short and grep-friendly.
+  const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState("sidebarCollapsed", false, {
+    serialize: (v) => (v ? "1" : "0"),
+    deserialize: (raw) => (raw === "1" ? true : raw === "0" ? false : undefined),
+  });
+  const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
   // Global keyboard shortcuts. The hook installs window listeners for
   // j/k, g+letter and `?`. The `/` shortcut for the search box lives
@@ -205,54 +189,13 @@ function AppInner() {
             scopedCases={scopedCases}
             onOpenCase={(id) => pushPatch({ caso: id })}
           />
-          <div className="toolbar">
-            <span className="results">
-              {filtered.length} {filtered.length === 1 ? "caso" : "casos"}
-            </span>
-            <button
-              className={`clear-btn${clearShaking ? " is-shaking" : ""}`}
-              disabled={tags.length === 0 && !query}
-              onClick={() => {
-                if (tags.length === 0 && !query) {
-                  // Wink — nothing to clear, but the user clicked anyway.
-                  setClearShaking(true);
-                  setTimeout(() => setClearShaking(false), 400);
-                  return;
-                }
-                replacePatch({ tags: [], query: "" });
-              }}
-            >
-              Limpiar filtros
-            </button>
-            {tags.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {tags.map((t) => (
-                  <button
-                    key={t}
-                    className="tag-chip active"
-                    onClick={() => replacePatch({ tags: tags.filter((x) => x !== t) })}
-                  >
-                    {t} ×
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="toolbar-right">
-              <label htmlFor="sort-select" className="toolbar-label">
-                Ordenar
-              </label>
-              <select
-                id="sort-select"
-                className="sort-select"
-                value={sort}
-                onChange={(e) => replacePatch({ sort: e.target.value as SortOrder })}
-              >
-                <option value="recent">Más recientes</option>
-                <option value="featured">Destacados</option>
-                <option value="title">Alfabético</option>
-              </select>
-            </div>
-          </div>
+          <Toolbar
+            count={filtered.length}
+            tags={tags}
+            query={query}
+            sort={sort}
+            onReplace={replacePatch}
+          />
           {/* FeaturedRow above the grid is shown for non-atlas section
               landings. Atlas gets the bento layout below, which already
               promotes the featured case to a 2×2 hero — showing it
@@ -269,66 +212,24 @@ function AppInner() {
                 onFav={toggleFav}
               />
             )}
-          {view.kind === "admin" && isAdmin ? (
-            <AdminPanel
-              allCases={allCases}
-              userCases={userCases.live}
-              trashedCases={userCases.trashed}
-              onEdit={onEditCase}
-              onDelete={(c) => setPendingDelete(c)}
-              onRestore={userCases.restore}
-              onPurge={userCases.purge}
-              onNew={onNewCase}
-            />
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              view={view}
-              action={
-                // Pick the most useful action based on what's empty
-                // and why. Filters active → offer to clear; favs view
-                // empty → send to atlas; otherwise leave the empty
-                // state as a pure dead end (no helpful action exists).
-                view.kind === "favs"
-                  ? {
-                      label: "Explorar el atlas",
-                      onClick: () => replacePatch({ view: { kind: "section", section: "atlas" } }),
-                    }
-                  : cat || tags.length > 0 || query.trim()
-                    ? {
-                        label: "Limpiar filtros",
-                        onClick: () => replacePatch({ cat: null, tags: [], query: "" }),
-                      }
-                    : undefined
-              }
-            />
-          ) : view.kind === "section" &&
-            view.section === "atlas" &&
-            !cat &&
-            tags.length === 0 &&
-            !query.trim() ? (
-            // Bento layout: hero 2×2 + quote cards interleaved + standard
-            // CaseCards for the rest. Triggered only on the unfiltered
-            // atlas landing — once filters narrow the grid, fall back to
-            // the uniform layout where the featured signal is irrelevant.
-            <BentoGrid
-              cases={filtered}
-              favs={favs}
-              onOpen={(c) => pushPatch({ caso: c.id })}
-              onFav={(c) => toggleFav(c.id)}
-            />
-          ) : (
-            <div className="case-grid">
-              {filtered.map((c) => (
-                <CaseCard
-                  key={c.id}
-                  caso={c}
-                  isFav={favs.includes(c.id)}
-                  onFav={() => toggleFav(c.id)}
-                  onOpen={() => pushPatch({ caso: c.id })}
-                />
-              ))}
-            </div>
-          )}
+          <MainGrid
+            view={view}
+            cat={cat}
+            tags={tags}
+            query={query}
+            isAdmin={isAdmin}
+            filtered={filtered}
+            allCases={allCases}
+            userCases={userCases}
+            favs={favs}
+            onOpen={(c) => pushPatch({ caso: c.id })}
+            onToggleFav={(c) => toggleFav(c.id)}
+            onEdit={onEditCase}
+            onDelete={(c) => setPendingDelete(c)}
+            onNew={onNewCase}
+            onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
+            onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
+          />
         </main>
       </div>
 
