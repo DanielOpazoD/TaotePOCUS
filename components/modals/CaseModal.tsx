@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useSwipeToClose } from "@/hooks/useSwipeToClose";
 import {
@@ -21,9 +22,28 @@ interface Props {
   onFav: () => void;
   onShare: () => void;
   onPresent: () => void;
+  /** Position of the current case in the navigable set (1-based). */
+  position?: number;
+  /** Total cases in the navigable set, for the "X / N" indicator. */
+  total?: number;
+  /** Open the previous case. Disabled when the current is the first. */
+  onPrev?: () => void;
+  /** Open the next case. Disabled when the current is the last. */
+  onNext?: () => void;
 }
 
-export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
+export default function CaseModal({
+  caso,
+  onClose,
+  isFav,
+  onFav,
+  onShare,
+  onPresent,
+  position,
+  total,
+  onPrev,
+  onNext,
+}: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [readProgress, setReadProgress] = useState(0);
@@ -32,11 +52,8 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
   const trapRef = useFocusTrap<HTMLDivElement>(true);
   const swipe = useSwipeToClose<HTMLDivElement>({ onClose });
   const cat = CATEGORIES.find((c) => c.id === caso.category);
-  const dateStr = new Date(caso.date).toLocaleDateString("es", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const dateLabel = relativeDate(caso.date);
+  const dateAbsolute = absoluteDate(caso.date);
   const parts = caso.author.split(/\s+/);
   const initials = (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
 
@@ -83,17 +100,63 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
     return () => el.removeEventListener("scroll", update);
   }, []);
 
-  // Belt-and-braces Escape — see ConfirmDialog for the why.
+  // Keyboard shortcuts for the modal:
+  //   - Escape  → close
+  //   - ←/→     → previous / next case (when the parent provides
+  //              navigation callbacks; ignored if the user is typing
+  //              in a field, e.g. inside a search box that the modal
+  //              might one day host)
+  //   - F / S / P → toggle fav / share / present (mirrors the
+  //              kbd hints rendered next to those action buttons)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      // Ignore shortcuts while typing in a field — the user is
+      // composing text, not driving the modal chrome.
+      const target = e.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
+        return;
+      }
+      if (e.key === "ArrowLeft" && onPrev) {
+        e.preventDefault();
+        onPrev();
+        return;
+      }
+      if (e.key === "ArrowRight" && onNext) {
+        e.preventDefault();
+        onNext();
+        return;
+      }
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        onFav();
+        return;
+      }
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        onShare();
+        return;
+      }
+      if (e.key === "p" || e.key === "P") {
+        e.preventDefault();
+        onPresent();
+        return;
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  }, [onClose, onPrev, onNext, onFav, onShare, onPresent]);
 
   // Click on the dialog element itself = backdrop click = close.
   const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
@@ -146,7 +209,43 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
           aria-hidden="true"
           style={{ transform: `scaleX(${readProgress})` }}
         />
-        <button className="modal-close" onClick={onClose} aria-label="Cerrar caso">
+        {/* Per-modal nav: prev / position / next pill, pinned to the
+            top edge of the dialog. Hidden on the first/last item or
+            when the parent didn't provide nav callbacks (e.g. opened
+            via a deep link without a filter context). */}
+        {position !== undefined && total !== undefined && total > 1 && (
+          <div className="modal-nav" aria-label="Navegación entre casos">
+            <button
+              type="button"
+              className="modal-nav-btn"
+              onClick={onPrev}
+              disabled={!onPrev}
+              aria-label="Caso anterior"
+              title="Anterior (←)"
+            >
+              {Icon.arrowLeft()}
+            </button>
+            <span className="modal-nav-pos tnum" aria-live="polite">
+              {position} / {total}
+            </span>
+            <button
+              type="button"
+              className="modal-nav-btn"
+              onClick={onNext}
+              disabled={!onNext}
+              aria-label="Caso siguiente"
+              title="Siguiente (→)"
+            >
+              {Icon.arrowRight()}
+            </button>
+          </div>
+        )}
+        <button
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Cerrar caso"
+          title="Cerrar (Esc)"
+        >
           {Icon.close()}
         </button>
         <div className="modal-grid">
@@ -203,7 +302,9 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                 <span className="name">{caso.author}</span>
                 <span className="role">{caso.role}</span>
               </div>
-              <span className="date">{dateStr}</span>
+              <time className="date" dateTime={caso.date} title={dateAbsolute}>
+                {dateLabel}
+              </time>
             </div>
             <div className="modal-section modal-section--lede">
               <h5>Resumen del caso</h5>
@@ -241,12 +342,31 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
               </div>
             </div>
             <div className="modal-actions">
-              <button className={isFav ? "fav-active" : ""} onClick={onFav}>
+              <button
+                className={isFav ? "fav-active" : ""}
+                onClick={onFav}
+                title={isFav ? "Quitar de favoritos (F)" : "Guardar en favoritos (F)"}
+              >
                 {Icon.heart(isFav)} {isFav ? "Guardado" : "Guardar"}
+                <kbd className="kbd-hint" aria-hidden="true">
+                  F
+                </kbd>
               </button>
-              <button onClick={onShare}>{Icon.share()} Compartir</button>
-              <button onClick={onPresent} aria-label="Modo presentación">
+              <button onClick={onShare} title="Copiar enlace al caso (S)">
+                {Icon.share()} Compartir
+                <kbd className="kbd-hint" aria-hidden="true">
+                  S
+                </kbd>
+              </button>
+              <button
+                onClick={onPresent}
+                aria-label="Modo presentación"
+                title="Modo presentación (P)"
+              >
                 {Icon.presentation()} Presentar
+                <kbd className="kbd-hint" aria-hidden="true">
+                  P
+                </kbd>
               </button>
             </div>
           </div>

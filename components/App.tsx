@@ -281,7 +281,26 @@ function AppInner() {
               onNew={onNewCase}
             />
           ) : filtered.length === 0 ? (
-            <EmptyState view={view} />
+            <EmptyState
+              view={view}
+              action={
+                // Pick the most useful action based on what's empty
+                // and why. Filters active → offer to clear; favs view
+                // empty → send to atlas; otherwise leave the empty
+                // state as a pure dead end (no helpful action exists).
+                view.kind === "favs"
+                  ? {
+                      label: "Explorar el atlas",
+                      onClick: () => replacePatch({ view: { kind: "section", section: "atlas" } }),
+                    }
+                  : cat || tags.length > 0 || query.trim()
+                    ? {
+                        label: "Limpiar filtros",
+                        onClick: () => replacePatch({ cat: null, tags: [], query: "" }),
+                      }
+                    : undefined
+              }
+            />
           ) : view.kind === "section" &&
             view.section === "atlas" &&
             !cat &&
@@ -323,16 +342,33 @@ function AppInner() {
       </div>
       {toast && <div className="toast">{toast}</div>}
 
-      {openCase && (
-        <CaseModal
-          caso={openCase}
-          onClose={() => replacePatch({ caso: null })}
-          isFav={favs.includes(openCase.id)}
-          onFav={() => toggleFav(openCase.id)}
-          onShare={() => onShare(openCase)}
-          onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
-        />
-      )}
+      {openCase &&
+        (() => {
+          // Compute nav within the current filtered set so ←/→ flips
+          // through the same list the user just narrowed. If the
+          // current case isn't in `filtered` (rare — opened via deep
+          // link with active filters that exclude it), fall back to
+          // `allCases` so navigation still works.
+          const navList =
+            filtered.length > 0 && filtered.some((c) => c.id === openCase.id) ? filtered : allCases;
+          const idx = navList.findIndex((c) => c.id === openCase.id);
+          const prev = idx > 0 ? navList[idx - 1] : null;
+          const next = idx >= 0 && idx < navList.length - 1 ? navList[idx + 1] : null;
+          return (
+            <CaseModal
+              caso={openCase}
+              onClose={() => replacePatch({ caso: null })}
+              isFav={favs.includes(openCase.id)}
+              onFav={() => toggleFav(openCase.id)}
+              onShare={() => onShare(openCase)}
+              onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
+              position={idx >= 0 ? idx + 1 : undefined}
+              total={navList.length}
+              onPrev={prev ? () => replacePatch({ caso: prev.id }) : undefined}
+              onNext={next ? () => replacePatch({ caso: next.id }) : undefined}
+            />
+          );
+        })()}
       {presentingCase && (
         <PresentationMode
           cases={filtered.length > 0 ? filtered : allCases}

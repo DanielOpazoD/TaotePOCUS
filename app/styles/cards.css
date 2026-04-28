@@ -136,6 +136,71 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 28px 24px;
 }
+
+/* Staggered entrance for the grid. Each child fades in slightly
+   below its final position; the delay scales with the child's
+   index so the grid composes itself left-to-right, row by row,
+   instead of snapping in. ~30 ms per item, capped at 360 ms total
+   so even a 24-card grid finishes in <0.5 s. Linear / Vercel use
+   exactly this pattern on dashboard mounts.
+   Disabled under prefers-reduced-motion. */
+.case-grid > * {
+  animation: card-stagger-in var(--duration-slow) var(--ease-emphasized) backwards;
+}
+.case-grid > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.case-grid > *:nth-child(2) {
+  animation-delay: 30ms;
+}
+.case-grid > *:nth-child(3) {
+  animation-delay: 60ms;
+}
+.case-grid > *:nth-child(4) {
+  animation-delay: 90ms;
+}
+.case-grid > *:nth-child(5) {
+  animation-delay: 120ms;
+}
+.case-grid > *:nth-child(6) {
+  animation-delay: 150ms;
+}
+.case-grid > *:nth-child(7) {
+  animation-delay: 180ms;
+}
+.case-grid > *:nth-child(8) {
+  animation-delay: 210ms;
+}
+.case-grid > *:nth-child(9) {
+  animation-delay: 240ms;
+}
+.case-grid > *:nth-child(10) {
+  animation-delay: 270ms;
+}
+.case-grid > *:nth-child(11) {
+  animation-delay: 300ms;
+}
+.case-grid > *:nth-child(12) {
+  animation-delay: 330ms;
+}
+.case-grid > *:nth-child(n + 13) {
+  animation-delay: 360ms;
+}
+@keyframes card-stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-grid > * {
+    animation: none;
+  }
+}
 @media (max-width: 1180px) {
   .case-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -770,5 +835,39 @@
 @media (prefers-reduced-motion: reduce) {
   .empty-glyph {
     animation: none;
+  }
+}
+
+/* Empty-state CTA — appears below the message when the parent has
+   a useful action to offer. Styled as a primary-quiet pill so it
+   reads as "the next thing" without shouting. The empty-state is
+   already low-attention; this button is the main reason the user
+   would still interact with it. */
+.empty-action {
+  margin-top: var(--space-4);
+  padding: 9px 18px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    transform 0.4s var(--ease-spring);
+}
+.empty-action:hover {
+  background: var(--ink-hover);
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .empty-action {
+    transition: background var(--duration-fast) ease;
+  }
+  .empty-action:hover {
+    transform: none;
   }
 }

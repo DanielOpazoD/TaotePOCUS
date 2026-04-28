@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -17,11 +18,11 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const isCrit = caso.tags.includes("Crítico");
   const [bursting, setBursting] = useState(false);
-  const dateStr = new Date(caso.date).toLocaleDateString("es", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  // Relative date as the visible label, absolute date as the tooltip
+  // hover. Older publications fall back to absolute automatically —
+  // see lib/relative-date.ts for the rules.
+  const dateLabel = relativeDate(caso.date);
+  const dateAbsolute = absoluteDate(caso.date);
 
   const onFavClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -75,7 +76,9 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
         <div className="case-byline">
           <span>{caso.author}</span>
           <span className="dot"></span>
-          <span>{dateStr}</span>
+          <time dateTime={caso.date} title={dateAbsolute}>
+            {dateLabel}
+          </time>
         </div>
         <div className="case-tags">
           {caso.tags.slice(0, 3).map((t) => (

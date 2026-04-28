@@ -3,11 +3,20 @@
 import type { ReactElement } from "react";
 import type { View } from "@/lib/types";
 
+interface EmptyAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Props {
   view: View;
   /** Optional override (e.g. favs view says "aún no has guardado"). */
   title?: string;
   message?: string;
+  /** Optional CTA button rendered below the message. Empty states
+   *  without an action are dead ends; with one, they become the
+   *  start of a flow. */
+  action?: EmptyAction;
 }
 
 /**
@@ -20,7 +29,7 @@ interface Props {
  * marked `aria-hidden` because the heading + message carry the
  * semantic content.
  */
-export default function EmptyState({ view, title, message }: Props) {
+export default function EmptyState({ view, title, message, action }: Props) {
   const { glyph, defaultTitle, defaultMessage } = pickContent(view);
   return (
     <div className="empty empty--illustrated" role="status">
@@ -29,6 +38,11 @@ export default function EmptyState({ view, title, message }: Props) {
       </div>
       <h3>{title ?? defaultTitle}</h3>
       <p>{message ?? defaultMessage}</p>
+      {action && (
+        <button type="button" className="empty-action" onClick={action.onClick}>
+          {action.label}
+        </button>
+      )}
     </div>
   );
 }

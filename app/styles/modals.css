@@ -87,6 +87,92 @@ dialog.case-modal-host[open] {
     animation: none;
   }
 }
+/* Per-modal navigation pill. Pinned at the top center of the dialog,
+   above the content. Clicking the chevrons or pressing ←/→ flips
+   between cases inside the current filter — turning the modal into
+   a magazine reader rather than a one-shot view. */
+.modal-nav {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 110;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-translucent);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-1);
+}
+.modal-nav-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+.modal-nav-btn svg {
+  width: 14px;
+  height: 14px;
+}
+.modal-nav-btn:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.modal-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.modal-nav-pos {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  padding: 0 4px;
+  min-width: 44px;
+  text-align: center;
+}
+
+/* Keyboard shortcut hint. A small mono badge that sits next to an
+   action button's label, fading to barely visible by default and
+   intensifying on hover. The button keeps its title attribute as
+   the authoritative tooltip; this is a visible companion. Power-
+   user idiom borrowed from Linear / Superhuman. */
+.kbd-hint {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  color: var(--ink-mute);
+  opacity: 0.7;
+  transition: opacity var(--duration-fast) ease;
+}
+button:hover > .kbd-hint {
+  opacity: 1;
+  color: var(--ink-soft);
+  border-color: var(--hairline-strong);
+}
+
 /* Read-progress bar pinned to the top edge of the modal. Grows from
    left to right via scaleX, transformed by the body's scrollTop ratio.
    Uses the section accent so it inherits the page's color narrative. */
