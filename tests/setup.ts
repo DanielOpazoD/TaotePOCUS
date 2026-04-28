@@ -51,6 +51,27 @@ if (!("ResizeObserver" in window)) {
   (window as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
 }
 
+// ─── next/navigation router ───────────────────────────────────────────────
+// The TransitionLink component (chrome) calls `useRouter()` to wrap
+// navigations in startViewTransition. Outside of the App Router runtime
+// that hook throws "invariant expected app router to be mounted". Mock
+// it globally so component tests work without each suite repeating the
+// boilerplate. Test files that need router-level behavior can override
+// with their own `vi.mock("next/navigation", ...)` — Vitest gives the
+// per-file mock priority over this default.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 // ─── Per-test isolation ──────────────────────────────────────────────────
 // localStorage leaks across tests in the same file because happy-dom
 // mounts one DOM. Clear after each test so suites stay independent

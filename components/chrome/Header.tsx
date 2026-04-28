@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import TransitionLink from "./TransitionLink";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { viewToPath } from "@/lib/url";
@@ -143,7 +143,7 @@ export default function Header({
         <button type="button" className="hamburger" onClick={onOpenDrawer} aria-label="Abrir menú">
           {Icon.menu()}
         </button>
-        <Link className="brand" href="/" aria-label="Taote POCUS — inicio">
+        <TransitionLink className="brand" href="/" aria-label="Taote POCUS — inicio">
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
               {/* Outer ring: ultrasound field. */}
@@ -170,7 +170,7 @@ export default function Header({
             Taote <em>POCUS</em>
           </span>
           <span className="brand-tag">ES</span>
-        </Link>
+        </TransitionLink>
         <nav
           className="nav"
           aria-label="Secciones"
@@ -181,31 +181,31 @@ export default function Header({
           {SECTIONS.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
-              <Link
+              <TransitionLink
                 key={s.id}
                 href={viewToPath(target)}
                 className={isActive(target) ? "active" : ""}
                 aria-current={isActive(target) ? "page" : undefined}
               >
                 {s.label}
-              </Link>
+              </TransitionLink>
             );
           })}
-          <Link
+          <TransitionLink
             href={viewToPath({ kind: "favs" })}
             className={view.kind === "favs" ? "active" : ""}
             aria-current={view.kind === "favs" ? "page" : undefined}
           >
             Favoritos {favCount > 0 && <span className="fav-count">{favCount}</span>}
-          </Link>
+          </TransitionLink>
           {isAdmin && (
-            <Link
+            <TransitionLink
               href={viewToPath({ kind: "admin" })}
               className={view.kind === "admin" ? "active" : ""}
               aria-current={view.kind === "admin" ? "page" : undefined}
             >
               Administrar
-            </Link>
+            </TransitionLink>
           )}
           <span
             className={`nav-indicator${indicator.visible ? " is-visible" : ""}`}

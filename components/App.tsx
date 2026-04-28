@@ -6,7 +6,7 @@ import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
 import EmptyState from "./EmptyState";
 import { Header } from "./chrome";
-import { CaseCard } from "./cards";
+import { CaseCard, BentoGrid } from "./cards";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
 import { derivePageHead } from "@/lib/headers";
@@ -253,14 +253,22 @@ function AppInner() {
               </select>
             </div>
           </div>
-          {view.kind === "section" && !cat && tags.length === 0 && !query.trim() && (
-            <FeaturedRow
-              cases={scopedCases}
-              favs={favs}
-              onOpen={(c) => pushPatch({ caso: c.id })}
-              onFav={toggleFav}
-            />
-          )}
+          {/* FeaturedRow above the grid is shown for non-atlas section
+              landings. Atlas gets the bento layout below, which already
+              promotes the featured case to a 2×2 hero — showing it
+              twice would just be loud. */}
+          {view.kind === "section" &&
+            view.section !== "atlas" &&
+            !cat &&
+            tags.length === 0 &&
+            !query.trim() && (
+              <FeaturedRow
+                cases={scopedCases}
+                favs={favs}
+                onOpen={(c) => pushPatch({ caso: c.id })}
+                onFav={toggleFav}
+              />
+            )}
           {view.kind === "admin" && isAdmin ? (
             <AdminPanel
               allCases={allCases}
@@ -274,6 +282,21 @@ function AppInner() {
             />
           ) : filtered.length === 0 ? (
             <EmptyState view={view} />
+          ) : view.kind === "section" &&
+            view.section === "atlas" &&
+            !cat &&
+            tags.length === 0 &&
+            !query.trim() ? (
+            // Bento layout: hero 2×2 + quote cards interleaved + standard
+            // CaseCards for the rest. Triggered only on the unfiltered
+            // atlas landing — once filters narrow the grid, fall back to
+            // the uniform layout where the featured signal is irrelevant.
+            <BentoGrid
+              cases={filtered}
+              favs={favs}
+              onOpen={(c) => pushPatch({ caso: c.id })}
+              onFav={(c) => toggleFav(c.id)}
+            />
           ) : (
             <div className="case-grid">
               {filtered.map((c) => (

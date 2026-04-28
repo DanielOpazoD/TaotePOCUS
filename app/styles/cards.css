@@ -142,7 +142,180 @@
   }
 }
 
-/* hidden by default — only the cases section uses it */
+/* =================== BENTO GRID (atlas landing) ===================
+ *
+ * 3-column grid with a featured 2×2 hero in the top-left and standard
+ * cards filling the rest. The hero card uses the same CaseCard
+ * component; container queries flip it to horizontal because its
+ * wrapper spans 2 columns (>720px). Quote cards interleave at fixed
+ * positions for textual rhythm.
+ *
+ * `grid-auto-rows: 1fr` distributes row heights so the side cards
+ * align with the hero's 2-row span. Min row height keeps things sane
+ * on viewports where the auto-distribution would collapse cards. */
+.case-grid--bento {
+  grid-auto-rows: minmax(0, 1fr);
+  align-items: stretch;
+}
+.case-grid--bento .bento-hero {
+  grid-column: span 2;
+  grid-row: span 2;
+  display: flex;
+  min-height: 0;
+}
+.case-grid--bento .bento-hero > .case-card {
+  /* Fill the 2×2 cell. The horizontal container query takes care of
+     the layout flip; we just override the fixed thumb width to a
+     fluid 50/50 split because we have plenty of room. */
+  width: 100%;
+  height: 100%;
+}
+@container card (min-width: 720px) {
+  .bento-hero > .case-card {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-1);
+    transition:
+      transform 0.4s var(--ease-spring),
+      box-shadow 0.18s ease,
+      border-color var(--duration-fast) ease;
+  }
+  .bento-hero > .case-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--ink-mute);
+    box-shadow: var(--shadow-2);
+  }
+  .bento-hero > .case-card .case-thumb {
+    flex: 1 1 50%;
+    aspect-ratio: auto;
+    border-radius: 0;
+    align-self: stretch;
+  }
+  .bento-hero > .case-card .case-meta {
+    flex: 1 1 50%;
+    padding: var(--space-6) var(--space-6) var(--space-5);
+    justify-content: center;
+    gap: var(--space-3);
+  }
+  .bento-hero > .case-card .case-title {
+    font-family: var(--serif);
+    font-variation-settings: var(--serif-display);
+    font-size: clamp(28px, 2.6vw, 38px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .bento-hero > .case-card .case-summary {
+    -webkit-line-clamp: 3;
+    font-size: 15px;
+  }
+}
+
+/* On narrower viewports the bento collapses gracefully:
+   - 2-col layout: hero spans both cols, side cards drop below
+   - 1-col: hero is full-width and same height as other cards */
+@media (max-width: 1180px) {
+  .case-grid--bento .bento-hero {
+    grid-row: span 1;
+  }
+}
+@media (max-width: 760px) {
+  .case-grid--bento .bento-hero {
+    grid-column: 1 / -1;
+  }
+  .case-grid--bento .bento-hero > .case-card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
+/* =================== QUOTE CARD =================== */
+.quote-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+  transition:
+    transform 0.4s var(--ease-spring),
+    border-color var(--duration-fast) ease,
+    box-shadow 0.18s ease;
+  isolation: isolate;
+}
+.quote-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--ink-mute);
+  box-shadow: var(--shadow-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .quote-card,
+  .quote-card:hover {
+    transform: none;
+    transition: none;
+  }
+}
+.quote-card-mark {
+  /* Oversized opening quote mark in section accent; sits behind the
+     text as a typographic mark of the editorial form. */
+  font-family: var(--serif);
+  font-variation-settings: var(--serif-display);
+  font-size: 96px;
+  line-height: 0.6;
+  color: var(--section-accent, var(--accent));
+  opacity: 0.18;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+}
+.quote-card-text {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-variation-settings:
+    "opsz" 22,
+    "wght" 460;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--ink);
+  /* Push the text down slightly so the quote mark behind it has room. */
+  margin-top: var(--space-3);
+}
+.quote-card-byline {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.quote-card-byline .dot {
+  width: 2px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* hidden by default — container query promotes it back when the
+   card has room (>=540px container = "wide horizontal" mode). */
 .case-summary {
   display: none;
 }
@@ -164,67 +337,28 @@
 .layout[data-section="info"] .case-thumb {
   aspect-ratio: 4/5;
 }
-.layout[data-section="info"] .case-title {
-  font-size: 22px;
-}
 
-/* ====== Casos clínicos: editorial list (1-col, horizontal cards) ====== */
+/* ====== Casos clínicos: editorial list (1-col, container handles
+   the horizontal layout because each card is now ~880px wide). ====== */
 .layout[data-section="cases"] .case-grid {
   grid-template-columns: 1fr;
   gap: 0;
   max-width: 880px;
 }
 .layout[data-section="cases"] .case-card {
-  flex-direction: row;
-  gap: 28px;
+  /* Horizontal flip happens via container query @ 540px below; here
+     we only add the section-specific divider + hover color. The card
+     still picks its own layout based on its own width, which means
+     the same component works in any container. */
   padding: 24px 0;
   border-bottom: 1px solid var(--hairline);
+  transform: none;
 }
 .layout[data-section="cases"] .case-card:hover {
   transform: none;
 }
 .layout[data-section="cases"] .case-card:hover .case-title {
   color: var(--section-accent-ink);
-}
-.layout[data-section="cases"] .case-thumb {
-  flex: 0 0 280px;
-  aspect-ratio: 16/10;
-  border-radius: var(--radius-md);
-}
-.layout[data-section="cases"] .case-meta {
-  flex: 1;
-  gap: var(--space-2);
-  justify-content: center;
-}
-.layout[data-section="cases"] .case-title {
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: -0.018em;
-  transition: color 0.15s;
-}
-.layout[data-section="cases"] .case-summary {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  max-width: 60ch;
-}
-.layout[data-section="cases"] .case-tags {
-  margin-top: 4px;
-}
-@media (max-width: 760px) {
-  .layout[data-section="cases"] .case-card {
-    flex-direction: column;
-    gap: 14px;
-  }
-  .layout[data-section="cases"] .case-thumb {
-    flex: 0 0 auto;
-    aspect-ratio: 16/9;
-  }
 }
 
 .case-card {
@@ -243,6 +377,79 @@
   padding: 0;
   text-align: left;
   font-family: inherit;
+  /* Container query host. Each card decides its own layout from its
+     own width, not the viewport. Same component works in a 3-col grid,
+     in the 1-col cases list, in a sidebar preview, or anywhere — the
+     responsive logic travels with the card. */
+  container-type: inline-size;
+  container-name: card;
+}
+
+/* Wide container: horizontal "long-read" layout with image on the left
+   and the editorial summary on the right. Threshold is 720px so the
+   info section (2-col ~550px each) keeps its portrait poster cards;
+   the cases section (1-col 880px max) and bento heros (2-col span)
+   trigger the flip. No section selectors needed. */
+@container card (min-width: 720px) {
+  .case-card {
+    flex-direction: row;
+    gap: 28px;
+    align-items: stretch;
+  }
+  .case-card .case-thumb {
+    flex: 0 0 280px;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-md);
+  }
+  .case-card .case-meta {
+    flex: 1;
+    gap: var(--space-2);
+    justify-content: center;
+  }
+  .case-card .case-title {
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    transition: color 0.15s;
+  }
+  .case-card .case-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+  .case-card .case-tags {
+    margin-top: 4px;
+  }
+}
+
+/* Mid container: bigger title without the horizontal flip. Used by
+   the info section (2-col, ~440-560px each) and any place a card is
+   wider than the standard 3-col grid cell but narrower than long-read. */
+@container card (min-width: 380px) and (max-width: 719.99px) {
+  .case-card .case-title {
+    font-size: 22px;
+  }
+}
+
+/* Compact container: ultra-tight layout for sidebars or tiny grids
+   (<240px). Suppress secondary chrome so the title carries. */
+@container card (max-width: 240px) {
+  .case-card .case-byline,
+  .case-card .case-tags {
+    display: none;
+  }
+  .case-card .case-title {
+    font-size: 14px;
+  }
+  .case-card .case-cat {
+    font-size: 10px;
+  }
 }
 .case-card:hover {
   transform: translateY(-3px);

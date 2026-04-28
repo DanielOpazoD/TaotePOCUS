@@ -49,6 +49,22 @@
   line-height: 1.05;
   color: var(--ink);
 }
+
+/* View-transition-name on common hero elements. When the user
+   navigates between sections, the browser captures these elements'
+   bboxes before & after, then morphs (size + position) instead of
+   doing the default cross-fade. The names are unique per page (one
+   h1, one breadcrumb), so the browser always finds a 1:1 pairing.
+   Wrapped in @supports — Firefox falls back to the default page
+   fade and the names become a no-op. */
+@supports (view-transition-name: hero-h1) {
+  .hero h1 {
+    view-transition-name: hero-h1;
+  }
+  .hero .crumb {
+    view-transition-name: hero-crumb;
+  }
+}
 .hero p {
   margin: 0;
   color: var(--ink-mute);
@@ -82,6 +98,18 @@
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
+}
+/* The compact head is the fallback for favs/admin/category-narrowed
+   views. It carries the same view-transition-name as the full hero
+   so the h1 and crumb morph in/out cleanly when the user navigates
+   from a hero to a compact head and back. */
+@supports (view-transition-name: hero-h1) {
+  .section-head--compact h1 {
+    view-transition-name: hero-h1;
+  }
+  .section-head--compact .crumb {
+    view-transition-name: hero-crumb;
+  }
 }
 
 /* ---------- atlas ---------- */
@@ -173,6 +201,21 @@
   color: var(--ink);
   margin: 0;
   font-variant-numeric: tabular-nums;
+}
+/* Each atlas stat numeral gets a stable transition name so the count
+   morphs into the corresponding stat on the next route — except the
+   target hero may not have stats, in which case the browser fades.
+   Names are scoped to the atlas hero only; other heros don't use them. */
+@supports (view-transition-name: hero-stat-total) {
+  .hero--atlas .hero-stats > div:nth-child(1) dd {
+    view-transition-name: hero-stat-total;
+  }
+  .hero--atlas .hero-stats > div:nth-child(2) dd {
+    view-transition-name: hero-stat-cats;
+  }
+  .hero--atlas .hero-stats > div:nth-child(3) dd {
+    view-transition-name: hero-stat-updated;
+  }
 }
 /* Sparkline sits next to the "Actualizado" date; the date keeps its
    serif size, the line acts as decoration giving the cadence at a

@@ -5,8 +5,10 @@ test.describe("Home page", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Atlas POCUS/);
     await expect(page.getByRole("heading", { level: 1, name: /Atlas POCUS/ })).toBeVisible();
-    // 12 atlas seed cases on the home grid (no admin uploads).
-    const cards = page.locator(".case-card");
+    // 12 atlas seed cases on the home grid (no admin uploads). The
+    // bento layout renders most as `.case-card` and a couple as
+    // `.quote-card` (textual variant) — count both.
+    const cards = page.locator(".case-card, .quote-card");
     await expect(cards).toHaveCount(12);
   });
 

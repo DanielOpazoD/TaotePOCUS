@@ -4,7 +4,7 @@
 // screens (audit §8 noted this had no replacement). The hamburger
 // button in the header toggles this drawer.
 
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 import { useEffect } from "react";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
@@ -109,7 +109,7 @@ export default function MobileDrawer({
           {SECTIONS.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
-              <Link
+              <TransitionLink
                 key={s.id}
                 href={viewToPath(target)}
                 className={isActive(target) ? "active" : ""}
@@ -117,24 +117,24 @@ export default function MobileDrawer({
                 aria-current={isActive(target) ? "page" : undefined}
               >
                 {s.label}
-              </Link>
+              </TransitionLink>
             );
           })}
-          <Link
+          <TransitionLink
             href={viewToPath({ kind: "favs" })}
             className={view.kind === "favs" ? "active" : ""}
             onClick={onClose}
           >
             Favoritos {favCount > 0 && <span className="fav-count">{favCount}</span>}
-          </Link>
+          </TransitionLink>
           {isAdmin && (
-            <Link
+            <TransitionLink
               href={viewToPath({ kind: "admin" })}
               className={view.kind === "admin" ? "active" : ""}
               onClick={onClose}
             >
               Administrar
-            </Link>
+            </TransitionLink>
           )}
         </nav>
 
