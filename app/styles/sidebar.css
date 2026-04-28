@@ -39,21 +39,40 @@
   height: 14px;
 }
 
-/* Collapsed state: rail mode. Categories shrink to compact 40×40
-   icon buttons centered in the rail; counts, section headers and the
-   tag cloud disappear; the active background tightens around the icon
-   so it stops looking like an input field. */
+/* =================== COLLAPSED STATE (rail) ===================
+ *
+ * 56-px rail. Buttons are full-width inside the rail with internal
+ * padding, rounded corners that meet the icon (not the rail edge),
+ * and a section-accent dot anchored to the rail's left edge as the
+ * "you are here" marker. Linear / Notion / Vercel pattern: the
+ * indicator is a single vertical bar, NOT the button background.
+ *
+ * Visual decisions:
+ *   - 8 px horizontal padding inside the rail so buttons feel inset
+ *   - 32 px button height (denser than 40 — closer to icon-only nav
+ *     proportions of Linear / VSCode)
+ *   - 18 px icon (was 16) so the glyph reads as the protagonist
+ *   - 3 px left accent bar anchored to li, not button — sits in the
+ *     rail's gutter and reads as a guideline
+ *   - Active state has a *soft* tint that doesn't compete with the
+ *     bar; hover gets surface-2 only
+ */
 .sidebar.is-collapsed {
-  gap: var(--space-3);
-  align-items: center;
+  gap: 4px;
+  align-items: stretch;
+  padding: 0;
 }
 .sidebar.is-collapsed .sidebar-toggle {
   align-self: center;
-  margin-bottom: 0;
+  margin: 0 0 8px 0;
 }
 .sidebar.is-collapsed .side-section {
   width: 100%;
+  padding: 0;
 }
+/* Section dividers between toggle/categories disappear in the rail —
+   the visual rhythm comes from button spacing, not from labeled
+   sections (the labels are hidden anyway). */
 .sidebar.is-collapsed .side-section h4,
 .sidebar.is-collapsed .cat-text,
 .sidebar.is-collapsed .cat-count,
@@ -61,30 +80,86 @@
   display: none;
 }
 .sidebar.is-collapsed .cat-list {
-  align-items: center;
-  gap: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 8px;
+  width: 100%;
 }
 .sidebar.is-collapsed .cat-list li {
-  width: auto;
+  width: 100%;
+  position: relative;
+  margin: 0;
 }
-/* The compact icon button is square, 40×40, with the active state
-   reduced to a soft rounded backdrop so it reads as a pill, not as a
-   text input that happens to contain an icon. The section-accent
-   left-border is removed (it can't anchor to anything in this layout). */
+/* Section accent indicator. Sits in the gutter to the left of the
+   button, anchored to the rail edge. Only renders for the active
+   row. Uses :has() so the li knows about its child's state. Browsers
+   without :has() get a clean rail without the indicator — the
+   button bg still marks the active row. */
+.sidebar.is-collapsed .cat-list li:has(button.active)::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  background: var(--section-accent, var(--ink));
+  border-radius: 0 2px 2px 0;
+  pointer-events: none;
+}
+
 .sidebar.is-collapsed .cat-list button {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 32px;
   padding: 0;
   display: grid;
   place-items: center;
   border-left: none;
-  border-radius: var(--radius-md);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+}
+/* Bigger glyph in the rail — the icon is the only thing carrying
+   the meaning, so it should fill the button confidently. */
+.sidebar.is-collapsed .cat-list button .cat-glyph {
+  width: 18px;
+  height: 18px;
+}
+.sidebar.is-collapsed .cat-list button .cat-glyph svg {
+  width: 18px;
+  height: 18px;
+}
+.sidebar.is-collapsed .cat-list button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
 }
 .sidebar.is-collapsed .cat-list button.active {
+  /* Soft tint, not the saturated section-accent-soft. The accent bar
+     in the gutter is the primary indicator; the bg is a whisper. */
+  background: color-mix(in oklch, var(--section-accent, var(--ink)) 8%, transparent);
+  color: var(--section-accent-ink, var(--ink));
   border-left: none;
+}
+.sidebar.is-collapsed .cat-list button.active:hover {
+  background: color-mix(in oklch, var(--section-accent, var(--ink)) 14%, transparent);
+}
+.sidebar.is-collapsed .cat-list button.active .cat-glyph {
+  color: var(--section-accent-ink, var(--ink));
+  opacity: 1;
 }
 .sidebar.is-collapsed .cat-label {
   gap: 0;
+}
+
+/* Toggle button gets a square footprint in the rail so it visually
+   matches the buttons below — the circle was disconnected. Slightly
+   smaller (28×28) so it reads as chrome, not as a primary item. */
+.sidebar.is-collapsed .sidebar-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
 }
 .side-section h4 {
   font-family: var(--mono);
