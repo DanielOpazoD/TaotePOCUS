@@ -4,12 +4,14 @@
   top: 88px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  transition: width var(--duration-base) var(--ease-emphasized);
+  gap: 20px;
 }
 
-/* Collapse toggle — small chevron pinned at the top edge of the rail.
-   The whole sidebar narrows to an icon-strip when toggled. */
+/* Collapse toggle — small chevron pinned at the top of the rail.
+   In expanded state it sits at the right edge of the column with a
+   slight negative margin so it nests visually with the first section
+   header (sticky chrome, like Linear's sidebar). In collapsed state
+   it centers in the rail and drops the negative margin. */
 .sidebar-toggle {
   align-self: flex-end;
   background: var(--surface);
@@ -24,8 +26,9 @@
   transition:
     color var(--duration-fast) ease,
     border-color var(--duration-fast) ease,
-    background var(--duration-fast) ease;
-  margin-bottom: -16px;
+    background var(--duration-fast) ease,
+    align-self var(--duration-base) var(--ease-emphasized);
+  margin-bottom: -10px;
 }
 .sidebar-toggle:hover {
   color: var(--ink);
@@ -36,13 +39,20 @@
   height: 14px;
 }
 
-/* Collapsed state: rail mode. Categories shrink to glyph-only buttons,
-   counts and tag cloud fade out. The toggle still sticks at the top. */
+/* Collapsed state: rail mode. Categories shrink to compact 40×40
+   icon buttons centered in the rail; counts, section headers and the
+   tag cloud disappear; the active background tightens around the icon
+   so it stops looking like an input field. */
 .sidebar.is-collapsed {
-  gap: 16px;
+  gap: var(--space-3);
+  align-items: center;
 }
 .sidebar.is-collapsed .sidebar-toggle {
   align-self: center;
+  margin-bottom: 0;
+}
+.sidebar.is-collapsed .side-section {
+  width: 100%;
 }
 .sidebar.is-collapsed .side-section h4,
 .sidebar.is-collapsed .cat-text,
@@ -50,9 +60,28 @@
 .sidebar.is-collapsed .sidebar-tags {
   display: none;
 }
+.sidebar.is-collapsed .cat-list {
+  align-items: center;
+  gap: var(--space-1);
+}
+.sidebar.is-collapsed .cat-list li {
+  width: auto;
+}
+/* The compact icon button is square, 40×40, with the active state
+   reduced to a soft rounded backdrop so it reads as a pill, not as a
+   text input that happens to contain an icon. The section-accent
+   left-border is removed (it can't anchor to anything in this layout). */
 .sidebar.is-collapsed .cat-list button {
-  justify-content: center;
-  padding: 8px 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-left: none;
+  border-radius: var(--radius-md);
+}
+.sidebar.is-collapsed .cat-list button.active {
+  border-left: none;
 }
 .sidebar.is-collapsed .cat-label {
   gap: 0;

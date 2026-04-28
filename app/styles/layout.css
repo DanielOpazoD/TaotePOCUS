@@ -10,6 +10,21 @@
   --section-accent: var(--accent);
   --section-accent-ink: var(--accent-ink);
   --section-accent-soft: var(--accent-soft);
+  /* Smooth column transition when the sidebar collapses — gives the
+     main content room to expand instead of snapping. */
+  transition:
+    grid-template-columns var(--duration-base) var(--ease-emphasized),
+    gap var(--duration-base) var(--ease-emphasized);
+}
+
+/* Collapsed sidebar: shrink the column to a thin rail and tighten
+   the gap so the icon strip sits flush against the page padding,
+   not stranded inside an empty 240px column. :has() drives the
+   reflow without any prop drilling. Browsers without :has() (older
+   Firefox) keep the 240px column — a graceful, if larger, rail. */
+.layout:has(.sidebar.is-collapsed) {
+  grid-template-columns: 56px 1fr;
+  gap: var(--space-6);
 }
 .layout[data-section="ecg"] {
   --section-accent: var(--signal);
