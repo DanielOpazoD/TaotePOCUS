@@ -7,6 +7,7 @@ import { Header } from "./chrome";
 import { CaseCard } from "./cards";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
+import { CategoryGlyph } from "@/lib/icons";
 import { derivePageHead } from "@/lib/headers";
 import type { CaseRecord } from "@/lib/types";
 import type { SortOrder } from "@/lib/url";
@@ -16,6 +17,7 @@ import { useSession } from "@/hooks/useSession";
 import { useFavs } from "@/hooks/useFavs";
 import { useUserCases } from "@/hooks/useUserCases";
 import { useCaseFilters } from "@/hooks/useCaseFilters";
+import { useShortcuts } from "@/hooks/useShortcuts";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
@@ -26,6 +28,7 @@ const PresentationMode = dynamic(() => import("./cine/PresentationMode"), { ssr:
 const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: false });
 const FeaturedRow = dynamic(() => import("./cards/FeaturedRow"));
 const MobileDrawer = dynamic(() => import("./chrome/MobileDrawer"), { ssr: false });
+const ShortcutsModal = dynamic(() => import("./modals/ShortcutsModal"), { ssr: false });
 
 export default function App() {
   return (
@@ -44,6 +47,8 @@ function AppInner() {
     sort,
     caso: openCaseId,
     presenting: presentingId,
+    level,
+    spec,
     pushPatch,
     replacePatch,
   } = useViewState();
@@ -64,6 +69,13 @@ function AppInner() {
   const [formOpen, setFormOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<CaseRecord | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [clearShaking, setClearShaking] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  // Global keyboard shortcuts. The hook installs window listeners for
+  // j/k, g+letter and `?`. The `/` shortcut for the search box lives
+  // in the Header, co-located with the input it focuses.
+  useShortcuts({ onHelp: () => setShortcutsOpen(true) });
 
   // Combined case list for public flows. AdminPanel sees `userCases.live`
   // and `userCases.trashed` separately.
@@ -72,15 +84,18 @@ function AppInner() {
     [userCases.live],
   );
 
-  const { scopedCases, sectionCategories, sectionTags, filtered } = useCaseFilters({
-    allCases,
-    favs,
-    view,
-    cat,
-    tags,
-    query,
-    sort,
-  });
+  const { scopedCases, sectionCategories, sectionTags, sectionSpecialties, filtered } =
+    useCaseFilters({
+      allCases,
+      favs,
+      view,
+      cat,
+      tags,
+      query,
+      sort,
+      level,
+      spec,
+    });
 
   const openCase = useMemo<CaseRecord | null>(
     () => (openCaseId ? (allCases.find((c) => c.id === openCaseId) ?? null) : null),
@@ -163,6 +178,11 @@ function AppInner() {
           totalCount={scopedCases.length}
           categories={sectionCategories}
           tags={sectionTags}
+          level={level}
+          setLevel={(l) => replacePatch({ level: l })}
+          spec={spec}
+          setSpec={(s) => replacePatch({ spec: s })}
+          specialties={sectionSpecialties}
         />
 
         <main className="main" id="main" tabIndex={-1}>
@@ -172,6 +192,11 @@ function AppInner() {
                 <span>Taote POCUS</span>
                 <span className="crumb-dot"></span>
                 <span>{head.crumb}</span>
+                {cat && (
+                  <span className="crumb-glyph" aria-hidden="true">
+                    {CategoryGlyph[cat] ?? null}
+                  </span>
+                )}
               </div>
               <h1>{head.title}</h1>
               <p>{head.sub}</p>
@@ -181,11 +206,21 @@ function AppInner() {
             <span className="results">
               {filtered.length} {filtered.length === 1 ? "caso" : "casos"}
             </span>
-            {(tags.length > 0 || query) && (
-              <button className="clear-btn" onClick={() => replacePatch({ tags: [], query: "" })}>
-                Limpiar filtros
-              </button>
-            )}
+            <button
+              className={`clear-btn${clearShaking ? " is-shaking" : ""}`}
+              disabled={tags.length === 0 && !query && !level && !spec}
+              onClick={() => {
+                if (tags.length === 0 && !query && !level && !spec) {
+                  // Wink — nothing to clear, but the user clicked anyway.
+                  setClearShaking(true);
+                  setTimeout(() => setClearShaking(false), 400);
+                  return;
+                }
+                replacePatch({ tags: [], query: "", level: null, spec: null });
+              }}
+            >
+              Limpiar filtros
+            </button>
             {tags.length > 0 && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {tags.map((t) => (
@@ -215,14 +250,19 @@ function AppInner() {
               </select>
             </div>
           </div>
-          {view.kind === "section" && !cat && tags.length === 0 && !query.trim() && (
-            <FeaturedRow
-              cases={scopedCases}
-              favs={favs}
-              onOpen={(c) => pushPatch({ caso: c.id })}
-              onFav={toggleFav}
-            />
-          )}
+          {view.kind === "section" &&
+            !cat &&
+            tags.length === 0 &&
+            !query.trim() &&
+            !level &&
+            !spec && (
+              <FeaturedRow
+                cases={scopedCases}
+                favs={favs}
+                onOpen={(c) => pushPatch({ caso: c.id })}
+                onFav={toggleFav}
+              />
+            )}
           {view.kind === "admin" && isAdmin ? (
             <AdminPanel
               allCases={allCases}
@@ -306,6 +346,7 @@ function AppInner() {
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>
   );
 }

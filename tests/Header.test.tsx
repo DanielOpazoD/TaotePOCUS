@@ -34,7 +34,9 @@ const baseProps = {
 describe("Header", () => {
   it("shows the brand and the four section links", () => {
     render(<Header {...baseProps} />);
-    expect(screen.getByText("Taote POCUS")).toBeTruthy();
+    // Brand is "Taote POCUS" split across <span> + <em> for typography.
+    // Match by the outer link's accessible name.
+    expect(screen.getByRole("link", { name: /Taote POCUS/ })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Atlas POCUS" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "ECG" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Casos clínicos" })).toBeTruthy();

@@ -17,7 +17,7 @@
 }
 .brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   font-family: var(--serif);
   font-size: 22px;
@@ -33,18 +33,30 @@
   height: 28px;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--ink);
-  border-radius: 50%;
-  position: relative;
-  align-self: center;
+  color: var(--ink);
+  flex-shrink: 0;
+  /* SVG inside is sized to the box; no border or pseudo-dot needed. */
 }
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ink);
+.brand-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.brand-wordmark {
+  /* Editorial wordmark: serif for "Taote", italic serif for "POCUS"
+     to suggest the technique-as-name. Subtle but distinguishes the
+     brand from the surrounding sans-serif chrome. */
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35ch;
+  letter-spacing: -0.018em;
+  font-feature-settings: "ss01" 1;
+}
+.brand-wordmark em {
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--accent-ink);
 }
 .brand-tag {
   font-family: var(--sans);
@@ -77,6 +89,7 @@
   background: var(--surface-2);
 }
 .nav a {
+  position: relative;
   background: transparent;
   border: none;
   padding: 8px 14px;
@@ -89,14 +102,43 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: color var(--duration-fast) ease;
 }
-.nav a:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+.nav a::after {
+  /* Animated underline. Each link draws its own; the active one
+     shows it. View-transition-name on the active underline lets the
+     browser cross-fade the indicator between links during route
+     changes — falls back to opacity transition on Firefox. */
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 4px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: center;
+  transition:
+    opacity var(--duration-base) var(--ease-emphasized),
+    transform var(--duration-base) var(--ease-emphasized);
+}
+.nav a:hover::after {
+  opacity: 0.35;
+  transform: scaleX(0.7);
 }
 .nav a.active {
   color: var(--ink);
-  background: var(--surface-2);
+}
+.nav a.active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+@supports (view-transition-name: nav-active) {
+  .nav a.active::after {
+    view-transition-name: nav-active;
+  }
 }
 .nav {
   display: flex;

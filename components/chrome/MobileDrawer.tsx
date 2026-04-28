@@ -70,8 +70,29 @@ export default function MobileDrawer({
       <div className="drawer" onClick={(e) => e.stopPropagation()} ref={trapRef}>
         <div className="drawer-head">
           <div className="brand" style={{ fontSize: 18 }}>
-            <span className="brand-mark"></span>
-            Taote POCUS
+            <span className="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+                <circle
+                  cx="14"
+                  cy="14"
+                  r="12.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.25"
+                  opacity="0.35"
+                />
+                <path
+                  d="M3 14 Q 7 7, 11 14 T 19 14 T 25 14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+            <span className="brand-wordmark">
+              Taote <em>POCUS</em>
+            </span>
           </div>
           <button
             type="button"

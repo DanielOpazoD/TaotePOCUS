@@ -3,9 +3,27 @@
   position: fixed;
   inset: 0;
   background: rgba(15, 17, 20, 0.55);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   z-index: var(--z-modal);
-  animation: fadeIn 0.18s ease;
+  /* Progressive blur — start with no blur and ramp up as the drawer
+     slides in. Feels less jarring than a hard transition from clear
+     to fully blurred. */
+  animation: drawer-backdrop-in var(--duration-slow) var(--ease-emphasized);
+}
+@keyframes drawer-backdrop-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-backdrop {
+    animation: none;
+  }
 }
 .drawer {
   position: absolute;

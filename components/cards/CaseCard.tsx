@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { CineLoop } from "../cine";
-import { Icon } from "@/lib/icons";
+import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import type { CaseRecord } from "@/lib/types";
 
@@ -15,11 +16,23 @@ interface Props {
 export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const isCrit = caso.tags.includes("Crítico");
+  const [bursting, setBursting] = useState(false);
   const dateStr = new Date(caso.date).toLocaleDateString("es", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
+  const onFavClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Visual reward asymmetric: only animate on becoming-a-fav, not
+    // on un-fav. Subtler that way.
+    if (!isFav) {
+      setBursting(true);
+      setTimeout(() => setBursting(false), 600);
+    }
+    onFav();
+  };
   return (
     <div
       className="case-card"
@@ -41,19 +54,22 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
         </div>
         {isCrit && <span className="case-thumb-crit">Crítico</span>}
         <button
-          className={`case-thumb-fav ${isFav ? "active" : ""}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onFav();
-          }}
+          className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
+          onClick={onFavClick}
           aria-label="Favorito"
+          aria-pressed={isFav}
         >
           {Icon.heart(isFav)}
         </button>
         <span className="case-thumb-modality">{caso.modality}</span>
       </div>
       <div className="case-meta">
-        <div className="case-cat">{cat?.label}</div>
+        <div className="case-cat">
+          <span className="case-cat-glyph" aria-hidden="true">
+            {CategoryGlyph[caso.category] ?? null}
+          </span>
+          <span>{cat?.label}</span>
+        </div>
         <h3 className="case-title">{caso.title}</h3>
         <p className="case-summary">{caso.summary}</p>
         <div className="case-byline">

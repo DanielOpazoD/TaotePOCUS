@@ -93,3 +93,39 @@ html {
   color-scheme: light dark;
   transition: background-color 0.25s ease;
 }
+
+/* =================== TYPOGRAPHY DEFAULTS =================== */
+
+/* Spanish editorial body: hyphenate at word boundaries when a line
+   wrap would otherwise leave a long word stuck. Lengthens reading
+   comfort on narrow columns (case modal body, drawer). Browsers that
+   don't ship hyphenation dictionaries silently fall back to no-op. */
+body {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+/* `text-wrap: pretty` keeps headings and short paragraphs from leaving
+   "widows" — single words on the last line. Browser-native; falls back
+   to default wrapping where unsupported. */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: pretty;
+  hyphens: manual;
+}
+
+/* Tabular numerics: counts, dates, amounts. Without this, serif/sans
+   digits have proportional widths and dates jitter under hover. */
+.tnum,
+.case-byline,
+.fav-count,
+.cat-count,
+.toolbar .results,
+.modal-author-meta .date,
+.admin-stat-num,
+.admin-date {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}

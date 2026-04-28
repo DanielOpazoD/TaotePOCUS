@@ -62,21 +62,32 @@
 .cat-list button:hover .cat-glyph {
   color: var(--ink-soft);
 }
-.cat-list button.active .cat-glyph {
-  color: var(--bg);
-  opacity: 0.85;
-}
 .cat-list button:hover {
   background: var(--surface-2);
   color: var(--ink);
 }
+.cat-list button {
+  position: relative;
+  border-left: 3px solid transparent;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
 .cat-list button.active {
-  background: var(--ink);
-  color: var(--bg);
+  /* Soft accent tint + section-colored bar instead of solid black —
+     less aggressive, matches the sidebar's editorial feel. The
+     section accent variable comes from the layout's data-section. */
+  background: var(--section-accent-soft, var(--surface-2));
+  color: var(--ink);
   font-weight: 500;
+  border-left-color: var(--section-accent, var(--ink));
 }
 .cat-list button.active .cat-count {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--section-accent-ink, var(--ink-soft));
+}
+.cat-list button.active .cat-glyph {
+  color: var(--section-accent-ink, var(--ink-soft));
+  opacity: 1;
 }
 .cat-count {
   font-family: var(--mono);
@@ -101,6 +112,19 @@
   transition: all 0.12s;
   font-family: var(--sans);
 }
+/* Tag prefix on the sidebar tag cloud — visual cue that they're
+   filterable tokens. Skipped on inactive chips elsewhere (modal,
+   active-filter row) to avoid clutter. */
+.tags-cloud .tag-chip::before {
+  content: "#";
+  margin-right: 1px;
+  color: var(--ink-mute);
+  font-feature-settings: "tnum";
+}
+.tags-cloud .tag-chip.active::before {
+  color: var(--bg);
+  opacity: 0.6;
+}
 .tag-chip:hover {
   border-color: var(--ink-mute);
   color: var(--ink);
@@ -109,4 +133,47 @@
   background: var(--ink);
   color: var(--bg);
   border-color: var(--ink);
+}
+
+/* =================== LEVEL TOGGLE =================== */
+.level-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.level-toggle button {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-family: var(--sans);
+  transition: all var(--duration-fast) ease;
+}
+.level-toggle button:hover {
+  border-color: var(--ink-mute);
+  color: var(--ink);
+}
+.level-toggle button.active {
+  background: var(--section-accent-soft, var(--surface-2));
+  border-color: var(--section-accent, var(--ink));
+  color: var(--section-accent-ink, var(--ink));
+  font-weight: 500;
+}
+
+/* =================== SPECIALTY SELECT =================== */
+.specialty-select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--hairline);
+  background: var(--input-bg);
+  color: var(--ink);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-family: var(--sans);
+}
+.specialty-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }

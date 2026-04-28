@@ -56,10 +56,18 @@
   background: #0a0a0a;
   border-radius: var(--radius-md);
   overflow: hidden;
-  transition: box-shadow 0.18s;
+  transition:
+    box-shadow var(--duration-base) ease,
+    border-color var(--duration-base) ease;
+  /* Subtle section-accent border that intensifies on hover. Colors the
+     featured row with the section's identity without the loudness of a
+     full background tint. */
+  box-shadow: 0 0 0 1px var(--section-accent-soft, transparent);
 }
 .featured-card:hover .featured-thumb {
-  box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 2px var(--section-accent, var(--ink)),
+    0 16px 40px -16px rgba(0, 0, 0, 0.35);
 }
 
 .featured-hero .featured-thumb {
@@ -299,8 +307,10 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 32px;
-  height: 32px;
+  /* 44×44 keeps Apple's recommended touch target on mobile while we
+     visually still see a 32px circle (the icon stays smaller). */
+  width: 44px;
+  height: 44px;
   background: rgba(255, 255, 255, 0.92);
   border: none;
   border-radius: 50%;
@@ -310,6 +320,14 @@
   transition: all 0.15s;
   color: var(--ink-soft);
 }
+@media (min-width: 880px) {
+  .case-thumb-fav {
+    /* On desktop, hover doesn't need the giant target — shrink to a
+       compact pill, matching the original visual rhythm of the card. */
+    width: 32px;
+    height: 32px;
+  }
+}
 .case-thumb-fav:hover {
   background: white;
   transform: scale(1.06);
@@ -317,6 +335,48 @@
 .case-thumb-fav.active {
   color: var(--crit);
   background: white;
+}
+.case-thumb-fav.is-bursting svg {
+  animation: heart-bounce 600ms var(--ease-emphasized);
+}
+.case-thumb-fav.is-bursting::after {
+  /* Expanding ring that fades — the "particles" effect simplified to
+     a single radial echo so it stays subtle and fast. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--crit);
+  animation: heart-ring 600ms var(--ease-emphasized) forwards;
+  pointer-events: none;
+}
+@keyframes heart-bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35);
+  }
+  60% {
+    transform: scale(0.92);
+  }
+}
+@keyframes heart-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-thumb-fav.is-bursting svg,
+  .case-thumb-fav.is-bursting::after {
+    animation: none;
+  }
 }
 .case-thumb-fav svg {
   width: 16px;
@@ -337,6 +397,24 @@
   border-radius: var(--radius-sm);
   text-transform: uppercase;
   z-index: 2;
+  /* One slow pulse every ~4 s. The keyframes target box-shadow only
+     so layout doesn't shift. Disabled under reduced motion. */
+  animation: crit-pulse 4s var(--ease-emphasized) infinite;
+}
+@keyframes crit-pulse {
+  0%,
+  70%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+  85% {
+    box-shadow: 0 0 0 4px oklch(from var(--crit) l c h / 0.35);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-thumb-crit {
+    animation: none;
+  }
 }
 
 .case-meta {
@@ -346,12 +424,34 @@
   padding: 0 2px;
 }
 .case-cat {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  /* Refined small caps via OpenType — feels editorial without the
+     blunt all-uppercase look. Sans-serif renders the smcp glyphs
+     better than the mono; the browser synthesizes if the font lacks
+     real small caps. */
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  font-variant-caps: all-small-caps;
+  font-feature-settings:
+    "smcp" 1,
+    "c2sc" 1;
   color: var(--accent-ink);
-  font-weight: 500;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.case-cat-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  color: var(--section-accent-ink, var(--accent-ink));
+  flex-shrink: 0;
+}
+.case-cat-glyph svg {
+  width: 14px;
+  height: 14px;
 }
 .case-title {
   font-family: var(--serif);

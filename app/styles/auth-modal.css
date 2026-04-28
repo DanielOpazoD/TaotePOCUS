@@ -113,3 +113,58 @@
 .btn-danger:hover {
   filter: brightness(1.08);
 }
+
+/* =================== SHORTCUTS MODAL =================== */
+.shortcuts-modal {
+  max-width: 480px;
+  padding: var(--space-8);
+}
+.shortcuts-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shortcuts-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.shortcuts-list li:last-child {
+  border-bottom: none;
+}
+.shortcuts-label {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.shortcuts-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+}
+.shortcuts-keys kbd {
+  display: inline-block;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--ink);
+  font-family: var(--mono);
+  line-height: 1.2;
+}
+.shortcuts-then {
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  margin: 0 4px;
+  font-family: var(--sans);
+}

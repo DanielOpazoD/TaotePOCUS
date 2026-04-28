@@ -64,17 +64,25 @@ dialog.case-modal-host[open] {
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 32px 64px -32px rgba(0, 0, 0, 0.4);
-  animation: slideUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Scale-in feels more "expand from origin" than the old slide-up,
+     and pairs better with the dialog's center-of-viewport position. */
+  animation: modal-scale-in var(--duration-slow) var(--ease-standard);
+  transform-origin: center center;
   margin: auto 0;
 }
-@keyframes slideUp {
+@keyframes modal-scale-in {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal {
+    animation: none;
   }
 }
 .modal-close {
@@ -168,6 +176,48 @@ dialog.case-modal-host[open] {
   letter-spacing: -0.02em;
   margin: 0;
 }
+/* Editorial metadata pills above the author bar in the modal:
+   difficulty, reading time, "actualizado" stamp. Compact and color-
+   coded by difficulty so the reader's eye picks them up first. */
+.modal-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-2);
+}
+.modal-meta-pills .pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline-strong);
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+.modal-meta-pills .pill-muted {
+  color: var(--ink-mute);
+}
+.modal-meta-pills .pill-basic {
+  color: oklch(0.55 0.12 145);
+  border-color: oklch(0.85 0.06 145);
+  background: oklch(0.97 0.03 145);
+}
+.modal-meta-pills .pill-intermediate {
+  color: var(--accent-ink);
+  border-color: var(--accent-soft);
+  background: var(--accent-soft);
+}
+.modal-meta-pills .pill-advanced {
+  color: var(--crit);
+  border-color: var(--crit-soft);
+  background: var(--crit-soft);
+}
+[data-theme="dark"] .modal-meta-pills .pill-basic {
+  color: oklch(0.78 0.14 145);
+  border-color: oklch(0.42 0.08 145);
+  background: oklch(0.27 0.06 145);
+}
 .modal-author {
   display: flex;
   align-items: center;
@@ -222,6 +272,29 @@ dialog.case-modal-host[open] {
   font-size: 14.5px;
   line-height: 1.55;
   color: var(--ink);
+}
+
+/* Editorial drop cap on the case summary. Picks up the serif from the
+   page tokens so it visually anchors the modal — reads like a
+   journal article opening. Skipped under reduced-motion preferences
+   (no aesthetic flourish for users who opted out). */
+#case-modal-summary::first-letter {
+  font-family: var(--serif);
+  font-size: 3.4em;
+  font-weight: 500;
+  float: left;
+  line-height: 0.9;
+  margin: 4px 8px 0 0;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+@media (prefers-reduced-motion: reduce) {
+  #case-modal-summary::first-letter {
+    font-size: inherit;
+    float: none;
+    margin: 0;
+    line-height: inherit;
+  }
 }
 .modal-diagnosis {
   background: var(--accent-soft);

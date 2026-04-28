@@ -82,6 +82,18 @@ export interface CaseRecord {
   featured?: boolean;
   /** Optional uploaded media. Absence (undefined) means "use the synthetic loop". */
   media?: Media;
+  /**
+   * Editorial difficulty hint. Used to filter the catalog and to show
+   * a pill in the case modal. Cases without an explicit value default
+   * to "intermediate" in the UI.
+   */
+  difficulty?: "basic" | "intermediate" | "advanced";
+  /**
+   * ISO timestamp of the last meaningful edit to the case copy. When
+   * absent, `date` (publication date) is used. Surfaced in the modal
+   * author bar so readers know how fresh the entry is.
+   */
+  lastUpdated?: string;
   // Soft-delete metadata. Audit trail visible to admins; hidden from
   // public views. The case record stays in storage so a deletion can
   // be reverted without losing the underlying media.

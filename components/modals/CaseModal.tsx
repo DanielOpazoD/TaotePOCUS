@@ -5,6 +5,13 @@ import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useSwipeToClose } from "@/hooks/useSwipeToClose";
+import {
+  difficultyLabel,
+  lastUpdatedFor,
+  readingTimeFor,
+  wasUpdatedAfterPublication,
+} from "@/lib/case-meta";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -21,6 +28,7 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
   const [speed, setSpeed] = useState(1);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(true);
+  const swipe = useSwipeToClose<HTMLDivElement>({ onClose });
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const dateStr = new Date(caso.date).toLocaleDateString("es", {
     day: "numeric",
@@ -95,7 +103,21 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="modal" style={{ position: "relative" }} ref={trapRef}>
+      <div
+        className={`modal${swipe.dragging ? " is-dragging" : ""}`}
+        style={{
+          position: "relative",
+          // Follows the finger; resets to 0 on release-without-dismiss.
+          // Smooth snap-back transition when not actively dragging.
+          transform: swipe.offset ? `translateY(${swipe.offset}px)` : undefined,
+          transition: swipe.dragging ? "none" : undefined,
+        }}
+        ref={(el) => {
+          // Fan out into both refs (focus trap + swipe gesture).
+          trapRef.current = el;
+          swipe.ref.current = el;
+        }}
+      >
         <button className="modal-close" onClick={onClose} aria-label="Cerrar caso">
           {Icon.close()}
         </button>
@@ -134,6 +156,19 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
           <div className="modal-body">
             <div className="case-cat">{cat?.label}</div>
             <h2 id="case-modal-title">{caso.title}</h2>
+            <div className="modal-meta-pills">
+              <span className={`pill pill-${caso.difficulty ?? "intermediate"}`}>
+                {difficultyLabel(caso)}
+              </span>
+              <span className="pill pill-muted" title="Tiempo de lectura estimado">
+                {readingTimeFor(caso)}
+              </span>
+              {wasUpdatedAfterPublication(caso) && (
+                <span className="pill pill-muted" title={`Actualizado: ${lastUpdatedFor(caso)}`}>
+                  Actualizado
+                </span>
+              )}
+            </div>
             <div className="modal-author">
               <div className="modal-avatar">{initials}</div>
               <div className="modal-author-meta">

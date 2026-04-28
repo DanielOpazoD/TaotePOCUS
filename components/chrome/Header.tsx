@@ -73,9 +73,32 @@ export default function Header({
         <button type="button" className="hamburger" onClick={onOpenDrawer} aria-label="Abrir menú">
           {Icon.menu()}
         </button>
-        <Link className="brand" href="/">
-          <span className="brand-mark"></span>
-          Taote POCUS
+        <Link className="brand" href="/" aria-label="Taote POCUS — inicio">
+          <span className="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+              {/* Outer ring: ultrasound field. */}
+              <circle
+                cx="14"
+                cy="14"
+                r="12.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.25"
+                opacity="0.35"
+              />
+              {/* Sine wave: the sound wave through the field. */}
+              <path
+                d="M3 14 Q 7 7, 11 14 T 19 14 T 25 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <span className="brand-wordmark">
+            Taote <em>POCUS</em>
+          </span>
           <span className="brand-tag">ES</span>
         </Link>
         <nav className="nav" aria-label="Secciones">

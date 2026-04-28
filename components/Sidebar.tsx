@@ -2,6 +2,7 @@
 
 import { CategoryGlyph } from "@/lib/icons";
 import type { CategoryId, CategoryWithCount } from "@/lib/types";
+import type { Difficulty } from "@/lib/url";
 
 interface Props {
   activeCat: CategoryId | null;
@@ -11,7 +12,19 @@ interface Props {
   totalCount: number;
   categories: CategoryWithCount[];
   tags: string[];
+  /** Editorial filters wired through useViewState. */
+  level: Difficulty | null;
+  setLevel: (l: Difficulty | null) => void;
+  spec: string | null;
+  setSpec: (s: string | null) => void;
+  specialties: string[];
 }
+
+const LEVELS: { id: Difficulty; label: string }[] = [
+  { id: "basic", label: "Básico" },
+  { id: "intermediate", label: "Intermedio" },
+  { id: "advanced", label: "Avanzado" },
+];
 
 export default function Sidebar({
   activeCat,
@@ -21,6 +34,11 @@ export default function Sidebar({
   totalCount,
   categories,
   tags,
+  level,
+  setLevel,
+  spec,
+  setSpec,
+  specialties,
 }: Props) {
   return (
     <aside className="sidebar">
@@ -51,6 +69,55 @@ export default function Sidebar({
           ))}
         </ul>
       </div>
+
+      <div className="side-section">
+        <h4>Nivel</h4>
+        <div className="level-toggle" role="radiogroup" aria-label="Nivel de dificultad">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={level === null}
+            className={level === null ? "active" : ""}
+            onClick={() => setLevel(null)}
+          >
+            Todos
+          </button>
+          {LEVELS.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              role="radio"
+              aria-checked={level === l.id}
+              className={level === l.id ? "active" : ""}
+              onClick={() => setLevel(l.id)}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {specialties.length > 1 && (
+        <div className="side-section">
+          <h4>
+            <label htmlFor="specialty-select">Especialidad</label>
+          </h4>
+          <select
+            id="specialty-select"
+            className="specialty-select"
+            value={spec ?? ""}
+            onChange={(e) => setSpec(e.target.value || null)}
+          >
+            <option value="">Todas</option>
+            {specialties.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="side-section">
         <h4>Etiquetas frecuentes</h4>
         <div className="tags-cloud">
