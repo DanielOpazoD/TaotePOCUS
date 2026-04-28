@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
 import EmptyState from "./EmptyState";
-import { Header } from "./chrome";
+import { Header, Footer } from "./chrome";
 import { CaseCard, BentoGrid } from "./cards";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
@@ -312,6 +312,8 @@ function AppInner() {
           )}
         </main>
       </div>
+
+      <Footer extraCases={userCases.live.length} />
 
       {/* Toast lives here twice on purpose: the visible chip is the
           chrome animation; the sr-only mirror is announced by screen

@@ -299,26 +299,71 @@ dialog.case-modal-host[open] {
   color: var(--ink);
 }
 
-/* Editorial drop cap on the case summary. Picks up the serif from the
-   page tokens so it visually anchors the modal — reads like a
-   journal article opening. Skipped under reduced-motion preferences
-   (no aesthetic flourish for users who opted out). */
-#case-modal-summary::first-letter {
+/* Editorial drop cap on the case summary lede. Three lines tall,
+   picks up the section accent so the page color narrative carries
+   through into the long-form, and uses Newsreader's display drawing
+   (sharper, narrower) at this size. Reads like a journal article
+   opening — anchoring the modal visually. Reduced-motion users get
+   the regular paragraph; the drop cap is purely decorative. */
+.modal-section--lede #case-modal-summary {
+  /* Reset any margins that would break the float layout. */
+  overflow: visible;
+}
+.modal-section--lede #case-modal-summary::first-letter {
   font-family: var(--serif);
-  font-size: 3.4em;
+  font-variation-settings: var(--serif-display);
+  font-size: 3.6em;
   font-weight: 500;
   float: left;
-  line-height: 0.9;
-  margin: 4px 8px 0 0;
-  color: var(--ink);
-  letter-spacing: -0.02em;
+  line-height: 0.85;
+  /* Three-line nudge: positive top margin lifts the cap above the
+     baseline so its body sits on the second line. */
+  margin: 6px 10px -4px 0;
+  padding-top: 4px;
+  color: var(--section-accent-ink, var(--ink));
+  letter-spacing: -0.03em;
 }
+/* Clear any rule on plain `#case-modal-summary` from older variants
+   so the lede modifier wins. */
 @media (prefers-reduced-motion: reduce) {
-  #case-modal-summary::first-letter {
+  .modal-section--lede #case-modal-summary::first-letter {
     font-size: inherit;
     float: none;
     margin: 0;
+    padding-top: 0;
     line-height: inherit;
+    color: inherit;
+  }
+}
+
+/* Pull-quote / margin note on the findings section. Floats right
+   inside the prose column; serif italic with a hairline divider in
+   section-accent. The aside is aria-hidden because the same words
+   appear in the surrounding paragraph — this is purely typographic
+   ornament, not extra information. */
+.modal-pullquote {
+  float: right;
+  width: clamp(180px, 38%, 260px);
+  margin: 4px 0 12px 18px;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--section-accent, var(--hairline-strong));
+  font-family: var(--serif);
+  font-style: italic;
+  font-variation-settings:
+    "opsz" 18,
+    "wght" 460;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  letter-spacing: -0.005em;
+}
+@media (max-width: 720px) {
+  /* On narrow modals the float would fight the body text; stack it
+     above the paragraph as a normal block-quote instead. */
+  .modal-pullquote {
+    float: none;
+    width: auto;
+    margin: 0 0 12px 0;
   }
 }
 .modal-diagnosis {

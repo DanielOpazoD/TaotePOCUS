@@ -74,6 +74,58 @@
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
+}
+
+/* Wordmark animation. The two strokes inside the brand mark — the
+   outer ultrasound-field ring and the inner sine wave — are drawn
+   from start to end on first paint via stroke-dasharray, so the
+   logo introduces itself when the page loads. On hover, both strokes
+   redraw, which feels like the sound briefly pulsing through the
+   field. The path lengths are over-estimated on purpose — exceeding
+   the actual length just clips the dash to "fully drawn" at the
+   end of the animation, no measurement needed.
+   Skipped under prefers-reduced-motion: the marks render statically. */
+.brand-mark circle,
+.brand-mark path {
+  /* `pathLength: 100` lets us treat both stroke types with the same
+     dasharray normalization; otherwise circle vs. path measurements
+     would need separate values. */
+  pathlength: 100;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: brand-trace 1s var(--ease-emphasized) 0.1s forwards;
+}
+.brand-mark path {
+  /* The sine wave starts after the ring is half-drawn — a tiny
+     stagger that reads as "the field opens, then the sound passes". */
+  animation-delay: 0.4s;
+}
+
+.brand:hover .brand-mark circle,
+.brand:hover .brand-mark path {
+  animation: brand-trace 0.7s var(--ease-emphasized) forwards;
+}
+.brand:hover .brand-mark path {
+  animation-delay: 0.15s;
+}
+
+@keyframes brand-trace {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark circle,
+  .brand-mark path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
 }
 .brand-wordmark {
   /* Editorial wordmark: serif for "Taote", italic serif for "POCUS"

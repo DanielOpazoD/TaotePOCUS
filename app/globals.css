@@ -45,6 +45,9 @@
 /* Admin views */
 @import "./styles/admin.css";
 
+/* Editorial footer / colophon */
+@import "./styles/footer.css";
+
 /* Floating bits */
 @import "./styles/toast.css";
 

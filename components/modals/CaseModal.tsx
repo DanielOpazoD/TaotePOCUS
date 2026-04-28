@@ -205,12 +205,25 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
               </div>
               <span className="date">{dateStr}</span>
             </div>
-            <div className="modal-section">
+            <div className="modal-section modal-section--lede">
               <h5>Resumen del caso</h5>
+              {/* The lede paragraph carries the editorial drop cap.
+                  The first letter is rendered by ::first-letter CSS,
+                  not a span, so screen readers read it normally. */}
               <p id="case-modal-summary">{caso.summary}</p>
             </div>
             <div className="modal-section">
               <h5>Hallazgos ecográficos</h5>
+              {/* Pull-quote in the right margin. Pulls the most
+                  resonant sentence from findings (or diagnosis when
+                  findings is short) and renders it as serif italic
+                  marginalia. The aside is decorative — same content
+                  appears in the prose, so we mark it aria-hidden. */}
+              {pullQuote(caso) && (
+                <aside className="modal-pullquote" aria-hidden="true">
+                  {pullQuote(caso)}
+                </aside>
+              )}
               <p>{caso.findings}</p>
             </div>
             <div className="modal-section modal-diagnosis">
@@ -241,4 +254,21 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
       </div>
     </dialog>
   );
+}
+
+/**
+ * Extract a short, self-contained sentence from the case to render
+ * as a margin pull-quote next to the findings paragraph. We bias
+ * toward `diagnosis` (it's usually the most resonant single line),
+ * fall through to the first sentence of `findings`, and gate on a
+ * minimum/maximum length so the marginalia doesn't dominate the
+ * column. Returns null when nothing usable exists — the aside then
+ * doesn't render.
+ */
+function pullQuote(c: CaseRecord): string | null {
+  const candidate = (c.diagnosis || c.findings || "").trim();
+  if (!candidate) return null;
+  const first = candidate.split(/\.\s+/)[0]?.trim() ?? "";
+  if (first.length < 20 || first.length > 140) return null;
+  return first.endsWith(".") ? first : `${first}.`;
 }

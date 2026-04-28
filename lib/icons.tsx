@@ -1,9 +1,18 @@
 import type { ReactElement } from "react";
 
+// Unified icon grammar:
+//   - 24×24 viewBox
+//   - stroke-width 1.5 (thinner than Tabler/Feather defaults; matches
+//     the editorial column rules and the Linear/Phosphor/Raycast look)
+//   - round caps + joins so terminals don't bite
+//   - currentColor everywhere — icons inherit the surrounding ink
+//
+// Adding a new icon? Use this exact stroke spread and keep the path
+// inside the 24×24 box with ~2-3 units of padding from the edges.
 const stroke = {
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 2,
+  strokeWidth: 1.5,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
@@ -78,7 +87,12 @@ export const Icon = {
   ),
   presentation: (): ReactElement => (
     <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M2 3h20v14H2zM12 17v4M8 21h8" />
+      {/* Projection screen with an upward tick on the easel — clean
+         silhouette over the previous tangled path. */}
+      <rect x="3" y="4" width="18" height="12" rx="1" />
+      <path d="M12 16v4" />
+      <path d="M8 20h8" />
+      <path d="M8 11l3-3 2 2 3-4" />
     </svg>
   ),
   arrowLeft: (): ReactElement => (
