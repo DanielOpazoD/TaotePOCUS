@@ -75,4 +75,24 @@ describe("Sidebar", () => {
     fireEvent.click(critico);
     expect(toggleTag).toHaveBeenCalledWith("Crítico");
   });
+
+  it("collapses the tag cloud when the section header is clicked", () => {
+    render(<Sidebar {...baseProps} />);
+    // Default open — chips visible.
+    expect(screen.getByRole("button", { name: "Crítico" })).toBeTruthy();
+    const sectionHeader = screen.getByRole("button", { name: /Etiquetas/ });
+    fireEvent.click(sectionHeader);
+    // After collapsing, the chips are removed from the DOM.
+    expect(screen.queryByRole("button", { name: "Crítico" })).toBeNull();
+  });
+
+  it("force-opens the tag cloud when at least one tag is active", () => {
+    // Start with the persisted "closed" preference.
+    localStorage.setItem("sidebarTagsOpen", "0");
+    render(<Sidebar {...baseProps} activeTags={["Crítico"]} />);
+    // The chip is still visible because active tags override the
+    // collapsed preference — otherwise the active filter is invisible.
+    expect(screen.getByRole("button", { name: "Crítico" })).toBeTruthy();
+    localStorage.removeItem("sidebarTagsOpen");
+  });
 });

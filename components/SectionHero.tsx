@@ -54,13 +54,13 @@ export default function SectionHero({ view, cat, head, scopedCases, onOpenCase }
     return <AtlasHero head={head} cases={scopedCases} onOpenCase={onOpenCase} />;
   }
   if (view.kind === "section" && view.section === "ecg") {
-    return <EcgHero head={head} count={scopedCases.length} />;
+    return <EcgHero head={head} />;
   }
   if (view.kind === "section" && view.section === "cases") {
-    return <CasesHero head={head} count={scopedCases.length} />;
+    return <CasesHero head={head} />;
   }
   if (view.kind === "section" && view.section === "info") {
-    return <InfoHero head={head} count={scopedCases.length} />;
+    return <InfoHero head={head} />;
   }
   return compact;
 }
@@ -90,7 +90,10 @@ function AtlasHero({
   // Number count-up: stats animate from 0 → target the first time the
   // hero scrolls into view. Vercel / Linear / Stripe pattern — snaps
   // to final value under reduced motion.
-  const totalCount = useCountUp<HTMLElement>(stats.total);
+  // Note: we don't show the "Casos" total here — the toolbar below
+  // already renders the live filtered count, and showing both makes
+  // the duplication look like a UI mistake. Categorías + Actualizado
+  // are the pieces of context the toolbar doesn't carry.
   const catsCount = useCountUp<HTMLElement>(stats.cats);
 
   const featured = useMemo<CaseRecord | null>(
@@ -109,10 +112,6 @@ function AtlasHero({
         <h1>{head.title}</h1>
         <p>{head.sub}</p>
         <dl className="hero-stats" aria-label="Resumen de la sección">
-          <div>
-            <dt>Casos</dt>
-            <dd ref={totalCount.ref}>{totalCount.value}</dd>
-          </div>
           <div>
             <dt>Categorías</dt>
             <dd ref={catsCount.ref}>{catsCount.value}</dd>
@@ -155,7 +154,7 @@ function AtlasHero({
 }
 
 /* ---------- ecg ---------- */
-function EcgHero({ head, count }: { head: PageHead; count: number }) {
+function EcgHero({ head }: { head: PageHead }) {
   return (
     <header className="hero hero--ecg">
       <div className="hero-text">
@@ -166,9 +165,9 @@ function EcgHero({ head, count }: { head: PageHead; count: number }) {
         </div>
         <h1>{head.title}</h1>
         <p>{head.sub}</p>
-        <span className="hero-meta">
-          <span>{count}</span> trazados publicados
-        </span>
+        {/* Count was here ("N trazados publicados") but it duplicated
+            the toolbar's "N casos" right below. Hero shows context,
+            toolbar shows live filtered count. */}
       </div>
       <div className="hero-ecg-strip" aria-hidden="true">
         <EcgStrip />
@@ -205,13 +204,12 @@ function EcgStrip({ variant = "a" }: { variant?: "a" | "b" | "c" }) {
 }
 
 /* ---------- cases ---------- */
-function CasesHero({ head: _head, count }: { head: PageHead; count: number }) {
+function CasesHero({ head: _head }: { head: PageHead }) {
   return (
     <header className="hero hero--cases">
       <div className="hero-cases-eyebrow">
         <span>Edición {new Date().getFullYear()}</span>
-        <span className="crumb-dot" />
-        <span>{count} historias</span>
+        {/* Removed "N historias" — duplicates the toolbar count below. */}
       </div>
       <h1 className="hero-cases-title">
         Razonamiento <em>clínico</em>
@@ -227,7 +225,7 @@ function CasesHero({ head: _head, count }: { head: PageHead; count: number }) {
 }
 
 /* ---------- info ---------- */
-function InfoHero({ head, count }: { head: PageHead; count: number }) {
+function InfoHero({ head }: { head: PageHead }) {
   return (
     <header className="hero hero--info">
       <div className="hero-info-poster" aria-hidden="true">
@@ -265,9 +263,7 @@ function InfoHero({ head, count }: { head: PageHead; count: number }) {
         </div>
         <h1>{head.title}</h1>
         <p>{head.sub}</p>
-        <span className="hero-meta">
-          <span>{count}</span> piezas visuales
-        </span>
+        {/* Removed "N piezas visuales" — duplicates the toolbar count. */}
       </div>
     </header>
   );

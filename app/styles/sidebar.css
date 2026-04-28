@@ -176,10 +176,66 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Collapsible section header. The whole row is the toggle — clicking
+   anywhere flips the panel state. Style mirrors the regular `h4`
+   sidebar header so collapsed sections still anchor visually. */
+.side-section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: color var(--duration-fast) ease;
+}
+.side-section-toggle:hover {
+  color: var(--ink-soft);
+}
+.side-section-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0;
+  color: var(--ink-mute);
+  text-transform: none;
+  opacity: 0.7;
+  margin-left: auto;
+}
+.side-section-chevron {
+  display: inline-grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  color: var(--ink-mute);
+  transform: rotate(0deg);
+  transition: transform var(--duration-base) var(--ease-emphasized);
+}
+.side-section-chevron svg {
+  width: 12px;
+  height: 12px;
+}
+.sidebar-tags.is-open .side-section-chevron {
+  /* Pointing down when open. */
+  transform: rotate(90deg);
+}
+.sidebar-tags.is-closed .side-section-chevron {
+  /* Pointing right when closed (idle, "click to open"). */
+  transform: rotate(0deg);
+}
+
 .tags-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
 }
 .tag-chip {
   font-size: 12px;
@@ -192,14 +248,15 @@
   transition: all 0.12s;
   font-family: var(--sans);
 }
-/* Sidebar variant: tighter type and padding so 14 chips fit in the
-   240px column without wrapping forever. The cloud reads as a dense
-   index, not as a row of buttons. */
+/* Sidebar variant: ultra-compact chips so all 14 fit in the rail
+   without wrapping into a tall block. The cloud reads as a dense
+   keyword index, not as a row of buttons. */
 .tags-cloud .tag-chip {
-  font-size: 10.5px;
-  padding: 2px 7px;
-  letter-spacing: 0.005em;
+  font-size: 10px;
+  padding: 1.5px 6px;
+  letter-spacing: 0.01em;
   line-height: 1.5;
+  border-radius: 999px;
 }
 /* Tag prefix on the sidebar tag cloud — visual cue that they're
    filterable tokens. Skipped on inactive chips elsewhere (modal,
