@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
+import SectionHero from "./SectionHero";
 import { Header } from "./chrome";
 import { CaseCard } from "./cards";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
-import { CategoryGlyph } from "@/lib/icons";
 import { derivePageHead } from "@/lib/headers";
 import type { CaseRecord } from "@/lib/types";
 import type { SortOrder } from "@/lib/url";
@@ -47,8 +47,6 @@ function AppInner() {
     sort,
     caso: openCaseId,
     presenting: presentingId,
-    level,
-    spec,
     pushPatch,
     replacePatch,
   } = useViewState();
@@ -71,6 +69,28 @@ function AppInner() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [clearShaking, setClearShaking] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // Sidebar collapse — persisted in localStorage so the choice
+  // survives reloads. Default expanded on first visit.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("sidebarCollapsed");
+      if (saved === "1") setSidebarCollapsed(true);
+    } catch {
+      /* SSR / privacy mode */
+    }
+  }, []);
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   // Global keyboard shortcuts. The hook installs window listeners for
   // j/k, g+letter and `?`. The `/` shortcut for the search box lives
@@ -84,18 +104,15 @@ function AppInner() {
     [userCases.live],
   );
 
-  const { scopedCases, sectionCategories, sectionTags, sectionSpecialties, filtered } =
-    useCaseFilters({
-      allCases,
-      favs,
-      view,
-      cat,
-      tags,
-      query,
-      sort,
-      level,
-      spec,
-    });
+  const { scopedCases, sectionCategories, sectionTags, filtered } = useCaseFilters({
+    allCases,
+    favs,
+    view,
+    cat,
+    tags,
+    query,
+    sort,
+  });
 
   const openCase = useMemo<CaseRecord | null>(
     () => (openCaseId ? (allCases.find((c) => c.id === openCaseId) ?? null) : null),
@@ -138,9 +155,6 @@ function AppInner() {
 
   return (
     <>
-      <a href="#main" className="skip-to-content">
-        Saltar al contenido
-      </a>
       <Header
         user={user}
         onLogin={() => setAuthOpen(true)}
@@ -178,45 +192,33 @@ function AppInner() {
           totalCount={scopedCases.length}
           categories={sectionCategories}
           tags={sectionTags}
-          level={level}
-          setLevel={(l) => replacePatch({ level: l })}
-          spec={spec}
-          setSpec={(s) => replacePatch({ spec: s })}
-          specialties={sectionSpecialties}
+          collapsed={sidebarCollapsed}
+          onToggleCollapsed={toggleSidebar}
         />
 
         <main className="main" id="main" tabIndex={-1}>
-          <div className="section-head">
-            <div>
-              <div className="crumb">
-                <span>Taote POCUS</span>
-                <span className="crumb-dot"></span>
-                <span>{head.crumb}</span>
-                {cat && (
-                  <span className="crumb-glyph" aria-hidden="true">
-                    {CategoryGlyph[cat] ?? null}
-                  </span>
-                )}
-              </div>
-              <h1>{head.title}</h1>
-              <p>{head.sub}</p>
-            </div>
-          </div>
+          <SectionHero
+            view={view}
+            cat={cat}
+            head={head}
+            scopedCases={scopedCases}
+            onOpenCase={(id) => pushPatch({ caso: id })}
+          />
           <div className="toolbar">
             <span className="results">
               {filtered.length} {filtered.length === 1 ? "caso" : "casos"}
             </span>
             <button
               className={`clear-btn${clearShaking ? " is-shaking" : ""}`}
-              disabled={tags.length === 0 && !query && !level && !spec}
+              disabled={tags.length === 0 && !query}
               onClick={() => {
-                if (tags.length === 0 && !query && !level && !spec) {
+                if (tags.length === 0 && !query) {
                   // Wink — nothing to clear, but the user clicked anyway.
                   setClearShaking(true);
                   setTimeout(() => setClearShaking(false), 400);
                   return;
                 }
-                replacePatch({ tags: [], query: "", level: null, spec: null });
+                replacePatch({ tags: [], query: "" });
               }}
             >
               Limpiar filtros
@@ -250,19 +252,14 @@ function AppInner() {
               </select>
             </div>
           </div>
-          {view.kind === "section" &&
-            !cat &&
-            tags.length === 0 &&
-            !query.trim() &&
-            !level &&
-            !spec && (
-              <FeaturedRow
-                cases={scopedCases}
-                favs={favs}
-                onOpen={(c) => pushPatch({ caso: c.id })}
-                onFav={toggleFav}
-              />
-            )}
+          {view.kind === "section" && !cat && tags.length === 0 && !query.trim() && (
+            <FeaturedRow
+              cases={scopedCases}
+              favs={favs}
+              onOpen={(c) => pushPatch({ caso: c.id })}
+              onFav={toggleFav}
+            />
+          )}
           {view.kind === "admin" && isAdmin ? (
             <AdminPanel
               allCases={allCases}

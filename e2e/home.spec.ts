@@ -18,7 +18,9 @@ test.describe("Home page", () => {
 
     await page.getByRole("link", { name: "Casos clínicos" }).click();
     await expect(page).toHaveURL(/\/cases/);
-    await expect(page.getByRole("heading", { level: 1, name: "Casos clínicos" })).toBeVisible();
+    // /cases uses an editorial hero with its own title; assert the
+    // section's hero shell is mounted instead of a literal section name.
+    await expect(page.locator(".hero--cases")).toBeVisible();
   });
 
   test("opens a case modal and closes it with Esc", async ({ page }) => {

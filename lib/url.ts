@@ -11,9 +11,6 @@ import type { CategoryId, SectionId, View } from "./types";
  */
 export type SortOrder = "recent" | "title" | "featured";
 
-/** Difficulty filter — matches CaseRecord.difficulty. */
-export type Difficulty = "basic" | "intermediate" | "advanced";
-
 /**
  * Parsed view state for the current URL. The hook `useViewState` wraps
  * this with React glue; the pure shape lives here so server code and
@@ -27,15 +24,10 @@ export interface ViewState {
   sort: SortOrder;
   caso: string | null;
   presenting: string | null;
-  /** Optional difficulty filter (`?level=basic|intermediate|advanced`). */
-  level: Difficulty | null;
-  /** Optional specialty filter (matches `CaseRecord.role` substring). */
-  spec: string | null;
 }
 
 const VALID_SECTIONS: SectionId[] = ["atlas", "ecg", "cases", "info"];
 const VALID_SORT: SortOrder[] = ["recent", "title", "featured"];
-const VALID_DIFFICULTY: Difficulty[] = ["basic", "intermediate", "advanced"];
 
 /** Map a pathname to a View. Anything unknown falls back to atlas. */
 export function pathToView(pathname: string): View {
@@ -76,11 +68,8 @@ export function parseViewState(pathname: string, params: URLSearchParams): ViewS
   const sort = sortParam && VALID_SORT.includes(sortParam) ? sortParam : "recent";
   const caso = params.get("caso") || null;
   const presenting = params.get("present") || null;
-  const levelParam = params.get("level") as Difficulty | null;
-  const level = levelParam && VALID_DIFFICULTY.includes(levelParam) ? levelParam : null;
-  const spec = params.get("spec") || null;
 
-  return { view, cat, tags, query, sort, caso, presenting, level, spec };
+  return { view, cat, tags, query, sort, caso, presenting };
 }
 
 export type ViewPatch = Partial<{
@@ -91,8 +80,6 @@ export type ViewPatch = Partial<{
   sort: SortOrder;
   caso: string | null;
   presenting: string | null;
-  level: Difficulty | null;
-  spec: string | null;
 }>;
 
 /**
@@ -119,7 +106,5 @@ export function applyViewPatch(prev: URLSearchParams, patch: ViewPatch): URLSear
   if (patch.sort !== undefined) set("sort", patch.sort === "recent" ? null : patch.sort);
   if (patch.caso !== undefined) set("caso", patch.caso);
   if (patch.presenting !== undefined) set("present", patch.presenting);
-  if (patch.level !== undefined) set("level", patch.level);
-  if (patch.spec !== undefined) set("spec", patch.spec);
   return sp;
 }

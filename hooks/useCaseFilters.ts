@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/data";
 import type { CaseRecord, CategoryId, CategoryWithCount, View } from "@/lib/types";
-import type { Difficulty, SortOrder } from "@/lib/url";
+import type { SortOrder } from "@/lib/url";
 
 interface Args {
   allCases: CaseRecord[];
@@ -13,8 +13,6 @@ interface Args {
   tags: string[];
   query: string;
   sort: SortOrder;
-  level: Difficulty | null;
-  spec: string | null;
 }
 
 interface Result {
@@ -24,8 +22,6 @@ interface Result {
   sectionCategories: CategoryWithCount[];
   /** Tags appearing in `scopedCases`, ordered by frequency desc. */
   sectionTags: string[];
-  /** Distinct specialties (from `role`) appearing in `scopedCases`. */
-  sectionSpecialties: string[];
   /** `scopedCases` after category, tag, query and sort filters. */
   filtered: CaseRecord[];
 }
@@ -40,17 +36,7 @@ interface Result {
  * tag counts reflect the section the user is in), then apply the
  * cross-cutting filters, then sort.
  */
-export function useCaseFilters({
-  allCases,
-  favs,
-  view,
-  cat,
-  tags,
-  query,
-  sort,
-  level,
-  spec,
-}: Args): Result {
+export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }: Args): Result {
   const scopedCases = useMemo(() => {
     if (view.kind === "favs") return allCases.filter((c) => favs.includes(c.id));
     if (view.kind === "section")
@@ -79,24 +65,10 @@ export function useCaseFilters({
     return Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
   }, [scopedCases]);
 
-  const sectionSpecialties = useMemo(() => {
-    const counts: Record<string, number> = {};
-    scopedCases.forEach((c) => {
-      if (c.role) counts[c.role] = (counts[c.role] ?? 0) + 1;
-    });
-    return Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
-  }, [scopedCases]);
-
   const filtered = useMemo(() => {
     let list = scopedCases.slice();
     if (cat) list = list.filter((c) => c.category === cat);
     if (tags.length) list = list.filter((c) => tags.every((t) => c.tags.includes(t)));
-    if (level) {
-      // Cases without an explicit difficulty are treated as
-      // "intermediate" — that's what the modal displays too.
-      list = list.filter((c) => (c.difficulty ?? "intermediate") === level);
-    }
-    if (spec) list = list.filter((c) => c.role === spec);
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter(
@@ -112,7 +84,7 @@ export function useCaseFilters({
     if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "featured") list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     return list;
-  }, [scopedCases, cat, tags, query, sort, level, spec]);
+  }, [scopedCases, cat, tags, query, sort]);
 
-  return { scopedCases, sectionCategories, sectionTags, sectionSpecialties, filtered };
+  return { scopedCases, sectionCategories, sectionTags, filtered };
 }

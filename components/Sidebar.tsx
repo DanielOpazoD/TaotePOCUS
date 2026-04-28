@@ -1,8 +1,7 @@
 "use client";
 
-import { CategoryGlyph } from "@/lib/icons";
+import { CategoryGlyph, Icon } from "@/lib/icons";
 import type { CategoryId, CategoryWithCount } from "@/lib/types";
-import type { Difficulty } from "@/lib/url";
 
 interface Props {
   activeCat: CategoryId | null;
@@ -12,19 +11,10 @@ interface Props {
   totalCount: number;
   categories: CategoryWithCount[];
   tags: string[];
-  /** Editorial filters wired through useViewState. */
-  level: Difficulty | null;
-  setLevel: (l: Difficulty | null) => void;
-  spec: string | null;
-  setSpec: (s: string | null) => void;
-  specialties: string[];
+  /** Collapse the sidebar to a thin rail. Persisted by the parent. */
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
 }
-
-const LEVELS: { id: Difficulty; label: string }[] = [
-  { id: "basic", label: "Básico" },
-  { id: "intermediate", label: "Intermedio" },
-  { id: "advanced", label: "Avanzado" },
-];
 
 export default function Sidebar({
   activeCat,
@@ -34,20 +24,39 @@ export default function Sidebar({
   totalCount,
   categories,
   tags,
-  level,
-  setLevel,
-  spec,
-  setSpec,
-  specialties,
+  collapsed,
+  onToggleCollapsed,
 }: Props) {
   return (
-    <aside className="sidebar">
-      <div className="side-section" style={{ width: "240px" }}>
+    <aside
+      className={`sidebar${collapsed ? " is-collapsed" : ""}`}
+      aria-label="Filtros y categorías"
+    >
+      <button
+        type="button"
+        className="sidebar-toggle"
+        onClick={onToggleCollapsed}
+        aria-label={collapsed ? "Expandir panel lateral" : "Colapsar panel lateral"}
+        aria-expanded={!collapsed}
+        title={collapsed ? "Expandir" : "Colapsar"}
+      >
+        {collapsed ? Icon.arrowRight() : Icon.arrowLeft()}
+      </button>
+      <div className="side-section sidebar-categories">
         <h4>Categorías</h4>
         <ul className="cat-list">
           <li>
-            <button className={!activeCat ? "active" : ""} onClick={() => setActiveCat(null)}>
-              <span>Todos</span>
+            <button
+              className={!activeCat ? "active" : ""}
+              onClick={() => setActiveCat(null)}
+              title="Todos"
+            >
+              <span className="cat-label">
+                <span className="cat-glyph" aria-hidden="true">
+                  {Icon.search()}
+                </span>
+                <span className="cat-text">Todos</span>
+              </span>
               <span className="cat-count">{totalCount}</span>
             </button>
           </li>
@@ -56,12 +65,13 @@ export default function Sidebar({
               <button
                 className={activeCat === c.id ? "active" : ""}
                 onClick={() => setActiveCat(c.id)}
+                title={c.label}
               >
                 <span className="cat-label">
                   <span className="cat-glyph" aria-hidden="true">
                     {CategoryGlyph[c.id] ?? null}
                   </span>
-                  {c.label}
+                  <span className="cat-text">{c.label}</span>
                 </span>
                 <span className="cat-count">{c.count}</span>
               </button>
@@ -69,56 +79,7 @@ export default function Sidebar({
           ))}
         </ul>
       </div>
-
-      <div className="side-section">
-        <h4>Nivel</h4>
-        <div className="level-toggle" role="radiogroup" aria-label="Nivel de dificultad">
-          <button
-            type="button"
-            role="radio"
-            aria-checked={level === null}
-            className={level === null ? "active" : ""}
-            onClick={() => setLevel(null)}
-          >
-            Todos
-          </button>
-          {LEVELS.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              role="radio"
-              aria-checked={level === l.id}
-              className={level === l.id ? "active" : ""}
-              onClick={() => setLevel(l.id)}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {specialties.length > 1 && (
-        <div className="side-section">
-          <h4>
-            <label htmlFor="specialty-select">Especialidad</label>
-          </h4>
-          <select
-            id="specialty-select"
-            className="specialty-select"
-            value={spec ?? ""}
-            onChange={(e) => setSpec(e.target.value || null)}
-          >
-            <option value="">Todas</option>
-            {specialties.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      <div className="side-section">
+      <div className="side-section sidebar-tags">
         <h4>Etiquetas frecuentes</h4>
         <div className="tags-cloud">
           {tags.slice(0, 14).map((t) => (

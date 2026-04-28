@@ -17,11 +17,8 @@ const baseProps = {
   totalCount: 10,
   categories: cats,
   tags: ["Crítico", "Patológico", "B-líneas"],
-  level: null,
-  setLevel: vi.fn(),
-  spec: null,
-  setSpec: vi.fn(),
-  specialties: [],
+  collapsed: false,
+  onToggleCollapsed: vi.fn(),
 };
 
 describe("Sidebar", () => {
