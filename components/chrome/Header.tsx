@@ -67,8 +67,26 @@ export default function Header({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Scrolled-state class. At the top of the page the header is opaque
+  // and borderless (just a subtle hairline). After 8px of scroll it
+  // becomes frosted glass with a stronger blur and a faint shadow,
+  // so the section underneath shows through. Pure CSS effect with a
+  // single boolean class flip — listener is passive, no jank.
+  const headerRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const update = () => {
+      const scrolled = window.scrollY > 8;
+      el.classList.toggle("is-scrolled", scrolled);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
   return (
-    <header className="app-header">
+    <header className="app-header" ref={headerRef}>
       <div className="header-inner">
         <button type="button" className="hamburger" onClick={onOpenDrawer} aria-label="Abrir menú">
           {Icon.menu()}

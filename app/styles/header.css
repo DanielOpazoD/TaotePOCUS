@@ -3,9 +3,42 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
+  /* At the top of the page the header is solid — feels like part of
+     the document, not a chrome layer. The border is invisible so the
+     hero meets the page seamlessly. The blur is *armed* (so toggling
+     to scrolled state has no flicker) but with very high bg opacity. */
+  background: var(--bg);
+  backdrop-filter: saturate(1.1) blur(0px);
+  -webkit-backdrop-filter: saturate(1.1) blur(0px);
+  border-bottom: 1px solid transparent;
+  transition:
+    background var(--duration-base) ease,
+    backdrop-filter var(--duration-base) ease,
+    -webkit-backdrop-filter var(--duration-base) ease,
+    border-color var(--duration-base) ease,
+    box-shadow var(--duration-base) ease;
+}
+
+/* Scrolled state: frosted glass. The page content shows through with
+   a 12px gaussian blur and a slight saturation bump so colors stay
+   alive. A hairline separator + a 1-layer soft drop shadow give the
+   bar physical weight ("hovering above the page"). This is the
+   moment that reads as "app de 2024". */
+.app-header.is-scrolled {
   background: var(--bg-translucent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--hairline);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom-color: var(--hairline);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+/* If the user prefers reduced motion, skip the smooth transition
+   between states — just snap. The visual effect is identical, only
+   the in-between is different. */
+@media (prefers-reduced-motion: reduce) {
+  .app-header {
+    transition: none;
+  }
 }
 .header-inner {
   max-width: 1480px;

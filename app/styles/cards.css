@@ -65,9 +65,11 @@
   box-shadow: 0 0 0 1px var(--section-accent-soft, transparent);
 }
 .featured-card:hover .featured-thumb {
+  /* Section-accent ring + the layered lift shadow. The ring stays at
+     the top of the stack as a 2px outline, the rest is natural light. */
   box-shadow:
     0 0 0 2px var(--section-accent, var(--ink)),
-    0 16px 40px -16px rgba(0, 0, 0, 0.35);
+    var(--shadow-2);
 }
 
 .featured-hero .featured-thumb {
@@ -241,7 +243,9 @@
   transform: translateY(-2px);
 }
 .case-card:hover .case-thumb {
-  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.25);
+  /* Card lift: layered shadow simulating natural light falloff,
+     not a single drop. Each layer adds a different distance. */
+  box-shadow: var(--shadow-2);
 }
 .case-card:hover .case-thumb-overlay {
   opacity: 1;
@@ -252,6 +256,10 @@
   background: #0a0a0a;
   border-radius: 4px;
   overflow: hidden;
+  /* Resting state: hairline contact shadow so even un-hovered cards
+     feel like they sit on the page rather than being printed on it.
+     Hover swaps to --shadow-2 above for the lift. */
+  box-shadow: var(--shadow-1);
   transition: box-shadow 0.18s;
 }
 .case-thumb-overlay {

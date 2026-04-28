@@ -36,7 +36,9 @@
   display: flex;
   flex-direction: column;
   animation: drawerIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  box-shadow: 4px 0 32px -8px rgba(0, 0, 0, 0.25);
+  /* Drawer floats above the page — four-layer shadow falls off
+     into the page like natural light from the panel edge. */
+  box-shadow: var(--shadow-3);
 }
 @keyframes drawerIn {
   from {

@@ -20,6 +20,21 @@
   --editorial: oklch(0.55 0.1 35); /* cálido editorial — casos */
   --poster: oklch(0.5 0.1 285); /* índigo — infografías */
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(20, 30, 50, 0.08);
+
+  /* Layered shadow scale — three stops in physical proximity.
+     Each token stacks 3-4 shadows so the falloff feels like natural
+     light, not a single drop. Modeled after Linear / Stripe / Apple.
+       --shadow-1 — hairline contact (resting cards, inputs)
+       --shadow-2 — lift (hover state, floating chips, toasts)
+       --shadow-3 — float (modals, drawers, presentation overlay) */
+  --shadow-1: 0 1px 1px rgba(15, 17, 21, 0.04), 0 2px 4px rgba(15, 17, 21, 0.04);
+  --shadow-2:
+    0 1px 1px rgba(15, 17, 21, 0.04), 0 4px 8px rgba(15, 17, 21, 0.04),
+    0 8px 16px rgba(15, 17, 21, 0.05);
+  --shadow-3:
+    0 1px 1px rgba(15, 17, 21, 0.05), 0 4px 8px rgba(15, 17, 21, 0.05),
+    0 16px 32px rgba(15, 17, 21, 0.06), 0 32px 64px rgba(15, 17, 21, 0.08);
+
   --skeleton: linear-gradient(90deg, #e9e7e0 0%, #f4f3ef 50%, #e9e7e0 100%);
 
   --serif: "Newsreader", Georgia, serif;
@@ -81,6 +96,16 @@
   --editorial: oklch(0.72 0.12 35);
   --poster: oklch(0.7 0.13 285);
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.5), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+
+  /* Dark-mode layered shadows. Higher opacities because dark
+     surfaces hide subtle shadows. Same three-step rhythm. */
+  --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-2:
+    0 1px 1px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-3:
+    0 1px 1px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.5), 0 16px 32px rgba(0, 0, 0, 0.6),
+    0 32px 64px rgba(0, 0, 0, 0.7);
+
   --skeleton: linear-gradient(90deg, #1a1d22 0%, #22262c 50%, #1a1d22 100%);
 }
 

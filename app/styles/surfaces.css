@@ -1,0 +1,106 @@
+/* =================== PAGE SURFACES ===================
+ *
+ * Body-level material treatments that don't belong to a specific
+ * component: ambient paper noise on the page background, and
+ * scrollbars tinted with the current section's accent color.
+ *
+ * These are the kind of details that read instantly as "modern app",
+ * but only if they're consistent. Putting them in their own file
+ * keeps the cascade traceable.
+ */
+
+/* Section accent cascades up to :root via :has() so the page-level
+   scrollbar can pick up the current section's color. Older browsers
+   without :has() fall through to the default accent — graceful. */
+:root {
+  --page-accent: var(--accent);
+}
+:root:has(.layout[data-section="ecg"]) {
+  --page-accent: var(--signal);
+}
+:root:has(.layout[data-section="cases"]) {
+  --page-accent: var(--editorial);
+}
+:root:has(.layout[data-section="info"]) {
+  --page-accent: var(--poster);
+}
+
+/* ---------- ambient noise ----------
+ *
+ * Same feTurbulence trick as the cine grain, but at ~1.8% opacity
+ * over the entire page. Eliminates the "color plano de Figma" feeling
+ * and gives the background the weight of printed paper. Fixed in the
+ * viewport so it doesn't repaint on scroll. Sits behind body content
+ * via z-index: -1 (body flow uses the natural stacking context). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 240px 240px;
+}
+
+/* In dark mode the noise needs to add light grain (white pixels)
+   instead of removing it. A simple invert flips the SVG's black
+   pixels to near-white. Bumped slightly because dark surfaces hide
+   subtle noise. */
+[data-theme="dark"] body::before {
+  filter: invert(1);
+  opacity: 0.026;
+}
+
+@media print {
+  body::before {
+    display: none;
+  }
+}
+
+/* ---------- scrollbars ----------
+ *
+ * Custom scrollbars colored with the current section accent. Few
+ * sites bother — most ship the OS default — so this is a small
+ * detail that registers as care. */
+
+/* Firefox + Edge */
+html {
+  scrollbar-color: color-mix(in srgb, var(--page-accent) 38%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+/* WebKit / Blink */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  /* The thumb is rounded and inset from the track via a transparent
+     border so the rail looks slimmer than the actual track width. */
+  background: color-mix(in srgb, var(--page-accent) 32%, transparent);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color var(--duration-base) ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--page-accent) 58%, transparent);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Inner scroll containers (modal body, drawer) inherit the layout's
+   --section-accent so the scrollbar matches the surface around it,
+   not the page accent. The layout-level cascade already provides it. */
+.modal-body,
+.drawer {
+  scrollbar-color: color-mix(in srgb, var(--section-accent, var(--accent)) 38%, transparent)
+    transparent;
+  scrollbar-width: thin;
+}

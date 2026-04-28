@@ -13,6 +13,10 @@
  * motion). Loaded early so they apply everywhere. */
 @import "./styles/a11y.css";
 
+/* Page surfaces — body noise, custom scrollbars, page-level accents.
+ * After a11y so it sits over the body bg fill. */
+@import "./styles/surfaces.css";
+
 /* Top-of-page chrome */
 @import "./styles/header.css";
 @import "./styles/drawer.css";

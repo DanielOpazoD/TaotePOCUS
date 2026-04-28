@@ -14,7 +14,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.35);
+  /* The toast is a floating chip; layered lift shadow gives it the
+     same elevation language as cards on hover. */
+  box-shadow: var(--shadow-2);
   animation:
     toastIn 0.25s ease,
     toastOut 0.3s ease 1.6s forwards;
