@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import type { CaseRecord, Media, MediaKind, User, CategoryId, LoopKind } from "@/lib/types";
+import type { CaseRecord, Category, Media, MediaKind, User, LoopKind } from "@/lib/types";
 
 // localStorage caps at ~5 MB across all keys (per origin in most browsers).
 // dataURL adds ~33% over the binary size due to base64. We hard-cap raw
@@ -29,11 +29,21 @@ function formatBytes(n: number) {
 interface Props {
   initial: CaseRecord | null;
   currentUser: User | null;
+  /** Categories list (built-in + custom). Defaults to the static
+   *  `CATEGORIES` so the form keeps working when rendered standalone
+   *  (tests, future flows) without the admin context. */
+  categories?: Category[];
   onSave: (c: CaseRecord) => void;
   onCancel: () => void;
 }
 
-export default function CaseForm({ initial, currentUser, onSave, onCancel }: Props) {
+export default function CaseForm({
+  initial,
+  currentUser,
+  categories = CATEGORIES,
+  onSave,
+  onCancel,
+}: Props) {
   const blank: CaseRecord = {
     id: "",
     section: "atlas",
@@ -270,9 +280,9 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
                   <select
                     className="admin-input"
                     value={form.category}
-                    onChange={(e) => update({ category: e.target.value as CategoryId })}
+                    onChange={(e) => update({ category: e.target.value })}
                   >
-                    {CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.label}
                       </option>

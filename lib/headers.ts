@@ -4,7 +4,7 @@
 // the View union.
 
 import { CATEGORIES, SECTIONS } from "./data";
-import type { CategoryId, View } from "./types";
+import type { View } from "./types";
 
 /**
  * Header copy displayed at the top of the main content. Title is the
@@ -36,7 +36,7 @@ export interface PageHead {
  * @returns The page head copy. Always returns valid strings — falls
  *          back to "Taote POCUS" / "Inicio" for an unknown section.
  */
-export function derivePageHead(view: View, activeCat: CategoryId | null): PageHead {
+export function derivePageHead(view: View, activeCat: string | null): PageHead {
   if (view.kind === "favs") {
     return {
       title: "Tu colección",

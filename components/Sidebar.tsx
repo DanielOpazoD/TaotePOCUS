@@ -2,11 +2,11 @@
 
 import { CategoryGlyph, Icon } from "@/lib/icons";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import type { CategoryId, CategoryWithCount } from "@/lib/types";
+import type { CategoryWithCount } from "@/lib/types";
 
 interface Props {
-  activeCat: CategoryId | null;
-  setActiveCat: (c: CategoryId | null) => void;
+  activeCat: string | null;
+  setActiveCat: (c: string | null) => void;
   activeTags: string[];
   toggleTag: (t: string) => void;
   totalCount: number;

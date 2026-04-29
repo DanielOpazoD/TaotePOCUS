@@ -466,6 +466,116 @@ textarea.admin-input {
   color: var(--accent-ink);
 }
 
+/* =================== CATEGORIES EDITOR =================== */
+.categories-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.categories-intro h2 {
+  font-family: var(--serif);
+  font-variation-settings: var(--serif-h2);
+  font-size: var(--fs-h2);
+  margin: 0 0 4px;
+}
+.categories-intro p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  max-width: 60ch;
+  margin: 0;
+}
+.categories-add {
+  display: flex;
+  gap: var(--space-3);
+  align-items: stretch;
+}
+.categories-add .admin-input {
+  flex: 1;
+}
+.categories-add .btn-primary {
+  white-space: nowrap;
+}
+.categories-error {
+  margin: -8px 0 0;
+  padding: 8px 12px;
+  background: var(--crit-soft);
+  color: var(--crit);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  border-left: 2px solid var(--crit);
+}
+.categories-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.categories-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) ease;
+}
+.categories-row:hover {
+  border-color: var(--ink-mute);
+}
+.categories-row-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.categories-row-input {
+  font-size: 14px;
+  font-weight: 500;
+  /* Slim down inside the row so the inline edit fits without
+     pushing the count/actions out of alignment. */
+  padding: 6px 10px;
+}
+.categories-row-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+.categories-row-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.categories-row-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.categories-row-actions--locked {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.categories-empty {
+  margin: 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
 @media (max-width: 880px) {
   .layout {
     grid-template-columns: 1fr;

@@ -1,12 +1,11 @@
 "use client";
 
 import { CategoryGlyph } from "@/lib/icons";
-import type { CategoryId } from "@/lib/types";
 import type { PageHead } from "@/lib/headers";
 
 interface Props {
   head: PageHead;
-  cat: CategoryId | null;
+  cat: string | null;
 }
 
 /**

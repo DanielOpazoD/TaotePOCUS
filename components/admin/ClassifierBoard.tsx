@@ -3,10 +3,13 @@
 import { useMemo, useState } from "react";
 import { CineLoop } from "../cine";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
-import type { CaseRecord, CategoryId, SectionId } from "@/lib/types";
+import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
 interface Props {
   cases: CaseRecord[];
+  /** Categories list (built-in + admin-managed custom). Defaults to
+   *  the static `CATEGORIES` so older callers / tests still render. */
+  categories?: Category[];
   /** Apply a partial override to a case (section / category / reviewed). */
   onPatch: (id: string, patch: Partial<CaseRecord>) => void;
   /** Open the full edit form for fine-grained edits beyond drag-classify. */
@@ -30,7 +33,12 @@ type Filter = "all" | "unclassified" | "unreviewed";
  * The panel is independent of the public catalog routes so the
  * admin can plough through 326 cases without leaving the page.
  */
-export default function ClassifierBoard({ cases, onPatch, onOpenEdit }: Props) {
+export default function ClassifierBoard({
+  cases,
+  categories = CATEGORIES,
+  onPatch,
+  onOpenEdit,
+}: Props) {
   const [filter, setFilter] = useState<Filter>("unclassified");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [hoverTarget, setHoverTarget] = useState<string | null>(null);
@@ -65,7 +73,7 @@ export default function ClassifierBoard({ cases, onPatch, onOpenEdit }: Props) {
       // has manually picked a category, the import-time guess is moot.
       const dragged = cases.find((c) => c.id === draggedId);
       const tags = (dragged?.tags || []).filter((t) => t !== "Sin clasificar");
-      onPatch(draggedId, { category: id as CategoryId, tags });
+      onPatch(draggedId, { category: id, tags });
     }
     setDraggedId(null);
     setHoverTarget(null);
@@ -125,7 +133,7 @@ export default function ClassifierBoard({ cases, onPatch, onOpenEdit }: Props) {
         </div>
         <div className="classifier-target-group" aria-label="Categorías">
           <span className="classifier-target-label">Categoría →</span>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <DropZone
               key={c.id}
               id={c.id}
@@ -188,7 +196,7 @@ export default function ClassifierBoard({ cases, onPatch, onOpenEdit }: Props) {
                     ·
                   </span>
                   <span>
-                    {CATEGORIES.find((cat) => cat.id === c.category)?.label || c.category}
+                    {categories.find((cat) => cat.id === c.category)?.label || c.category}
                   </span>
                 </div>
               </div>

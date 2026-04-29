@@ -21,6 +21,7 @@ import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { mergeWithOverrides, useCaseOverrides } from "@/hooks/useCaseOverrides";
+import { useCustomCategories } from "@/hooks/useCustomCategories";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
@@ -89,6 +90,17 @@ function AppInner() {
   // re-import (apply-twitter-import.mjs) doesn't blow away admin edits.
   const { overrides, setOverride, clearOverride } = useCaseOverrides();
 
+  // Admin-managed categories. The hook returns built-in + custom in
+  // a single `categories` list; we pass that down to the classifier
+  // and the case form so they pick up runtime additions automatically.
+  const {
+    categories,
+    addCategory,
+    renameCategory,
+    removeCategory,
+    isCustom: isCustomCategory,
+  } = useCustomCategories();
+
   // Combined case list for public flows. AdminPanel sees `userCases.live`
   // and `userCases.trashed` separately. Overrides apply to both seed-
   // imported and admin-uploaded cases — anything keyed by id wins.
@@ -96,6 +108,16 @@ function AppInner() {
     () => mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides),
     [userCases.live, overrides],
   );
+
+  // Cases per category id — feeds the categories editor's "in use"
+  // hint and the deletion guard.
+  const categoryCaseCounts = useMemo<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    for (const c of allCases) {
+      counts[c.category] = (counts[c.category] ?? 0) + 1;
+    }
+    return counts;
+  }, [allCases]);
 
   const { scopedCases, sectionCategories, sectionTags, filtered } = useCaseFilters({
     allCases,
@@ -250,6 +272,12 @@ function AppInner() {
               filtered={filtered}
               allCases={allCases}
               userCases={userCases}
+              categories={categories}
+              categoryCaseCounts={categoryCaseCounts}
+              onAddCategory={addCategory}
+              onRenameCategory={renameCategory}
+              onRemoveCategory={removeCategory}
+              isCustomCategory={isCustomCategory}
               favs={favs}
               onOpen={(c) => pushPatch({ caso: c.id })}
               onToggleFav={(c) => toggleFav(c.id)}
@@ -382,6 +410,7 @@ function AppInner() {
         <CaseForm
           initial={editingCase}
           currentUser={user}
+          categories={categories}
           onCancel={() => {
             setFormOpen(false);
             setEditingCase(null);

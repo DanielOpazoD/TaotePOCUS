@@ -1,12 +1,12 @@
 "use client";
 
 import { AtlasHero, CasesHero, CompactHead, EcgHero, InfoHero } from "./hero";
-import type { CaseRecord, CategoryId, View } from "@/lib/types";
+import type { CaseRecord, View } from "@/lib/types";
 import type { PageHead } from "@/lib/headers";
 
 interface Props {
   view: View;
-  cat: CategoryId | null;
+  cat: string | null;
   head: PageHead;
   scopedCases: CaseRecord[];
   onOpenCase: (id: string) => void;

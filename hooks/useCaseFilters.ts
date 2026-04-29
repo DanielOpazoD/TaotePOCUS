@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/data";
-import type { CaseRecord, CategoryId, CategoryWithCount, View } from "@/lib/types";
+import type { CaseRecord, CategoryWithCount, View } from "@/lib/types";
 import type { SortOrder } from "@/lib/url";
 
 interface Args {
@@ -13,7 +13,7 @@ interface Args {
   /** Current view (section / favs / admin), drives the initial scoping. */
   view: View;
   /** Active category filter, or `null` for "all categories". */
-  cat: CategoryId | null;
+  cat: string | null;
   /** Active tag filters; AND-combined (a case must have *all* tags). */
   tags: string[];
   /** Free-text query; matched against title, diagnosis, findings, tags, author. */

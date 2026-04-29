@@ -4,8 +4,9 @@ import { useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import type { CaseRecord } from "@/lib/types";
+import type { CaseRecord, Category } from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
+import CategoriesEditor from "./CategoriesEditor";
 
 interface Props {
   allCases: CaseRecord[];
@@ -22,9 +23,19 @@ interface Props {
    * through the full edit form.
    */
   onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
+  /** Categories list (built-in + custom). Optional — when omitted we
+   *  fall back to the built-in `CATEGORIES` so `AdminPanel` still
+   *  renders sensibly under tests / older callers. */
+  categories?: Category[];
+  /** Cases-per-category counter for the editor's "in use" badge. */
+  categoryCaseCounts?: Record<string, number>;
+  onAddCategory?: (label: string) => Category | null;
+  onRenameCategory?: (id: string, label: string) => boolean;
+  onRemoveCategory?: (id: string) => boolean;
+  isCustomCategory?: (id: string) => boolean;
 }
 
-type Tab = "mine" | "classify";
+type Tab = "mine" | "classify" | "categories";
 
 function formatDateTime(iso?: string) {
   if (!iso) return "";
@@ -51,7 +62,20 @@ export default function AdminPanel({
   onPurge,
   onNew,
   onPatch,
+  categories,
+  categoryCaseCounts,
+  onAddCategory,
+  onRenameCategory,
+  onRemoveCategory,
+  isCustomCategory,
 }: Props) {
+  // Falls back to built-in CATEGORIES when the parent doesn't pass a
+  // managed list (older callers, focused tests). The classifier still
+  // renders the standard 8 in that case.
+  const resolvedCategories = categories ?? CATEGORIES;
+  const canEditCategories = Boolean(
+    onAddCategory && onRenameCategory && onRemoveCategory && isCustomCategory,
+  );
   // Tab state: defaults to "Mis casos" so the existing flow is the
   // landing page; the classifier is one click away. State is local —
   // this isn't worth pushing into the URL.
@@ -83,10 +107,35 @@ export default function AdminPanel({
             {unclassifiedCount > 0 && <span className="admin-tab-count">{unclassifiedCount}</span>}
           </button>
         )}
+        {canEditCategories && (
+          <button
+            role="tab"
+            aria-selected={tab === "categories"}
+            className={`admin-tab${tab === "categories" ? " is-active" : ""}`}
+            onClick={() => setTab("categories")}
+          >
+            Categorías
+            <span className="admin-tab-count">{resolvedCategories.length}</span>
+          </button>
+        )}
       </div>
 
       {tab === "classify" && onPatch ? (
-        <ClassifierBoard cases={allCases} onPatch={onPatch} onOpenEdit={onEdit} />
+        <ClassifierBoard
+          cases={allCases}
+          categories={resolvedCategories}
+          onPatch={onPatch}
+          onOpenEdit={onEdit}
+        />
+      ) : tab === "categories" && canEditCategories ? (
+        <CategoriesEditor
+          categories={resolvedCategories}
+          onAdd={onAddCategory!}
+          onRename={onRenameCategory!}
+          onRemove={onRemoveCategory!}
+          isCustom={isCustomCategory!}
+          caseCounts={categoryCaseCounts ?? {}}
+        />
       ) : (
         <>
           <div className="admin-stats">

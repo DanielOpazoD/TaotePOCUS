@@ -3,7 +3,7 @@
 // adapter; this module keeps the parsing logic free of React imports
 // so the conversion is unit-testable and reusable on the server.
 
-import type { CategoryId, SectionId, View } from "./types";
+import type { SectionId, View } from "./types";
 
 /**
  * Order of the case grid. `recent` is the default — featured cases get
@@ -18,7 +18,7 @@ export type SortOrder = "recent" | "title" | "featured";
  */
 export interface ViewState {
   view: View;
-  cat: CategoryId | null;
+  cat: string | null;
   tags: string[];
   query: string;
   sort: SortOrder;
@@ -58,7 +58,7 @@ export function viewToPath(view: View): string {
 export function parseViewState(pathname: string, params: URLSearchParams): ViewState {
   const view = pathToView(pathname);
 
-  const cat = (params.get("cat") as CategoryId | null) || null;
+  const cat = params.get("cat") || null;
   const tags = (params.get("tags") || "")
     .split(",")
     .map((t) => t.trim())
@@ -74,7 +74,7 @@ export function parseViewState(pathname: string, params: URLSearchParams): ViewS
 
 export type ViewPatch = Partial<{
   view: View;
-  cat: CategoryId | null;
+  cat: string | null;
   tags: string[];
   query: string;
   sort: SortOrder;

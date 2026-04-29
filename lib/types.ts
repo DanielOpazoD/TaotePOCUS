@@ -6,6 +6,16 @@ export interface Section {
   sub: string;
 }
 
+/**
+ * Built-in category ids — kept as a literal union for documentation
+ * and for the seed catalog where the id is statically known.
+ *
+ * `Category.id` and `CaseRecord.category` are widened to `string` so
+ * the admin can introduce custom categories at runtime (persisted via
+ * `useCustomCategories`) without forking the type system. The literals
+ * still pass type-check for any code that uses them, so call sites
+ * like `category === "cardiac"` keep working unchanged.
+ */
 export type CategoryId =
   | "cardiac"
   | "lung"
@@ -17,7 +27,8 @@ export type CategoryId =
   | "proc";
 
 export interface Category {
-  id: CategoryId;
+  /** Built-in literal or runtime-defined custom id (prefixed `c:`). */
+  id: CategoryId | string;
   label: string;
 }
 
@@ -64,7 +75,12 @@ export interface CaseRecord {
   id: string;
   section: SectionId;
   title: string;
-  category: CategoryId;
+  /**
+   * Category id — either a built-in literal (CategoryId) or a custom
+   * id created via the admin Categorías editor. Stored as `string` so
+   * runtime-added categories don't require a type-system change.
+   */
+  category: CategoryId | string;
   tags: string[];
   modality: string;
   /**

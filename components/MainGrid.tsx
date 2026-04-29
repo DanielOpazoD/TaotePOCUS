@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { CaseCard, BentoGrid } from "./cards";
 import EmptyState from "./EmptyState";
-import type { CaseRecord, CategoryId, View } from "@/lib/types";
+import type { CaseRecord, Category, View } from "@/lib/types";
 
 // AdminPanel is admin-only chrome; lazy-load so its tree stays out of
 // the public-route bundles.
@@ -22,7 +22,7 @@ interface Props {
   /** Current view from URL (drives the admin / favs / section branch). */
   view: View;
   /** Active category filter (drives empty-state CTA copy). */
-  cat: CategoryId | null;
+  cat: string | null;
   /** Active tag filters (drives empty-state CTA copy). */
   tags: string[];
   /** Active text query (drives empty-state CTA copy). */
@@ -35,6 +35,18 @@ interface Props {
   allCases: CaseRecord[];
   /** Live + trashed user-uploaded cases for the admin panel. */
   userCases: UserCasesShape;
+  /** Categories list (built-in + custom) — passed through to the
+   *  classifier and the categories editor. */
+  categories?: Category[];
+  /** Cases-per-category counter, indexed by category id. Feeds the
+   *  categories editor's "in use" hint. */
+  categoryCaseCounts?: Record<string, number>;
+  /** Categories CRUD callbacks. Wired to `useCustomCategories`. */
+  onAddCategory?: (label: string) => Category | null;
+  onRenameCategory?: (id: string, label: string) => boolean;
+  onRemoveCategory?: (id: string) => boolean;
+  /** Predicate — is this id a runtime-defined custom category? */
+  isCustomCategory?: (id: string) => boolean;
   /** Favorites set for star-marking in the grid. */
   favs: string[];
 
@@ -76,6 +88,12 @@ export default function MainGrid({
   filtered,
   allCases,
   userCases,
+  categories,
+  categoryCaseCounts,
+  onAddCategory,
+  onRenameCategory,
+  onRemoveCategory,
+  isCustomCategory,
   favs,
   onOpen,
   onToggleFav,
@@ -92,6 +110,12 @@ export default function MainGrid({
         allCases={allCases}
         userCases={userCases.live}
         trashedCases={userCases.trashed}
+        categories={categories}
+        categoryCaseCounts={categoryCaseCounts}
+        onAddCategory={onAddCategory}
+        onRenameCategory={onRenameCategory}
+        onRemoveCategory={onRemoveCategory}
+        isCustomCategory={isCustomCategory}
         onEdit={onEdit}
         onDelete={onDelete}
         onRestore={userCases.restore}
