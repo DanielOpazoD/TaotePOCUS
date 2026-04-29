@@ -17,6 +17,14 @@ interface Props {
    * Default: "thumb".
    */
   quality?: "thumb" | "full";
+  /**
+   * When true, the wrapper adapts to the media's intrinsic dimensions
+   * once they're known (after `loadedmetadata` for video / `load` for
+   * image), overriding the `aspect` prop. The grid keeps `false` so
+   * thumbnails stay uniform; the modal sets `true` so a chest x-ray
+   * doesn't get cropped to a square.
+   */
+  preserveNativeAspect?: boolean;
 }
 
 export default function CineLoop({
@@ -27,7 +35,13 @@ export default function CineLoop({
   showChrome = true,
   media,
   quality = "thumb",
+  preserveNativeAspect = false,
 }: Props) {
+  // Native aspect ratio of the loaded media, captured after the video
+  // emits `loadedmetadata` or the image emits `load`. Stays null until
+  // the browser decodes the file — until then we render with the
+  // caller-provided `aspect` so the wrapper has stable dimensions.
+  const [nativeAspect, setNativeAspect] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -132,9 +146,13 @@ export default function CineLoop({
     // everything else as static image.
     const src = media.src || "";
     const isVideoFile = media.kind === "video" || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
+    // Resolved aspect: native if requested AND known, otherwise the
+    // caller-provided value. Falling back keeps the wrapper from
+    // collapsing to 0×0 during the brief window before metadata loads.
+    const resolvedAspect = preserveNativeAspect && nativeAspect ? nativeAspect : aspect;
     if (isVideoFile) {
       return (
-        <div className="cine-wrap" style={{ aspectRatio: aspect }} ref={wrapRef}>
+        <div className="cine-wrap" style={{ aspectRatio: resolvedAspect }} ref={wrapRef}>
           <video
             ref={videoRef}
             src={media.src}
@@ -148,6 +166,9 @@ export default function CineLoop({
               v.playbackRate = speed;
               if (paused) v.pause();
               else v.play().catch(() => {});
+              if (preserveNativeAspect && v.videoWidth > 0 && v.videoHeight > 0) {
+                setNativeAspect(`${v.videoWidth} / ${v.videoHeight}`);
+              }
             }}
           />
           {showChrome && <div className="cine-chrome">POCUS · {media.modality || "REAL"}</div>}
@@ -155,8 +176,18 @@ export default function CineLoop({
       );
     }
     return (
-      <div className="cine-wrap" style={{ aspectRatio: aspect }} ref={wrapRef}>
-        <img src={media.src} className="cine-video" alt="" />
+      <div className="cine-wrap" style={{ aspectRatio: resolvedAspect }} ref={wrapRef}>
+        <img
+          src={media.src}
+          className="cine-video"
+          alt=""
+          onLoad={(e) => {
+            const im = e.currentTarget;
+            if (preserveNativeAspect && im.naturalWidth > 0 && im.naturalHeight > 0) {
+              setNativeAspect(`${im.naturalWidth} / ${im.naturalHeight}`);
+            }
+          }}
+        />
         {showChrome && <div className="cine-chrome">POCUS · {media.modality || "STILL"}</div>}
       </div>
     );

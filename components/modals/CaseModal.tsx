@@ -275,6 +275,11 @@ export default function CaseModal({
               showChrome={true}
               media={caso.media}
               quality="full"
+              // In the modal we honor the media's native ratio so the
+              // user sees the case at its real proportions instead of
+              // squeezed into a square. The thumbnail in the grid keeps
+              // the uniform 1/1 to preserve the grid rhythm.
+              preserveNativeAspect={true}
             />
             <div className="modal-loop-controls">
               <button

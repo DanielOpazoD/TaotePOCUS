@@ -224,10 +224,27 @@ button:hover > .kbd-hint {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Cap the panel height so a portrait video (9/16) doesn't push the
+     modal off-screen — the cine-wrap below honors this via
+     `max-height: 100%` and the browser scales the video to fit. */
+  max-height: 80vh;
+  overflow: hidden;
 }
 .modal-loop .cine-wrap {
+  /* Honor the native aspect ratio of the media (set inline by CineLoop)
+     while staying inside the panel. The wrapper picks the smaller of
+     "100% width" and "panel height adjusted for the aspect ratio", so
+     landscape clips fill the column and portrait clips fit vertically. */
+  max-width: 100%;
+  max-height: 100%;
+  /* The image/video is 100% of the wrapper; object-fit: contain keeps
+     the entire frame visible — matches the user's expectation of
+     "expanding preserves the original dimensions". */
+}
+.modal-loop .cine-wrap .cine-video {
+  object-fit: contain;
   width: 100%;
-  max-width: 640px;
+  height: 100%;
 }
 .modal-loop-controls {
   position: absolute;
