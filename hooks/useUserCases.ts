@@ -42,8 +42,25 @@ function describeFailure(op: string, reason: "quota" | "unavailable" | "unknown"
  * The dispatcher in `lib/repo.ts` decides whether reads/writes go to
  * localStorage or Firestore; this hook only knows the contract.
  *
- * Returns a stable shape so consumers can wire the methods straight
- * into UI handlers without re-creating closures.
+ * Each CRUD op logs failures via `lib/log` (so Sentry sees them once
+ * wired) and surfaces a reason-aware Spanish message via `notify`.
+ *
+ * @param user - The current authenticated user, or null if anonymous.
+ *   Used as the audit trail for soft-deletes (`deletedBy`).
+ * @param hydrated - From `useSession`. When false, the hook holds off
+ *   on the initial fetch — avoids flashing an empty admin panel
+ *   before the session resolves.
+ * @param options.notify - Toast channel for save/delete/restore status.
+ * @returns
+ *   - `raw`: the full list including soft-deleted entries (admin only).
+ *   - `live`: filtered to non-deleted (the public view).
+ *   - `trashed`: filtered to soft-deleted (admin papelera).
+ *   - `save / remove / restore / purge`: async ops returning a boolean
+ *     (true on success). Failures already toast + log internally.
+ *
+ * @example
+ *   const userCases = useUserCases(user, hydrated, { notify });
+ *   await userCases.save(case, { isUpdate: false });
  */
 export function useUserCases(user: User | null, hydrated: boolean, { notify }: Options = {}) {
   const [raw, setRaw] = useState<CaseRecord[]>([]);

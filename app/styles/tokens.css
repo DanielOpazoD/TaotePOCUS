@@ -97,6 +97,12 @@
   --radius-lg: 8px;
   --radius-pill: 100px;
 
+  /* Container max-widths. The page shell (1480) and the editorial
+     modal/admin width (1100) recur in several places — naming them
+     here keeps "what's the page max?" answerable in one grep. */
+  --max-page: 1480px;
+  --max-modal: 1100px;
+
   /* Animation tokens. Durations should match across the UI so
      transitions feel coherent — pick from these, don't invent. */
   --duration-fast: 0.12s;

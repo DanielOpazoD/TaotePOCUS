@@ -44,7 +44,17 @@ interface Options {
  *
  * The "/" shortcut for the search box is owned by the Header itself —
  * keeping it co-located with the input it focuses keeps the dependency
- * narrow.
+ * narrow. Modal-scoped shortcuts (←/→ for prev/next case, F/S/P for
+ * the action buttons, Esc) live in CaseModal for the same reason.
+ *
+ * Every shortcut bails when the user is typing in a form field or
+ * contenteditable — typing "g" in a comment doesn't trigger nav.
+ *
+ * @param options.onHelp - Called when the user presses `?`. Wire to
+ *   open the ShortcutsModal.
+ *
+ * @example
+ *   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
  */
 export function useShortcuts({ onHelp }: Options) {
   const router = useRouter();

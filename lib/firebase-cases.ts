@@ -64,6 +64,32 @@ export const firebaseCasesRepo = {
     return [...user, ...seed];
   },
   /**
+   * Paged listing. The Firebase backend currently delegates to
+   * `listAll` and slices in memory — same as the local backend but
+   * without the cost benefit. When the catalog grows past a few
+   * hundred cases, switch this to a Firestore `query(... startAfter,
+   * limit)` over the `cases` collection and base64-encode the
+   * snapshot id as the cursor. The contract on the consumer side
+   * doesn't change.
+   */
+  async listAllPaged({
+    cursor,
+    limit,
+  }: {
+    cursor?: string | null;
+    limit: number;
+  }): Promise<{ items: CaseRecord[]; nextCursor: string | null; total?: number }> {
+    const all = await this.listAll();
+    const start = cursor == null || cursor === "" ? 0 : Math.max(0, Number(cursor) || 0);
+    if (start >= all.length) return { items: [], nextCursor: null, total: all.length };
+    const end = Math.min(start + limit, all.length);
+    return {
+      items: all.slice(start, end),
+      nextCursor: end < all.length ? String(end) : null,
+      total: all.length,
+    };
+  },
+  /**
    * Persist a case. Uses `setDoc` with merge so partial updates are
    * safe — the doc id matches `case.id` for direct lookups.
    */

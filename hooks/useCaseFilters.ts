@@ -6,12 +6,19 @@ import type { CaseRecord, CategoryId, CategoryWithCount, View } from "@/lib/type
 import type { SortOrder } from "@/lib/url";
 
 interface Args {
+  /** Full universe of cases. Pass `[...userCases.live, ...SEED_CASES]`. */
   allCases: CaseRecord[];
+  /** IDs of the cases the current user has favorited. */
   favs: string[];
+  /** Current view (section / favs / admin), drives the initial scoping. */
   view: View;
+  /** Active category filter, or `null` for "all categories". */
   cat: CategoryId | null;
+  /** Active tag filters; AND-combined (a case must have *all* tags). */
   tags: string[];
+  /** Free-text query; matched against title, diagnosis, findings, tags, author. */
   query: string;
+  /** Sort order applied at the end of the pipeline. */
   sort: SortOrder;
 }
 
@@ -35,6 +42,17 @@ interface Result {
  * Order of operations matters: scope by view first (so category /
  * tag counts reflect the section the user is in), then apply the
  * cross-cutting filters, then sort.
+ *
+ * @param args - The filter inputs. See {@link Args}.
+ * @returns Four memoized projections — `scopedCases` (view-scoped raw),
+ *   `sectionCategories` and `sectionTags` (sidebar facets), and
+ *   `filtered` (the final list the grid renders).
+ *
+ * @example
+ *   const { filtered, sectionCategories, sectionTags } = useCaseFilters({
+ *     allCases, favs, view, cat, tags, query, sort,
+ *   });
+ *   return <Grid cases={filtered} />;
  */
 export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }: Args): Result {
   const scopedCases = useMemo(() => {

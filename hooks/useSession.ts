@@ -33,6 +33,19 @@ interface Options {
  * Re-validation: when the tab regains focus we re-read the session.
  * If it expired in the background, the user is logged out cleanly with
  * a toast instead of being allowed to perform actions on a dead token.
+ *
+ * @param options - Optional `notify` channel for toast-shaped status
+ *   updates (login welcome, expiry, errors).
+ * @returns The session shape:
+ *   - `user`: the current user, or `null` when anonymous / not yet hydrated.
+ *   - `isAdmin`: convenience derived from `user.role`.
+ *   - `hydrated`: false during the initial repo read; true after.
+ *   - `login(input)`: promise-resolving to `{ok: true}` or a typed failure.
+ *   - `logout()`: clears the session and notifies.
+ *
+ * @example
+ *   const { user, isAdmin, hydrated, login, logout } = useSession({ notify });
+ *   if (!hydrated) return <Skeleton />;
  */
 export function useSession({ notify }: Options = {}) {
   const [user, setUser] = useState<User | null>(null);

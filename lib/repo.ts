@@ -20,6 +20,42 @@ import { log } from "./log";
 import { AuthError } from "./errors";
 import type { CaseRecord, User } from "./types";
 
+// ─── Pagination contract ─────────────────────────────────────────────────────
+//
+// Defined now (even though localStorage answers in one shot) so the
+// Firebase backend doesn't require a consumer-side refactor when it
+// arrives. Cursor is opaque to callers — the only operations are
+// "use this cursor to fetch more" and "the result has no nextCursor →
+// you're at the end". The local backend encodes the index into a
+// numeric string; Firestore will encode a document snapshot.
+
+/**
+ * Opaque pagination cursor. Treat as a string token. `null` is
+ * "start from the beginning"; `undefined` in a query is the same.
+ */
+export type Cursor = string | null;
+
+/** Result of a paged listing. */
+export interface ListPagedResult<T> {
+  /** The page of results. May be empty if the cursor is past the end. */
+  items: T[];
+  /** Cursor for the next page. `null` means "no more results". */
+  nextCursor: Cursor;
+  /** Total count, when the backend can answer cheaply. Optional —
+   *  Firestore can't always provide this without a separate count query. */
+  total?: number;
+}
+
+/**
+ * Pagination query options. `limit` is required so the backend can
+ * cap the page size; `cursor` is optional (omit / pass null for the
+ * first page).
+ */
+export interface ListPagedOptions {
+  cursor?: Cursor;
+  limit: number;
+}
+
 // Session lifetimes. Admin sessions expire faster — they hold privileges,
 // so the smaller blast radius if the device is left unattended matters
 // more than the convenience of staying logged in.
@@ -122,6 +158,21 @@ function isDeleted(c: CaseRecord) {
   return Boolean(c.deletedAt);
 }
 
+/**
+ * Cursor encoding for the local backend: a numeric string. The string
+ * shape is intentionally opaque — callers should never parse it. When
+ * the Firebase backend lands, the encoding becomes a base64-encoded
+ * document snapshot ID and the contract is unchanged.
+ */
+function encodeCursor(index: number): Cursor {
+  return String(index);
+}
+function decodeCursor(cursor: Cursor | undefined): number {
+  if (cursor == null || cursor === "") return 0;
+  const n = Number(cursor);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+}
+
 const localCases = {
   async listSeed(): Promise<CaseRecord[]> {
     return SEED_CASES;
@@ -138,6 +189,25 @@ const localCases = {
   async listAll(): Promise<CaseRecord[]> {
     const [seed, user] = await Promise.all([this.listSeed(), this.listUser()]);
     return [...user, ...seed];
+  },
+  /**
+   * Paged variant of `listAll`. The local backend encodes the cursor
+   * as the next index into the combined list — Firestore will replace
+   * this with a doc-snapshot-based cursor without changing the contract.
+   *
+   * The cursor is opaque to callers; `null` means "no more pages".
+   */
+  async listAllPaged({ cursor, limit }: ListPagedOptions): Promise<ListPagedResult<CaseRecord>> {
+    const all = await this.listAll();
+    // Decode cursor → start index. Empty / null / unparseable → 0.
+    const start = decodeCursor(cursor);
+    if (start >= all.length) {
+      return { items: [], nextCursor: null, total: all.length };
+    }
+    const end = Math.min(start + limit, all.length);
+    const items = all.slice(start, end);
+    const nextCursor = end < all.length ? encodeCursor(end) : null;
+    return { items, nextCursor, total: all.length };
   },
   async save(c: CaseRecord, current: CaseRecord[]): Promise<WriteResult> {
     const exists = current.some((x) => x.id === c.id);
@@ -236,6 +306,13 @@ export const cases = {
   listUser: () => _cases.listUser(),
   listTrashed: () => _cases.listTrashed(),
   listAll: () => _cases.listAll(),
+  /**
+   * Paged listing. Use this once the catalog grows past a few hundred
+   * cases — the Firebase migration will plug in here without touching
+   * the consumer. See `ListPagedOptions` / `ListPagedResult` for the
+   * contract. `listAll()` (eager) is still fine for the small atlas.
+   */
+  listAllPaged: (options: ListPagedOptions) => _cases.listAllPaged(options),
   save: (c: CaseRecord, current: CaseRecord[]) => _cases.save(c, current),
   remove: (id: string, current: CaseRecord[], by?: string) => _cases.remove(id, current, by),
   restore: (id: string, current: CaseRecord[]) => _cases.restore(id, current),

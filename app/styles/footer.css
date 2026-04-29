@@ -11,7 +11,7 @@
   margin-top: var(--space-12);
   padding: var(--space-6) var(--space-8);
   /* The footer sits inside the same max-width as the layout. */
-  max-width: 1480px;
+  max-width: var(--max-page);
   margin-left: auto;
   margin-right: auto;
   font-family: var(--mono);

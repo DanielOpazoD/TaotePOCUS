@@ -1,6 +1,6 @@
 /* =================== LAYOUT =================== */
 .layout {
-  max-width: 1480px;
+  max-width: var(--max-page);
   margin: 0 auto;
   padding: var(--space-8);
   display: grid;

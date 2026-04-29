@@ -151,6 +151,59 @@ describe("repo.cases", () => {
     expect(all.length).toBeGreaterThan(10); // seed cases still there
   });
 
+  describe("listAllPaged", () => {
+    it("returns the first page when no cursor is provided", async () => {
+      const result = await repo.cases.listAllPaged({ limit: 5 });
+      expect(result.items).toHaveLength(5);
+      expect(result.nextCursor).not.toBeNull();
+      // Local backend can answer the total cheaply.
+      expect(result.total).toBeGreaterThan(5);
+    });
+
+    it("walks every case in order across pages", async () => {
+      // Pull all cases page-by-page and verify the union matches listAll.
+      const expected = await repo.cases.listAll();
+      const collected: string[] = [];
+      let cursor: string | null | undefined = undefined;
+      // Defensive iteration cap so a contract regression can't loop forever.
+      for (let i = 0; i < 100; i++) {
+        const page = await repo.cases.listAllPaged({ cursor, limit: 4 });
+        collected.push(...page.items.map((c) => c.id));
+        if (!page.nextCursor) break;
+        cursor = page.nextCursor;
+      }
+      expect(collected).toEqual(expected.map((c) => c.id));
+    });
+
+    it("returns nextCursor: null on the last page", async () => {
+      const all = await repo.cases.listAll();
+      const total = all.length;
+      // Request a single page that consumes the whole set.
+      const result = await repo.cases.listAllPaged({ limit: total });
+      expect(result.items).toHaveLength(total);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it("returns an empty page (and null cursor) past the end", async () => {
+      const all = await repo.cases.listAll();
+      // Past-the-end cursor — local backend encodes index as a numeric string.
+      const result = await repo.cases.listAllPaged({
+        cursor: String(all.length + 50),
+        limit: 5,
+      });
+      expect(result.items).toEqual([]);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it("treats malformed / null cursors as 'start from beginning'", async () => {
+      const a = await repo.cases.listAllPaged({ cursor: null, limit: 3 });
+      const b = await repo.cases.listAllPaged({ cursor: "garbage", limit: 3 });
+      const c = await repo.cases.listAllPaged({ cursor: "-5", limit: 3 });
+      expect(a.items.map((x) => x.id)).toEqual(b.items.map((x) => x.id));
+      expect(a.items.map((x) => x.id)).toEqual(c.items.map((x) => x.id));
+    });
+  });
+
   it("restore brings a soft-deleted case back to listUser", async () => {
     const c = mkCase();
     await repo.cases.save(c, []);

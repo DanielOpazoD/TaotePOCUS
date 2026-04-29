@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
@@ -51,11 +51,18 @@ export default function CaseModal({
   const bodyRef = useRef<HTMLDivElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(true);
   const swipe = useSwipeToClose<HTMLDivElement>({ onClose });
-  const cat = CATEGORIES.find((c) => c.id === caso.category);
-  const dateLabel = relativeDate(caso.date);
-  const dateAbsolute = absoluteDate(caso.date);
-  const parts = caso.author.split(/\s+/);
-  const initials = (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
+  // Memoize per-caso derivations: each is a small computation, but they
+  // run on every render of an open modal (which can happen frequently —
+  // every keystroke in nav, every animation frame elsewhere). useMemo
+  // pins them to caso identity, which only changes on prev/next nav.
+  const cat = useMemo(() => CATEGORIES.find((c) => c.id === caso.category), [caso.category]);
+  const dateLabel = useMemo(() => relativeDate(caso.date), [caso.date]);
+  const dateAbsolute = useMemo(() => absoluteDate(caso.date), [caso.date]);
+  const initials = useMemo(() => {
+    const parts = caso.author.split(/\s+/);
+    return (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
+  }, [caso.author]);
+  const quote = useMemo(() => pullQuote(caso), [caso]);
 
   // schema.org structured data for the case. Search engines and rich-
   // result tools (e.g. Google Search Console) parse this JSON-LD to
@@ -320,9 +327,9 @@ export default function CaseModal({
                   findings is short) and renders it as serif italic
                   marginalia. The aside is decorative — same content
                   appears in the prose, so we mark it aria-hidden. */}
-              {pullQuote(caso) && (
+              {quote && (
                 <aside className="modal-pullquote" aria-hidden="true">
-                  {pullQuote(caso)}
+                  {quote}
                 </aside>
               )}
               <p>{caso.findings}</p>
