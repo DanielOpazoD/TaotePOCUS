@@ -35,6 +35,13 @@ interface Props {
   allCases: CaseRecord[];
   /** Live + trashed user-uploaded cases for the admin panel. */
   userCases: UserCasesShape;
+  /** Soft-deleted seed/imported cases (admin trash) — surfaced in
+   *  AdminPanel with a Restore button. Computed in App.tsx from the
+   *  override map. Empty array when the admin hasn't deleted any. */
+  trashedImports?: CaseRecord[];
+  /** Restore a soft-deleted seed/imported case (drops the
+   *  `deletedAt` override). */
+  onRestoreImport?: (c: CaseRecord) => void;
   /** Categories list (built-in + custom) — passed through to the
    *  classifier and the categories editor. */
   categories?: Category[];
@@ -88,6 +95,8 @@ export default function MainGrid({
   filtered,
   allCases,
   userCases,
+  trashedImports,
+  onRestoreImport,
   categories,
   categoryCaseCounts,
   onAddCategory,
@@ -110,6 +119,7 @@ export default function MainGrid({
         allCases={allCases}
         userCases={userCases.live}
         trashedCases={userCases.trashed}
+        trashedImports={trashedImports}
         categories={categories}
         categoryCaseCounts={categoryCaseCounts}
         onAddCategory={onAddCategory}
@@ -120,6 +130,7 @@ export default function MainGrid({
         onDelete={onDelete}
         onRestore={userCases.restore}
         onPurge={userCases.purge}
+        onRestoreImport={onRestoreImport}
         onNew={onNew}
         onPatch={onPatch}
       />

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CineLoop } from "../cine";
+import { Icon } from "@/lib/icons";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
@@ -33,6 +34,9 @@ interface Props {
   onPatch: (id: string, patch: Partial<CaseRecord>) => void;
   /** Open the full edit form for fine-grained edits beyond drag-classify. */
   onOpenEdit: (caso: CaseRecord) => void;
+  /** Soft-delete the case. Triggers the parent's confirm dialog —
+   *  the admin can restore from the trash section in the admin panel. */
+  onDelete?: (caso: CaseRecord) => void;
 }
 
 type Filter = "all" | "unclassified" | "unreviewed";
@@ -57,6 +61,7 @@ export default function ClassifierBoard({
   categories = CATEGORIES,
   onPatch,
   onOpenEdit,
+  onDelete,
 }: Props) {
   const [filter, setFilter] = useState<Filter>("unclassified");
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -235,6 +240,17 @@ export default function ClassifierBoard({
               >
                 ✓
               </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  className="classifier-card-delete"
+                  onClick={() => onDelete(c)}
+                  title="Mover a papelera (puedes restaurar desde admin)"
+                  aria-label={`Eliminar ${c.title}`}
+                >
+                  {Icon.trash()}
+                </button>
+              )}
             </article>
           ))}
         </div>

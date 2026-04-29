@@ -104,13 +104,25 @@ function AppInner() {
   // Combined case list for public flows. AdminPanel sees `userCases.live`
   // and `userCases.trashed` separately. Overrides apply to both seed-
   // imported and admin-uploaded cases — anything keyed by id wins.
+  // Cases with `deletedAt` (set via override on a seed case, or by
+  // `userCases.remove` on an admin-uploaded case) are filtered out
+  // here and surfaced separately to the admin panel for restoration.
   const allCases = useMemo<CaseRecord[]>(
-    () => mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides),
+    () =>
+      mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides).filter((c) => !c.deletedAt),
     [userCases.live, overrides],
   );
 
+  // Soft-deleted seed/imported cases — surfaced in the admin panel's
+  // trash section so the admin can restore them. User-uploaded trash
+  // is handled separately by `useUserCases.trashed`.
+  const trashedImports = useMemo<CaseRecord[]>(
+    () => mergeWithOverrides(SEED_CASES, overrides).filter((c) => c.deletedAt),
+    [overrides],
+  );
+
   // Cases per category id — feeds the categories editor's "in use"
-  // hint and the deletion guard.
+  // hint and the deletion guard. Counted across non-deleted cases.
   const categoryCaseCounts = useMemo<Record<string, number>>(() => {
     const counts: Record<string, number> = {};
     for (const c of allCases) {
@@ -167,8 +179,34 @@ function AppInner() {
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
-    await userCases.remove(pendingDelete);
+    // Two delete paths share this confirm dialog:
+    //   1. Admin-uploaded cases → `userCases.remove` (repo CRUD).
+    //   2. Seed/imported cases → write a `deletedAt` override so the
+    //      catalog filters them out without touching the source list.
+    //      The override stays in storage so the admin can restore via
+    //      the trash section in the admin panel.
+    const isUserOwned = userCases.live.some((c) => c.id === pendingDelete.id);
+    if (isUserOwned) {
+      await userCases.remove(pendingDelete);
+    } else {
+      const ok = await setOverride(pendingDelete.id, {
+        deletedAt: new Date().toISOString(),
+        deletedBy: user?.email,
+      });
+      if (ok) showToast("Caso movido a papelera · puedes restaurarlo desde admin");
+    }
     setPendingDelete(null);
+  };
+
+  // Restore a soft-deleted seed/imported case. Drops just the
+  // `deletedAt` / `deletedBy` fields from the override, keeping any
+  // other admin edits (category, title, etc.) intact.
+  const onRestoreImport = async (c: CaseRecord) => {
+    const ok = await setOverride(c.id, {
+      deletedAt: undefined,
+      deletedBy: undefined,
+    });
+    if (ok) showToast("Caso restaurado");
   };
 
   const onNewCase = () => {
@@ -272,6 +310,8 @@ function AppInner() {
               filtered={filtered}
               allCases={allCases}
               userCases={userCases}
+              trashedImports={trashedImports}
+              onRestoreImport={onRestoreImport}
               categories={categories}
               categoryCaseCounts={categoryCaseCounts}
               onAddCategory={addCategory}

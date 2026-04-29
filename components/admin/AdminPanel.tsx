@@ -12,10 +12,18 @@ interface Props {
   allCases: CaseRecord[];
   userCases: CaseRecord[];
   trashedCases: CaseRecord[];
+  /**
+   * Soft-deleted seed/imported cases. Stored as `deletedAt` overrides
+   * so the deletion is reversible without mutating the source list.
+   * Optional — `undefined` collapses the section.
+   */
+  trashedImports?: CaseRecord[];
   onEdit: (c: CaseRecord) => void;
   onDelete: (c: CaseRecord) => void;
   onRestore: (c: CaseRecord) => void;
   onPurge: (c: CaseRecord) => void;
+  /** Restore a soft-deleted import (drops the `deletedAt` override). */
+  onRestoreImport?: (c: CaseRecord) => void;
   onNew: () => void;
   /**
    * Apply a partial override to any case. Used by the bulk classifier
@@ -56,10 +64,12 @@ export default function AdminPanel({
   allCases,
   userCases,
   trashedCases,
+  trashedImports,
   onEdit,
   onDelete,
   onRestore,
   onPurge,
+  onRestoreImport,
   onNew,
   onPatch,
   categories,
@@ -126,6 +136,7 @@ export default function AdminPanel({
           categories={resolvedCategories}
           onPatch={onPatch}
           onOpenEdit={onEdit}
+          onDelete={onDelete}
         />
       ) : tab === "categories" && canEditCategories ? (
         <CategoriesEditor
@@ -264,6 +275,47 @@ export default function AdminPanel({
                           aria-label="Eliminar definitivamente"
                         >
                           {Icon.trash()}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {trashedImports && trashedImports.length > 0 && onRestoreImport && (
+            <>
+              <div className="admin-section-head">
+                <h3>Papelera de importados</h3>
+                <span className="admin-trash-count">
+                  {trashedImports.length} eliminado{trashedImports.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              {/* Twitter-imported cases the admin soft-deleted from the
+                  classifier. Restored via `clearOverride`-on-deletedAt
+                  so any other admin edits to the case (category,
+                  title, reviewed flag) survive the round trip. */}
+              <table className="admin-table admin-table-trash">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Eliminado</th>
+                    <th>Por</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trashedImports.map((c) => (
+                    <tr key={c.id}>
+                      <td className="admin-title-cell">
+                        <span className="admin-trash-title">{c.title}</span>
+                      </td>
+                      <td className="admin-date">{formatDateTime(c.deletedAt)}</td>
+                      <td className="admin-date">{c.deletedBy || "—"}</td>
+                      <td className="admin-actions-cell">
+                        <button className="btn-ghost" onClick={() => onRestoreImport(c)}>
+                          Restaurar
                         </button>
                       </td>
                     </tr>
