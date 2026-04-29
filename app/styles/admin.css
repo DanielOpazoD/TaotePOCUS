@@ -237,6 +237,58 @@ textarea.admin-input {
   flex-direction: column;
   gap: var(--space-8);
 }
+
+/* Tab strip across the top of the admin panel — switches between
+ * "Mis casos" (the default CRUD table view) and "Clasificar" (the
+ * bulk drag-and-drop classifier). State is local to AdminPanel; we
+ * deliberately don't push it into the URL since it's an admin-only
+ * tool, not part of the public navigation surface. */
+.admin-tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: calc(-1 * var(--space-4));
+}
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--ink-mute);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.admin-tab:hover {
+  color: var(--ink);
+}
+.admin-tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+.admin-tab-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  padding: 1px 7px;
+  border-radius: 8px;
+  min-width: 22px;
+  text-align: center;
+}
+.admin-tab.is-active .admin-tab-count {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

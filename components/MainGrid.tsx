@@ -47,6 +47,9 @@ interface Props {
   onClearFilters: () => void;
   /** Send the user to /atlas — used by the favs empty-state CTA. */
   onExploreAtlas: () => void;
+  /** Apply a partial override to a case — used by the AdminPanel's
+   *  bulk classifier (drag a thumbnail onto a section/category). */
+  onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
 }
 
 /**
@@ -81,6 +84,7 @@ export default function MainGrid({
   onNew,
   onClearFilters,
   onExploreAtlas,
+  onPatch,
 }: Props) {
   if (view.kind === "admin" && isAdmin) {
     return (
@@ -93,6 +97,7 @@ export default function MainGrid({
         onRestore={userCases.restore}
         onPurge={userCases.purge}
         onNew={onNew}
+        onPatch={onPatch}
       />
     );
   }

@@ -258,6 +258,17 @@ function AppInner() {
               onNew={onNewCase}
               onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
               onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
+              onPatch={
+                isAdmin
+                  ? async (id, patch) => {
+                      const ok = await setOverride(id, patch);
+                      if (ok && patch.section) showToast("Sección actualizada");
+                      else if (ok && patch.category) showToast("Categoría actualizada");
+                      else if (ok && "reviewed" in patch)
+                        showToast(patch.reviewed ? "Marcado revisado" : "Sin marca de revisado");
+                    }
+                  : undefined
+              }
             />
           </ErrorBoundary>
         </main>
