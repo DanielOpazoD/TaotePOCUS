@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
@@ -18,11 +18,22 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const isCrit = caso.tags.includes("Crítico");
   const [bursting, setBursting] = useState(false);
+  const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Relative date as the visible label, absolute date as the tooltip
   // hover. Older publications fall back to absolute automatically —
   // see lib/relative-date.ts for the rules.
   const dateLabel = relativeDate(caso.date);
   const dateAbsolute = absoluteDate(caso.date);
+
+  // Drop the burst timer on unmount so a fast favorite + route change
+  // (which unmounts the card mid-animation) doesn't leak a setState
+  // on the dead component.
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current !== null) clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
 
   const onFavClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -30,7 +41,11 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
     // on un-fav. Subtler that way.
     if (!isFav) {
       setBursting(true);
-      setTimeout(() => setBursting(false), 600);
+      if (burstTimerRef.current !== null) clearTimeout(burstTimerRef.current);
+      burstTimerRef.current = setTimeout(() => {
+        setBursting(false);
+        burstTimerRef.current = null;
+      }, 600);
     }
     onFav();
   };

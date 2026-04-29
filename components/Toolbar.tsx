@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SortOrder } from "@/lib/url";
 
 interface Props {
@@ -28,7 +28,19 @@ interface Props {
  */
 export default function Toolbar({ count, tags, query, sort, onReplace }: Props) {
   const [clearShaking, setClearShaking] = useState(false);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasFilters = tags.length > 0 || !!query;
+
+  // Drop the shake timer if the component unmounts mid-wink so React
+  // doesn't get a setState on an unmounted instance. A real concern
+  // because route changes (which unmount the toolbar) can collide
+  // with a fresh shake within the 400 ms window.
+  useEffect(
+    () => () => {
+      if (shakeTimerRef.current !== null) clearTimeout(shakeTimerRef.current);
+    },
+    [],
+  );
 
   return (
     <div className="toolbar">
@@ -42,7 +54,11 @@ export default function Toolbar({ count, tags, query, sort, onReplace }: Props) 
           if (!hasFilters) {
             // Wink — nothing to clear, but the user clicked anyway.
             setClearShaking(true);
-            setTimeout(() => setClearShaking(false), 400);
+            if (shakeTimerRef.current !== null) clearTimeout(shakeTimerRef.current);
+            shakeTimerRef.current = setTimeout(() => {
+              setClearShaking(false);
+              shakeTimerRef.current = null;
+            }, 400);
             return;
           }
           onReplace({ tags: [], query: "" });

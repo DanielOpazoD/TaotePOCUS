@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
 import Toolbar from "./Toolbar";
 import MainGrid from "./MainGrid";
+import ErrorBoundary from "./ErrorBoundary";
 import { Header, Footer } from "./chrome";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
@@ -182,13 +183,19 @@ function AppInner() {
         />
 
         <main className="main" id="main" tabIndex={-1}>
-          <SectionHero
-            view={view}
-            cat={cat}
-            head={head}
-            scopedCases={scopedCases}
-            onOpenCase={(id) => pushPatch({ caso: id })}
-          />
+          {/* Per-section error boundaries: a crash in the hero (sparkline,
+              count-up, animation observers) doesn't take down the toolbar
+              or the grid below. Each boundary logs through lib/log so
+              Sentry sees the failure once it's wired. */}
+          <ErrorBoundary name="hero">
+            <SectionHero
+              view={view}
+              cat={cat}
+              head={head}
+              scopedCases={scopedCases}
+              onOpenCase={(id) => pushPatch({ caso: id })}
+            />
+          </ErrorBoundary>
           <Toolbar
             count={filtered.length}
             tags={tags}
@@ -212,24 +219,26 @@ function AppInner() {
                 onFav={toggleFav}
               />
             )}
-          <MainGrid
-            view={view}
-            cat={cat}
-            tags={tags}
-            query={query}
-            isAdmin={isAdmin}
-            filtered={filtered}
-            allCases={allCases}
-            userCases={userCases}
-            favs={favs}
-            onOpen={(c) => pushPatch({ caso: c.id })}
-            onToggleFav={(c) => toggleFav(c.id)}
-            onEdit={onEditCase}
-            onDelete={(c) => setPendingDelete(c)}
-            onNew={onNewCase}
-            onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
-            onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
-          />
+          <ErrorBoundary name="grid">
+            <MainGrid
+              view={view}
+              cat={cat}
+              tags={tags}
+              query={query}
+              isAdmin={isAdmin}
+              filtered={filtered}
+              allCases={allCases}
+              userCases={userCases}
+              favs={favs}
+              onOpen={(c) => pushPatch({ caso: c.id })}
+              onToggleFav={(c) => toggleFav(c.id)}
+              onEdit={onEditCase}
+              onDelete={(c) => setPendingDelete(c)}
+              onNew={onNewCase}
+              onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
+              onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
+            />
+          </ErrorBoundary>
         </main>
       </div>
 
@@ -256,18 +265,42 @@ function AppInner() {
           const prev = idx > 0 ? navList[idx - 1] : null;
           const next = idx >= 0 && idx < navList.length - 1 ? navList[idx + 1] : null;
           return (
-            <CaseModal
-              caso={openCase}
-              onClose={() => replacePatch({ caso: null })}
-              isFav={favs.includes(openCase.id)}
-              onFav={() => toggleFav(openCase.id)}
-              onShare={() => onShare(openCase)}
-              onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
-              position={idx >= 0 ? idx + 1 : undefined}
-              total={navList.length}
-              onPrev={prev ? () => replacePatch({ caso: prev.id }) : undefined}
-              onNext={next ? () => replacePatch({ caso: next.id }) : undefined}
-            />
+            // The modal is the most error-prone subtree (dialog API,
+            // focus trap, swipe gesture, scroll listener, kbd shortcuts,
+            // CineLoop canvas). If it crashes we close it via the URL
+            // patch — better to drop the user back to the grid than
+            // to wedge them inside a broken dialog.
+            <ErrorBoundary
+              name="modal"
+              fallback={(error) => (
+                <div className="boundary-fallback boundary-fallback--floating" role="alertdialog">
+                  <div className="boundary-fallback-inner">
+                    <h3>El caso no pudo abrirse</h3>
+                    <p>Detalles: {error.message}</p>
+                    <button
+                      type="button"
+                      className="boundary-fallback-retry"
+                      onClick={() => replacePatch({ caso: null })}
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+            >
+              <CaseModal
+                caso={openCase}
+                onClose={() => replacePatch({ caso: null })}
+                isFav={favs.includes(openCase.id)}
+                onFav={() => toggleFav(openCase.id)}
+                onShare={() => onShare(openCase)}
+                onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
+                position={idx >= 0 ? idx + 1 : undefined}
+                total={navList.length}
+                onPrev={prev ? () => replacePatch({ caso: prev.id }) : undefined}
+                onNext={next ? () => replacePatch({ caso: next.id }) : undefined}
+              />
+            </ErrorBoundary>
           );
         })()}
       {presentingCase && (

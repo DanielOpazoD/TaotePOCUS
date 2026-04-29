@@ -1,0 +1,92 @@
+/* =================== ERROR BOUNDARY FALLBACK ===================
+ *
+ * Contained fallback used by `<ErrorBoundary>` when a descendant
+ * throws. Designed to fit inside any container — the parent picks
+ * the size; the fallback fills it without breaking layout.
+ *
+ * Tone: not alarming, not a stack trace. The user might never have
+ * seen this kind of message before; we make it feel like a planned
+ * empty-state, not a crash.
+ */
+
+.boundary-fallback {
+  display: grid;
+  place-items: center;
+  padding: var(--space-8);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-height: 240px;
+  margin: var(--space-4) 0;
+}
+
+/* When the modal boundary fires, the dialog itself is broken — the
+   fallback floats above the page instead of sitting inline. Z-index
+   above the toast so the user definitely sees it. */
+.boundary-fallback--floating {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(420px, 90vw);
+  height: max-content;
+  align-self: center;
+  z-index: var(--z-toast);
+  box-shadow: var(--shadow-3);
+}
+
+.boundary-fallback-inner {
+  max-width: 440px;
+  text-align: center;
+}
+
+.boundary-fallback h3 {
+  font-family: var(--serif);
+  font-variation-settings: var(--serif-h3);
+  font-size: 18px;
+  margin: 0 0 var(--space-2);
+  color: var(--ink);
+}
+
+.boundary-fallback p {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 var(--space-4);
+  line-height: 1.5;
+}
+
+.boundary-fallback details {
+  text-align: left;
+  margin: 0 auto var(--space-4);
+  max-width: 420px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+.boundary-fallback details summary {
+  cursor: pointer;
+  user-select: none;
+}
+.boundary-fallback details pre {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.boundary-fallback-retry {
+  padding: 9px 18px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
+}
+.boundary-fallback-retry:hover {
+  background: var(--ink-hover);
+}

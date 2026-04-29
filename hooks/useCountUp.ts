@@ -53,6 +53,7 @@ export function useCountUp<T extends HTMLElement = HTMLElement>(
       return;
     }
 
+    let rafHandle: number | null = null;
     const io = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -64,16 +65,21 @@ export function useCountUp<T extends HTMLElement = HTMLElement>(
             // Cubic ease-out — matches --ease-emphasized's tail.
             const eased = 1 - Math.pow(1 - t, 3);
             setValue(Math.round(target * eased));
-            if (t < 1) requestAnimationFrame(tick);
+            if (t < 1) rafHandle = requestAnimationFrame(tick);
           };
-          requestAnimationFrame(tick);
+          rafHandle = requestAnimationFrame(tick);
           io.disconnect();
         }
       },
       { threshold },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      // If the component unmounts mid-animation, drop the next frame
+      // so React doesn't get a setValue on an unmounted instance.
+      if (rafHandle !== null) cancelAnimationFrame(rafHandle);
+    };
   }, [target, duration, threshold]);
 
   return { ref, value };

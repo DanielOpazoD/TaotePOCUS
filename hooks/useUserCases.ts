@@ -2,11 +2,36 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { repo } from "@/lib/repo";
+import { log } from "@/lib/log";
 import type { CaseRecord, User } from "@/lib/types";
 
 interface Options {
   /** User-facing message channel for save / delete / restore failures. */
   notify?: (message: string) => void;
+}
+
+/** Map a storage failure reason to a user-facing Spanish message. */
+function describeFailure(op: string, reason: "quota" | "unavailable" | "unknown"): string {
+  if (reason === "quota") {
+    return "Sin espacio. Borra casos antiguos o sube archivos más livianos.";
+  }
+  if (reason === "unavailable") {
+    return "Almacenamiento no disponible. Comprueba modo privado / cuotas.";
+  }
+  // "unknown" — keep the message specific to the operation so the toast
+  // is informative without leaking internals.
+  switch (op) {
+    case "save":
+      return "No se pudo guardar el caso.";
+    case "remove":
+      return "No se pudo eliminar el caso.";
+    case "restore":
+      return "No se pudo restaurar el caso.";
+    case "purge":
+      return "No se pudo eliminar definitivamente.";
+    default:
+      return "Operación fallida.";
+  }
 }
 
 /**
@@ -46,11 +71,13 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
     async (c: CaseRecord, opts: { isUpdate: boolean }) => {
       const result = await repo.cases.save(c, raw);
       if (!result.ok) {
-        notify?.(
-          result.reason === "quota"
-            ? "Sin espacio. Borra casos antiguos o sube archivos más livianos."
-            : "No se pudo guardar el caso.",
-        );
+        log.warn("save case failed", {
+          area: "userCases",
+          op: "save",
+          reason: result.reason,
+          caseId: c.id,
+        });
+        notify?.(describeFailure("save", result.reason));
         return false;
       }
       await refresh();
@@ -64,7 +91,13 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
     async (c: CaseRecord) => {
       const result = await repo.cases.remove(c.id, raw, user?.email);
       if (!result.ok) {
-        notify?.("No se pudo eliminar el caso.");
+        log.warn("remove case failed", {
+          area: "userCases",
+          op: "remove",
+          reason: result.reason,
+          caseId: c.id,
+        });
+        notify?.(describeFailure("remove", result.reason));
         return false;
       }
       await refresh();
@@ -78,7 +111,15 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
     async (c: CaseRecord) => {
       const result = await repo.cases.restore(c.id, raw);
       if (!result.ok) {
-        notify?.("No se pudo restaurar el caso.");
+        log.warn("restore case failed", {
+          area: "userCases",
+          op: "restore",
+          reason: result.reason,
+          caseId: c.id,
+        });
+        // Restore can hit quota too — it removes the deletedAt marker
+        // but the entry may have grown via media uploads in between.
+        notify?.(describeFailure("restore", result.reason));
         return false;
       }
       await refresh();
@@ -92,7 +133,13 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
     async (c: CaseRecord) => {
       const result = await repo.cases.purge(c.id, raw);
       if (!result.ok) {
-        notify?.("No se pudo eliminar definitivamente.");
+        log.warn("purge case failed", {
+          area: "userCases",
+          op: "purge",
+          reason: result.reason,
+          caseId: c.id,
+        });
+        notify?.(describeFailure("purge", result.reason));
         return false;
       }
       await refresh();

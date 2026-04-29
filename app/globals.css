@@ -48,6 +48,9 @@
 /* Editorial footer / colophon */
 @import "./styles/footer.css";
 
+/* Granular error boundary fallback */
+@import "./styles/boundary.css";
+
 /* Floating bits */
 @import "./styles/toast.css";
 

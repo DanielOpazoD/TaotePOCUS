@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { repo } from "@/lib/repo";
+import { log } from "@/lib/log";
 import type { User } from "@/lib/types";
 
 interface Options {
@@ -44,7 +45,17 @@ export function useFavs(user: User | null, hydrated: boolean, options: Options) 
       }
       const { result, next } = await repo.favs.toggle(user.email, id, favs);
       if (!result.ok) {
-        notify?.("No se pudo guardar el favorito.");
+        log.warn("favorite toggle failed", {
+          area: "favs",
+          reason: result.reason,
+          caseId: id,
+          email: user.email,
+        });
+        notify?.(
+          result.reason === "quota"
+            ? "Sin espacio para más favoritos. Quita algunos para añadir nuevos."
+            : "No se pudo guardar el favorito.",
+        );
         return;
       }
       setFavs(next);
