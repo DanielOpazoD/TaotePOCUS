@@ -364,10 +364,11 @@ for (const c of slice) {
     copyFileSync(media.source, dest);
   }
 
-  // Tags: classifier hints + an `imported-twitter` marker so a future
-  // sweep can find them, plus an `unclassified` tag if the category
-  // is the section default rather than a real classification.
-  const tags = [...c.classification.tags, "Importado-Twitter"];
+  // Tags: classifier hints + a `Sin clasificar` marker when the
+  // category is a fallback default rather than a real match. Origin
+  // info (Twitter) lives in the case id (`tw-…`) and the file banner
+  // — not on every case's tag chip row, where it would just be noise.
+  const tags = [...c.classification.tags];
   if (!c.classification.category) tags.push("Sin clasificar");
 
   // Featured: top-tier engagement gets featured. Threshold tuned so
