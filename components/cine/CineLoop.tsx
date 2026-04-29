@@ -123,7 +123,16 @@ export default function CineLoop({
   }, [kind, speed, paused, showChrome, media, visible, quality, reducedMotion]);
 
   if (media && (media.kind === "video" || media.kind === "image" || media.kind === "gif")) {
-    if (media.kind === "video") {
+    // Pick the right renderer based on the actual file extension, not
+    // just the declared kind. Twitter's "animated_gif" media type is
+    // shipped as an .mp4 file in the archive — declaring kind="gif"
+    // with an .mp4 src and rendering as <img> would break the thumbnail
+    // (browsers can't paint mp4 inside <img>). Treat anything that
+    // ends in .mp4 / .webm / .mov as video; .gif as gif inside <img>;
+    // everything else as static image.
+    const src = media.src || "";
+    const isVideoFile = media.kind === "video" || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
+    if (isVideoFile) {
       return (
         <div className="cine-wrap" style={{ aspectRatio: aspect }} ref={wrapRef}>
           <video

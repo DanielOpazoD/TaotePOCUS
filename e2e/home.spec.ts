@@ -5,11 +5,13 @@ test.describe("Home page", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Atlas POCUS/);
     await expect(page.getByRole("heading", { level: 1, name: /Atlas POCUS/ })).toBeVisible();
-    // 12 atlas seed cases on the home grid (no admin uploads). The
-    // bento layout renders most as `.case-card` and a couple as
-    // `.quote-card` (textual variant) — count both.
+    // The atlas section grid renders cards from SEED_CASES (12) plus
+    // any IMPORTED_CASES classified as atlas (variable). The bento
+    // layout renders most as `.case-card` and a couple as `.quote-card`
+    // (textual variant) — count both. Lower bound rather than exact
+    // count so adding more imported cases doesn't break the test.
     const cards = page.locator(".case-card, .quote-card");
-    await expect(cards).toHaveCount(12);
+    expect(await cards.count()).toBeGreaterThanOrEqual(12);
   });
 
   test("navigates between sections via the header", async ({ page }) => {

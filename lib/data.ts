@@ -1,4 +1,5 @@
 import type { CaseRecord, Category, Section } from "./types";
+import { IMPORTED_CASES } from "./imported-cases";
 
 export const SECTIONS: Section[] = [
   { id: "atlas", label: "Atlas POCUS", sub: "Imágenes y videos ecográficos por tema" },
@@ -413,4 +414,8 @@ export const SEED_CASES: CaseRecord[] = [
     summary:
       "Mapa anatómico con orden de exploración recomendado. Tiempo objetivo: <3 minutos en trauma.",
   },
+  // Imported cases from the @TaotePOCUS Twitter archive — see
+  // lib/imported-cases.ts (auto-generated). Kept inline-merged so
+  // every consumer that walks SEED_CASES picks them up automatically.
+  ...IMPORTED_CASES,
 ];
