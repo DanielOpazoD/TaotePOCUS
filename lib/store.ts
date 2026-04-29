@@ -116,6 +116,20 @@ export const Store = {
     return safeWrite("pocus_user_cases", cs);
   },
   /**
+   * Per-case override map keyed by case id. Each entry is a
+   * `Partial<CaseRecord>` — the admin can override any field
+   * (title, classification, tags, position, summary, findings…)
+   * without modifying the upstream catalog file. Survives
+   * `apply-twitter-import.mjs` regenerations because overrides
+   * live in localStorage, not in `lib/imported-cases.ts`.
+   */
+  getCaseOverrides(): Record<string, Partial<CaseRecord>> {
+    return safeRead<Record<string, Partial<CaseRecord>>>("pocus_case_overrides", {});
+  },
+  setCaseOverrides(map: Record<string, Partial<CaseRecord>>): WriteResult {
+    return safeWrite("pocus_case_overrides", map);
+  },
+  /**
    * Approximate bytes used by `pocus_*` keys. Useful for the admin
    * panel to surface storage pressure before a write fails. Returns 0
    * on the server. Multiplies length by 2 (UTF-16 worst case).

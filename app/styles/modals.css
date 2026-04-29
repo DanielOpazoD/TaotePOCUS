@@ -501,6 +501,25 @@ button:hover > .kbd-hint {
   color: var(--crit);
   border-color: var(--crit);
 }
+.modal-actions button.btn-edit {
+  /* Admin-only edit / reset buttons. Pushed to the right edge with
+     auto margin so they read as a separate cluster — distinct from
+     the public "save / share / present" trio. */
+  margin-left: auto;
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-color: var(--hairline);
+  font-size: 12px;
+}
+.modal-actions button.btn-edit:hover {
+  color: var(--ink);
+  border-color: var(--ink-mute);
+}
+.modal-actions button.btn-edit + .btn-edit {
+  /* The reset button sits next to edit — drop the auto-margin so
+     they cluster instead of pushing each other apart. */
+  margin-left: var(--space-2);
+}
 .modal-actions button svg {
   width: 14px;
   height: 14px;

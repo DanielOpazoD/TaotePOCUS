@@ -144,4 +144,18 @@ export const firebaseCasesRepo = {
       return asWriteError("cases", "purge", err);
     }
   },
+  // Per-case overrides — when Firebase lights up these will live in
+  // a sibling `case_overrides/{id}` collection. For now the stub
+  // just returns empty / unavailable so the type matches the local
+  // backend. The local backend is the only path that actually
+  // persists overrides today.
+  async listOverrides(): Promise<Record<string, Partial<CaseRecord>>> {
+    return {};
+  },
+  async setOverride(_id: string, _patch: Partial<CaseRecord>): Promise<WriteResult> {
+    return unavailable();
+  },
+  async clearOverride(_id: string): Promise<WriteResult> {
+    return unavailable();
+  },
 };

@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Claude Code session data — never commit
 .claude/
+
+# Twitter import media — reproducible from the archive via
+# scripts/apply-twitter-import.mjs. Tracking 100+ MB of mp4s in git
+# bloats every clone and we have the script to regenerate.
+public/imports/

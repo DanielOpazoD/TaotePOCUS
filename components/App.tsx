@@ -20,6 +20,7 @@ import { useUserCases } from "@/hooks/useUserCases";
 import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { mergeWithOverrides, useCaseOverrides } from "@/hooks/useCaseOverrides";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
@@ -83,11 +84,17 @@ function AppInner() {
   // in the Header, co-located with the input it focuses.
   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
 
+  // Per-case overrides — admin-edited fields persisted in localStorage.
+  // Merged on top of the source catalog at render time so a future
+  // re-import (apply-twitter-import.mjs) doesn't blow away admin edits.
+  const { overrides, setOverride, clearOverride } = useCaseOverrides();
+
   // Combined case list for public flows. AdminPanel sees `userCases.live`
-  // and `userCases.trashed` separately.
+  // and `userCases.trashed` separately. Overrides apply to both seed-
+  // imported and admin-uploaded cases — anything keyed by id wins.
   const allCases = useMemo<CaseRecord[]>(
-    () => [...userCases.live, ...SEED_CASES],
-    [userCases.live],
+    () => mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides),
+    [userCases.live, overrides],
   );
 
   const { scopedCases, sectionCategories, sectionTags, filtered } = useCaseFilters({
@@ -116,7 +123,21 @@ function AppInner() {
   };
 
   const onSaveCase = async (data: CaseRecord) => {
-    const ok = await userCases.save(data, { isUpdate: !!editingCase?.id });
+    // Two save paths share this form:
+    //   1. Admin-uploaded cases (live in `userCases`) → repo.cases CRUD.
+    //   2. Imported / seed cases the admin reclassified → per-case
+    //      override map (admin edit doesn't mutate the upstream file).
+    const isUserOwned = userCases.live.some((c) => c.id === data.id);
+    let ok: boolean;
+    if (isUserOwned || !editingCase) {
+      // New case (no editingCase → fresh upload) or editing an existing
+      // admin-owned case both go through the repo CRUD.
+      ok = await userCases.save(data, { isUpdate: !!editingCase?.id });
+    } else {
+      // Editing a seed/imported case → save as override.
+      ok = await setOverride(data.id, data);
+      if (ok) showToast("Caso editado · puedes descartar desde el modal");
+    }
     if (!ok) return;
     setFormOpen(false);
     setEditingCase(null);
@@ -299,6 +320,27 @@ function AppInner() {
                 total={navList.length}
                 onPrev={prev ? () => replacePatch({ caso: prev.id }) : undefined}
                 onNext={next ? () => replacePatch({ caso: next.id }) : undefined}
+                // Admin-only: edit any case (seed / imported / uploaded).
+                // The form is reused; the save path branches on origin.
+                onEdit={
+                  isAdmin
+                    ? () => {
+                        setEditingCase(openCase);
+                        setFormOpen(true);
+                        replacePatch({ caso: null });
+                      }
+                    : undefined
+                }
+                // Reset shows only when an override is applied to this id.
+                hasOverride={Boolean(overrides[openCase.id])}
+                onResetOverride={
+                  isAdmin && overrides[openCase.id]
+                    ? async () => {
+                        const ok = await clearOverride(openCase.id);
+                        if (ok) showToast("Edición descartada · contenido original restaurado");
+                      }
+                    : undefined
+                }
               />
             </ErrorBoundary>
           );

@@ -234,6 +234,38 @@ const localCases = {
     log.info("Case purged", { area: "cases", id });
     return Store.setUserCases(next);
   },
+  // ─── Per-case overrides ────────────────────────────────────────────
+  // Admin-authored field overrides for any case in the catalog (seed
+  // or imported). The override map is `id → Partial<CaseRecord>`; the
+  // consumer merges it on top of the source case at render time. This
+  // lets `scripts/apply-twitter-import.mjs` regenerate the imported
+  // cases freely without nuking the admin's reclassifications.
+  async listOverrides(): Promise<Record<string, Partial<CaseRecord>>> {
+    return Store.getCaseOverrides();
+  },
+  async setOverride(id: string, patch: Partial<CaseRecord>): Promise<WriteResult> {
+    const all = Store.getCaseOverrides();
+    // Drop fields that are explicitly set to undefined — caller's
+    // signal for "use the source value", not "set this to undefined".
+    const cleaned: Partial<CaseRecord> = {};
+    for (const [k, v] of Object.entries(patch)) {
+      if (v !== undefined) (cleaned as Record<string, unknown>)[k] = v;
+    }
+    if (Object.keys(cleaned).length === 0) {
+      // Empty patch → drop the entry entirely.
+      delete all[id];
+    } else {
+      all[id] = cleaned;
+    }
+    log.info("Case override saved", { area: "cases", id, fields: Object.keys(cleaned) });
+    return Store.setCaseOverrides(all);
+  },
+  async clearOverride(id: string): Promise<WriteResult> {
+    const all = Store.getCaseOverrides();
+    delete all[id];
+    log.info("Case override cleared", { area: "cases", id });
+    return Store.setCaseOverrides(all);
+  },
 };
 
 const localFavs = {
@@ -317,6 +349,10 @@ export const cases = {
   remove: (id: string, current: CaseRecord[], by?: string) => _cases.remove(id, current, by),
   restore: (id: string, current: CaseRecord[]) => _cases.restore(id, current),
   purge: (id: string, current: CaseRecord[]) => _cases.purge(id, current),
+  // Per-case overrides — see `_cases.setOverride` for the rationale.
+  listOverrides: () => _cases.listOverrides(),
+  setOverride: (id: string, patch: Partial<CaseRecord>) => _cases.setOverride(id, patch),
+  clearOverride: (id: string) => _cases.clearOverride(id),
 };
 
 export const favs = {

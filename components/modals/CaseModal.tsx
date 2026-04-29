@@ -22,6 +22,13 @@ interface Props {
   onFav: () => void;
   onShare: () => void;
   onPresent: () => void;
+  /** Open the edit form pre-populated with this case. Admin only. */
+  onEdit?: () => void;
+  /** Drop the per-case override (admin), restoring the source values. */
+  onResetOverride?: () => void;
+  /** True when this case has admin overrides applied — controls the
+   *  visibility of the "restore original" affordance. */
+  hasOverride?: boolean;
   /** Position of the current case in the navigable set (1-based). */
   position?: number;
   /** Total cases in the navigable set, for the "X / N" indicator. */
@@ -43,6 +50,9 @@ export default function CaseModal({
   total,
   onPrev,
   onNext,
+  onEdit,
+  onResetOverride,
+  hasOverride,
 }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -375,6 +385,31 @@ export default function CaseModal({
                   P
                 </kbd>
               </button>
+              {/* Admin-only edit affordance. Visible only when the
+                  parent passes `onEdit` (i.e. the current user is
+                  admin). The "restore original" button appears only
+                  when this case has overrides applied — keeps the
+                  toolbar quiet for unedited cases. */}
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="btn-edit"
+                  title="Editar este caso (admin)"
+                  aria-label="Editar caso"
+                >
+                  {Icon.edit()} Editar
+                </button>
+              )}
+              {hasOverride && onResetOverride && (
+                <button
+                  onClick={onResetOverride}
+                  className="btn-edit"
+                  title="Descartar ediciones y restaurar el contenido original"
+                  aria-label="Restaurar original"
+                >
+                  Restaurar
+                </button>
+              )}
             </div>
           </div>
         </div>
