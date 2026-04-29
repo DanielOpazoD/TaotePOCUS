@@ -40,12 +40,14 @@ export function shortDayMonth(iso: string): string {
  * the card grid for one bad row.
  */
 export function relativeDate(iso: string, now: Date = new Date()): string {
-  const then = new Date(iso);
-  if (Number.isNaN(then.getTime())) return "—";
+  const then = parseLocalIsoDate(iso);
+  if (!then) return "—";
 
   // Normalize to local-day boundaries so a case dated "2026-04-25"
-  // reads as "ayer" the next day, not "hace 23 horas".
-  const startOfThen = new Date(then.getFullYear(), then.getMonth(), then.getDate());
+  // reads as "ayer" the next day, not "hace 23 horas". Inputs are
+  // parsed as LOCAL dates (not UTC) so a case dated 2026-04-28 is
+  // "hoy" everywhere, not just in the UTC timezone.
+  const startOfThen = then; // already at local midnight
   const startOfNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diffDays = Math.round((startOfNow.getTime() - startOfThen.getTime()) / 86_400_000);
 
@@ -68,10 +70,26 @@ export function relativeDate(iso: string, now: Date = new Date()): string {
 /**
  * Render an absolute date as "16 abr 2026". Used as the fallback for
  * old dates and as the tooltip companion to relative output.
+ *
+ * String inputs are parsed as LOCAL dates so they don't drift across
+ * timezones. Date inputs are read with their local components.
  */
 export function absoluteDate(d: Date | string): string {
-  const date = typeof d === "string" ? new Date(d) : d;
-  if (Number.isNaN(date.getTime())) return "—";
+  const date = typeof d === "string" ? parseLocalIsoDate(d) : d;
+  if (!date || Number.isNaN(date.getTime())) return "—";
   const month = MONTHS_SHORT[date.getMonth()] ?? "";
   return `${date.getDate()} ${month} ${date.getFullYear()}`;
+}
+
+/**
+ * Parse an ISO date string ("YYYY-MM-DD") as a LOCAL Date at midnight,
+ * not as UTC. JS's `new Date("2026-04-28")` treats the string as UTC,
+ * which then drifts to "yesterday" or "tomorrow" depending on the
+ * user's timezone — exactly the bug we want to avoid for human-facing
+ * relative dates. Returns `null` for malformed input.
+ */
+function parseLocalIsoDate(iso: string): Date | null {
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
 }

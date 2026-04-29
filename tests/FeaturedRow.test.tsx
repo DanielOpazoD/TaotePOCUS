@@ -1,29 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import FeaturedRow from "@/components/cards/FeaturedRow";
-import type { CaseRecord } from "@/lib/types";
+import { caseFactory } from "./fixtures";
 
 vi.mock("../components/cine", () => ({
   __esModule: true,
   CineLoop: () => <div data-testid="cine-stub" />,
 }));
 
-const baseCase = (overrides: Partial<CaseRecord>): CaseRecord => ({
-  id: "x",
-  section: "atlas",
-  title: "Title",
-  category: "cardiac",
-  tags: [],
-  modality: "M",
-  loop: "blines",
-  author: "A",
-  role: "R",
-  date: "2026-04-01",
-  findings: "f",
-  diagnosis: "d",
-  summary: "Summary text",
-  ...overrides,
-});
+// Tighter than the factory default so the FeaturedRow assertions
+// (titles, summaries) stay deterministic. Use overrides liberally.
+const baseCase = (overrides: Partial<Parameters<typeof caseFactory>[0]> = {}) =>
+  caseFactory({
+    title: "Title",
+    category: "cardiac",
+    tags: [],
+    summary: "Summary text",
+    ...overrides,
+  });
 
 describe("FeaturedRow", () => {
   it("returns null when there are no featured cases", () => {

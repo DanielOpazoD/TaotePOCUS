@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import CaseCard from "@/components/cards/CaseCard";
-import type { CaseRecord } from "@/lib/types";
+import { caseFactory } from "./fixtures";
 
 // CineLoop ships a canvas + RAF that hurts test perf and isn't what
 // we're testing here. Stub it.
@@ -10,21 +10,21 @@ vi.mock("../components/cine", () => ({
   CineLoop: () => <div data-testid="cine-loop-stub" />,
 }));
 
-const baseCase: CaseRecord = {
+// Built once with the fields these tests assert on; deeper overrides
+// flow through the factory at the call site.
+const baseCase = caseFactory({
   id: "c-test",
-  section: "atlas",
   title: "B-líneas confluentes en edema agudo",
   category: "lung",
   tags: ["B-líneas", "Patológico", "Crítico"],
   modality: "Sonda lineal · 5 MHz",
-  loop: "blines",
   author: "Dra. Test",
   role: "Medicina",
   date: "2026-04-18",
   findings: "Hallazgos de prueba.",
   diagnosis: "Diagnóstico de prueba",
   summary: "Resumen breve.",
-};
+});
 
 describe("CaseCard", () => {
   it("renders the case title, category, byline and tags", () => {

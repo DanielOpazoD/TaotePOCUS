@@ -25,8 +25,12 @@ export function buildSparkline(cases: CaseRecord[], months: number): string | nu
       buckets[idx] = (buckets[idx] ?? 0) + 1;
     }
   }
+  // If every bucket ended up empty (all cases were out-of-window or
+  // unparseable) the sparkline would be a flat dash at y=14, which
+  // reads as "broken" rather than "no activity". Return null so the
+  // caller renders nothing instead.
+  if (!buckets.some((b) => b > 0)) return null;
   const max = Math.max(...buckets, 1);
-  if (max === 0) return null;
   const step = months > 1 ? 60 / (months - 1) : 0;
   return buckets
     .map((v, i) => {
