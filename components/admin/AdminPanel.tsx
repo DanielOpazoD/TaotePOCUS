@@ -7,6 +7,7 @@ import { CATEGORIES } from "@/lib/data";
 import type { CaseRecord, Category } from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
 import CategoriesEditor from "./CategoriesEditor";
+import BackupPanel from "./BackupPanel";
 
 interface Props {
   allCases: CaseRecord[];
@@ -41,9 +42,13 @@ interface Props {
   onRenameCategory?: (id: string, label: string) => boolean;
   onRemoveCategory?: (id: string) => boolean;
   isCustomCategory?: (id: string) => boolean;
+  /** Email of the current admin — tagged inside backup envelopes. */
+  currentEmail?: string | null;
+  /** Toast surface for backup feedback ("Exportado · 47 cambios"). */
+  notify?: (msg: string) => void;
 }
 
-type Tab = "mine" | "classify" | "categories";
+type Tab = "mine" | "classify" | "categories" | "backup";
 
 function formatDateTime(iso?: string) {
   if (!iso) return "";
@@ -78,6 +83,8 @@ export default function AdminPanel({
   onRenameCategory,
   onRemoveCategory,
   isCustomCategory,
+  currentEmail,
+  notify,
 }: Props) {
   // Falls back to built-in CATEGORIES when the parent doesn't pass a
   // managed list (older callers, focused tests). The classifier still
@@ -128,6 +135,14 @@ export default function AdminPanel({
             <span className="admin-tab-count">{resolvedCategories.length}</span>
           </button>
         )}
+        <button
+          role="tab"
+          aria-selected={tab === "backup"}
+          className={`admin-tab${tab === "backup" ? " is-active" : ""}`}
+          onClick={() => setTab("backup")}
+        >
+          Backup
+        </button>
       </div>
 
       {tab === "classify" && onPatch ? (
@@ -147,6 +162,8 @@ export default function AdminPanel({
           isCustom={isCustomCategory!}
           caseCounts={categoryCaseCounts ?? {}}
         />
+      ) : tab === "backup" ? (
+        <BackupPanel currentEmail={currentEmail ?? null} notify={notify ?? (() => {})} />
       ) : (
         <>
           <div className="admin-stats">

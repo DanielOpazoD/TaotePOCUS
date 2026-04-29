@@ -318,6 +318,8 @@ function AppInner() {
               onRenameCategory={renameCategory}
               onRemoveCategory={removeCategory}
               isCustomCategory={isCustomCategory}
+              currentEmail={user?.email ?? null}
+              notify={showToast}
               favs={favs}
               onOpen={(c) => pushPatch({ caso: c.id })}
               onToggleFav={(c) => toggleFav(c.id)}

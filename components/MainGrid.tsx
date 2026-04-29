@@ -54,6 +54,11 @@ interface Props {
   onRemoveCategory?: (id: string) => boolean;
   /** Predicate — is this id a runtime-defined custom category? */
   isCustomCategory?: (id: string) => boolean;
+  /** Email of the current admin (used to tag backup envelopes). */
+  currentEmail?: string | null;
+  /** Toast surface — forwarded to AdminPanel's BackupPanel for
+   *  export/import feedback. */
+  notify?: (msg: string) => void;
   /** Favorites set for star-marking in the grid. */
   favs: string[];
 
@@ -103,6 +108,8 @@ export default function MainGrid({
   onRenameCategory,
   onRemoveCategory,
   isCustomCategory,
+  currentEmail,
+  notify,
   favs,
   onOpen,
   onToggleFav,
@@ -126,6 +133,8 @@ export default function MainGrid({
         onRenameCategory={onRenameCategory}
         onRemoveCategory={onRemoveCategory}
         isCustomCategory={isCustomCategory}
+        currentEmail={currentEmail}
+        notify={notify}
         onEdit={onEdit}
         onDelete={onDelete}
         onRestore={userCases.restore}

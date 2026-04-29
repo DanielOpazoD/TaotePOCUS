@@ -576,6 +576,202 @@ textarea.admin-input {
   text-align: center;
 }
 
+/* =================== BACKUP PANEL ===================
+ *
+ * Export / import for the localStorage state. The freshness banner is
+ * the visual anchor — yellow-tinted when stale (>7 days) so the admin
+ * can spot risk at a glance. Confirm dialog uses a plain overlay
+ * (not the native <dialog>) because we don't need the focus-trap
+ * machinery — it's a one-shot decision.
+ */
+.backup-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.backup-intro h2 {
+  font-family: var(--serif);
+  font-variation-settings: var(--serif-h2);
+  font-size: var(--fs-h2);
+  margin: 0 0 4px;
+}
+.backup-intro p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  max-width: 70ch;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.backup-status {
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--ink-mute);
+}
+.backup-status.is-stale {
+  background: color-mix(in oklch, var(--accent) 6%, var(--surface));
+  border-left-color: var(--accent-ink);
+}
+.backup-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+.backup-status-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.backup-status-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.backup-status-warn {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--accent-ink);
+}
+
+.backup-section {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.backup-section-head h3 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 18px;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.backup-section-head p {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 0;
+  line-height: 1.5;
+}
+.backup-summary {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2);
+}
+.backup-summary li {
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+.backup-summary li strong {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+.backup-summary--inline {
+  grid-template-columns: repeat(2, 1fr);
+}
+.backup-action {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.backup-action svg {
+  width: 14px;
+  height: 14px;
+}
+/* Hidden file input — `<input type="file">` triggered programmatically
+   by a styled button. Standard pattern. */
+.backup-file-input {
+  display: none;
+}
+.backup-error {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--crit-soft);
+  color: var(--crit);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  border-left: 2px solid var(--crit);
+}
+
+/* Plain confirm overlay. Not using <dialog> because the panel above
+   already lives inside the admin route — a focused inline confirm is
+   less disruptive than another modal layer. */
+.backup-confirm {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 20, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal, 1000);
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+}
+.backup-confirm-card {
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  max-width: 540px;
+  width: 100%;
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.backup-confirm-card h3 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 22px;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.backup-confirm-card p {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.backup-confirm-warn {
+  padding: 8px 12px;
+  background: var(--crit-soft);
+  color: var(--crit);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  border-left: 2px solid var(--crit);
+}
+.backup-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.btn-danger {
+  background: var(--crit) !important;
+  border-color: var(--crit) !important;
+}
+.btn-danger:hover {
+  /* Slightly darker on hover. The token is already a strong red so we
+     just dim it instead of shifting hue. */
+  filter: brightness(0.92);
+}
+
 @media (max-width: 880px) {
   .layout {
     grid-template-columns: 1fr;
