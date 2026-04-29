@@ -131,11 +131,83 @@
   /* Live-drop highlight — the target visually lifts to confirm it
      accepts the drop. The dashed border solidifies into the section
      accent so the admin sees "here it'll land". */
-  background: color-mix(in oklch, var(--section-accent, var(--accent)) 12%, var(--surface));
-  color: var(--section-accent-ink, var(--ink));
+  background: color-mix(in oklch, var(--section-accent, var(--accent)) 22%, var(--surface));
+  color: var(--ink);
   border-color: var(--section-accent, var(--ink));
   border-style: solid;
-  transform: translateY(-1px);
+  border-width: 2px;
+  /* Slight scale + raised contrast so the target is unmistakable
+     from the bottom hint pill — the hint mirrors this label. */
+  transform: translateY(-1px) scale(1.04);
+  font-weight: 600;
+  box-shadow: 0 4px 14px -4px color-mix(in oklch, var(--ink) 30%, transparent);
+}
+
+/* ---------- floating drag hint ----------
+ *
+ * Shown at the bottom of the viewport while a card is being dragged.
+ * Stands in for the suppressed browser ghost: tells the admin what
+ * they're dragging and what target the cursor is currently over.
+ * Pinned to the bottom so it never overlaps the drop targets.
+ */
+.classifier-drag-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 18px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-3);
+  font-size: 13px;
+  max-width: min(680px, calc(100vw - 32px));
+  /* Don't capture pointer events — the cursor must keep talking to
+     the drop targets that sit above this pill. */
+  pointer-events: none;
+  animation: classifier-drag-hint-in 0.18s var(--ease-spring);
+}
+@keyframes classifier-drag-hint-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.classifier-drag-hint-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--bg) 60%, transparent);
+}
+.classifier-drag-hint-title {
+  font-weight: 500;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.classifier-drag-hint-arrow {
+  color: color-mix(in oklch, var(--bg) 60%, transparent);
+  font-family: var(--mono);
+}
+.classifier-drag-hint-target {
+  font-weight: 600;
+  background: color-mix(in oklch, var(--bg) 16%, transparent);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.classifier-drag-hint-empty {
+  font-style: italic;
+  color: color-mix(in oklch, var(--bg) 60%, transparent);
 }
 
 /* ---------- grid ---------- */

@@ -5,6 +5,25 @@ import { CineLoop } from "../cine";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
+/**
+ * Suppress the browser's default drag ghost. We render a separate
+ * floating hint pill at the bottom of the viewport so the cursor
+ * area (which lands on drop-zone labels) stays unobstructed.
+ *
+ * Implementation: append a 1×1 offscreen div, snapshot it as the
+ * drag image, then drop it on the next frame. Browsers cache the
+ * snapshot at dragstart, so removing the element afterwards is safe.
+ */
+function suppressDragGhost(e: React.DragEvent) {
+  if (typeof document === "undefined") return;
+  const ghost = document.createElement("div");
+  ghost.style.cssText = "position:fixed;top:-1000px;left:-1000px;width:1px;height:1px;";
+  document.body.appendChild(ghost);
+  e.dataTransfer.setDragImage(ghost, 0, 0);
+  // Defer removal until after the snapshot is taken.
+  requestAnimationFrame(() => ghost.remove());
+}
+
 interface Props {
   cases: CaseRecord[];
   /** Categories list (built-in + admin-managed custom). Defaults to
@@ -167,6 +186,12 @@ export default function ClassifierBoard({
                 // Some browsers require non-empty data — set a no-op string.
                 e.dataTransfer.setData("text/plain", c.id);
                 e.dataTransfer.effectAllowed = "move";
+                // The default ghost (a snapshot of the card) is large
+                // enough to cover the drop-zone labels, hiding which
+                // target the cursor is over. Suppress it; the floating
+                // hint pill at the bottom of the viewport tells the
+                // user what's being dragged and where it'll land.
+                suppressDragGhost(e);
               }}
               onDragEnd={() => {
                 setDraggedId(null);
@@ -214,6 +239,41 @@ export default function ClassifierBoard({
           ))}
         </div>
       )}
+
+      {draggedId &&
+        (() => {
+          // Compose the floating hint shown at the bottom of the
+          // viewport during drag. Tells the user (a) what they're
+          // dragging and (b) what target the cursor is currently
+          // over — the pill is what stands in for the suppressed
+          // browser ghost.
+          const dragged = cases.find((c) => c.id === draggedId);
+          let landing: string | null = null;
+          if (hoverTarget) {
+            const [kind, ...rest] = hoverTarget.split("-");
+            const id = rest.join("-");
+            if (kind === "s") landing = SECTIONS.find((s) => s.id === id)?.label ?? null;
+            else if (kind === "c") landing = categories.find((c) => c.id === id)?.label ?? null;
+          }
+          return (
+            <div className="classifier-drag-hint" role="status" aria-live="polite">
+              <span className="classifier-drag-hint-label">Arrastrando</span>
+              <span className="classifier-drag-hint-title">{dragged?.title ?? "caso"}</span>
+              {landing ? (
+                <>
+                  <span className="classifier-drag-hint-arrow" aria-hidden="true">
+                    →
+                  </span>
+                  <span className="classifier-drag-hint-target">{landing}</span>
+                </>
+              ) : (
+                <span className="classifier-drag-hint-empty">
+                  Suelta sobre una sección o categoría
+                </span>
+              )}
+            </div>
+          );
+        })()}
     </div>
   );
 }
