@@ -90,13 +90,17 @@ export default function ClassifierBoard({
 
   const handleDrop = (kind: "section" | "category", id: string) => {
     if (!draggedId) return;
+    // Either decision — section OR category — counts as "the admin
+    // has classified this case", so we strip the import-time
+    // `Sin clasificar` tag in both branches. Otherwise dropping on a
+    // section silently updated `section` but left the card visible
+    // under the "Sin clasificar" filter, which felt like the drop
+    // had failed (issue surfaced 2026-04).
+    const dragged = cases.find((c) => c.id === draggedId);
+    const tags = (dragged?.tags || []).filter((t) => t !== "Sin clasificar");
     if (kind === "section") {
-      onPatch(draggedId, { section: id as SectionId });
+      onPatch(draggedId, { section: id as SectionId, tags });
     } else {
-      // Reclassifying clears the "Sin clasificar" tag — once the admin
-      // has manually picked a category, the import-time guess is moot.
-      const dragged = cases.find((c) => c.id === draggedId);
-      const tags = (dragged?.tags || []).filter((t) => t !== "Sin clasificar");
       onPatch(draggedId, { category: id, tags });
     }
     setDraggedId(null);
