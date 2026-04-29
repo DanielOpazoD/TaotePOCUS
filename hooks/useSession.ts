@@ -3,8 +3,28 @@
 import { useCallback, useEffect, useState } from "react";
 import { repo } from "@/lib/repo";
 import { isAuthError } from "@/lib/errors";
+import { IS_ADMIN_BYPASS_ENABLED, ADMIN_CREDENTIALS } from "@/lib/env";
 import type { AuthErrorCode } from "@/lib/errors";
 import type { User } from "@/lib/types";
+
+/**
+ * Build a synthetic admin user object for the dev-time bypass. The
+ * shape matches `repo.auth.login`'s output so consumers don't need
+ * to know whether a session was earned or pre-mounted.
+ */
+function bypassAdmin(): User {
+  const issuedAt = Date.now();
+  return {
+    email: ADMIN_CREDENTIALS.email,
+    name: "Administrador (bypass)",
+    initials: "AD",
+    role: "admin",
+    issuedAt,
+    // 30-day window — long enough for a dev session to never expire
+    // mid-edit. The bypass is dev-only anyway.
+    expiresAt: issuedAt + 30 * 24 * 3_600_000,
+  };
+}
 
 export type LoginInput = {
   email: string;
@@ -52,6 +72,15 @@ export function useSession({ notify }: Options = {}) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // Dev-time admin bypass: skip the repo round-trip entirely and
+    // mount a synthetic admin session. The bypass flag is hard-disabled
+    // in production builds so a leaked .env can't open admin to the
+    // public. See lib/env.ts > IS_ADMIN_BYPASS_ENABLED.
+    if (IS_ADMIN_BYPASS_ENABLED) {
+      setUser(bypassAdmin());
+      setHydrated(true);
+      return;
+    }
     let cancelled = false;
     void (async () => {
       const u = await repo.auth.current();

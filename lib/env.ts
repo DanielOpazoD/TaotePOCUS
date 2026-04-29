@@ -59,6 +59,18 @@ export const ADMIN_CREDENTIALS = {
 /** Convenience: are we running in a production build? */
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
+/**
+ * Dev-time admin auto-login. When `NEXT_PUBLIC_ADMIN_BYPASS=1` is set
+ * in `.env.local` (or any non-production env), the app starts with
+ * an admin session pre-mounted — no login modal, no credentials. Use
+ * to skip the auth dance while editing the catalog locally.
+ *
+ * Hard-disabled in production builds even if the env var is set, so a
+ * leaked `.env` can't accidentally open admin to the public.
+ */
+export const IS_ADMIN_BYPASS_ENABLED =
+  !IS_PRODUCTION && readString("NEXT_PUBLIC_ADMIN_BYPASS", "") === "1";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Firebase
 // ─────────────────────────────────────────────────────────────────────────────
