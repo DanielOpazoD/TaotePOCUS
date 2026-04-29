@@ -694,6 +694,29 @@
      so layout doesn't shift. Disabled under reduced motion. */
   animation: crit-pulse 4s var(--ease-emphasized) infinite;
 }
+
+/* Editorial review marker. Sits at the bottom-right of the thumb,
+   opposite the favorite button at top-right so the two never collide.
+   Soft-accent pill, no animation — this is metadata, not a call to
+   action. Only shown to admin sessions because non-admins shouldn't
+   see editorial bookkeeping. */
+.case-thumb-reviewed {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent-ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 3;
+}
 @keyframes crit-pulse {
   0%,
   70%,

@@ -537,6 +537,13 @@ button:hover > .kbd-hint {
      they cluster instead of pushing each other apart. */
   margin-left: var(--space-2);
 }
+.modal-actions button.btn-edit--reviewed {
+  /* Confirmed-reviewed state: soft accent fill so the admin can spot
+     "this one is done" at a glance when scanning the modal. */
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
 .modal-actions button svg {
   width: 14px;
   height: 14px;

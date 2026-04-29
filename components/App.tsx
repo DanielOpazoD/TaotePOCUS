@@ -341,6 +341,20 @@ function AppInner() {
                       }
                     : undefined
                 }
+                // "Marcar revisado" is editorial bookkeeping: the admin
+                // flips it once they've confirmed the case is correctly
+                // classified. Persists as a single-field override.
+                onToggleReviewed={
+                  isAdmin
+                    ? async () => {
+                        const next = !openCase.reviewed;
+                        const ok = await setOverride(openCase.id, { reviewed: next });
+                        if (ok) {
+                          showToast(next ? "Marcado revisado" : "Sin marca de revisado");
+                        }
+                      }
+                    : undefined
+                }
               />
             </ErrorBoundary>
           );

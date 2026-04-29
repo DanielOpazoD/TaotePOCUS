@@ -99,6 +99,16 @@ export interface CaseRecord {
   // be reverted without losing the underlying media.
   deletedAt?: string; // ISO timestamp
   deletedBy?: string; // email of the admin who deleted it
+  /**
+   * Editorial review state. Set to `true` once the admin has verified
+   * the case is correctly classified (section, category, title,
+   * description). Drives an internal-only badge in the admin views
+   * and the queue filter on /admin/clasificar — never shown publicly.
+   *
+   * Persisted as part of the override map (so re-imports don't reset
+   * the review state).
+   */
+  reviewed?: boolean;
 }
 
 export interface User {

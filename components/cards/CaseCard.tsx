@@ -69,6 +69,15 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
           <p>{caso.findings.split(/\.\s+/)[0]}.</p>
         </div>
         {isCrit && <span className="case-thumb-crit">Crítico</span>}
+        {/* Admin-only review badge — appears top-right under the fav
+            button when the editorial review has been confirmed. The
+            `data-reviewed` attribute lets CSS hide it for non-admin
+            users via a parent class on the layout. */}
+        {caso.reviewed && (
+          <span className="case-thumb-reviewed" title="Caso revisado" aria-label="Revisado">
+            ✓
+          </span>
+        )}
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
           onClick={onFavClick}

@@ -29,6 +29,8 @@ interface Props {
   /** True when this case has admin overrides applied — controls the
    *  visibility of the "restore original" affordance. */
   hasOverride?: boolean;
+  /** Toggle the editorial-review marker. Admin only. */
+  onToggleReviewed?: () => void;
   /** Position of the current case in the navigable set (1-based). */
   position?: number;
   /** Total cases in the navigable set, for the "X / N" indicator. */
@@ -53,6 +55,7 @@ export default function CaseModal({
   onEdit,
   onResetOverride,
   hasOverride,
+  onToggleReviewed,
 }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -390,11 +393,24 @@ export default function CaseModal({
                   P
                 </kbd>
               </button>
-              {/* Admin-only edit affordance. Visible only when the
-                  parent passes `onEdit` (i.e. the current user is
-                  admin). The "restore original" button appears only
-                  when this case has overrides applied — keeps the
-                  toolbar quiet for unedited cases. */}
+              {/* Admin-only chrome cluster. Visible only when the
+                  parent passes the corresponding callbacks (i.e. the
+                  current user is admin). */}
+              {onToggleReviewed && (
+                <button
+                  onClick={onToggleReviewed}
+                  className={`btn-edit${caso.reviewed ? " btn-edit--reviewed" : ""}`}
+                  title={
+                    caso.reviewed
+                      ? "Marcado como revisado · click para revertir"
+                      : "Marcar este caso como revisado / clasificado correctamente"
+                  }
+                  aria-label={caso.reviewed ? "Quitar marca de revisado" : "Marcar como revisado"}
+                  aria-pressed={Boolean(caso.reviewed)}
+                >
+                  {caso.reviewed ? "✓ Revisado" : "Marcar revisado"}
+                </button>
+              )}
               {onEdit && (
                 <button
                   onClick={onEdit}
