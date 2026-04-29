@@ -1,12 +1,21 @@
 import { expect, test } from "@playwright/test";
 
+// First imported case from the Twitter archive. Stable id (the tweet
+// id never changes), so we deep-link to it knowing the modal will
+// resolve to a real entry. If the archive is regenerated and this
+// case shifts position, the test still passes — the id is the
+// contract, not the order.
+const FIRST_IMPORTED_ID = "tw-1384957343272689668";
+
 test.describe("Deep links", () => {
-  test("opening /?caso=c001 directly shows the case modal", async ({ page }) => {
-    await page.goto("/?caso=c001");
+  test(`opening /?caso=${FIRST_IMPORTED_ID} directly shows the case modal`, async ({ page }) => {
+    await page.goto(`/?caso=${FIRST_IMPORTED_ID}`);
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    // Title from the seed data for c001.
-    await expect(dialog.getByRole("heading", { level: 2 })).toContainText(/B-líneas/);
+    // The title is auto-translated to Spanish via the import pipeline.
+    await expect(dialog.getByRole("heading", { level: 2 })).toContainText(
+      /Evaluación|Ecocardiográfica|coronaria/i,
+    );
   });
 
   test("category filter persists in the URL", async ({ page }) => {
@@ -20,10 +29,13 @@ test.describe("Deep links", () => {
 
   test("searching narrows the grid and updates the URL", async ({ page }) => {
     await page.goto("/");
-    await page.getByPlaceholder(/Buscar casos/).fill("tamponade");
-    await expect(page).toHaveURL(/q=tamponade/);
-    // Only the tamponade case should remain visible.
-    const cards = page.locator(".case-card");
-    await expect(cards).toHaveCount(1);
+    // "pulmonar" matches several Spanish titles in the imported corpus
+    // (lung ultrasound, pulmonary edema, etc.) — exact count would be
+    // brittle as imports grow, so we just assert the URL updates and
+    // the grid stays non-empty.
+    await page.getByPlaceholder(/Buscar casos/).fill("pulmonar");
+    await expect(page).toHaveURL(/q=pulmonar/);
+    const cards = page.locator(".case-card, .quote-card");
+    expect(await cards.count()).toBeGreaterThan(0);
   });
 });
