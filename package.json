@@ -30,6 +30,7 @@
     ]
   },
   "dependencies": {
+    "@netlify/blobs": "^10.7.4",
     "@sentry/nextjs": "^10.50.0",
     "firebase": "^12.12.1",
     "next": "^16.2.4",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@lhci/cli": "^0.15.1",
+    "@netlify/functions": "^5.2.0",
     "@next/bundle-analyzer": "^16.2.4",
     "@playwright/test": "^1.59.1",
     "@testing-library/dom": "^10.4.1",

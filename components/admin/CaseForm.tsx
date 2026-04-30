@@ -3,22 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import type { CaseRecord, Media, MediaKind, User, CategoryId, LoopKind } from "@/lib/types";
+import { uploadMedia } from "@/lib/media-client";
+import type { CaseRecord, Media, User, CategoryId, LoopKind } from "@/lib/types";
 
-// localStorage caps at ~5 MB across all keys (per origin in most browsers).
-// dataURL adds ~33% over the binary size due to base64. We hard-cap raw
-// uploads at 3 MB so the encoded form stays under ~4 MB and there's room
-// left for other state. The admin will see a clear toast if rejected.
-const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
-
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result as string);
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
+// Files now live in Netlify Blobs (`case-media` store) and the form
+// only persists a serve URL plus the blob key. The function caps
+// payloads at 50 MB; we mirror the same client-side so users get a
+// clear error before the upload starts.
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 function formatBytes(n: number) {
   if (n >= 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
@@ -77,27 +69,42 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
       setUploadError(
         `El archivo pesa ${formatBytes(f.size)}. Máximo permitido: ${formatBytes(
           MAX_UPLOAD_BYTES,
-        )}. Comprime el video o usa un GIF más liviano.`,
+        )}.`,
       );
       return;
     }
-    if (!f.type.startsWith("image/") && !f.type.startsWith("video/") && f.type !== "image/gif") {
+    const isImage = f.type.startsWith("image/");
+    const isVideo = f.type.startsWith("video/");
+    const isAudio = f.type.startsWith("audio/");
+    const isDoc =
+      f.type === "application/pdf" ||
+      f.type === "text/plain" ||
+      f.type === "text/csv" ||
+      f.type === "application/msword" ||
+      f.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      f.type === "application/vnd.ms-excel" ||
+      f.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    if (!isImage && !isVideo && !isAudio && !isDoc) {
       setUploadError(`Formato no soportado: ${f.type || "desconocido"}.`);
       return;
     }
 
     setUploading(true);
     try {
-      const url = await fileToDataUrl(f);
-      const kind: MediaKind = f.type.startsWith("video/")
-        ? "video"
-        : f.type === "image/gif"
-          ? "gif"
-          : "image";
-      const media: Media = { kind, src: url, name: f.name, type: f.type };
+      const uploaded = await uploadMedia(f);
+      const media: Media = {
+        kind: uploaded.kind,
+        src: uploaded.url,
+        key: uploaded.key,
+        name: uploaded.name,
+        type: uploaded.type,
+        size: uploaded.size,
+      };
       update({ media });
-    } catch {
-      setUploadError("No se pudo leer el archivo.");
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? `No se pudo subir: ${err.message}` : "No se pudo subir el archivo.",
+      );
     } finally {
       setUploading(false);
     }
@@ -166,21 +173,27 @@ export default function CaseForm({ initial, currentUser, onSave, onCancel }: Pro
                       playsInline
                       className="admin-preview"
                     />
+                  ) : form.media.kind === "document" ? (
+                    <div className="admin-upload-empty">
+                      {Icon.upload()}
+                      <span>{form.media.name}</span>
+                      <small>{form.media.type}</small>
+                    </div>
                   ) : (
                     <img src={form.media.src} className="admin-preview" alt="" />
                   )
                 ) : (
                   <div className="admin-upload-empty">
                     {Icon.upload()}
-                    <span>{uploading ? "Procesando…" : "Arrastra o haz clic para subir"}</span>
-                    <small>JPG · PNG · GIF · MP4 · WebM</small>
+                    <span>{uploading ? "Subiendo…" : "Arrastra o haz clic para subir"}</span>
+                    <small>JPG · PNG · GIF · MP4 · WebM · PDF · DOC</small>
                   </div>
                 )}
                 <input
                   id="case-media-upload"
                   ref={fileRef}
                   type="file"
-                  accept="image/*,video/*"
+                  accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
                   onChange={onFile}
                   hidden
                 />

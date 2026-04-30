@@ -9,6 +9,9 @@
 ##   - NEXT_PUBLIC_SENTRY_DSN         (optional)
 ##   - SENTRY_AUTH_TOKEN              (optional, server-only — uploads sourcemaps)
 ##   - SENTRY_ORG, SENTRY_PROJECT     (optional, server-only)
+##   - ADMIN_UPLOAD_TOKEN             (server-only — required for /api/media/* writes)
+##                                     If unset, the functions fall back to
+##                                     NEXT_PUBLIC_ADMIN_PASSWORD.
 
 [build]
   command = "npm run build"

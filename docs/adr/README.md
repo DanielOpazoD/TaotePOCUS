@@ -13,6 +13,7 @@ forward.
 | 0003 | [Repository facade between UI and persistence](./0003-repository-facade.md)                    | Accepted (extended by 0004)                        |
 | 0004 | [Firebase as primary persistence (feature-flagged)](./0004-firebase-as-primary-persistence.md) | Accepted                                           |
 | 0005 | [Observability with Sentry](./0005-observability-with-sentry.md)                               | Accepted                                           |
+| 0006 | [Netlify Blobs as the media store](./0006-netlify-blobs-media-store.md)                        | Accepted                                           |
 
 ## How to add an ADR
 

@@ -50,13 +50,28 @@ export type LoopKind =
   | "info-rush"
   | "info-fast";
 
-export type MediaKind = "video" | "image" | "gif";
+export type MediaKind = "video" | "image" | "gif" | "document";
 
 export interface Media {
   kind: MediaKind;
+  /**
+   * URL the renderer can use directly. For files stored in Netlify Blobs
+   * this points at `/.netlify/functions/media-serve?key=…`; for legacy
+   * cases (or fallbacks) it can be a `data:` URL or any absolute URL.
+   */
   src: string;
+  /**
+   * Blob storage key when the file lives in Netlify Blobs. Absent when
+   * `src` is a data URL or external link, so the consumer can tell
+   * "managed by us" from "embedded/external" without parsing the URL.
+   */
+  key?: string;
+  /** Original filename, surfaced in the admin UI. */
   name?: string;
+  /** MIME type as reported by the browser at upload time. */
   type?: string;
+  /** Byte size of the original upload — useful for the admin file list. */
+  size?: number;
   modality?: string;
 }
 
