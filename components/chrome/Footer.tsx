@@ -1,6 +1,6 @@
 "use client";
 
-import { SEED_CASES } from "@/lib/data";
+import { useSeedCases } from "@/hooks/useSeedCases";
 
 /**
  * Editorial footer / colophon. A short mono strip at the bottom of
@@ -14,9 +14,16 @@ import { SEED_CASES } from "@/lib/data";
  * Next.js build via process.env.NEXT_PUBLIC_BUILD_DATE if available,
  * falling back to the current date — good enough for a static site
  * regenerated on each deploy.
+ *
+ * The corpus count comes from the lazy seed-cases chunk; on the
+ * very first paint (chunk not yet loaded) the count shows just
+ * `extraCases`, then refines once the chunk arrives a few ms later.
+ * The footer is below the fold — the user almost never sees the
+ * intermediate value.
  */
 export default function Footer({ extraCases = 0 }: { extraCases?: number }) {
-  const total = SEED_CASES.length + extraCases;
+  const { seed } = useSeedCases();
+  const total = seed.length + extraCases;
   const buildDate = formatBuildDate();
   const year = new Date().getFullYear();
 

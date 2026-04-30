@@ -29,7 +29,9 @@ export {
   type ViewState,
   type SortOrder,
 } from "./url";
-export { SECTIONS, CATEGORIES, COMMON_TAGS, SEED_CASES } from "./data";
+export { SECTIONS, CATEGORIES, COMMON_TAGS } from "./data";
+// Bundled cases corpus — async loader (code-split). See `lib/seed-cases.ts`.
+export { loadSeedCases, getSeedCasesSync } from "./seed-cases";
 export type {
   CaseRecord,
   Category,

@@ -7,7 +7,7 @@
 // type so the dispatch in `lib/repo.ts` can swap them at boot.
 
 import { Store, type WriteResult } from "../store";
-import { SEED_CASES } from "../data";
+import { loadSeedCases } from "../seed-cases";
 import { log } from "../log";
 import type { CaseRecord } from "../types";
 import type { Cursor, ListPagedOptions, ListPagedResult } from "../repo-types";
@@ -35,7 +35,9 @@ export function decodeCursor(cursor: Cursor | undefined): number {
 
 export const localCases = {
   async listSeed(): Promise<CaseRecord[]> {
-    return SEED_CASES;
+    // Triggers the imported-cases code-split chunk on first call,
+    // caches in-memory afterward. See `lib/seed-cases.ts`.
+    return loadSeedCases();
   },
   async listUserRaw(): Promise<CaseRecord[]> {
     return Store.getUserCases();

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { mergeWithOverrides } from "./useCaseOverrides";
-import { SEED_CASES } from "@/lib/data";
+import { useSeedCases } from "./useSeedCases";
 import type { CaseRecord } from "@/lib/types";
 
 interface Args {
@@ -43,17 +43,24 @@ interface Result {
  * `purged` to appear in `allCases`.
  */
 export function useMergedCatalog({ userCasesLive, overrides }: Args): Result {
+  // The seed corpus arrives via a code-split chunk (see
+  // `lib/seed-cases.ts`). On first paint `seed` is `[]`; the user
+  // sees only their own cases for a few ms until the chunk lands,
+  // then the catalog completes. The atlas grid handles the empty
+  // intermediate state via its existing skeleton path.
+  const { seed } = useSeedCases();
+
   const allCases = useMemo<CaseRecord[]>(
     () =>
-      mergeWithOverrides([...userCasesLive, ...SEED_CASES], overrides).filter(
+      mergeWithOverrides([...userCasesLive, ...seed], overrides).filter(
         (c) => !c.deletedAt && !c.purged,
       ),
-    [userCasesLive, overrides],
+    [userCasesLive, seed, overrides],
   );
 
   const trashedImports = useMemo<CaseRecord[]>(
-    () => mergeWithOverrides(SEED_CASES, overrides).filter((c) => c.deletedAt && !c.purged),
-    [overrides],
+    () => mergeWithOverrides(seed, overrides).filter((c) => c.deletedAt && !c.purged),
+    [seed, overrides],
   );
 
   const categoryCaseCounts = useMemo<Record<string, number>>(() => {

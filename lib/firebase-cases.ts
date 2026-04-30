@@ -14,7 +14,7 @@
 
 import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { firebaseDb } from "./firebase";
-import { SEED_CASES } from "./data";
+import { loadSeedCases } from "./seed-cases";
 import { log } from "./log";
 import type { CaseRecord } from "./types";
 import type { WriteResult } from "./store";
@@ -46,9 +46,9 @@ async function listAllRaw(): Promise<CaseRecord[]> {
 }
 
 export const firebaseCasesRepo = {
-  /** Seed cases ship with the bundle even when Firestore is enabled. */
+  /** Seed cases come from the lazy chunk shared with the local backend. */
   async listSeed(): Promise<CaseRecord[]> {
-    return SEED_CASES;
+    return loadSeedCases();
   },
   async listUserRaw(): Promise<CaseRecord[]> {
     return listAllRaw();

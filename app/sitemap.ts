@@ -1,9 +1,14 @@
 import type { MetadataRoute } from "next";
-import { SECTIONS, SEED_CASES } from "@/lib/data";
+import { SECTIONS } from "@/lib/data";
+import { loadSeedCases } from "@/lib/seed-cases";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Async since the bundled cases corpus is now code-split (see
+// `lib/seed-cases.ts`). Next runs `sitemap()` at build time on the
+// server, so the dynamic import is essentially a synchronous
+// require — no observable delay in `next build` output.
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
   const sections = SECTIONS.map((s) => ({
     // Atlas lives at /; the others at /<section>.
@@ -12,7 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "weekly" as const,
     priority: s.id === "atlas" ? 1.0 : 0.8,
   }));
-  const cases = SEED_CASES.map((c) => {
+  const seedCases = await loadSeedCases();
+  const cases = seedCases.map((c) => {
     const section = c.section === "atlas" ? "" : `/${c.section}`;
     return {
       url: `${SITE_URL}${section}?caso=${c.id}`,

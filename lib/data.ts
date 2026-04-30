@@ -1,5 +1,12 @@
-import type { CaseRecord, Category, Section } from "./types";
-import { IMPORTED_CASES } from "./imported-cases";
+// Static catalog data — sections, categories, common tag suggestions.
+// The bundled cases corpus (`SEED_CASES`) used to live here too, but
+// it was dragging the 6800-LOC `imported-cases.ts` into the initial
+// client bundle on every route. The corpus now ships as a code-split
+// chunk via `lib/seed-cases.ts` (async) + `hooks/useSeedCases` (the
+// React bridge). Server-side consumers that need the full corpus
+// import from `lib/seed-cases.ts` directly.
+
+import type { Category, Section } from "./types";
 
 export const SECTIONS: Section[] = [
   { id: "atlas", label: "Atlas POCUS", sub: "Imágenes y videos ecográficos por tema" },
@@ -46,9 +53,8 @@ export const COMMON_TAGS = [
   "Crítico",
 ];
 
-// SEED_CASES is now exclusively the Twitter-imported corpus. The
-// synthetic placeholder cases were removed once the real archive
-// produced enough material — see lib/imported-cases.ts for the
-// auto-generated list and scripts/apply-twitter-import.mjs for the
-// regeneration pipeline.
-export const SEED_CASES: CaseRecord[] = [...IMPORTED_CASES];
+// SEED_CASES used to live here as a synchronous re-export of
+// `IMPORTED_CASES`. It now ships as a code-split chunk; consumers
+// load it via `lib/seed-cases.ts > loadSeedCases()` (async) or
+// `hooks/useSeedCases` (React bridge). See the file header for
+// rationale.
