@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -144,66 +145,76 @@ export default function FocusEditor({ caso, onPatch, onDraftChange }: Props) {
         ⚙
       </button>
 
-      {open && coords && (
-        <div
-          ref={panelRef}
-          className="focus-editor-panel"
-          role="dialog"
-          aria-label="Ajustar foco"
-          style={{ top: coords.top, left: coords.left }}
-        >
-          <div className="focus-editor-row">
-            <span className="focus-editor-label">Foco</span>
-            <div className="focus-editor-pad">
-              <button type="button" aria-label="Subir" onClick={() => pan(0, -PAN_STEP)}>
-                ↑
-              </button>
-              <button type="button" aria-label="Izquierda" onClick={() => pan(-PAN_STEP, 0)}>
-                ←
-              </button>
-              <button
-                type="button"
-                aria-label="Centrar"
-                onClick={() => setDraft((d) => ({ ...d, x: 50, y: 50 }))}
-                title="Centrar"
-              >
-                ●
-              </button>
-              <button type="button" aria-label="Derecha" onClick={() => pan(PAN_STEP, 0)}>
-                →
-              </button>
-              <button type="button" aria-label="Bajar" onClick={() => pan(0, PAN_STEP)}>
-                ↓
-              </button>
-            </div>
-          </div>
+      {open && coords && typeof document !== "undefined"
+        ? createPortal(
+            // Same portal-to-body pattern as QuickReclassify: keeps the
+            // panel's `position: fixed` honest by escaping the card's
+            // `transform: translateY(-2px)` hover state, which would
+            // otherwise re-anchor the panel to the card and make it
+            // jitter every time the hover toggles.
+            <div
+              ref={panelRef}
+              className="focus-editor-panel"
+              role="dialog"
+              aria-label="Ajustar foco"
+              style={{ top: coords.top, left: coords.left }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div className="focus-editor-row">
+                <span className="focus-editor-label">Foco</span>
+                <div className="focus-editor-pad">
+                  <button type="button" aria-label="Subir" onClick={() => pan(0, -PAN_STEP)}>
+                    ↑
+                  </button>
+                  <button type="button" aria-label="Izquierda" onClick={() => pan(-PAN_STEP, 0)}>
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Centrar"
+                    onClick={() => setDraft((d) => ({ ...d, x: 50, y: 50 }))}
+                    title="Centrar"
+                  >
+                    ●
+                  </button>
+                  <button type="button" aria-label="Derecha" onClick={() => pan(PAN_STEP, 0)}>
+                    →
+                  </button>
+                  <button type="button" aria-label="Bajar" onClick={() => pan(0, PAN_STEP)}>
+                    ↓
+                  </button>
+                </div>
+              </div>
 
-          <div className="focus-editor-row">
-            <span className="focus-editor-label">Zoom</span>
-            <div className="focus-editor-zoom">
-              <button type="button" aria-label="Reducir" onClick={() => zoom(-SCALE_STEP)}>
-                −
-              </button>
-              <span className="focus-editor-zoom-value">{Math.round(draft.scale * 100)}%</span>
-              <button type="button" aria-label="Aumentar" onClick={() => zoom(SCALE_STEP)}>
-                +
-              </button>
-            </div>
-          </div>
+              <div className="focus-editor-row">
+                <span className="focus-editor-label">Zoom</span>
+                <div className="focus-editor-zoom">
+                  <button type="button" aria-label="Reducir" onClick={() => zoom(-SCALE_STEP)}>
+                    −
+                  </button>
+                  <span className="focus-editor-zoom-value">{Math.round(draft.scale * 100)}%</span>
+                  <button type="button" aria-label="Aumentar" onClick={() => zoom(SCALE_STEP)}>
+                    +
+                  </button>
+                </div>
+              </div>
 
-          <div className="focus-editor-actions">
-            <button type="button" className="btn-ghost focus-editor-reset" onClick={reset}>
-              Reset
-            </button>
-            <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
-              Cancelar
-            </button>
-            <button type="button" className="btn-primary" onClick={save}>
-              Guardar
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="focus-editor-actions">
+                <button type="button" className="btn-ghost focus-editor-reset" onClick={reset}>
+                  Reset
+                </button>
+                <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
+                  Cancelar
+                </button>
+                <button type="button" className="btn-primary" onClick={save}>
+                  Guardar
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

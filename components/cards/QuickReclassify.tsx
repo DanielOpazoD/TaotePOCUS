@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { SECTIONS } from "@/lib/data";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
@@ -117,51 +118,78 @@ export default function QuickReclassify({ caso, categories, onPatch }: Props) {
         ⇄
       </button>
 
-      {open && coords && (
-        <div
-          ref={popoverRef}
-          className="quick-reclassify-popover"
-          role="menu"
-          style={{ top: coords.top, left: coords.left }}
-        >
-          <div className="quick-reclassify-group">
-            <div className="quick-reclassify-label">Sección</div>
-            {SECTIONS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                role="menuitemradio"
-                aria-checked={caso.section === s.id}
-                className={`quick-reclassify-item${caso.section === s.id ? " is-active" : ""}`}
-                onClick={() => applySection(s.id)}
-              >
-                <span className="quick-reclassify-check" aria-hidden="true">
-                  {caso.section === s.id ? "✓" : ""}
-                </span>
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <div className="quick-reclassify-group">
-            <div className="quick-reclassify-label">Categoría</div>
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                role="menuitemradio"
-                aria-checked={caso.category === c.id}
-                className={`quick-reclassify-item${caso.category === c.id ? " is-active" : ""}`}
-                onClick={() => applyCategory(c.id)}
-              >
-                <span className="quick-reclassify-check" aria-hidden="true">
-                  {caso.category === c.id ? "✓" : ""}
-                </span>
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {open &&
+        coords &&
+        renderPopover(popoverRef, coords, caso, categories, applySection, applyCategory)}
     </div>
+  );
+}
+
+function renderPopover(
+  popoverRef: React.RefObject<HTMLDivElement>,
+  coords: { top: number; left: number },
+  caso: CaseRecord,
+  categories: Category[],
+  applySection: (id: SectionId) => void,
+  applyCategory: (id: string) => void,
+) {
+  // Portal to document.body so the popover escapes any transformed
+  // ancestor (the card itself uses `transform: translateY(-2px)` on
+  // hover, which would otherwise capture our `position: fixed` and
+  // make the popover jitter every time hover state changes — see
+  // CSS containing-block rules around transforms).
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      ref={popoverRef}
+      className="quick-reclassify-popover"
+      role="menu"
+      style={{ top: coords.top, left: coords.left }}
+      // Stop the click from bubbling up to the card's onOpen via the
+      // React tree. (Portals propagate events through the React parent
+      // chain, not the DOM ancestor chain — but we still want to stop
+      // it because the parent CaseCard's onClick is a sibling tree
+      // away through the React tree.)
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <div className="quick-reclassify-group">
+        <div className="quick-reclassify-label">Sección</div>
+        {SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            role="menuitemradio"
+            aria-checked={caso.section === s.id}
+            className={`quick-reclassify-item${caso.section === s.id ? " is-active" : ""}`}
+            onClick={() => applySection(s.id)}
+          >
+            <span className="quick-reclassify-check" aria-hidden="true">
+              {caso.section === s.id ? "✓" : ""}
+            </span>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div className="quick-reclassify-group">
+        <div className="quick-reclassify-label">Categoría</div>
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            role="menuitemradio"
+            aria-checked={caso.category === c.id}
+            className={`quick-reclassify-item${caso.category === c.id ? " is-active" : ""}`}
+            onClick={() => applyCategory(c.id)}
+          >
+            <span className="quick-reclassify-check" aria-hidden="true">
+              {caso.category === c.id ? "✓" : ""}
+            </span>
+            {c.label}
+          </button>
+        ))}
+      </div>
+    </div>,
+    document.body,
   );
 }
