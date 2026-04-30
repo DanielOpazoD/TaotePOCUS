@@ -376,67 +376,8 @@ select.classifier-aux-input {
   border-color: var(--accent-ink);
 }
 
-/* Soft-delete affordance — pinned to the top-left of each card.
- * Always at full opacity over a small white surface so it's
- * discoverable on any thumbnail, regardless of the underlying image.
- * The shadow gives it just enough lift to read on busy backgrounds. */
-.classifier-card-delete {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--hairline-strong);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink-soft);
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  transition:
-    color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
-}
-.classifier-card-delete svg {
-  width: 13px;
-  height: 13px;
-}
-.classifier-card-delete:hover {
-  color: var(--crit);
-  border-color: var(--crit);
-  transform: scale(1.1);
-}
-
-/* Permanent-delete affordance — to the right of the soft-delete.
- * Pre-tinted red with a sharp × glyph so the user can't confuse it
- * with the recoverable trash icon. Same always-visible philosophy
- * — admin actions need to be obvious, not hidden behind hover. */
-.classifier-card-purge {
-  position: absolute;
-  top: 8px;
-  left: 38px;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border: 1px solid color-mix(in oklch, var(--crit) 60%, var(--hairline));
-  border-radius: 50%;
-  background: color-mix(in oklch, var(--crit) 8%, var(--surface));
-  color: var(--crit);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  transition:
-    background var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
-}
-.classifier-card-purge:hover {
-  background: var(--crit-soft);
-  border-color: var(--crit);
-  transform: scale(1.1);
-}
+/* The previous `.classifier-card-delete` and `.classifier-card-purge`
+ * chips were absorbed into the `<AdminThumbMenu>` ⋮ dropdown — see
+ * `app/styles/cards.css > .admin-thumb-menu-*`. Their styles live
+ * there now and are shared between CaseCard and ClassifierBoard so
+ * the admin chrome looks identical across both grids. */

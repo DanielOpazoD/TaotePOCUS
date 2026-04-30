@@ -718,126 +718,9 @@
   z-index: 3;
 }
 
-/* ─── Admin-only delete chips on CaseCard thumbnails ───────────
- * Mirror the pattern used in `.classifier-card-delete` / `.purge`
- * so the admin's hover affordances feel consistent across the
- * classifier grid and the public catalog grid. Always visible
- * once their handlers are passed (admin only) — discoverability >
- * minimalism here, the user explicitly asked for hover delete.
- */
-.case-thumb-delete,
-.case-thumb-purge {
-  position: absolute;
-  top: 10px;
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 4;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  transition:
-    transform var(--duration-fast) ease,
-    background var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    color var(--duration-fast) ease;
-}
-.case-thumb-delete {
-  left: 10px;
-  border: 1px solid var(--hairline-strong);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--ink-soft);
-}
-.case-thumb-delete svg {
-  width: 14px;
-  height: 14px;
-}
-.case-thumb-delete:hover {
-  color: var(--crit);
-  border-color: var(--crit);
-  transform: scale(1.1);
-}
-.case-thumb-purge {
-  left: 42px;
-  border: 1px solid color-mix(in oklch, var(--crit) 60%, var(--hairline));
-  background: color-mix(in oklch, var(--crit) 12%, rgba(255, 255, 255, 0.95));
-  color: var(--crit);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-}
-.case-thumb-purge:hover {
-  background: var(--crit);
-  border-color: var(--crit);
-  color: white;
-  transform: scale(1.1);
-}
-
-/* ─── Quick-reclassify chip + popover (admin) ──────────────────
- * Sits to the right of the delete chips on each thumbnail. The
- * trigger looks like a small ⇄ pill; clicking opens an inline
- * popover with section + category options. Designed to feel like
- * Linear's quick-assign menus — a single click both opens and
- * applies, no nested submenus.
- */
-.quick-reclassify {
-  position: absolute;
-  top: 10px;
-  left: 74px;
-  z-index: 4;
-}
-.quick-reclassify-trigger {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--hairline-strong);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  transition:
-    transform var(--duration-fast) ease,
-    color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
-}
-.quick-reclassify-trigger:hover,
-.quick-reclassify-trigger[aria-expanded="true"] {
-  color: var(--accent-ink);
-  border-color: var(--accent-ink);
-  transform: scale(1.1);
-}
-
-/* The popover renders at the document body via `position: fixed`
- * with viewport coordinates computed in JS — this is what lets it
- * escape the thumbnail's `overflow: hidden` (which exists so the
- * cine-loop doesn't bleed into adjacent cells). Pinned via inline
- * `top` / `left` styles set by the component.
- *
- * Max-height + overflow-y so a long category list (built-ins +
- * customs) is scrollable instead of running off the screen.
- */
-.quick-reclassify-popover {
-  position: fixed;
-  width: 220px;
-  max-height: min(70vh, 520px);
-  overflow-y: auto;
-  background: var(--bg);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-3);
-  padding: 6px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  animation: quick-reclassify-pop 0.12s var(--ease-standard);
-}
+/* Pop-in animation reused by `.admin-thumb-menu-panel`. The legacy
+ * `.quick-reclassify-popover` and `.focus-editor-panel` blocks are
+ * gone — their content moved inline into AdminThumbMenu. */
 @keyframes quick-reclassify-pop {
   from {
     opacity: 0;
@@ -848,110 +731,10 @@
     transform: translateY(0);
   }
 }
-.quick-reclassify-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.quick-reclassify-group + .quick-reclassify-group {
-  border-top: 1px solid var(--hairline);
-  padding-top: 6px;
-  margin-top: 2px;
-}
-.quick-reclassify-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-mute);
-  padding: 4px 8px 2px;
-}
-.quick-reclassify-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-sm);
-  text-align: left;
-  font-size: 12.5px;
-  color: var(--ink);
-  cursor: pointer;
-  transition: background var(--duration-fast) ease;
-}
-.quick-reclassify-item:hover {
-  background: var(--surface-2);
-}
-.quick-reclassify-item.is-active {
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  font-weight: 500;
-}
-.quick-reclassify-check {
-  width: 12px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
-  flex: 0 0 12px;
-}
 
-/* ─── Focus editor (admin) ───────────────────────────────────
- * Sits to the right of the quick-reclassify chip on each thumbnail.
- * The trigger is a small ⚙ pill; clicking opens an inline panel
- * with arrow-pad pan controls, +/- zoom, and Save/Cancel/Reset.
- *
- * The container card cell stays the same size; the editor only
- * reframes what's visible inside via object-position + scale on
- * the underlying video/img element (handled by CineLoop).
- */
-.focus-editor {
-  position: absolute;
-  top: 10px;
-  left: 106px;
-  z-index: 5;
-}
-.focus-editor-trigger {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--hairline-strong);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  transition:
-    transform var(--duration-fast) ease,
-    color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
-}
-.focus-editor-trigger:hover,
-.focus-editor-trigger[aria-expanded="true"] {
-  color: var(--ink);
-  border-color: var(--ink-mute);
-  transform: scale(1.1);
-}
-.focus-editor-panel {
-  /* Fixed positioning so the panel escapes the thumbnail's
-   * overflow: hidden — same pattern as `.quick-reclassify-popover`. */
-  position: fixed;
-  width: 240px;
-  background: var(--bg);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-3);
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 1000;
-  animation: quick-reclassify-pop 0.12s var(--ease-standard);
-}
+/* The pad/zoom/row classes below remain in use — `AdminThumbMenu`'s
+ * inline focus sub-panel (FocusInline) reuses them so the visual
+ * vocabulary is consistent. */
 .focus-editor-row {
   display: flex;
   align-items: center;
@@ -1029,6 +812,175 @@
 }
 .focus-editor-reset {
   margin-right: auto;
+}
+
+/* ─── Admin thumb menu (⋮ unified) ───────────────────────────────
+ * Consolidates the four admin chips that used to crowd the corner of
+ * each thumbnail (delete / purge / reclassify / focus) into a single
+ * dropdown trigger. The trigger is small (24×24) and lives in the
+ * top-left corner; the panel portals to body and uses the same
+ * `position: fixed` + viewport-coords pattern as the previous popovers
+ * (escapes the card's `transform: translateY(-2px)` hover containing
+ * block).
+ */
+.admin-thumb-menu {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+}
+.admin-thumb-menu-trigger {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    transform var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    background var(--duration-fast) ease;
+}
+.admin-thumb-menu-trigger:hover,
+.admin-thumb-menu-trigger[aria-expanded="true"] {
+  border-color: var(--ink-mute);
+  transform: scale(1.1);
+  background: var(--bg);
+}
+
+.admin-thumb-menu-panel {
+  position: fixed;
+  width: 240px;
+  max-height: min(72vh, 560px);
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  padding: 6px;
+  z-index: 1000;
+  animation: quick-reclassify-pop 0.12s var(--ease-standard);
+}
+.admin-thumb-menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-thumb-menu-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.admin-thumb-menu-item:hover {
+  background: var(--surface-2);
+  border-color: var(--hairline);
+}
+.admin-thumb-menu-item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.admin-thumb-menu-item--danger-soft {
+  color: var(--ink-soft);
+}
+.admin-thumb-menu-item--danger-soft:hover {
+  color: var(--crit);
+  border-color: color-mix(in oklch, var(--crit) 35%, var(--hairline));
+}
+.admin-thumb-menu-item--danger {
+  color: var(--crit);
+}
+.admin-thumb-menu-item--danger:hover {
+  background: var(--crit-soft);
+  border-color: var(--crit);
+}
+.admin-thumb-menu-glyph {
+  width: 16px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 13px;
+  flex: 0 0 16px;
+}
+.admin-thumb-menu-glyph svg {
+  width: 13px;
+  height: 13px;
+}
+.admin-thumb-menu-meta {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+.admin-thumb-menu-check {
+  width: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  flex: 0 0 12px;
+}
+.admin-thumb-menu-sep {
+  height: 1px;
+  background: var(--hairline);
+  margin: 4px 0;
+}
+
+/* Sub-views (reclassify / focus) inside the same panel space. */
+.admin-thumb-menu-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.admin-thumb-menu-back {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--ink-mute);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+}
+.admin-thumb-menu-back:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.admin-thumb-menu-group-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  padding: 6px 10px 4px;
+}
+.admin-thumb-menu-sub.focus-inline {
+  padding: 4px 6px 6px;
+  gap: 10px;
 }
 @keyframes crit-pulse {
   0%,

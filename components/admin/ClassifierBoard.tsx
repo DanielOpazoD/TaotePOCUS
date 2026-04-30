@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CineLoop } from "../cine";
-import { Icon } from "@/lib/icons";
+import AdminThumbMenu from "../cards/AdminThumbMenu";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
@@ -329,6 +329,11 @@ export default function ClassifierBoard({
                   </span>
                 </div>
               </div>
+              {/* Reviewed checkmark stays inline — it's a one-click
+                  toggle, not a destructive action, and lives in its
+                  own corner of the card. The four other admin
+                  affordances (reclasificar / foco / papelera / purge)
+                  consolidated into the AdminThumbMenu below. */}
               <button
                 type="button"
                 className={`classifier-card-review${c.reviewed ? " is-on" : ""}`}
@@ -339,28 +344,13 @@ export default function ClassifierBoard({
               >
                 ✓
               </button>
-              {onDelete && (
-                <button
-                  type="button"
-                  className="classifier-card-delete"
-                  onClick={() => onDelete(c)}
-                  title="Mover a papelera (puedes restaurar desde admin)"
-                  aria-label={`Eliminar ${c.title}`}
-                >
-                  {Icon.trash()}
-                </button>
-              )}
-              {onPurge && (
-                <button
-                  type="button"
-                  className="classifier-card-purge"
-                  onClick={() => onPurge(c)}
-                  title="Eliminar permanentemente · borra metadata y archivo de media (no se puede deshacer)"
-                  aria-label={`Eliminar permanentemente ${c.title}`}
-                >
-                  ✕
-                </button>
-              )}
+              <AdminThumbMenu
+                caso={c}
+                categories={categories}
+                onPatch={onPatch}
+                onDelete={onDelete ? () => onDelete(c) : undefined}
+                onPurge={onPurge ? () => onPurge(c) : undefined}
+              />
             </article>
           ))}
         </div>

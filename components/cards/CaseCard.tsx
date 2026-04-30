@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
-import QuickReclassify from "./QuickReclassify";
-import FocusEditor from "./FocusEditor";
+import AdminThumbMenu from "./AdminThumbMenu";
 import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
@@ -118,48 +117,20 @@ export default function CaseCard({
             ✓
           </span>
         )}
-        {/* Admin-only quick-delete chips. Both stop click propagation
-            so they don't trigger the card's onOpen. The chips appear
-            top-left of the thumbnail; both are always visible (not
-            hover-revealed) so the admin can scan a grid and delete
-            anything obvious without an extra click. */}
-        {onDelete && (
-          <button
-            type="button"
-            className="case-thumb-delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            aria-label={`Eliminar ${caso.title}`}
-            title="Mover a papelera (puedes restaurar desde admin)"
-          >
-            {Icon.trash()}
-          </button>
-        )}
-        {onPurge && (
-          <button
-            type="button"
-            className="case-thumb-purge"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPurge();
-            }}
-            aria-label={`Eliminar permanentemente ${caso.title}`}
-            title="Eliminar permanentemente · borra metadata y archivo (no se puede deshacer)"
-          >
-            ✕
-          </button>
-        )}
+        {/* Single admin entry point: one `⋮` chip that hosts all four
+            actions (reclasificar / foco / mover-a-papelera / eliminar
+            permanentemente) inside one dropdown. Replaces the four
+            separate chips that used to crowd the thumbnail corner. */}
         {onPatch && categories && (
-          <QuickReclassify caso={caso} categories={categories} onPatch={onPatch} />
+          <AdminThumbMenu
+            caso={caso}
+            categories={categories}
+            onPatch={onPatch}
+            onDelete={onDelete}
+            onPurge={onPurge}
+            onFocusDraftChange={setDraftFocus}
+          />
         )}
-        {/* Focal-point + zoom editor. Same admin gate as the
-            quick-reclassify popover (we use `onPatch` as the
-            "you can edit this case" signal). The editor lifts a
-            draft to local state via onDraftChange so the live
-            preview shows in this card without a global CSS hack. */}
-        {onPatch && <FocusEditor caso={caso} onPatch={onPatch} onDraftChange={setDraftFocus} />}
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
           onClick={onFavClick}
