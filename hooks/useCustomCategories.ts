@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePersistedState } from "./usePersistedState";
 import { CATEGORIES } from "@/lib/data";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
 import { log } from "@/lib/log";
-import { dbAddCategory, dbRenameCategory, dbRemoveCategory } from "@/app/actions/db";
+import {
+  dbAddCategory,
+  dbListCategories,
+  dbRenameCategory,
+  dbRemoveCategory,
+} from "@/app/actions/db";
 import type { Category } from "@/lib/types";
 
 const STORAGE_KEY = "customCategories";
@@ -103,6 +108,34 @@ export function useCustomCategories() {
   const isCustom = useCallback((id: string) => !builtInIds.has(id), [builtInIds]);
 
   const categories = useMemo<Category[]>(() => [...CATEGORIES, ...customs], [customs]);
+
+  // DB hydration. Stage 3 — when the flag is on, fetch the DB's
+  // categories on mount and replace the local state if the DB has
+  // anything. The empty-DB case keeps localStorage intact (covers
+  // the "flag just turned on, DB hasn't been seeded" scenario).
+  //
+  // Runs once per mount. The `usePersistedState` hook mirrors the
+  // setCustoms call back to localStorage automatically, so the cache
+  // stays fresh without an extra write.
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (!IS_NETLIFY_DB_ENABLED || hydratedRef.current) return;
+    hydratedRef.current = true;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const dbCats = await dbListCategories();
+        if (!cancelled && dbCats.length > 0) {
+          setCustoms(dbCats);
+        }
+      } catch (err) {
+        log.warn("Categories DB hydration failed", { area: "categories" }, err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [setCustoms]);
 
   const addCategory = useCallback(
     (label: string) => {

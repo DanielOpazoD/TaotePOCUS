@@ -20,6 +20,9 @@ import { log } from "./log";
 import { AuthError } from "./errors";
 import type { CaseRecord, User } from "./types";
 import {
+  dbListOverrides,
+  dbListUserCases,
+  dbListFavs,
   dbSetOverride,
   dbClearOverride,
   dbSaveUserCase,
@@ -338,13 +341,98 @@ function mirror<T>(area: string, p: Promise<T>): void {
     });
 }
 
+/**
+ * DB-first read with local fallback. The contract:
+ *
+ *   - Try the server action; on success, refresh the local cache so
+ *     the next reload sees the same state without a roundtrip and
+ *     return the DB data.
+ *   - If the DB returns empty, treat that as "DB hasn't been hydrated
+ *     yet" and prefer local. Avoids the failure mode where flipping
+ *     the flag on a pristine DB nukes a populated localStorage.
+ *   - If the DB read throws (network blip / function cold-start
+ *     timeout / 401), log and fall back to local — the UI keeps
+ *     working from the cache while the DB is unreachable.
+ *
+ * `isEmpty` is the predicate used to detect "nothing in the DB". For
+ * a record map it's `Object.keys(...).length === 0`; for an array
+ * it's `length === 0`; etc. Each caller provides the right test for
+ * its shape.
+ */
+async function dbFirst<T>(
+  area: string,
+  fetchDb: () => Promise<T>,
+  isEmpty: (v: T) => boolean,
+  cacheLocal: (v: T) => void,
+  fallbackLocal: () => Promise<T>,
+): Promise<T> {
+  try {
+    const dbData = await fetchDb();
+    if (!isEmpty(dbData)) {
+      cacheLocal(dbData);
+      return dbData;
+    }
+  } catch (err) {
+    log.warn(`DB read failed, falling back to local`, { area }, err);
+  }
+  return fallbackLocal();
+}
+
+// User-cases loader, factored out so the chain of read methods
+// (`listUser`, `listTrashed`, `listAll`, `listAllPaged`) all share the
+// same DB-first pull without duplicating the fallback logic.
+async function loadUserRaw(): Promise<CaseRecord[]> {
+  return dbFirst(
+    "cases.listUserRaw",
+    () => dbListUserCases(),
+    (v) => v.length === 0,
+    (v) => Store.setUserCases(v),
+    () => localCases.listUserRaw(),
+  );
+}
+
 const dualWriteCases: CasesRepo = {
   ...localCases,
-  // Bind read methods so `this` resolves to localCases — otherwise
-  // the spread loses the `listSeed`/`listUserRaw` chain.
-  listAll: () => localCases.listAll(),
-  listUser: () => localCases.listUser(),
-  listTrashed: () => localCases.listTrashed(),
+  // ─── Reads (DB-first with local fallback) ──────────────────────
+  listOverrides: () =>
+    dbFirst(
+      "cases.listOverrides",
+      () => dbListOverrides(),
+      (v) => Object.keys(v).length === 0,
+      (v) => Store.setCaseOverrides(v),
+      () => localCases.listOverrides(),
+    ),
+  listUserRaw: loadUserRaw,
+  listUser: async () => (await loadUserRaw()).filter((c) => !isDeleted(c)),
+  listTrashed: async () => (await loadUserRaw()).filter(isDeleted),
+  listAll: async () => {
+    const [seed, user] = await Promise.all([
+      localCases.listSeed(),
+      (async () => (await loadUserRaw()).filter((c) => !isDeleted(c)))(),
+    ]);
+    return [...user, ...seed];
+  },
+  listAllPaged: async ({ cursor, limit }) => {
+    // Replicate localCases.listAllPaged but starting from our DB-aware
+    // listAll, so the paged listing also reads from the canonical
+    // source.
+    const seed = await localCases.listSeed();
+    const user = (await loadUserRaw()).filter((c) => !isDeleted(c));
+    const all = [...user, ...seed];
+    const start = decodeCursor(cursor);
+    if (start >= all.length) {
+      return { items: [], nextCursor: null, total: all.length };
+    }
+    const end = Math.min(start + limit, all.length);
+    const items = all.slice(start, end);
+    const nextCursor = end < all.length ? encodeCursor(end) : null;
+    return { items, nextCursor, total: all.length };
+  },
+
+  // ─── Writes (local first, DB mirror) ────────────────────────────
+  // Order stays "local optimistically, DB best-effort" in this stage.
+  // Stage 4 inverts this: DB becomes the source of truth and a write
+  // failure surfaces to the UI.
   async save(c, current) {
     const r = await localCases.save(c, current);
     if (r.ok) {
@@ -382,7 +470,14 @@ const dualWriteCases: CasesRepo = {
 
 const dualWriteFavs: FavsRepo = {
   ...localFavs,
-  list: (email?: string | null) => localFavs.list(email),
+  list: (email?: string | null) =>
+    dbFirst(
+      "favs.list",
+      () => dbListFavs(email ?? null),
+      (v) => v.length === 0,
+      (v) => Store.setFavs(email, v),
+      () => localFavs.list(email),
+    ),
   async toggle(email, id, current) {
     const out = await localFavs.toggle(email, id, current);
     if (out.result.ok) mirror("favs.toggle", dbSetFavs(email ?? null, out.next));
