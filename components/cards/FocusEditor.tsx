@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -42,7 +42,20 @@ export default function FocusEditor({ caso, onPatch, onDraftChange }: Props) {
     y: caso.focus?.y ?? 50,
     scale: caso.focus?.scale ?? 1,
   });
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  // Computed viewport coordinates so the panel can render via
+  // `position: fixed` and escape the thumbnail's `overflow: hidden`.
+  // See QuickReclassify for the same pattern.
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const PANEL_WIDTH = 240;
+    const left = Math.min(rect.left, window.innerWidth - PANEL_WIDTH - 8);
+    setCoords({ top: rect.bottom + 6, left: Math.max(8, left) });
+  }, [open]);
 
   // Reset draft when the underlying case changes (e.g. the admin
   // navigated to a different filter and the same chip is now over a
@@ -72,7 +85,11 @@ export default function FocusEditor({ caso, onPatch, onDraftChange }: Props) {
     if (!open) return;
     const click = (e: MouseEvent) => {
       const node = panelRef.current;
-      if (node && !node.contains(e.target as Node)) setOpen(false);
+      const trigger = triggerRef.current;
+      const target = e.target as Node;
+      if (node && node.contains(target)) return;
+      if (trigger && trigger.contains(target)) return;
+      setOpen(false);
     };
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -112,11 +129,11 @@ export default function FocusEditor({ caso, onPatch, onDraftChange }: Props) {
   return (
     <div
       className="focus-editor"
-      ref={panelRef}
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
       <button
+        ref={triggerRef}
         type="button"
         className="focus-editor-trigger"
         onClick={() => setOpen((v) => !v)}
@@ -127,8 +144,14 @@ export default function FocusEditor({ caso, onPatch, onDraftChange }: Props) {
         ⚙
       </button>
 
-      {open && (
-        <div className="focus-editor-panel" role="dialog" aria-label="Ajustar foco">
+      {open && coords && (
+        <div
+          ref={panelRef}
+          className="focus-editor-panel"
+          role="dialog"
+          aria-label="Ajustar foco"
+          style={{ top: coords.top, left: coords.left }}
+        >
           <div className="focus-editor-row">
             <span className="focus-editor-label">Foco</span>
             <div className="focus-editor-pad">

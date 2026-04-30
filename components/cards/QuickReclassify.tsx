@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SECTIONS } from "@/lib/data";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
@@ -31,7 +31,26 @@ interface Props {
  */
 export default function QuickReclassify({ caso, categories, onPatch }: Props) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  // Computed popover position. Using `position: fixed` with viewport
+  // coordinates lets the popover escape the thumbnail's `overflow:
+  // hidden` (which exists so the cine-loop doesn't bleed into the
+  // adjacent cell) without falling back to a portal.
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
+  // Position the popover below the trigger when opened. Layout effect
+  // (not effect) so the position is computed before the browser paints
+  // the popover — avoids a one-frame flash at (0, 0).
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    // 6px gap below the trigger; clamp horizontally so the popover
+    // stays inside the viewport on narrow screens.
+    const POPOVER_WIDTH = 220;
+    const left = Math.min(rect.left, window.innerWidth - POPOVER_WIDTH - 8);
+    setCoords({ top: rect.bottom + 6, left: Math.max(8, left) });
+  }, [open]);
 
   // Close on outside click. We attach the listener only while open
   // so we're not paying for it across the whole grid.
@@ -39,7 +58,11 @@ export default function QuickReclassify({ caso, categories, onPatch }: Props) {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       const node = popoverRef.current;
-      if (node && !node.contains(e.target as Node)) setOpen(false);
+      const trigger = triggerRef.current;
+      const target = e.target as Node;
+      if (node && node.contains(target)) return;
+      if (trigger && trigger.contains(target)) return;
+      setOpen(false);
     };
     // Defer the listener attach to the next tick so the click that
     // opened the popover doesn't immediately close it.
@@ -79,11 +102,11 @@ export default function QuickReclassify({ caso, categories, onPatch }: Props) {
   return (
     <div
       className="quick-reclassify"
-      ref={popoverRef}
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
     >
       <button
+        ref={triggerRef}
         type="button"
         className="quick-reclassify-trigger"
         onClick={() => setOpen((v) => !v)}
@@ -94,8 +117,13 @@ export default function QuickReclassify({ caso, categories, onPatch }: Props) {
         ⇄
       </button>
 
-      {open && (
-        <div className="quick-reclassify-popover" role="menu">
+      {open && coords && (
+        <div
+          ref={popoverRef}
+          className="quick-reclassify-popover"
+          role="menu"
+          style={{ top: coords.top, left: coords.left }}
+        >
           <div className="quick-reclassify-group">
             <div className="quick-reclassify-label">Sección</div>
             {SECTIONS.map((s) => (
