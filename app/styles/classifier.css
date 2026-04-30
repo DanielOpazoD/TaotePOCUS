@@ -79,6 +79,67 @@
   color: var(--bg);
 }
 
+/* Auxiliary filter row — search + section + category dropdowns.
+ * Sits below the queue-state pills so the visual hierarchy reads
+ * "what queue → narrow further". All three compose with AND. */
+.classifier-aux-filters {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: var(--space-2);
+}
+.classifier-aux-input {
+  padding: 6px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: var(--sans);
+  outline: none;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+.classifier-aux-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+input.classifier-aux-input {
+  min-width: 240px;
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+select.classifier-aux-input {
+  /* Keep dropdown widths predictable so the row doesn't reflow when
+     the longest label changes. */
+  min-width: 160px;
+}
+.classifier-aux-clear {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-mute);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.classifier-aux-clear:hover {
+  color: var(--ink);
+  border-color: var(--hairline);
+}
+.classifier-aux-result {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+}
+
 /* ---------- drop targets ---------- */
 
 .classifier-targets {

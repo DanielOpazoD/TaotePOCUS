@@ -40,6 +40,7 @@ interface Props {
 }
 
 type Filter = "all" | "unclassified" | "unreviewed";
+const ANY = "__any__";
 
 /**
  * Bulk-classification board. A grid of thumbnails the admin can:
@@ -64,20 +65,44 @@ export default function ClassifierBoard({
   onDelete,
 }: Props) {
   const [filter, setFilter] = useState<Filter>("unclassified");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sectionFilter, setSectionFilter] = useState<string>(ANY);
+  const [categoryFilter, setCategoryFilter] = useState<string>(ANY);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [hoverTarget, setHoverTarget] = useState<string | null>(null);
 
+  // Compose all four filters with AND. The classification-state pill
+  // (Sin clasificar / Sin revisar / Todos) is the coarsest cut; the
+  // search / section / category filters narrow further. We keep this
+  // pipeline pure inside the memo so each change re-derives without
+  // touching component state — easier to reason about than effect-based
+  // synchronization.
   const visible = useMemo(() => {
+    let pool: CaseRecord[];
     switch (filter) {
       case "unclassified":
-        return cases.filter((c) => c.tags.includes("Sin clasificar"));
+        pool = cases.filter((c) => c.tags.includes("Sin clasificar"));
+        break;
       case "unreviewed":
-        return cases.filter((c) => !c.reviewed);
+        pool = cases.filter((c) => !c.reviewed);
+        break;
       case "all":
       default:
-        return cases;
+        pool = cases;
     }
-  }, [cases, filter]);
+    if (sectionFilter !== ANY) pool = pool.filter((c) => c.section === sectionFilter);
+    if (categoryFilter !== ANY) pool = pool.filter((c) => c.category === categoryFilter);
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      pool = pool.filter((c) => {
+        const haystack = [c.title, c.summary, c.findings, c.diagnosis, c.author, ...c.tags]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(q);
+      });
+    }
+    return pool;
+  }, [cases, filter, sectionFilter, categoryFilter, searchQuery]);
 
   const counts = useMemo(
     () => ({
@@ -87,6 +112,17 @@ export default function ClassifierBoard({
     }),
     [cases],
   );
+
+  // Whether the user has narrowed the queue with any of the auxiliary
+  // filters (search / section / category). Used to show a "Limpiar
+  // filtros" affordance — without it the empty-state for an over-
+  // narrowed search looks like a bug.
+  const hasAuxFilter = searchQuery.trim() !== "" || sectionFilter !== ANY || categoryFilter !== ANY;
+  const clearAuxFilters = () => {
+    setSearchQuery("");
+    setSectionFilter(ANY);
+    setCategoryFilter(ANY);
+  };
 
   const handleDrop = (kind: "section" | "category", id: string) => {
     if (!draggedId) return;
@@ -113,7 +149,8 @@ export default function ClassifierBoard({
         <h2>Clasificación global</h2>
         <p className="classifier-sub">
           Arrastra cualquier miniatura sobre una sección o categoría para reclasificar. Click sobre
-          el ✓ marca el caso como revisado. Click sobre la miniatura abre el editor completo.
+          el ✓ marca el caso como revisado. Click sobre la miniatura abre el editor completo. Usá
+          los filtros para encontrar un caso ya clasificado y reasignarlo o eliminarlo.
         </p>
         <div className="classifier-filters" role="tablist">
           <button
@@ -140,6 +177,59 @@ export default function ClassifierBoard({
           >
             Todos <span className="filter-pill-count">{counts.all}</span>
           </button>
+        </div>
+        {/* Auxiliary filters — search + section + category. AND-compose
+            with the queue-state pill above. The "Limpiar" button only
+            shows when at least one is non-default so the affordance
+            doesn't add chrome when nothing's narrowed. */}
+        <div className="classifier-aux-filters">
+          <input
+            type="search"
+            className="classifier-aux-input"
+            placeholder="Buscar en título, resumen, hallazgos, tags…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Buscar caso por texto"
+          />
+          <select
+            className="classifier-aux-input"
+            value={sectionFilter}
+            onChange={(e) => setSectionFilter(e.target.value)}
+            aria-label="Filtrar por sección"
+          >
+            <option value={ANY}>Cualquier sección</option>
+            {SECTIONS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="classifier-aux-input"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filtrar por categoría"
+          >
+            <option value={ANY}>Cualquier categoría</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          {hasAuxFilter && (
+            <button
+              type="button"
+              className="classifier-aux-clear"
+              onClick={clearAuxFilters}
+              aria-label="Limpiar filtros auxiliares"
+            >
+              × Limpiar filtros
+            </button>
+          )}
+          <span className="classifier-aux-result">
+            {visible.length} resultado{visible.length === 1 ? "" : "s"}
+          </span>
         </div>
       </div>
 

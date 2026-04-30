@@ -65,6 +65,65 @@ describe("ClassifierBoard drop handling", () => {
     expect(patch.tags).not.toContain("Sin clasificar");
   });
 
+  it("auxiliary filters (search / section / category) compose with the queue-state pill", () => {
+    const cases = [
+      caseFactory({
+        id: "c-cardio-atlas",
+        title: "Tamponade cardíaco",
+        section: "atlas",
+        category: "cardiac",
+        tags: [],
+      }),
+      caseFactory({
+        id: "c-lung-atlas",
+        title: "Edema pulmonar",
+        section: "atlas",
+        category: "lung",
+        tags: [],
+      }),
+      caseFactory({
+        id: "c-cardio-ecg",
+        title: "STEMI inferior",
+        section: "ecg",
+        category: "cardiac",
+        tags: [],
+      }),
+    ];
+
+    render(<ClassifierBoard cases={cases} onPatch={vi.fn()} onOpenEdit={vi.fn()} />);
+
+    // Switch to "Todos" so all classified cases are in the pool.
+    fireEvent.click(screen.getByRole("tab", { name: /Todos/ }));
+
+    // All 3 cases should be visible by default after switching to Todos.
+    expect(screen.getByText("Tamponade cardíaco")).toBeTruthy();
+    expect(screen.getByText("Edema pulmonar")).toBeTruthy();
+    expect(screen.getByText("STEMI inferior")).toBeTruthy();
+
+    // Filter by section "ecg" — only the STEMI case should remain.
+    const sectionSelect = screen.getByLabelText("Filtrar por sección") as HTMLSelectElement;
+    fireEvent.change(sectionSelect, { target: { value: "ecg" } });
+    expect(screen.queryByText("Tamponade cardíaco")).toBeNull();
+    expect(screen.queryByText("Edema pulmonar")).toBeNull();
+    expect(screen.getByText("STEMI inferior")).toBeTruthy();
+
+    // Reset section, filter by category "cardiac" — both cardiac
+    // cases visible, the lung one hidden.
+    fireEvent.change(sectionSelect, { target: { value: "__any__" } });
+    const catSelect = screen.getByLabelText("Filtrar por categoría") as HTMLSelectElement;
+    fireEvent.change(catSelect, { target: { value: "cardiac" } });
+    expect(screen.getByText("Tamponade cardíaco")).toBeTruthy();
+    expect(screen.queryByText("Edema pulmonar")).toBeNull();
+    expect(screen.getByText("STEMI inferior")).toBeTruthy();
+
+    // Add a text search "STEMI" — only the ECG case should match.
+    const searchInput = screen.getByLabelText("Buscar caso por texto");
+    fireEvent.change(searchInput, { target: { value: "STEMI" } });
+    expect(screen.queryByText("Tamponade cardíaco")).toBeNull();
+    expect(screen.queryByText("Edema pulmonar")).toBeNull();
+    expect(screen.getByText("STEMI inferior")).toBeTruthy();
+  });
+
   it("drop on category clears the 'Sin clasificar' tag and assigns the category", () => {
     const onPatch = vi.fn();
     const cases = [
