@@ -717,6 +717,62 @@
   font-weight: 700;
   z-index: 3;
 }
+
+/* ─── Admin-only delete chips on CaseCard thumbnails ───────────
+ * Mirror the pattern used in `.classifier-card-delete` / `.purge`
+ * so the admin's hover affordances feel consistent across the
+ * classifier grid and the public catalog grid. Always visible
+ * once their handlers are passed (admin only) — discoverability >
+ * minimalism here, the user explicitly asked for hover delete.
+ */
+.case-thumb-delete,
+.case-thumb-purge {
+  position: absolute;
+  top: 10px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 4;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    transform var(--duration-fast) ease,
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+.case-thumb-delete {
+  left: 10px;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-soft);
+}
+.case-thumb-delete svg {
+  width: 14px;
+  height: 14px;
+}
+.case-thumb-delete:hover {
+  color: var(--crit);
+  border-color: var(--crit);
+  transform: scale(1.1);
+}
+.case-thumb-purge {
+  left: 42px;
+  border: 1px solid color-mix(in oklch, var(--crit) 60%, var(--hairline));
+  background: color-mix(in oklch, var(--crit) 12%, rgba(255, 255, 255, 0.95));
+  color: var(--crit);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.case-thumb-purge:hover {
+  background: var(--crit);
+  border-color: var(--crit);
+  color: white;
+  transform: scale(1.1);
+}
 @keyframes crit-pulse {
   0%,
   70%,

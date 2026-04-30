@@ -12,9 +12,16 @@ interface Props {
   isFav: boolean;
   onFav: () => void;
   onOpen: () => void;
+  /** Admin only: soft-delete the case. When provided, a trash chip
+   *  appears on the thumbnail. Click stops propagation so it doesn't
+   *  open the modal. */
+  onDelete?: () => void;
+  /** Admin only: permanent-delete the case (irreversible). Same chip
+   *  cluster as `onDelete`, but a separate red × button. */
+  onPurge?: () => void;
 }
 
-export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
+export default function CaseCard({ caso, isFav, onFav, onOpen, onDelete, onPurge }: Props) {
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const isCrit = caso.tags.includes("Crítico");
   const [bursting, setBursting] = useState(false);
@@ -77,6 +84,39 @@ export default function CaseCard({ caso, isFav, onFav, onOpen }: Props) {
           <span className="case-thumb-reviewed" title="Caso revisado" aria-label="Revisado">
             ✓
           </span>
+        )}
+        {/* Admin-only quick-delete chips. Both stop click propagation
+            so they don't trigger the card's onOpen. The chips appear
+            top-left of the thumbnail; both are always visible (not
+            hover-revealed) so the admin can scan a grid and delete
+            anything obvious without an extra click. */}
+        {onDelete && (
+          <button
+            type="button"
+            className="case-thumb-delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            aria-label={`Eliminar ${caso.title}`}
+            title="Mover a papelera (puedes restaurar desde admin)"
+          >
+            {Icon.trash()}
+          </button>
+        )}
+        {onPurge && (
+          <button
+            type="button"
+            className="case-thumb-purge"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPurge();
+            }}
+            aria-label={`Eliminar permanentemente ${caso.title}`}
+            title="Eliminar permanentemente · borra metadata y archivo (no se puede deshacer)"
+          >
+            ✕
+          </button>
         )}
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}

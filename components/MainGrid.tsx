@@ -174,7 +174,16 @@ export default function MainGrid({
     !query.trim();
 
   if (isAtlasLandingUnfiltered) {
-    return <BentoGrid cases={filtered} favs={favs} onOpen={onOpen} onFav={onToggleFav} />;
+    return (
+      <BentoGrid
+        cases={filtered}
+        favs={favs}
+        onOpen={onOpen}
+        onFav={onToggleFav}
+        onDelete={isAdmin ? onDelete : undefined}
+        onPurge={isAdmin ? onPurgeImport : undefined}
+      />
+    );
   }
 
   return (
@@ -186,6 +195,10 @@ export default function MainGrid({
           isFav={favs.includes(c.id)}
           onFav={() => onToggleFav(c)}
           onOpen={() => onOpen(c)}
+          // Admin-only hover delete chips. Both stop propagation in the
+          // CaseCard so they don't trigger onOpen.
+          onDelete={isAdmin ? () => onDelete(c) : undefined}
+          onPurge={isAdmin && onPurgeImport ? () => onPurgeImport(c) : undefined}
         />
       ))}
     </div>

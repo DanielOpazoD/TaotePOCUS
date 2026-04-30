@@ -376,77 +376,67 @@ select.classifier-aux-input {
   border-color: var(--accent-ink);
 }
 
-/* Soft-delete affordance — same chip footprint as the review badge,
- * pinned to the top-left so the two never overlap. Always visible
- * but at lower opacity until the card is hovered, so the option is
- * discoverable without dominating the visual. (Earlier hover-only
- * version was effectively invisible — admin couldn't find delete on
- * already-classified cases.) */
+/* Soft-delete affordance — pinned to the top-left of each card.
+ * Always at full opacity over a small white surface so it's
+ * discoverable on any thumbnail, regardless of the underlying image.
+ * The shadow gives it just enough lift to read on busy backgrounds. */
 .classifier-card-delete {
   position: absolute;
   top: 8px;
   left: 8px;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   border: 1px solid var(--hairline-strong);
   border-radius: 50%;
   background: var(--surface);
-  color: var(--ink-mute);
+  color: var(--ink-soft);
   cursor: pointer;
-  opacity: 0.45;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   transition:
-    opacity var(--duration-fast) ease,
     color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
 }
 .classifier-card-delete svg {
-  width: 12px;
-  height: 12px;
-}
-.classifier-card:hover .classifier-card-delete,
-.classifier-card-delete:focus-visible {
-  opacity: 1;
+  width: 13px;
+  height: 13px;
 }
 .classifier-card-delete:hover {
   color: var(--crit);
   border-color: var(--crit);
-  opacity: 1;
+  transform: scale(1.1);
 }
 
-/* Permanent-delete affordance — sits next to the soft-delete chip.
- * Visually heavier (pre-tinted red, sharper × glyph) so the user
- * doesn't confuse it with the recoverable soft-delete. Hidden until
- * card hover so it doesn't dominate the resting state of the grid. */
+/* Permanent-delete affordance — to the right of the soft-delete.
+ * Pre-tinted red with a sharp × glyph so the user can't confuse it
+ * with the recoverable trash icon. Same always-visible philosophy
+ * — admin actions need to be obvious, not hidden behind hover. */
 .classifier-card-purge {
   position: absolute;
   top: 8px;
-  left: 36px;
-  width: 22px;
-  height: 22px;
+  left: 38px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
-  border: 1px solid color-mix(in oklch, var(--crit) 50%, var(--hairline));
+  border: 1px solid color-mix(in oklch, var(--crit) 60%, var(--hairline));
   border-radius: 50%;
-  background: var(--surface);
+  background: color-mix(in oklch, var(--crit) 8%, var(--surface));
   color: var(--crit);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1;
   font-weight: 700;
-  opacity: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   transition:
-    opacity var(--duration-fast) ease,
     background var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
-}
-.classifier-card:hover .classifier-card-purge,
-.classifier-card-purge:focus-visible {
-  opacity: 0.7;
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
 }
 .classifier-card-purge:hover {
   background: var(--crit-soft);
   border-color: var(--crit);
-  opacity: 1;
+  transform: scale(1.1);
 }

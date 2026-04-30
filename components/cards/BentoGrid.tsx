@@ -9,6 +9,9 @@ interface Props {
   favs: string[];
   onOpen: (c: CaseRecord) => void;
   onFav: (c: CaseRecord) => void;
+  /** Admin-only hover delete chips. Forwarded to each CaseCard. */
+  onDelete?: (c: CaseRecord) => void;
+  onPurge?: (c: CaseRecord) => void;
 }
 
 /**
@@ -30,7 +33,7 @@ interface Props {
  * Quote cards are interleaved at fixed positions (after the 2nd and
  * 5th rest item) so the bento doesn't accidentally cluster them.
  */
-export default function BentoGrid({ cases, favs, onOpen, onFav }: Props) {
+export default function BentoGrid({ cases, favs, onOpen, onFav, onDelete, onPurge }: Props) {
   if (cases.length === 0) return null;
 
   const hero = cases.find((c) => c.featured) ?? cases[0];
@@ -57,6 +60,8 @@ export default function BentoGrid({ cases, favs, onOpen, onFav }: Props) {
           isFav={favs.includes(hero.id)}
           onFav={() => onFav(hero)}
           onOpen={() => onOpen(hero)}
+          onDelete={onDelete ? () => onDelete(hero) : undefined}
+          onPurge={onPurge ? () => onPurge(hero) : undefined}
         />
       </div>
       {tail.map((item) =>
@@ -69,6 +74,8 @@ export default function BentoGrid({ cases, favs, onOpen, onFav }: Props) {
             isFav={favs.includes(item.caso.id)}
             onFav={() => onFav(item.caso)}
             onOpen={() => onOpen(item.caso)}
+            onDelete={onDelete ? () => onDelete(item.caso) : undefined}
+            onPurge={onPurge ? () => onPurge(item.caso) : undefined}
           />
         ),
       )}
