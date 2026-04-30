@@ -42,6 +42,10 @@ interface Props {
   /** Restore a soft-deleted seed/imported case (drops the
    *  `deletedAt` override). */
   onRestoreImport?: (c: CaseRecord) => void;
+  /** Permanent-delete an imported case (irreversible). Removes the
+   *  metadata override, writes a `purged` tombstone, and deletes the
+   *  blob from the media store. */
+  onPurgeImport?: (c: CaseRecord) => void;
   /** Categories list (built-in + custom) — passed through to the
    *  classifier and the categories editor. */
   categories?: Category[];
@@ -102,6 +106,7 @@ export default function MainGrid({
   userCases,
   trashedImports,
   onRestoreImport,
+  onPurgeImport,
   categories,
   categoryCaseCounts,
   onAddCategory,
@@ -140,6 +145,7 @@ export default function MainGrid({
         onRestore={userCases.restore}
         onPurge={userCases.purge}
         onRestoreImport={onRestoreImport}
+        onPurgeImport={onPurgeImport}
         onNew={onNew}
         onPatch={onPatch}
       />

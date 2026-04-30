@@ -125,6 +125,19 @@ export interface CaseRecord {
    * the review state).
    */
   reviewed?: boolean;
+  /**
+   * Permanent-delete marker. Distinct from `deletedAt`:
+   *
+   *   - `deletedAt` is a soft-delete (case is hidden but recoverable
+   *     via the admin trash).
+   *   - `purged` is a hard-delete (case is gone forever — the override
+   *     stays as a tombstone so the catalog merge keeps filtering it
+   *     out across re-imports). The blob store entry is also deleted.
+   *
+   * Once a case is purged it cannot be restored from inside the app.
+   * The only recovery is a backup JSON imported from before the purge.
+   */
+  purged?: boolean;
 }
 
 export interface User {

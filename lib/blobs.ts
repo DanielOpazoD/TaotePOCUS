@@ -65,14 +65,7 @@ export function contentTypeFromKey(key: string): string {
   }
 }
 
-/**
- * Returns the public URL where a given media key is served from. Use
- * this when you need to construct an URL outside the catalog (e.g. in
- * an `apply-twitter-import.mjs` template or a one-off migration).
- *
- * Inside the app, `<CaseRecord>.media.src` already holds the URL
- * directly — no need to call this.
- */
-export function mediaUrl(key: string): string {
-  return `/api/media/${encodeURIComponent(key)}`;
-}
+// Pure URL helpers (`mediaUrl`, `mediaKeyFromSrc`) live in
+// `lib/media-url.ts` so client components can import them without
+// pulling the `@netlify/blobs` runtime into the browser bundle.
+export { mediaUrl, mediaKeyFromSrc } from "./media-url";

@@ -25,6 +25,10 @@ interface Props {
   onPurge: (c: CaseRecord) => void;
   /** Restore a soft-deleted import (drops the `deletedAt` override). */
   onRestoreImport?: (c: CaseRecord) => void;
+  /** Permanent-delete an imported case (irreversible). The handler
+   *  is responsible for the confirm-dialog flow + extracting the
+   *  blob key from `c.media.src` to pass to the repo. */
+  onPurgeImport?: (c: CaseRecord) => void;
   onNew: () => void;
   /**
    * Apply a partial override to any case. Used by the bulk classifier
@@ -75,6 +79,7 @@ export default function AdminPanel({
   onRestore,
   onPurge,
   onRestoreImport,
+  onPurgeImport,
   onNew,
   onPatch,
   categories,
@@ -152,6 +157,7 @@ export default function AdminPanel({
           onPatch={onPatch}
           onOpenEdit={onEdit}
           onDelete={onDelete}
+          onPurge={onPurgeImport}
         />
       ) : tab === "categories" && canEditCategories ? (
         <CategoriesEditor
@@ -331,9 +337,23 @@ export default function AdminPanel({
                       <td className="admin-date">{formatDateTime(c.deletedAt)}</td>
                       <td className="admin-date">{c.deletedBy || "—"}</td>
                       <td className="admin-actions-cell">
-                        <button className="btn-ghost" onClick={() => onRestoreImport(c)}>
+                        <button
+                          className="btn-ghost"
+                          onClick={() => onRestoreImport(c)}
+                          style={{ marginRight: 6 }}
+                        >
                           Restaurar
                         </button>
+                        {onPurgeImport && (
+                          <button
+                            className="icon-btn icon-btn-danger"
+                            onClick={() => onPurgeImport(c)}
+                            aria-label="Eliminar definitivamente"
+                            title="Eliminar definitivamente · borra metadata y archivo del blob store"
+                          >
+                            {Icon.trash()}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

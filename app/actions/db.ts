@@ -20,6 +20,7 @@
 // All actions assume the schema in `netlify/database/migrations/0001_initial.sql`.
 
 import { getDatabase } from "@netlify/database";
+import { mediaStore } from "@/lib/blobs";
 import type { CaseRecord, Category } from "@/lib/types";
 
 /**
@@ -99,6 +100,71 @@ export async function dbClearOverride(id: string): Promise<ActionResult> {
     return { ok: true };
   } catch (err) {
     return fail("clearOverride", err);
+  }
+}
+
+/**
+ * Permanent-delete a seed/imported case. The override is replaced
+ * with a tombstone `{ purged: true }` — a small, sticky marker that
+ * survives re-imports of `lib/imported-cases.ts` (the merge layer
+ * keeps filtering the case out forever) without holding on to all
+ * the previous override fields.
+ *
+ * Optionally also deletes the corresponding blob from the media
+ * store. Pass the key extracted from `media.src` (`<id>.<ext>`) when
+ * the case had real media; pass `null` for synthetic-loop-only cases.
+ *
+ * Distinct from `dbPurgeUserCase`, which removes a user-uploaded
+ * case row from the `user_cases` table — those don't share an id
+ * with the seed catalog.
+ */
+export async function dbPurgeImported(
+  id: string,
+  mediaKey: string | null,
+  purgedBy: string | null,
+): Promise<ActionResult> {
+  try {
+    const db = getDatabase();
+    // Replace whatever was in the override with the tombstone. The
+    // previous fields are intentionally dropped — nobody's going to
+    // see this case again and we don't want them sitting around
+    // taking storage.
+    await db.sql`
+      INSERT INTO case_overrides (id, patch, updated_by)
+      VALUES (${id}, ${JSON.stringify({ purged: true })}::jsonb, ${purgedBy})
+      ON CONFLICT (id) DO UPDATE SET
+        patch = EXCLUDED.patch,
+        updated_at = now(),
+        updated_by = EXCLUDED.updated_by
+    `;
+    if (mediaKey) {
+      // Best-effort. If the blob doesn't exist (already deleted, or
+      // the case never had real media uploaded), the store throws —
+      // we swallow so a failed media delete doesn't roll back the
+      // tombstone insert.
+      try {
+        await mediaStore().delete(mediaKey);
+      } catch (mediaErr) {
+        console.error("[db.purgeImported] media delete failed", mediaErr);
+      }
+    }
+    return { ok: true };
+  } catch (err) {
+    return fail("purgeImported", err);
+  }
+}
+
+/**
+ * Stand-alone media delete. Used when the caller already handled
+ * the metadata side-effect and just needs to clean up the file.
+ */
+export async function dbDeleteMedia(key: string): Promise<ActionResult> {
+  if (!key) return { ok: true };
+  try {
+    await mediaStore().delete(key);
+    return { ok: true };
+  } catch (err) {
+    return fail("deleteMedia", err);
   }
 }
 

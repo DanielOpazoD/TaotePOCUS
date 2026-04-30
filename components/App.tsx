@@ -12,6 +12,8 @@ import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
 import { derivePageHead } from "@/lib/headers";
 import { setMirrorFailureHandler } from "@/lib/db-mirror";
+import { mediaKeyFromSrc } from "@/lib/media-url";
+import { repo } from "@/lib/repo";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { useToast } from "@/hooks/useToast";
@@ -126,20 +128,25 @@ function AppInner() {
   // Combined case list for public flows. AdminPanel sees `userCases.live`
   // and `userCases.trashed` separately. Overrides apply to both seed-
   // imported and admin-uploaded cases — anything keyed by id wins.
-  // Cases with `deletedAt` (set via override on a seed case, or by
-  // `userCases.remove` on an admin-uploaded case) are filtered out
-  // here and surfaced separately to the admin panel for restoration.
+  // Filtered out here:
+  //   - `deletedAt` set: soft-deleted (recoverable from admin trash).
+  //   - `purged` set: hard-deleted tombstone (gone forever from inside
+  //     the app; the override stays so re-imports keep filtering it).
   const allCases = useMemo<CaseRecord[]>(
     () =>
-      mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides).filter((c) => !c.deletedAt),
+      mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides).filter(
+        (c) => !c.deletedAt && !c.purged,
+      ),
     [userCases.live, overrides],
   );
 
   // Soft-deleted seed/imported cases — surfaced in the admin panel's
   // trash section so the admin can restore them. User-uploaded trash
-  // is handled separately by `useUserCases.trashed`.
+  // is handled separately by `useUserCases.trashed`. Purged cases are
+  // excluded — once permanent-deleted, they don't appear anywhere
+  // (not even in the trash).
   const trashedImports = useMemo<CaseRecord[]>(
-    () => mergeWithOverrides(SEED_CASES, overrides).filter((c) => c.deletedAt),
+    () => mergeWithOverrides(SEED_CASES, overrides).filter((c) => c.deletedAt && !c.purged),
     [overrides],
   );
 
@@ -229,6 +236,28 @@ function AppInner() {
       deletedBy: undefined,
     });
     if (ok) showToast("Caso restaurado");
+  };
+
+  // Permanent-delete pipeline. The button handlers (in classifier,
+  // modal, and the trash table) all funnel through this single confirm
+  // dialog rendered at the bottom of the tree, so the destructive copy
+  // and the side-effect ordering live in one place.
+  const [pendingPurge, setPendingPurge] = useState<CaseRecord | null>(null);
+  const requestPurge = (c: CaseRecord) => setPendingPurge(c);
+  const cancelPurge = () => setPendingPurge(null);
+  const confirmPurge = async () => {
+    if (!pendingPurge) return;
+    const c = pendingPurge;
+    setPendingPurge(null);
+    // Close any open modal so the toast is visible.
+    if (openCaseId === c.id) replacePatch({ caso: null });
+    const mediaKey = mediaKeyFromSrc(c.media?.src);
+    const ok = await repo.cases.purgeImported(c.id, mediaKey);
+    if (ok.ok) {
+      showToast(`"${c.title}" eliminado permanentemente`);
+    } else {
+      showToast("No se pudo eliminar — revisa la consola");
+    }
   };
 
   const onNewCase = () => {
@@ -334,6 +363,7 @@ function AppInner() {
               userCases={userCases}
               trashedImports={trashedImports}
               onRestoreImport={onRestoreImport}
+              onPurgeImport={isAdmin ? requestPurge : undefined}
               categories={categories}
               categoryCaseCounts={categoryCaseCounts}
               onAddCategory={addCategory}
@@ -473,6 +503,10 @@ function AppInner() {
                       }
                     : undefined
                 }
+                // Permanent-delete from the modal. Admin only. The
+                // confirm dialog renders on top and explicitly warns
+                // about the irreversibility before doing anything.
+                onPurge={isAdmin ? () => requestPurge(openCase) : undefined}
               />
             </ErrorBoundary>
           );
@@ -506,6 +540,20 @@ function AppInner() {
         destructive
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+      <ConfirmDialog
+        open={!!pendingPurge}
+        title={pendingPurge ? `¿Eliminar permanentemente "${pendingPurge.title}"?` : ""}
+        message={
+          "Esto borra el caso y su archivo de media (imagen / video) de forma definitiva. " +
+          "No aparece en la papelera ni se puede restaurar desde la app — la única forma de " +
+          "recuperarlo sería importar un backup JSON anterior. ¿Continuar?"
+        }
+        confirmLabel="Eliminar para siempre"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={confirmPurge}
+        onCancel={cancelPurge}
       />
       <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>

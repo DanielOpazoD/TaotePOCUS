@@ -414,3 +414,39 @@ select.classifier-aux-input {
   border-color: var(--crit);
   opacity: 1;
 }
+
+/* Permanent-delete affordance — sits next to the soft-delete chip.
+ * Visually heavier (pre-tinted red, sharper × glyph) so the user
+ * doesn't confuse it with the recoverable soft-delete. Hidden until
+ * card hover so it doesn't dominate the resting state of the grid. */
+.classifier-card-purge {
+  position: absolute;
+  top: 8px;
+  left: 36px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in oklch, var(--crit) 50%, var(--hairline));
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--crit);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) ease,
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.classifier-card:hover .classifier-card-purge,
+.classifier-card-purge:focus-visible {
+  opacity: 0.7;
+}
+.classifier-card-purge:hover {
+  background: var(--crit-soft);
+  border-color: var(--crit);
+  opacity: 1;
+}

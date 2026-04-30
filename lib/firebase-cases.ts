@@ -158,4 +158,7 @@ export const firebaseCasesRepo = {
   async clearOverride(_id: string): Promise<WriteResult> {
     return unavailable();
   },
+  async purgeImported(_id: string, _mediaKey: string | null): Promise<WriteResult> {
+    return unavailable();
+  },
 };

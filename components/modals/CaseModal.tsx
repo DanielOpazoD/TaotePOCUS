@@ -34,6 +34,10 @@ interface Props {
   /** Soft-delete this case. Admin only. Triggers the parent's confirm
    *  dialog — the actual deletion happens after the admin confirms. */
   onDelete?: () => void;
+  /** Permanent-delete this case (irreversible). Admin only. Distinct
+   *  from `onDelete`: this removes the metadata override and the
+   *  blob from the media store; the case never reappears. */
+  onPurge?: () => void;
   /** Position of the current case in the navigable set (1-based). */
   position?: number;
   /** Total cases in the navigable set, for the "X / N" indicator. */
@@ -60,6 +64,7 @@ export default function CaseModal({
   hasOverride,
   onToggleReviewed,
   onDelete,
+  onPurge,
 }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -443,6 +448,16 @@ export default function CaseModal({
                   aria-label="Eliminar caso"
                 >
                   {Icon.trash()} Eliminar
+                </button>
+              )}
+              {onPurge && (
+                <button
+                  onClick={onPurge}
+                  className="btn-edit btn-edit--danger"
+                  title="Eliminar permanentemente: borra metadata y archivo del blob store. NO se puede deshacer."
+                  aria-label="Eliminar permanentemente"
+                >
+                  {Icon.trash()} Eliminar permanentemente
                 </button>
               )}
             </div>

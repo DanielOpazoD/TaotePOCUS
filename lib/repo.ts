@@ -26,6 +26,7 @@ import {
   dbListFavs,
   dbSetOverride,
   dbClearOverride,
+  dbPurgeImported,
   dbSaveUserCase,
   dbRemoveUserCase,
   dbRestoreUserCase,
@@ -279,6 +280,25 @@ const localCases = {
     log.info("Case override cleared", { area: "cases", id });
     return Store.setCaseOverrides(all);
   },
+  /**
+   * Permanent-delete a seed/imported case. Replaces the override with
+   * a `{ purged: true }` tombstone so the merge layer keeps filtering
+   * it out forever — even after a re-import of `lib/imported-cases.ts`.
+   *
+   * `_mediaKey` is unused in the local backend (the blob store can't
+   * be reached from localStorage) but accepted for API parity with
+   * `dualWriteCases.purgeImported`, which forwards it to the Server
+   * Action so the file is deleted from the store too. Keeping the
+   * signatures aligned means callers don't branch on backend.
+   *
+   * Mirrors `dbPurgeImported` in `app/actions/db.ts`.
+   */
+  async purgeImported(id: string, _mediaKey: string | null): Promise<WriteResult> {
+    const all = Store.getCaseOverrides();
+    all[id] = { purged: true };
+    log.info("Imported case purged", { area: "cases", id });
+    return Store.setCaseOverrides(all);
+  },
 };
 
 const localFavs = {
@@ -474,6 +494,19 @@ const dualWriteCases: CasesRepo = {
     if (r.ok) mirror("cases.clearOverride", dbClearOverride(id));
     return r;
   },
+  async purgeImported(id, mediaKey) {
+    // Local first: write the `{ purged: true }` tombstone so the UI
+    // hides the case immediately. Then mirror to the DB (which also
+    // deletes the blob from the media store). A failed blob delete
+    // doesn't reverse the tombstone — the user has already committed
+    // to the destruction and a stranded file is preferable to a
+    // visible-but-marked-purged case.
+    const r = await localCases.purgeImported(id, mediaKey);
+    if (r.ok) {
+      mirror("cases.purgeImported", dbPurgeImported(id, mediaKey, currentMirrorEmail()));
+    }
+    return r;
+  },
 };
 
 const dualWriteFavs: FavsRepo = {
@@ -573,6 +606,14 @@ export const cases = {
   listOverrides: () => _cases.listOverrides(),
   setOverride: (id: string, patch: Partial<CaseRecord>) => _cases.setOverride(id, patch),
   clearOverride: (id: string) => _cases.clearOverride(id),
+  /**
+   * Permanent-delete a seed/imported case (irreversible from inside
+   * the app). `mediaKey` is the blob-store key extracted from the
+   * case's `media.src` via `mediaKeyFromSrc`; pass `null` if the case
+   * has no real media (synthetic loop only) or its src isn't a
+   * `/api/media/*` URL.
+   */
+  purgeImported: (id: string, mediaKey: string | null) => _cases.purgeImported(id, mediaKey),
 };
 
 export const favs = {

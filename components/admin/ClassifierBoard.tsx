@@ -37,6 +37,10 @@ interface Props {
   /** Soft-delete the case. Triggers the parent's confirm dialog —
    *  the admin can restore from the trash section in the admin panel. */
   onDelete?: (caso: CaseRecord) => void;
+  /** Permanent-delete the case (irreversible). Triggers a stronger
+   *  confirm dialog at the App level. Distinct from `onDelete`:
+   *  this removes metadata + the blob, the case never reappears. */
+  onPurge?: (caso: CaseRecord) => void;
 }
 
 type Filter = "all" | "unclassified" | "unreviewed";
@@ -63,6 +67,7 @@ export default function ClassifierBoard({
   onPatch,
   onOpenEdit,
   onDelete,
+  onPurge,
 }: Props) {
   const [filter, setFilter] = useState<Filter>("unclassified");
   const [searchQuery, setSearchQuery] = useState("");
@@ -343,6 +348,17 @@ export default function ClassifierBoard({
                   aria-label={`Eliminar ${c.title}`}
                 >
                   {Icon.trash()}
+                </button>
+              )}
+              {onPurge && (
+                <button
+                  type="button"
+                  className="classifier-card-purge"
+                  onClick={() => onPurge(c)}
+                  title="Eliminar permanentemente · borra metadata y archivo de media (no se puede deshacer)"
+                  aria-label={`Eliminar permanentemente ${c.title}`}
+                >
+                  ✕
                 </button>
               )}
             </article>
