@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -9,11 +9,7 @@ import MainGrid from "./MainGrid";
 import ErrorBoundary from "./ErrorBoundary";
 import { Header, Footer } from "./chrome";
 import { CaseModal, AuthModal } from "./modals";
-import { SEED_CASES } from "@/lib/data";
 import { derivePageHead } from "@/lib/headers";
-import { setMirrorFailureHandler } from "@/lib/db-mirror";
-import { mediaKeyFromSrc } from "@/lib/media-url";
-import { repo } from "@/lib/repo";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { useToast } from "@/hooks/useToast";
@@ -23,8 +19,11 @@ import { useUserCases } from "@/hooks/useUserCases";
 import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import { mergeWithOverrides, useCaseOverrides } from "@/hooks/useCaseOverrides";
+import { useCaseOverrides } from "@/hooks/useCaseOverrides";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { useMergedCatalog } from "@/hooks/useMergedCatalog";
+import { useAdminPipeline } from "@/hooks/useAdminPipeline";
+import { useMirrorFailureToast } from "@/hooks/useMirrorFailureToast";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
@@ -72,7 +71,6 @@ function AppInner() {
   // Truly transient UI state. None of this belongs in the URL.
   const [editingCase, setEditingCase] = useState<CaseRecord | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<CaseRecord | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   // Sidebar collapse — persisted via usePersistedState. Compact "1"/"0"
@@ -88,26 +86,9 @@ function AppInner() {
   // in the Header, co-located with the input it focuses.
   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
 
-  // ─── DB mirror failure handler (Stage 4) ────────────────────────
-  // When a write makes it to localStorage but fails to land in the
-  // DB, the repo / hooks call `notifyMirrorFailure` and we surface a
-  // toast. Rate-limited to once every 5 s so a sustained outage
-  // during a flurry of admin clicks doesn't spam the queue.
-  //
-  // The local write already succeeded by the time this fires — the
-  // user's data is safe in the browser. The toast nudges them to
-  // re-sync via Backup → "Subir a base de datos" once connectivity
-  // is restored.
-  const lastMirrorToastRef = useRef(0);
-  useEffect(() => {
-    setMirrorFailureHandler(() => {
-      const now = Date.now();
-      if (now - lastMirrorToastRef.current < 5000) return;
-      lastMirrorToastRef.current = now;
-      showToast("Cambio guardado local · sincronización con la base de datos pendiente");
-    });
-    return () => setMirrorFailureHandler(null);
-  }, [showToast]);
+  // DB mirror failures (Stage 4) → rate-limited toast. Lives in a
+  // dedicated hook so App.tsx doesn't host the global handler effect.
+  useMirrorFailureToast(showToast);
 
   // Per-case overrides — admin-edited fields persisted in localStorage.
   // Merged on top of the source catalog at render time so a future
@@ -129,40 +110,13 @@ function AppInner() {
     setHidden: setCategoryHidden,
   } = useCustomCategories();
 
-  // Combined case list for public flows. AdminPanel sees `userCases.live`
-  // and `userCases.trashed` separately. Overrides apply to both seed-
-  // imported and admin-uploaded cases — anything keyed by id wins.
-  // Filtered out here:
-  //   - `deletedAt` set: soft-deleted (recoverable from admin trash).
-  //   - `purged` set: hard-deleted tombstone (gone forever from inside
-  //     the app; the override stays so re-imports keep filtering it).
-  const allCases = useMemo<CaseRecord[]>(
-    () =>
-      mergeWithOverrides([...userCases.live, ...SEED_CASES], overrides).filter(
-        (c) => !c.deletedAt && !c.purged,
-      ),
-    [userCases.live, overrides],
-  );
-
-  // Soft-deleted seed/imported cases — surfaced in the admin panel's
-  // trash section so the admin can restore them. User-uploaded trash
-  // is handled separately by `useUserCases.trashed`. Purged cases are
-  // excluded — once permanent-deleted, they don't appear anywhere
-  // (not even in the trash).
-  const trashedImports = useMemo<CaseRecord[]>(
-    () => mergeWithOverrides(SEED_CASES, overrides).filter((c) => c.deletedAt && !c.purged),
-    [overrides],
-  );
-
-  // Cases per category id — feeds the categories editor's "in use"
-  // hint and the deletion guard. Counted across non-deleted cases.
-  const categoryCaseCounts = useMemo<Record<string, number>>(() => {
-    const counts: Record<string, number> = {};
-    for (const c of allCases) {
-      counts[c.category] = (counts[c.category] ?? 0) + 1;
-    }
-    return counts;
-  }, [allCases]);
+  // Catalog derivation (allCases / trashedImports / categoryCaseCounts).
+  // Lives in `useMergedCatalog` so the merge + filter rules have one
+  // home and App.tsx isn't directly hosting three side-by-side memos.
+  const { allCases, trashedImports, categoryCaseCounts } = useMergedCatalog({
+    userCasesLive: userCases.live,
+    overrides,
+  });
 
   const {
     scopedCases,
@@ -224,59 +178,17 @@ function AppInner() {
     setEditingCase(null);
   };
 
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
-    // Two delete paths share this confirm dialog:
-    //   1. Admin-uploaded cases → `userCases.remove` (repo CRUD).
-    //   2. Seed/imported cases → write a `deletedAt` override so the
-    //      catalog filters them out without touching the source list.
-    //      The override stays in storage so the admin can restore via
-    //      the trash section in the admin panel.
-    const isUserOwned = userCases.live.some((c) => c.id === pendingDelete.id);
-    if (isUserOwned) {
-      await userCases.remove(pendingDelete);
-    } else {
-      const ok = await setOverride(pendingDelete.id, {
-        deletedAt: new Date().toISOString(),
-        deletedBy: user?.email,
-      });
-      if (ok) showToast("Caso movido a papelera · puedes restaurarlo desde admin");
-    }
-    setPendingDelete(null);
-  };
-
-  // Restore a soft-deleted seed/imported case. Drops just the
-  // `deletedAt` / `deletedBy` fields from the override, keeping any
-  // other admin edits (category, title, etc.) intact.
-  const onRestoreImport = async (c: CaseRecord) => {
-    const ok = await setOverride(c.id, {
-      deletedAt: undefined,
-      deletedBy: undefined,
-    });
-    if (ok) showToast("Caso restaurado");
-  };
-
-  // Permanent-delete pipeline. The button handlers (in classifier,
-  // modal, and the trash table) all funnel through this single confirm
-  // dialog rendered at the bottom of the tree, so the destructive copy
-  // and the side-effect ordering live in one place.
-  const [pendingPurge, setPendingPurge] = useState<CaseRecord | null>(null);
-  const requestPurge = (c: CaseRecord) => setPendingPurge(c);
-  const cancelPurge = () => setPendingPurge(null);
-  const confirmPurge = async () => {
-    if (!pendingPurge) return;
-    const c = pendingPurge;
-    setPendingPurge(null);
-    // Close any open modal so the toast is visible.
-    if (openCaseId === c.id) replacePatch({ caso: null });
-    const mediaKey = mediaKeyFromSrc(c.media?.src);
-    const ok = await repo.cases.purgeImported(c.id, mediaKey);
-    if (ok.ok) {
-      showToast(`"${c.title}" eliminado permanentemente`);
-    } else {
-      showToast("No se pudo eliminar — revisa la consola");
-    }
-  };
+  // Destructive flows (soft-delete + permanent-delete + restore).
+  // The hook owns the pending-state and the side-effect ordering;
+  // the parent only renders ConfirmDialogs bound to its pending refs.
+  const adminPipeline = useAdminPipeline({
+    user,
+    userCases,
+    setOverride,
+    showToast,
+    openCaseId,
+    closeOpenCase: () => replacePatch({ caso: null }),
+  });
 
   const onNewCase = () => {
     setEditingCase(null);
@@ -380,8 +292,8 @@ function AppInner() {
               allCases={allCases}
               userCases={userCases}
               trashedImports={trashedImports}
-              onRestoreImport={onRestoreImport}
-              onPurgeImport={isAdmin ? requestPurge : undefined}
+              onRestoreImport={adminPipeline.restoreImport}
+              onPurgeImport={isAdmin ? adminPipeline.requestPurge : undefined}
               categories={categories}
               categoryCaseCounts={categoryCaseCounts}
               onAddCategory={addCategory}
@@ -396,7 +308,7 @@ function AppInner() {
               onOpen={(c) => pushPatch({ caso: c.id })}
               onToggleFav={(c) => toggleFav(c.id)}
               onEdit={onEditCase}
-              onDelete={(c) => setPendingDelete(c)}
+              onDelete={adminPipeline.requestDelete}
               onNew={onNewCase}
               onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
               onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
@@ -508,25 +420,22 @@ function AppInner() {
                       }
                     : undefined
                 }
-                // Eliminar — admin only. Routes through the existing
-                // pendingDelete + ConfirmDialog flow that the classifier
-                // and "Mis casos" tab already use, so the confirmation
-                // copy and the soft-delete vs purge logic stay in one
-                // place. We close the modal first so the admin sees
-                // the confirm dialog cleanly.
+                // Eliminar — admin only. Funnels through useAdminPipeline
+                // (same confirm dialog as the classifier and trash table).
+                // We close the modal first so the admin sees the
+                // confirm dialog cleanly above the layout.
                 onDelete={
                   isAdmin
                     ? () => {
                         const target = openCase;
                         replacePatch({ caso: null });
-                        setPendingDelete(target);
+                        adminPipeline.requestDelete(target);
                       }
                     : undefined
                 }
                 // Permanent-delete from the modal. Admin only. The
-                // confirm dialog renders on top and explicitly warns
-                // about the irreversibility before doing anything.
-                onPurge={isAdmin ? () => requestPurge(openCase) : undefined}
+                // pipeline closes the modal itself if needed.
+                onPurge={isAdmin ? () => adminPipeline.requestPurge(openCase) : undefined}
               />
             </ErrorBoundary>
           );
@@ -552,18 +461,24 @@ function AppInner() {
         />
       )}
       <ConfirmDialog
-        open={!!pendingDelete}
-        title={pendingDelete ? `¿Eliminar "${pendingDelete.title}"?` : ""}
+        open={!!adminPipeline.pendingDelete}
+        title={
+          adminPipeline.pendingDelete ? `¿Eliminar "${adminPipeline.pendingDelete.title}"?` : ""
+        }
         message="El caso se mueve a la Papelera y puedes restaurarlo desde el panel admin."
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         destructive
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
+        onConfirm={adminPipeline.confirmDelete}
+        onCancel={adminPipeline.cancelDelete}
       />
       <ConfirmDialog
-        open={!!pendingPurge}
-        title={pendingPurge ? `¿Eliminar permanentemente "${pendingPurge.title}"?` : ""}
+        open={!!adminPipeline.pendingPurge}
+        title={
+          adminPipeline.pendingPurge
+            ? `¿Eliminar permanentemente "${adminPipeline.pendingPurge.title}"?`
+            : ""
+        }
         message={
           "Esto borra el caso y su archivo de media (imagen / video) de forma definitiva. " +
           "No aparece en la papelera ni se puede restaurar desde la app — la única forma de " +
@@ -572,8 +487,8 @@ function AppInner() {
         confirmLabel="Eliminar para siempre"
         cancelLabel="Cancelar"
         destructive
-        onConfirm={confirmPurge}
-        onCancel={cancelPurge}
+        onConfirm={adminPipeline.confirmPurge}
+        onCancel={adminPipeline.cancelPurge}
       />
       <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>
