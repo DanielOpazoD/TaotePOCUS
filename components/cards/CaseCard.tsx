@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import QuickReclassify from "./QuickReclassify";
+import FocusEditor from "./FocusEditor";
 import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
@@ -39,6 +40,14 @@ export default function CaseCard({
   onPatch,
   categories,
 }: Props) {
+  // Live-preview focus while the FocusEditor is open. Falls back to
+  // the persisted `caso.focus` when the editor is closed (or never
+  // opened). The CineLoop reads the resolved focus directly — no
+  // CSS injection, just a normal prop.
+  const [draftFocus, setDraftFocus] = useState<{ x: number; y: number; scale: number } | undefined>(
+    undefined,
+  );
+  const effectiveFocus = draftFocus ?? caso.focus;
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const isCrit = caso.tags.includes("Crítico");
   const [bursting, setBursting] = useState(false);
@@ -87,7 +96,14 @@ export default function CaseCard({
       }}
     >
       <div className="case-thumb">
-        <CineLoop kind={caso.loop} aspect="1/1" speed={0.8} showChrome={true} media={caso.media} />
+        <CineLoop
+          kind={caso.loop}
+          aspect="1/1"
+          speed={0.8}
+          showChrome={true}
+          media={caso.media}
+          focus={effectiveFocus}
+        />
         <div className="case-thumb-overlay"></div>
         <div className="case-thumb-preview">
           <p>{caso.findings.split(/\.\s+/)[0]}.</p>
@@ -138,6 +154,12 @@ export default function CaseCard({
         {onPatch && categories && (
           <QuickReclassify caso={caso} categories={categories} onPatch={onPatch} />
         )}
+        {/* Focal-point + zoom editor. Same admin gate as the
+            quick-reclassify popover (we use `onPatch` as the
+            "you can edit this case" signal). The editor lifts a
+            draft to local state via onDraftChange so the live
+            preview shows in this card without a global CSS hack. */}
+        {onPatch && <FocusEditor caso={caso} onPatch={onPatch} onDraftChange={setDraftFocus} />}
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
           onClick={onFavClick}

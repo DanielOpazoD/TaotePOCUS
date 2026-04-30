@@ -25,6 +25,17 @@ interface Props {
    * doesn't get cropped to a square.
    */
   preserveNativeAspect?: boolean;
+  /**
+   * Optional focal-point + zoom override. Applied as `object-position`
+   * (x/y as percentages) and `transform: scale()` on the underlying
+   * video/img. The wrapper itself stays at the caller-provided
+   * `aspect`, so the layout is unaffected — only the framing of the
+   * media inside the wrapper changes.
+   *
+   * `x` / `y` default to 50 (centered); `scale` defaults to 1 (no
+   * zoom). Has no effect on the synthetic-loop canvas renderer.
+   */
+  focus?: { x?: number; y?: number; scale?: number };
 }
 
 export default function CineLoop({
@@ -36,7 +47,23 @@ export default function CineLoop({
   media,
   quality = "thumb",
   preserveNativeAspect = false,
+  focus,
 }: Props) {
+  // Resolve focus values once. Defaults match the no-override case
+  // (centered, no zoom), so passing focus={undefined} is identical to
+  // not passing it.
+  const focusX = focus?.x ?? 50;
+  const focusY = focus?.y ?? 50;
+  const focusScale = focus?.scale ?? 1;
+  // Style applied inline to <video>/<img>. Object-position handles the
+  // pan; the transform scales the element relative to its center,
+  // which over an `object-fit: cover` parent acts like a zoom in/out
+  // without resizing the wrapper. We omit the transform when scale
+  // is 1 to avoid creating a useless compositing layer.
+  const mediaStyle: React.CSSProperties = {
+    objectPosition: `${focusX}% ${focusY}%`,
+    ...(focusScale !== 1 ? { transform: `scale(${focusScale})` } : {}),
+  };
   // Native aspect ratio of the loaded media, captured after the video
   // emits `loadedmetadata` or the image emits `load`. Stays null until
   // the browser decodes the file — until then we render with the
@@ -161,6 +188,7 @@ export default function CineLoop({
             muted
             playsInline
             className="cine-video"
+            style={mediaStyle}
             onLoadedMetadata={(e) => {
               const v = e.currentTarget;
               v.playbackRate = speed;
@@ -180,6 +208,7 @@ export default function CineLoop({
         <img
           src={media.src}
           className="cine-video"
+          style={mediaStyle}
           alt=""
           onLoad={(e) => {
             const im = e.currentTarget;

@@ -892,6 +892,140 @@
   text-align: center;
   flex: 0 0 12px;
 }
+
+/* ─── Focus editor (admin) ───────────────────────────────────
+ * Sits to the right of the quick-reclassify chip on each thumbnail.
+ * The trigger is a small ⚙ pill; clicking opens an inline panel
+ * with arrow-pad pan controls, +/- zoom, and Save/Cancel/Reset.
+ *
+ * The container card cell stays the same size; the editor only
+ * reframes what's visible inside via object-position + scale on
+ * the underlying video/img element (handled by CineLoop).
+ */
+.focus-editor {
+  position: absolute;
+  top: 10px;
+  left: 106px;
+  z-index: 5;
+}
+.focus-editor-trigger {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    transform var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.focus-editor-trigger:hover,
+.focus-editor-trigger[aria-expanded="true"] {
+  color: var(--ink);
+  border-color: var(--ink-mute);
+  transform: scale(1.1);
+}
+.focus-editor-panel {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  min-width: 220px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+  animation: quick-reclassify-pop 0.12s var(--ease-standard);
+}
+.focus-editor-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.focus-editor-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  width: 56px;
+  flex: 0 0 56px;
+}
+/* 3×3 d-pad layout with the centerpiece in the middle column.
+   Five buttons total: up, left, center, right, down. */
+.focus-editor-pad {
+  display: grid;
+  grid-template-columns: repeat(5, 28px);
+  gap: 2px;
+}
+.focus-editor-pad button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.focus-editor-pad button:hover {
+  background: var(--surface-2);
+  border-color: var(--ink-mute);
+}
+.focus-editor-zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.focus-editor-zoom button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+.focus-editor-zoom button:hover {
+  background: var(--surface-2);
+  border-color: var(--ink-mute);
+}
+.focus-editor-zoom-value {
+  min-width: 48px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+}
+.focus-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 8px;
+}
+.focus-editor-actions button {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.focus-editor-reset {
+  margin-right: auto;
+}
 @keyframes crit-pulse {
   0%,
   70%,

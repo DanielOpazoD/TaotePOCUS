@@ -138,6 +138,26 @@ export interface CaseRecord {
    * The only recovery is a backup JSON imported from before the purge.
    */
   purged?: boolean;
+  /**
+   * Optional thumbnail focal-point + zoom. Lets the admin reframe what
+   * shows inside the fixed grid cell without changing the cell itself
+   * — useful when the imported Twitter media has off-center subjects
+   * or letterboxed frames.
+   *
+   *   - `x` / `y`: 0–100, percentages applied via `object-position`.
+   *     Default 50/50 (centered).
+   *   - `scale`: multiplier applied via `transform: scale(...)`. Range
+   *     0.5–3, default 1. Below 1 leaves margin around the image
+   *     inside the cell; above 1 crops in (zoom).
+   *
+   * All three are optional; omitting any leaves the default. The
+   * external container (the grid cell, the modal pane) is not touched.
+   */
+  focus?: {
+    x?: number;
+    y?: number;
+    scale?: number;
+  };
 }
 
 export interface User {

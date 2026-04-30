@@ -604,6 +604,16 @@ export const cases = {
   purge: (id: string, current: CaseRecord[]) => _cases.purge(id, current),
   // Per-case overrides — see `_cases.setOverride` for the rationale.
   listOverrides: () => _cases.listOverrides(),
+  /**
+   * Synchronous override read for first-render hydration. Always
+   * goes through `Store` (localStorage) — the DB-first path is async
+   * and would re-introduce the count flicker the override pattern
+   * was meant to hide. Hooks can use this in the lazy-initialState
+   * form of `useState` so the initial paint already reflects deletes
+   * / purges / reclassifications. The async `listOverrides()` runs
+   * after mount and refines if the DB has fresher state.
+   */
+  listOverridesCached: (): Record<string, Partial<CaseRecord>> => Store.getCaseOverrides(),
   setOverride: (id: string, patch: Partial<CaseRecord>) => _cases.setOverride(id, patch),
   clearOverride: (id: string) => _cases.clearOverride(id),
   /**

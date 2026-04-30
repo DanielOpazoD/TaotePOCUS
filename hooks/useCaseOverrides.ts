@@ -30,12 +30,36 @@ import type { CaseRecord } from "@/lib/types";
  *   - `hydrated`: false until the initial localStorage read resolves.
  */
 export function useCaseOverrides() {
-  const [overrides, setOverrides] = useState<Record<string, Partial<CaseRecord>>>({});
-  const [hydrated, setHydrated] = useState(false);
+  // Initialize synchronously from localStorage so the very first
+  // render already reflects deletions / purges / reclassifications.
+  // Without this, the catalog would render with the raw seed
+  // (showing deleted cases for one tick) and only snap to the
+  // post-override count after the async hydration below — a visible
+  // flicker the user noticed once the override map started
+  // containing `purged` and `deletedAt` tombstones.
+  //
+  // The reader is a function (lazy initial state) so it only runs on
+  // first mount, not on every render. SSR-safe: `Store.getCaseOverrides`
+  // returns `{}` when `window` isn't available.
+  const [overrides, setOverrides] = useState<Record<string, Partial<CaseRecord>>>(() => {
+    try {
+      return repo.cases.listOverridesCached();
+    } catch {
+      return {};
+    }
+  });
+  // We treat the synchronous read as "hydrated enough" for the UI —
+  // the async path below only matters when the DB has fresher state
+  // than localStorage (Stage 3+). It refines but doesn't gate.
+  const [hydrated, setHydrated] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      // Stage 3 path: when DB is enabled, this fetches the canonical
+      // state from Postgres and refreshes the cache. When the local
+      // backend is in use, this just returns the same data we already
+      // have synchronously — no flicker, no extra render.
       const map = await repo.cases.listOverrides();
       if (!cancelled) {
         setOverrides(map);
