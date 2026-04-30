@@ -31,7 +31,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "image",
-      src: "/imports/1384957343272689668.jpg",
+      src: "/api/media/1384957343272689668.jpg",
     },
   },
   // [557 eng]  https://x.com/TaotePOCUS/status/1588897248381128705
@@ -52,7 +52,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "image",
-      src: "/imports/1588897248381128705.jpg",
+      src: "/api/media/1588897248381128705.jpg",
     },
   },
   // [466 eng]  https://x.com/TaotePOCUS/status/1503482531773046785
@@ -73,7 +73,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "gif",
-      src: "/imports/1503482531773046785.mp4",
+      src: "/api/media/1503482531773046785.mp4",
     },
   },
   // [459 eng]  https://x.com/TaotePOCUS/status/1435042108797341701
@@ -95,7 +95,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "gif",
-      src: "/imports/1435042108797341701.mp4",
+      src: "/api/media/1435042108797341701.mp4",
     },
   },
   // [408 eng]  https://x.com/TaotePOCUS/status/1391242596152922113
@@ -116,7 +116,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "image",
-      src: "/imports/1391242596152922113.jpg",
+      src: "/api/media/1391242596152922113.jpg",
     },
   },
   // [381 eng]  https://x.com/TaotePOCUS/status/1512886004327325696
@@ -138,7 +138,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "gif",
-      src: "/imports/1512886004327325696.mp4",
+      src: "/api/media/1512886004327325696.mp4",
     },
   },
   // [329 eng]  https://x.com/TaotePOCUS/status/1575152541129527296
@@ -159,7 +159,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "image",
-      src: "/imports/1575152541129527296.jpg",
+      src: "/api/media/1575152541129527296.jpg",
     },
   },
   // [276 eng]  https://x.com/TaotePOCUS/status/1364981565542047744
@@ -182,7 +182,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "gif",
-      src: "/imports/1364981565542047744.mp4",
+      src: "/api/media/1364981565542047744.mp4",
     },
   },
   // [261 eng]  https://x.com/TaotePOCUS/status/1411763765054427136
@@ -203,7 +203,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "gif",
-      src: "/imports/1411763765054427136.mp4",
+      src: "/api/media/1411763765054427136.mp4",
     },
   },
   // [251 eng]  https://x.com/TaotePOCUS/status/1447995907203649537
@@ -224,7 +224,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     featured: true,
     media: {
       kind: "gif",
-      src: "/imports/1447995907203649537.mp4",
+      src: "/api/media/1447995907203649537.mp4",
     },
   },
   // [231 eng]  https://x.com/TaotePOCUS/status/1451609510347513859
@@ -244,7 +244,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Empiema pleural.",
     media: {
       kind: "gif",
-      src: "/imports/1451609510347513859.mp4",
+      src: "/api/media/1451609510347513859.mp4",
     },
   },
   // [216 eng]  https://x.com/TaotePOCUS/status/1588526749918195712
@@ -264,7 +264,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Aproximación inicial.",
     media: {
       kind: "image",
-      src: "/imports/1588526749918195712.jpg",
+      src: "/api/media/1588526749918195712.jpg",
     },
   },
   // [216 eng]  https://x.com/TaotePOCUS/status/1451169012591759363
@@ -284,7 +284,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Ecografía clínica NEJM review.",
     media: {
       kind: "image",
-      src: "/imports/1451169012591759363.jpg",
+      src: "/api/media/1451169012591759363.jpg",
     },
   },
   // [213 eng]  https://x.com/TaotePOCUS/status/1441827356000333824
@@ -305,7 +305,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo Apendicitis.",
     media: {
       kind: "gif",
-      src: "/imports/1441827356000333824.mp4",
+      src: "/api/media/1441827356000333824.mp4",
     },
   },
   // [205 eng]  https://x.com/TaotePOCUS/status/1400587174194647041
@@ -325,7 +325,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Líneas B patrones en pulmonar DOI: 10.3949/ccjm.88a.20141.",
     media: {
       kind: "image",
-      src: "/imports/1400587174194647041.jpg",
+      src: "/api/media/1400587174194647041.jpg",
     },
   },
   // [200 eng]  https://x.com/TaotePOCUS/status/1423818531095842818
@@ -345,7 +345,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Desprendimiento de retina.",
     media: {
       kind: "gif",
-      src: "/imports/1423818531095842818.mp4",
+      src: "/api/media/1423818531095842818.mp4",
     },
   },
   // [198 eng]  https://x.com/TaotePOCUS/status/1390908611967193088
@@ -367,7 +367,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "tos seca + fiebre Normal Probe on right axilla (Long & trans) Bacterial Neumonía A profile Alveolar Consolidation Normal) + Air Bronchogram.",
     media: {
       kind: "gif",
-      src: "/imports/1390908611967193088.mp4",
+      src: "/api/media/1390908611967193088.mp4",
     },
   },
   // [195 eng]  https://x.com/TaotePOCUS/status/1435408238997016579
@@ -387,7 +387,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hipertensión pulmonar severa.",
     media: {
       kind: "gif",
-      src: "/imports/1435408238997016579.mp4",
+      src: "/api/media/1435408238997016579.mp4",
     },
   },
   // [193 eng]  https://x.com/TaotePOCUS/status/1594356219107573761
@@ -407,7 +407,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Insuficiencia cardíaca caso con Severo Congestión venosa.",
     media: {
       kind: "video",
-      src: "/imports/1594356219107573761.mp4",
+      src: "/api/media/1594356219107573761.mp4",
     },
   },
   // [178 eng]  https://x.com/TaotePOCUS/status/1648749003121516546
@@ -427,7 +427,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Colecistitis aguda alitiásica.",
     media: {
       kind: "video",
-      src: "/imports/1648749003121516546.mp4",
+      src: "/api/media/1648749003121516546.mp4",
     },
   },
   // [178 eng]  https://x.com/TaotePOCUS/status/1427015971315781633
@@ -447,7 +447,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Pulmonary infarction 2• to PE.",
     media: {
       kind: "gif",
-      src: "/imports/1427015971315781633.mp4",
+      src: "/api/media/1427015971315781633.mp4",
     },
   },
   // [175 eng]  https://x.com/TaotePOCUS/status/1432487654680055810
@@ -468,7 +468,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo Colecistitis w/ pericholecystic abscess.",
     media: {
       kind: "gif",
-      src: "/imports/1432487654680055810.mp4",
+      src: "/api/media/1432487654680055810.mp4",
     },
   },
   // [174 eng]  https://x.com/TaotePOCUS/status/1551969312709087233
@@ -488,7 +488,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "VExUS 3 ≠ furosemida.",
     media: {
       kind: "image",
-      src: "/imports/1551969312709087233.jpg",
+      src: "/api/media/1551969312709087233.jpg",
     },
   },
   // [165 eng]  https://x.com/TaotePOCUS/status/1450581902625226761
@@ -510,7 +510,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "> Dolor abdominal Vesícula wall thickening Multiple (shadow artifact) +) Murphy Agudo Colecistitis.",
     media: {
       kind: "gif",
-      src: "/imports/1450581902625226761.mp4",
+      src: "/api/media/1450581902625226761.mp4",
     },
   },
   // [164 eng]  https://x.com/TaotePOCUS/status/1467637736802861062
@@ -531,7 +531,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo chest pain + respiratory distress + tachycardia.",
     media: {
       kind: "gif",
-      src: "/imports/1467637736802861062.mp4",
+      src: "/api/media/1467637736802861062.mp4",
     },
   },
   // [162 eng]  https://x.com/TaotePOCUS/status/1379512336206159879
@@ -551,7 +551,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "PI < 30% Normal.",
     media: {
       kind: "gif",
-      src: "/imports/1379512336206159879.mp4",
+      src: "/api/media/1379512336206159879.mp4",
     },
   },
   // [162 eng]  https://x.com/TaotePOCUS/status/1354269183555600384
@@ -573,7 +573,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Contest | Let’s play a little game! REWARD : Popular Lung US course ( via storage) DRAW (in 5d) among participants who Answer the caso (in…",
     media: {
       kind: "gif",
-      src: "/imports/1354269183555600384.mp4",
+      src: "/api/media/1354269183555600384.mp4",
     },
   },
   // [157 eng]  https://x.com/TaotePOCUS/status/1360731978937556999
@@ -594,7 +594,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Estimate LV systolic function.",
     media: {
       kind: "image",
-      src: "/imports/1360731978937556999.jpg",
+      src: "/api/media/1360731978937556999.jpg",
     },
   },
   // [156 eng]  https://x.com/TaotePOCUS/status/1560424553557393414
@@ -614,7 +614,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Static air bronchogram in a patient con confirmed atelectasia.",
     media: {
       kind: "gif",
-      src: "/imports/1560424553557393414.mp4",
+      src: "/api/media/1560424553557393414.mp4",
     },
   },
   // [154 eng]  https://x.com/TaotePOCUS/status/1544080533793083392
@@ -636,7 +636,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "SOB > 3 weeks Hemoptysis + murmur + edema @kosmosplatform B profile + Bilateral effusion Mild ascitis IVC > 2 cm.",
     media: {
       kind: "image",
-      src: "/imports/1544080533793083392.jpg",
+      src: "/api/media/1544080533793083392.jpg",
     },
   },
   // [154 eng]  https://x.com/TaotePOCUS/status/1426301294831149068
@@ -656,7 +656,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "R base.",
     media: {
       kind: "gif",
-      src: "/imports/1426301294831149068.mp4",
+      src: "/api/media/1426301294831149068.mp4",
     },
   },
   // [151 eng]  https://x.com/TaotePOCUS/status/1458276400213991425
@@ -678,7 +678,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Chest pain <1 h pain ECG Biphasic T wave V2-V4 (Type A WS) Septal WMA Cx: Proximal critical LAD stenosis Wellens Syndrome.",
     media: {
       kind: "gif",
-      src: "/imports/1458276400213991425.mp4",
+      src: "/api/media/1458276400213991425.mp4",
     },
   },
   // [150 eng]  https://x.com/TaotePOCUS/status/1378797632240414723
@@ -699,7 +699,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "HFrEF, AF, PM user 1W SOB, orthopnea.",
     media: {
       kind: "gif",
-      src: "/imports/1378797632240414723.mp4",
+      src: "/api/media/1378797632240414723.mp4",
     },
   },
   // [149 eng]  https://x.com/TaotePOCUS/status/1409229482272112643
@@ -720,7 +720,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "> 5y ago Dx con AAA ~ 4 cm.",
     media: {
       kind: "gif",
-      src: "/imports/1409229482272112643.mp4",
+      src: "/api/media/1409229482272112643.mp4",
     },
   },
   // [149 eng]  https://x.com/TaotePOCUS/status/1357027351566106625
@@ -741,7 +741,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "50yHTN.",
     media: {
       kind: "gif",
-      src: "/imports/1357027351566106625.mp4",
+      src: "/api/media/1357027351566106625.mp4",
     },
   },
   // [144 eng]  https://x.com/TaotePOCUS/status/1386766517552009217
@@ -763,7 +763,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Afib con Preexcitation A licence to Kill Irregular Wide Tachycardia (IWT) AV nodal BB, Adenosine, CBC, Dig, Amio = Risk FV ECV,…",
     media: {
       kind: "image",
-      src: "/imports/1386766517552009217.jpg",
+      src: "/api/media/1386766517552009217.jpg",
     },
   },
   // [143 eng]  https://x.com/TaotePOCUS/status/1422632248591912967
@@ -783,7 +783,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Bacterial Neumonía Non translobar alveolar consolidation con air bronchogram.",
     media: {
       kind: "gif",
-      src: "/imports/1422632248591912967.mp4",
+      src: "/api/media/1422632248591912967.mp4",
     },
   },
   // [143 eng]  https://x.com/TaotePOCUS/status/1346901214101958661
@@ -804,7 +804,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Middle age .",
     media: {
       kind: "video",
-      src: "/imports/1346901214101958661.mp4",
+      src: "/api/media/1346901214101958661.mp4",
     },
   },
   // [134 eng]  https://x.com/TaotePOCUS/status/1351168003455516676
@@ -826,7 +826,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". HTN. T2D. CKD. Peritoneal dialysis. Irregular adherence Agudo dyspnea. BP 220/100 RR 30. SpO2 84% Diffuse Bilateral Líneas B Small…",
     media: {
       kind: "gif",
-      src: "/imports/1351168003455516676.mp4",
+      src: "/api/media/1351168003455516676.mp4",
     },
   },
   // [133 eng]  https://x.com/TaotePOCUS/status/1550611179852050432
@@ -846,7 +846,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Right side Endocarditis complicating CVC-BSI.",
     media: {
       kind: "gif",
-      src: "/imports/1550611179852050432.mp4",
+      src: "/api/media/1550611179852050432.mp4",
     },
   },
   // [133 eng]  https://x.com/TaotePOCUS/status/1422713775174598657
@@ -867,7 +867,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Multiorgan POCUS evaluación caso: Advanced HF 50s .",
     media: {
       kind: "gif",
-      src: "/imports/1422713775174598657.mp4",
+      src: "/api/media/1422713775174598657.mp4",
     },
   },
   // [132 eng]  https://x.com/TaotePOCUS/status/1609635280687865857
@@ -887,7 +887,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Blue color in portal vein doppler, never a good sign.",
     media: {
       kind: "gif",
-      src: "/imports/1609635280687865857.mp4",
+      src: "/api/media/1609635280687865857.mp4",
     },
   },
   // [132 eng]  https://x.com/TaotePOCUS/status/1608892018629152768
@@ -908,7 +908,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Right Tumor suprarrenal.",
     media: {
       kind: "gif",
-      src: "/imports/1608892018629152768.mp4",
+      src: "/api/media/1608892018629152768.mp4",
     },
   },
   // [131 eng]  https://x.com/TaotePOCUS/status/1457933751766421505
@@ -928,7 +928,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Neumonía Right lower lobe consolidation Dynamic air bronchogram.",
     media: {
       kind: "gif",
-      src: "/imports/1457933751766421505.mp4",
+      src: "/api/media/1457933751766421505.mp4",
     },
   },
   // [130 eng]  https://x.com/TaotePOCUS/status/1669437834753712128
@@ -948,7 +948,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Caso POCUS.",
     media: {
       kind: "video",
-      src: "/imports/1669437834753712128.mp4",
+      src: "/api/media/1669437834753712128.mp4",
     },
   },
   // [129 eng]  https://x.com/TaotePOCUS/status/1412524263630946310
@@ -968,7 +968,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Qualitative US evaluación of JVP High CVP Low CVP.",
     media: {
       kind: "gif",
-      src: "/imports/1412524263630946310.mp4",
+      src: "/api/media/1412524263630946310.mp4",
     },
   },
   // [127 eng]  https://x.com/TaotePOCUS/status/1418762440221790210
@@ -989,7 +989,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Gastric Ca in domiciliary PC New dyspnea & hypoxemia HR 105.",
     media: {
       kind: "gif",
-      src: "/imports/1418762440221790210.mp4",
+      src: "/api/media/1418762440221790210.mp4",
     },
   },
   // [127 eng]  https://x.com/TaotePOCUS/status/1373843654998118400
@@ -1009,7 +1009,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Shortness of Breath Algorithm.",
     media: {
       kind: "image",
-      src: "/imports/1373843654998118400.jpg",
+      src: "/api/media/1373843654998118400.jpg",
     },
   },
   // [126 eng]  https://x.com/TaotePOCUS/status/1357790136537341953
@@ -1030,7 +1030,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Apendicitis | US findings | A.",
     media: {
       kind: "image",
-      src: "/imports/1357790136537341953.jpg",
+      src: "/api/media/1357790136537341953.jpg",
     },
   },
   // [125 eng]  https://x.com/TaotePOCUS/status/1460700066201669638
@@ -1050,7 +1050,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Septic Knee Arthritis.",
     media: {
       kind: "gif",
-      src: "/imports/1460700066201669638.mp4",
+      src: "/api/media/1460700066201669638.mp4",
     },
   },
   // [122 eng]  https://x.com/TaotePOCUS/status/1702746929325629677
@@ -1070,7 +1070,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Taponamiento cardíaco after pacemaker insertion.",
     media: {
       kind: "image",
-      src: "/imports/1702746929325629677.jpg",
+      src: "/api/media/1702746929325629677.jpg",
     },
   },
   // [122 eng]  https://x.com/TaotePOCUS/status/1577055703432564736
@@ -1090,7 +1090,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo thrombotic occlusion of the common carotid artery.",
     media: {
       kind: "gif",
-      src: "/imports/1577055703432564736.mp4",
+      src: "/api/media/1577055703432564736.mp4",
     },
   },
   // [120 eng]  https://x.com/TaotePOCUS/status/1665371447315820545
@@ -1111,7 +1111,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Mitral Valve Endocarditis.",
     media: {
       kind: "video",
-      src: "/imports/1665371447315820545.mp4",
+      src: "/api/media/1665371447315820545.mp4",
     },
   },
   // [120 eng]  https://x.com/TaotePOCUS/status/1436467412740841528
@@ -1132,7 +1132,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hypothyroid Miocardiopathy !?.",
     media: {
       kind: "image",
-      src: "/imports/1436467412740841528.jpg",
+      src: "/api/media/1436467412740841528.jpg",
     },
   },
   // [119 eng]  https://x.com/TaotePOCUS/status/1433915514439544832
@@ -1154,7 +1154,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Insuficiencia cardíaca left posterior mid-level Derrame pleural !? Nope, this’s the Descending Aorta.",
     media: {
       kind: "gif",
-      src: "/imports/1433915514439544832.mp4",
+      src: "/api/media/1433915514439544832.mp4",
     },
   },
   // [118 eng]  https://x.com/TaotePOCUS/status/1640841777027379200
@@ -1174,7 +1174,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Popliteal DVT + Tromboembolismo pulmonar.",
     media: {
       kind: "image",
-      src: "/imports/1640841777027379200.jpg",
+      src: "/api/media/1640841777027379200.jpg",
     },
   },
   // [116 eng]  https://x.com/TaotePOCUS/status/1349733118857539586
@@ -1194,7 +1194,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Small Neumotórax.",
     media: {
       kind: "gif",
-      src: "/imports/1349733118857539586.mp4",
+      src: "/api/media/1349733118857539586.mp4",
     },
   },
   // [115 eng]  https://x.com/TaotePOCUS/status/1472257769528909825
@@ -1214,7 +1214,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Dolor abdominal & vómitos Obstrucción intestinal.",
     media: {
       kind: "gif",
-      src: "/imports/1472257769528909825.mp4",
+      src: "/api/media/1472257769528909825.mp4",
     },
   },
   // [114 eng]  https://x.com/TaotePOCUS/status/1469521784508723200
@@ -1235,7 +1235,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "PMH Left TKR(> 5y) + left DVT.",
     media: {
       kind: "gif",
-      src: "/imports/1469521784508723200.mp4",
+      src: "/api/media/1469521784508723200.mp4",
     },
   },
   // [113 eng]  https://x.com/TaotePOCUS/status/1368959356465713153
@@ -1255,7 +1255,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Normal Venous Doppler tracing.",
     media: {
       kind: "image",
-      src: "/imports/1368959356465713153.jpg",
+      src: "/api/media/1368959356465713153.jpg",
     },
   },
   // [112 eng]  https://x.com/TaotePOCUS/status/1453855715173576707
@@ -1275,7 +1275,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Rheumatic Severo Mitral Stenosis.",
     media: {
       kind: "gif",
-      src: "/imports/1453855715173576707.mp4",
+      src: "/api/media/1453855715173576707.mp4",
     },
   },
   // [111 eng]  https://x.com/TaotePOCUS/status/1476693102794522625
@@ -1296,7 +1296,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Desprendimiento de retina.",
     media: {
       kind: "gif",
-      src: "/imports/1476693102794522625.mp4",
+      src: "/api/media/1476693102794522625.mp4",
     },
   },
   // [110 eng]  https://x.com/TaotePOCUS/status/1553752247468625921
@@ -1316,7 +1316,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Derrame pericárdico v/s Derrame pleural in PLAX view.",
     media: {
       kind: "gif",
-      src: "/imports/1553752247468625921.mp4",
+      src: "/api/media/1553752247468625921.mp4",
     },
   },
   // [110 eng]  https://x.com/TaotePOCUS/status/1425882263825301504
@@ -1337,7 +1337,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Right Dolor abdominal + fiebre.",
     media: {
       kind: "gif",
-      src: "/imports/1425882263825301504.mp4",
+      src: "/api/media/1425882263825301504.mp4",
     },
   },
   // [108 eng]  https://x.com/TaotePOCUS/status/1583567971988873216
@@ -1358,7 +1358,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Cardiorenal Syndrome.",
     media: {
       kind: "gif",
-      src: "/imports/1583567971988873216.mp4",
+      src: "/api/media/1583567971988873216.mp4",
     },
   },
   // [107 eng]  https://x.com/TaotePOCUS/status/1443055239368781830
@@ -1378,7 +1378,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Atrial Flutter.",
     media: {
       kind: "gif",
-      src: "/imports/1443055239368781830.mp4",
+      src: "/api/media/1443055239368781830.mp4",
     },
   },
   // [106 eng]  https://x.com/TaotePOCUS/status/1470938021713395714
@@ -1398,7 +1398,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "LV apical thrombus after Agudo MI.",
     media: {
       kind: "gif",
-      src: "/imports/1470938021713395714.mp4",
+      src: "/api/media/1470938021713395714.mp4",
     },
   },
   // [106 eng]  https://x.com/TaotePOCUS/status/1434576971036569603
@@ -1418,7 +1418,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Bladder Stones.",
     media: {
       kind: "gif",
-      src: "/imports/1434576971036569603.mp4",
+      src: "/api/media/1434576971036569603.mp4",
     },
   },
   // [106 eng]  https://x.com/TaotePOCUS/status/1385408397487579143
@@ -1439,7 +1439,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "55 y .",
     media: {
       kind: "image",
-      src: "/imports/1385408397487579143.jpg",
+      src: "/api/media/1385408397487579143.jpg",
     },
   },
   // [102 eng]  https://x.com/TaotePOCUS/status/1646519699507904516
@@ -1459,7 +1459,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural + apical LV thrombus.",
     media: {
       kind: "video",
-      src: "/imports/1646519699507904516.mp4",
+      src: "/api/media/1646519699507904516.mp4",
     },
   },
   // [102 eng]  https://x.com/TaotePOCUS/status/1488919254720290817
@@ -1481,7 +1481,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Emergency Ultrasound made -wrong “Euvolemic” CVP 10-15 CVP it’s not accurate parameter of volume status neither fluid responsiveness!.",
     media: {
       kind: "image",
-      src: "/imports/1488919254720290817.jpg",
+      src: "/api/media/1488919254720290817.jpg",
     },
   },
   // [102 eng]  https://x.com/TaotePOCUS/status/1437111670447484931
@@ -1501,7 +1501,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Lnternal jugular vein thrombosis.",
     media: {
       kind: "gif",
-      src: "/imports/1437111670447484931.mp4",
+      src: "/api/media/1437111670447484931.mp4",
     },
   },
   // [101 eng]  https://x.com/TaotePOCUS/status/1430554358798761987
@@ -1521,7 +1521,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "vómitos + Dolor abdominal Obstrucción intestinal.",
     media: {
       kind: "gif",
-      src: "/imports/1430554358798761987.mp4",
+      src: "/api/media/1430554358798761987.mp4",
     },
   },
   // [101 eng]  https://x.com/TaotePOCUS/status/1429970265644146690
@@ -1541,7 +1541,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Beauty of Enhanced Physical Exam.",
     media: {
       kind: "gif",
-      src: "/imports/1429970265644146690.mp4",
+      src: "/api/media/1429970265644146690.mp4",
     },
   },
   // [101 eng]  https://x.com/TaotePOCUS/status/1414353184806539264
@@ -1562,7 +1562,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Fell RUQ Dolor abdominal.",
     media: {
       kind: "gif",
-      src: "/imports/1414353184806539264.mp4",
+      src: "/api/media/1414353184806539264.mp4",
     },
   },
   // [100 eng]  https://x.com/TaotePOCUS/status/1586733338362101761
@@ -1583,7 +1583,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Incipient Tamponade.",
     media: {
       kind: "video",
-      src: "/imports/1586733338362101761.mp4",
+      src: "/api/media/1586733338362101761.mp4",
     },
   },
   // [99 eng]  https://x.com/TaotePOCUS/status/1393385914504818693
@@ -1605,7 +1605,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Weight loss + new tos seca CT scan: Left mass w/ lymphangitic carcinomatosis, multiple bilat lung nodules & left adrenal mass Advanced Lung…",
     media: {
       kind: "gif",
-      src: "/imports/1393385914504818693.mp4",
+      src: "/api/media/1393385914504818693.mp4",
     },
   },
   // [96 eng]  https://x.com/TaotePOCUS/status/1757517909146956030
@@ -1627,7 +1627,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Insuficiencia cardíaca - IHD @ButterflyNetInc Severo LV dysfunction Dilated IVC Derrame pleural Pulsatile portal doppler HV: S < D Cheyne…",
     media: {
       kind: "video",
-      src: "/imports/1757517909146956030.mp4",
+      src: "/api/media/1757517909146956030.mp4",
     },
   },
   // [96 eng]  https://x.com/TaotePOCUS/status/1678887384006393856
@@ -1647,7 +1647,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Pulmonary Infarction due to PE.",
     media: {
       kind: "video",
-      src: "/imports/1678887384006393856.mp4",
+      src: "/api/media/1678887384006393856.mp4",
     },
   },
   // [96 eng]  https://x.com/TaotePOCUS/status/1585718001877147648
@@ -1668,7 +1668,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Tuberculous Empyema.",
     media: {
       kind: "gif",
-      src: "/imports/1585718001877147648.mp4",
+      src: "/api/media/1585718001877147648.mp4",
     },
   },
   // [96 eng]  https://x.com/TaotePOCUS/status/1353395686306426880
@@ -1690,7 +1690,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". Gout. Recent Knee monoarthritis 5d SOB, cough, pleuritic CP. HR 110. SpO2 90%. 110/70 Rconsolidation (infarction) RV strain comp L…",
     media: {
       kind: "gif",
-      src: "/imports/1353395686306426880.mp4",
+      src: "/api/media/1353395686306426880.mp4",
     },
   },
   // [95 eng]  https://x.com/TaotePOCUS/status/1509228040529842183
@@ -1710,7 +1710,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Knee Septic Arthritis.",
     media: {
       kind: "gif",
-      src: "/imports/1509228040529842183.mp4",
+      src: "/api/media/1509228040529842183.mp4",
     },
   },
   // [95 eng]  https://x.com/TaotePOCUS/status/1350052530995286021
@@ -1732,7 +1732,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". COPD gold D. O2 user. Dementia. Dependency. Cachexia New for Neumonía. Bad evolution Empiema pleural 1/2).",
     media: {
       kind: "gif",
-      src: "/imports/1350052530995286021.mp4",
+      src: "/api/media/1350052530995286021.mp4",
     },
   },
   // [93 eng]  https://x.com/TaotePOCUS/status/1545900322064850945
@@ -1753,7 +1753,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Cardiogenic Shock.",
     media: {
       kind: "gif",
-      src: "/imports/1545900322064850945.mp4",
+      src: "/api/media/1545900322064850945.mp4",
     },
   },
   // [93 eng]  https://x.com/TaotePOCUS/status/1399126784759771152
@@ -1773,7 +1773,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "█▓▒░░ ░░▒▓█ Air Bronchograms Aerobilia.",
     media: {
       kind: "gif",
-      src: "/imports/1399126784759771152.mp4",
+      src: "/api/media/1399126784759771152.mp4",
     },
   },
   // [93 eng]  https://x.com/TaotePOCUS/status/1387572077411061762
@@ -1793,7 +1793,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo Neumonía Translobar consolidation con dynamic air bronchogram.",
     media: {
       kind: "gif",
-      src: "/imports/1387572077411061762.mp4",
+      src: "/api/media/1387572077411061762.mp4",
     },
   },
   // [92 eng]  https://x.com/TaotePOCUS/status/1478117038283395072
@@ -1813,7 +1813,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "PSAX view: Pulmonary Artery.",
     media: {
       kind: "gif",
-      src: "/imports/1478117038283395072.mp4",
+      src: "/api/media/1478117038283395072.mp4",
     },
   },
   // [92 eng]  https://x.com/TaotePOCUS/status/1418276711402192902
@@ -1834,7 +1834,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "24 h w/ Dolor abdominal after eating .",
     media: {
       kind: "gif",
-      src: "/imports/1418276711402192902.mp4",
+      src: "/api/media/1418276711402192902.mp4",
     },
   },
   // [91 eng]  https://x.com/TaotePOCUS/status/1611766429371580418
@@ -1854,7 +1854,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Right Popliteal DVT.",
     media: {
       kind: "gif",
-      src: "/imports/1611766429371580418.mp4",
+      src: "/api/media/1611766429371580418.mp4",
     },
   },
   // [90 eng]  https://x.com/TaotePOCUS/status/1513249368194924552
@@ -1875,7 +1875,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Rectus sheath hematoma.",
     media: {
       kind: "gif",
-      src: "/imports/1513249368194924552.mp4",
+      src: "/api/media/1513249368194924552.mp4",
     },
   },
   // [90 eng]  https://x.com/TaotePOCUS/status/1462927255806660615
@@ -1897,7 +1897,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Post (5d) LP cholecystectomy Dolor abdominal + distension Perihepatic, periesplenic & pelvic Líquido libre Biliperitoneum 2° to Cystic duct…",
     media: {
       kind: "gif",
-      src: "/imports/1462927255806660615.mp4",
+      src: "/api/media/1462927255806660615.mp4",
     },
   },
   // [90 eng]  https://x.com/TaotePOCUS/status/1453359769327226888
@@ -1919,7 +1919,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Increased response to warfarin in decompensated Insuficiencia cardíaca Hepatic congestion Hepatic dysfunction Synthesis of VKCF Warfarin…",
     media: {
       kind: "gif",
-      src: "/imports/1453359769327226888.mp4",
+      src: "/api/media/1453359769327226888.mp4",
     },
   },
   // [90 eng]  https://x.com/TaotePOCUS/status/1383533619424030720
@@ -1941,7 +1941,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". 1 week w/ cough 48h before ” Bronchitis” consult SpO2 96% RR 17 Right ant “Bronchial Breath” Large alveolar consolidation + air…",
     media: {
       kind: "gif",
-      src: "/imports/1383533619424030720.mp4",
+      src: "/api/media/1383533619424030720.mp4",
     },
   },
   // [90 eng]  https://x.com/TaotePOCUS/status/1343288142435143681
@@ -1962,7 +1962,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hide & Seek caso .",
     media: {
       kind: "image",
-      src: "/imports/1343288142435143681.jpg",
+      src: "/api/media/1343288142435143681.jpg",
     },
   },
   // [89 eng]  https://x.com/TaotePOCUS/status/1578884878523068416
@@ -1982,7 +1982,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Insuficiencia cardíaca caso.",
     media: {
       kind: "image",
-      src: "/imports/1578884878523068416.jpg",
+      src: "/api/media/1578884878523068416.jpg",
     },
   },
   // [89 eng]  https://x.com/TaotePOCUS/status/1413705689122357248
@@ -2002,7 +2002,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Thigh pain Rectus Femoris muscle tear Contralateral Injured.",
     media: {
       kind: "gif",
-      src: "/imports/1413705689122357248.mp4",
+      src: "/api/media/1413705689122357248.mp4",
     },
   },
   // [88 eng]  https://x.com/TaotePOCUS/status/1648424081010876417
@@ -2023,7 +2023,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Tromboembolismo pulmonar + Popliteal DVT.",
     media: {
       kind: "video",
-      src: "/imports/1648424081010876417.mp4",
+      src: "/api/media/1648424081010876417.mp4",
     },
   },
   // [88 eng]  https://x.com/TaotePOCUS/status/1607373641528012801
@@ -2043,7 +2043,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo Mitral Stenosis w/ severe Congestión venosa.",
     media: {
       kind: "gif",
-      src: "/imports/1607373641528012801.mp4",
+      src: "/api/media/1607373641528012801.mp4",
     },
   },
   // [88 eng]  https://x.com/TaotePOCUS/status/1500941693138444295
@@ -2063,7 +2063,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hepatic Abscesses.",
     media: {
       kind: "gif",
-      src: "/imports/1500941693138444295.mp4",
+      src: "/api/media/1500941693138444295.mp4",
     },
   },
   // [88 eng]  https://x.com/TaotePOCUS/status/1383894120335241216
@@ -2083,7 +2083,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "HTN.",
     media: {
       kind: "video",
-      src: "/imports/1383894120335241216.mp4",
+      src: "/api/media/1383894120335241216.mp4",
     },
   },
   // [87 eng]  https://x.com/TaotePOCUS/status/1468761407336374275
@@ -2103,7 +2103,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "in Anterior STEMI caso RWMA in LAD territory.",
     media: {
       kind: "gif",
-      src: "/imports/1468761407336374275.mp4",
+      src: "/api/media/1468761407336374275.mp4",
     },
   },
   // [86 eng]  https://x.com/TaotePOCUS/status/1480735912812290048
@@ -2124,7 +2124,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Diverticulitis.",
     media: {
       kind: "gif",
-      src: "/imports/1480735912812290048.mp4",
+      src: "/api/media/1480735912812290048.mp4",
     },
   },
   // [86 eng]  https://x.com/TaotePOCUS/status/1428503701979869190
@@ -2144,7 +2144,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Malignant Hemothorax.",
     media: {
       kind: "gif",
-      src: "/imports/1428503701979869190.mp4",
+      src: "/api/media/1428503701979869190.mp4",
     },
   },
   // [86 eng]  https://x.com/TaotePOCUS/status/1394519597982879745
@@ -2166,7 +2166,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Porcelain Vesícula Hyperechoic semilunar structure con complete posterior acoustic shadowing.",
     media: {
       kind: "gif",
-      src: "/imports/1394519597982879745.mp4",
+      src: "/api/media/1394519597982879745.mp4",
     },
   },
   // [86 eng]  https://x.com/TaotePOCUS/status/1357421576271130630
@@ -2188,7 +2188,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". 40 PY / 10 kg, cough + behavioral change CXR + R perihilar mass CT Mediastinic & hilar ipsilat LAD CT R cerebellar contrast enhanced…",
     media: {
       kind: "gif",
-      src: "/imports/1357421576271130630.mp4",
+      src: "/api/media/1357421576271130630.mp4",
     },
   },
   // [86 eng]  https://x.com/TaotePOCUS/status/1350569230828236801
@@ -2210,7 +2210,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". Agudo right renal colic. 1st episode RK Mild/Moderate HUN Perinephric fluid Concordants findings + Right ureterovesical calculi Tx: NSAID…",
     media: {
       kind: "gif",
-      src: "/imports/1350569230828236801.mp4",
+      src: "/api/media/1350569230828236801.mp4",
     },
   },
   // [85 eng]  https://x.com/TaotePOCUS/status/1410455595552018432
@@ -2230,7 +2230,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "2019: Nodule 8 mm in RLL 2021: Nodule 24 mm correlation High Risk Pulmonary Nodule.",
     media: {
       kind: "gif",
-      src: "/imports/1410455595552018432.mp4",
+      src: "/api/media/1410455595552018432.mp4",
     },
   },
   // [84 eng]  https://x.com/TaotePOCUS/status/1416214482997633024
@@ -2252,7 +2252,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "> 6M con xerophtalmia, xerostomia, dry skin + bilateral parotid swelling & fatigue Signs of bilateral Crónico parotiditis Sjögren Syndrome…",
     media: {
       kind: "gif",
-      src: "/imports/1416214482997633024.mp4",
+      src: "/api/media/1416214482997633024.mp4",
     },
   },
   // [84 eng]  https://x.com/TaotePOCUS/status/1342683711540703232
@@ -2273,7 +2273,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: ".COPD.",
     media: {
       kind: "image",
-      src: "/imports/1342683711540703232.jpg",
+      src: "/api/media/1342683711540703232.jpg",
     },
   },
   // [83 eng]  https://x.com/TaotePOCUS/status/1647394189620006912
@@ -2294,7 +2294,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Insuficiencia cardíaca.",
     media: {
       kind: "video",
-      src: "/imports/1647394189620006912.mp4",
+      src: "/api/media/1647394189620006912.mp4",
     },
   },
   // [83 eng]  https://x.com/TaotePOCUS/status/1520430260625428480
@@ -2314,7 +2314,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "new toy is coming.",
     media: {
       kind: "image",
-      src: "/imports/1520430260625428480.jpg",
+      src: "/api/media/1520430260625428480.jpg",
     },
   },
   // [83 eng]  https://x.com/TaotePOCUS/status/1442172266595422210
@@ -2335,7 +2335,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Biventricular HF.",
     media: {
       kind: "image",
-      src: "/imports/1442172266595422210.jpg",
+      src: "/api/media/1442172266595422210.jpg",
     },
   },
   // [82 eng]  https://x.com/TaotePOCUS/status/1626286642838355970
@@ -2357,7 +2357,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "HFrEF post MI (ADA ) < 12 months ago Suspended 3 weeks ago Worsening dyspnea Yugular ingurgitation.",
     media: {
       kind: "image",
-      src: "/imports/1626286642838355970.jpg",
+      src: "/api/media/1626286642838355970.jpg",
     },
   },
   // [82 eng]  https://x.com/TaotePOCUS/status/1474170396651843594
@@ -2379,7 +2379,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Leg pain Small superficial hypoechoic collection Echogenicity of SC tissue Thickened wall of adjacent vein (flebitis) Drainage was…",
     media: {
       kind: "gif",
-      src: "/imports/1474170396651843594.mp4",
+      src: "/api/media/1474170396651843594.mp4",
     },
   },
   // [81 eng]  https://x.com/TaotePOCUS/status/1386075563077611523
@@ -2400,7 +2400,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Rural .",
     media: {
       kind: "gif",
-      src: "/imports/1386075563077611523.mp4",
+      src: "/api/media/1386075563077611523.mp4",
     },
   },
   // [80 eng]  https://x.com/TaotePOCUS/status/1477027291242795009
@@ -2421,7 +2421,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Renal Pelvic Stone.",
     media: {
       kind: "image",
-      src: "/imports/1477027291242795009.jpg",
+      src: "/api/media/1477027291242795009.jpg",
     },
   },
   // [80 eng]  https://x.com/TaotePOCUS/status/1407545781893148673
@@ -2443,7 +2443,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "2 ambulatory patients con Insuficiencia cardíaca evaluated the same day 1⃣: Continuous portal flow 2⃣: Pulsatile portal flow 1/2.",
     media: {
       kind: "gif",
-      src: "/imports/1407545781893148673.mp4",
+      src: "/api/media/1407545781893148673.mp4",
     },
   },
   // [79 eng]  https://x.com/TaotePOCUS/status/1454548775918256145
@@ -2463,7 +2463,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Metastasic Lung Cancer 1/2.",
     media: {
       kind: "gif",
-      src: "/imports/1454548775918256145.mp4",
+      src: "/api/media/1454548775918256145.mp4",
     },
   },
   // [79 eng]  https://x.com/TaotePOCUS/status/1363196588093558787
@@ -2483,7 +2483,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Young3T Right colic pain + vómitos Right uretero-vesical Twinkling artifact.",
     media: {
       kind: "gif",
-      src: "/imports/1363196588093558787.mp4",
+      src: "/api/media/1363196588093558787.mp4",
     },
   },
   // [78 eng]  https://x.com/TaotePOCUS/status/1485084828966006789
@@ -2504,7 +2504,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Obstructive Uropathy.",
     media: {
       kind: "gif",
-      src: "/imports/1485084828966006789.mp4",
+      src: "/api/media/1485084828966006789.mp4",
     },
   },
   // [78 eng]  https://x.com/TaotePOCUS/status/1468281395609018373
@@ -2525,7 +2525,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "point of transition between a Neumotórax and normal lung.",
     media: {
       kind: "gif",
-      src: "/imports/1468281395609018373.mp4",
+      src: "/api/media/1468281395609018373.mp4",
     },
   },
   // [78 eng]  https://x.com/TaotePOCUS/status/1371269969665650691
@@ -2545,7 +2545,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: ". fiebre + cough Right alveolar consolidation + Air Bronchogram Bacterial Neumonía.",
     media: {
       kind: "gif",
-      src: "/imports/1371269969665650691.mp4",
+      src: "/api/media/1371269969665650691.mp4",
     },
   },
   // [78 eng]  https://x.com/TaotePOCUS/status/1355199839974420482
@@ -2567,7 +2567,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". 2 weeks right testicular pain. No inflammatory signs Testicular tumor Urgent referral to urology.",
     media: {
       kind: "gif",
-      src: "/imports/1355199839974420482.mp4",
+      src: "/api/media/1355199839974420482.mp4",
     },
   },
   // [77 eng]  https://x.com/TaotePOCUS/status/1619326286610206724
@@ -2587,7 +2587,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo Aortic Stenosis.",
     media: {
       kind: "video",
-      src: "/imports/1619326286610206724.mp4",
+      src: "/api/media/1619326286610206724.mp4",
     },
   },
   // [77 eng]  https://x.com/TaotePOCUS/status/1403185524903493635
@@ -2607,7 +2607,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Cholelithiasis 3 different cases, recently Dx.",
     media: {
       kind: "image",
-      src: "/imports/1403185524903493635.jpg",
+      src: "/api/media/1403185524903493635.jpg",
     },
   },
   // [77 eng]  https://x.com/TaotePOCUS/status/1393724110358917125
@@ -2627,7 +2627,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo Neumonía Translobar consolidation + air bronchogram 1/2.",
     media: {
       kind: "gif",
-      src: "/imports/1393724110358917125.mp4",
+      src: "/api/media/1393724110358917125.mp4",
     },
   },
   // [76 eng]  https://x.com/TaotePOCUS/status/1429497404236214280
@@ -2648,7 +2648,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "T2D.",
     media: {
       kind: "gif",
-      src: "/imports/1429497404236214280.mp4",
+      src: "/api/media/1429497404236214280.mp4",
     },
   },
   // [76 eng]  https://x.com/TaotePOCUS/status/1349038446627717120
@@ -2670,7 +2670,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". fiebre < 24 h. Mild tos seca. normal Right: anterior alveolar consolidation con air bronchograms Left: Líneas A pattern Dx: Bacterial…",
     media: {
       kind: "gif",
-      src: "/imports/1349038446627717120.mp4",
+      src: "/api/media/1349038446627717120.mp4",
     },
   },
   // [74 eng]  https://x.com/TaotePOCUS/status/1603174594965217280
@@ -2690,7 +2690,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hemothorax.",
     media: {
       kind: "gif",
-      src: "/imports/1603174594965217280.mp4",
+      src: "/api/media/1603174594965217280.mp4",
     },
   },
   // [74 eng]  https://x.com/TaotePOCUS/status/1598069548938186753
@@ -2710,7 +2710,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Right femoral DVT.",
     media: {
       kind: "gif",
-      src: "/imports/1598069548938186753.mp4",
+      src: "/api/media/1598069548938186753.mp4",
     },
   },
   // [74 eng]  https://x.com/TaotePOCUS/status/1593315901738168320
@@ -2730,7 +2730,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Group IV PH caso con Severo Congestión venosa.",
     media: {
       kind: "video",
-      src: "/imports/1593315901738168320.mp4",
+      src: "/api/media/1593315901738168320.mp4",
     },
   },
   // [73 eng]  https://x.com/TaotePOCUS/status/1594715644301258752
@@ -2751,7 +2751,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Neumonía.",
     media: {
       kind: "gif",
-      src: "/imports/1594715644301258752.mp4",
+      src: "/api/media/1594715644301258752.mp4",
     },
   },
   // [73 eng]  https://x.com/TaotePOCUS/status/1436136575310737412
@@ -2771,7 +2771,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Malignant Biliary Obstruction.",
     media: {
       kind: "gif",
-      src: "/imports/1436136575310737412.mp4",
+      src: "/api/media/1436136575310737412.mp4",
     },
   },
   // [72 eng]  https://x.com/TaotePOCUS/status/1641819855140601862
@@ -2791,7 +2791,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Polycystic kidney disease.",
     media: {
       kind: "video",
-      src: "/imports/1641819855140601862.mp4",
+      src: "/api/media/1641819855140601862.mp4",
     },
   },
   // [72 eng]  https://x.com/TaotePOCUS/status/1589348159289163777
@@ -2811,7 +2811,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Empyema.",
     media: {
       kind: "gif",
-      src: "/imports/1589348159289163777.mp4",
+      src: "/api/media/1589348159289163777.mp4",
     },
   },
   // [71 eng]  https://x.com/TaotePOCUS/status/1437489275084361734
@@ -2832,7 +2832,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Finger Foreign Body.",
     media: {
       kind: "gif",
-      src: "/imports/1437489275084361734.mp4",
+      src: "/api/media/1437489275084361734.mp4",
     },
   },
   // [70 eng]  https://x.com/TaotePOCUS/status/1456114185226575872
@@ -2854,7 +2854,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "dynamic tool to guide decongestive therapy Portal vein doppler evolution following combined diuretic therapy in decompensated Insuficiencia…",
     media: {
       kind: "image",
-      src: "/imports/1456114185226575872.jpg",
+      src: "/api/media/1456114185226575872.jpg",
     },
   },
   // [70 eng]  https://x.com/TaotePOCUS/status/1446158073404473348
@@ -2876,7 +2876,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Insuficiencia cardíaca 3⃣ IVC > 2 cm Reverse portal flow =Normal, =) Reverse femoral flow (~ HV).",
     media: {
       kind: "gif",
-      src: "/imports/1446158073404473348.mp4",
+      src: "/api/media/1446158073404473348.mp4",
     },
   },
   // [70 eng]  https://x.com/TaotePOCUS/status/1445446365178318861
@@ -2896,7 +2896,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Multifocal Hepatic Steatosis.",
     media: {
       kind: "gif",
-      src: "/imports/1445446365178318861.mp4",
+      src: "/api/media/1445446365178318861.mp4",
     },
   },
   // [70 eng]  https://x.com/TaotePOCUS/status/1360269321700794368
@@ -2916,7 +2916,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "in Easter Island con @ButterflyNetInc.",
     media: {
       kind: "image",
-      src: "/imports/1360269321700794368.jpg",
+      src: "/api/media/1360269321700794368.jpg",
     },
   },
   // [69 eng]  https://x.com/TaotePOCUS/status/1502721769232379906
@@ -2936,7 +2936,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Empiema pleural.",
     media: {
       kind: "gif",
-      src: "/imports/1502721769232379906.mp4",
+      src: "/api/media/1502721769232379906.mp4",
     },
   },
   // [69 eng]  https://x.com/TaotePOCUS/status/1416835305647259654
@@ -2958,7 +2958,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Advanced Esophagus Ca in PC Cough + fiebre + oxygen requirement Bibasal alveolar consolidation + dynamic air bronchograms Neumonía.",
     media: {
       kind: "gif",
-      src: "/imports/1416835305647259654.mp4",
+      src: "/api/media/1416835305647259654.mp4",
     },
   },
   // [69 eng]  https://x.com/TaotePOCUS/status/1412273653711003648
@@ -2978,7 +2978,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Screening in overweight Vesícula Polyps.",
     media: {
       kind: "gif",
-      src: "/imports/1412273653711003648.mp4",
+      src: "/api/media/1412273653711003648.mp4",
     },
   },
   // [69 eng]  https://x.com/TaotePOCUS/status/1395086588993019907
@@ -3000,7 +3000,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "COPD Screening during exacerbation (Trans & Long) Dilated infrarenal aorta + intraluminal thrombus Aortic Abdominal Aneurisma.",
     media: {
       kind: "gif",
-      src: "/imports/1395086588993019907.mp4",
+      src: "/api/media/1395086588993019907.mp4",
     },
   },
   // [68 eng]  https://x.com/TaotePOCUS/status/1664258467484319744
@@ -3020,7 +3020,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Coraliform Lithiasis.",
     media: {
       kind: "video",
-      src: "/imports/1664258467484319744.mp4",
+      src: "/api/media/1664258467484319744.mp4",
     },
   },
   // [68 eng]  https://x.com/TaotePOCUS/status/1473680131877224462
@@ -3040,7 +3040,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Merry Christmas Community!.",
     media: {
       kind: "gif",
-      src: "/imports/1473680131877224462.mp4",
+      src: "/api/media/1473680131877224462.mp4",
     },
   },
   // [68 eng]  https://x.com/TaotePOCUS/status/1439651696871936002
@@ -3061,7 +3061,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo Myocardial Infarction.",
     media: {
       kind: "image",
-      src: "/imports/1439651696871936002.jpg",
+      src: "/api/media/1439651696871936002.jpg",
     },
   },
   // [67 eng]  https://x.com/TaotePOCUS/status/1717950529744130457
@@ -3081,7 +3081,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Emphysematous cystitis.",
     media: {
       kind: "video",
-      src: "/imports/1717950529744130457.mp4",
+      src: "/api/media/1717950529744130457.mp4",
     },
   },
   // [66 eng]  https://x.com/TaotePOCUS/status/1460389712246583299
@@ -3103,7 +3103,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Goalkeeper Received a tackle while playing Left toracoabdominal skin hematoma A pattern FAST Rib cortical disruption Rib fracture.",
     media: {
       kind: "gif",
-      src: "/imports/1460389712246583299.mp4",
+      src: "/api/media/1460389712246583299.mp4",
     },
   },
   // [65 eng]  https://x.com/TaotePOCUS/status/1596200914855297024
@@ -3123,7 +3123,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Ankle Septic Arthritis.",
     media: {
       kind: "video",
-      src: "/imports/1596200914855297024.mp4",
+      src: "/api/media/1596200914855297024.mp4",
     },
   },
   // [65 eng]  https://x.com/TaotePOCUS/status/1415736059707764736
@@ -3143,7 +3143,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "joy for any user Improvement of portal doppler following decongestive therapy ).",
     media: {
       kind: "image",
-      src: "/imports/1415736059707764736.jpg",
+      src: "/api/media/1415736059707764736.jpg",
     },
   },
   // [65 eng]  https://x.com/TaotePOCUS/status/1349412860364021761
@@ -3165,7 +3165,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". > 12 month abdominal distention, early satiety Though she was overweigth Dx: Giant Ovarian Cyst.",
     media: {
       kind: "gif",
-      src: "/imports/1349412860364021761.mp4",
+      src: "/api/media/1349412860364021761.mp4",
     },
   },
   // [64 eng]  https://x.com/TaotePOCUS/status/1768651410332069915
@@ -3186,7 +3186,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Aortic Valve Endocarditis.",
     media: {
       kind: "video",
-      src: "/imports/1768651410332069915.mp4",
+      src: "/api/media/1768651410332069915.mp4",
     },
   },
   // [64 eng]  https://x.com/TaotePOCUS/status/1726264493666406756
@@ -3207,7 +3207,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Empyema.",
     media: {
       kind: "image",
-      src: "/imports/1726264493666406756.jpg",
+      src: "/api/media/1726264493666406756.jpg",
     },
   },
   // [64 eng]  https://x.com/TaotePOCUS/status/1447335878251122690
@@ -3228,7 +3228,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Colecistitis aguda alitiásica.",
     media: {
       kind: "gif",
-      src: "/imports/1447335878251122690.mp4",
+      src: "/api/media/1447335878251122690.mp4",
     },
   },
   // [63 eng]  https://x.com/TaotePOCUS/status/1352637919400497157
@@ -3250,7 +3250,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". CHF. Asthma 1 week Dyspnea. Wheezing ADHF or Asthma!? Portal Vein) at the beginning and discharge @askpocus.",
     media: {
       kind: "gif",
-      src: "/imports/1352637919400497157.mp4",
+      src: "/api/media/1352637919400497157.mp4",
     },
   },
   // [62 eng]  https://x.com/TaotePOCUS/status/1461848236105338882
@@ -3270,7 +3270,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo periumbilical pain Pre & post reduction maneuver Abdominal wall Hernia.",
     media: {
       kind: "gif",
-      src: "/imports/1461848236105338882.mp4",
+      src: "/api/media/1461848236105338882.mp4",
     },
   },
   // [61 eng]  https://x.com/TaotePOCUS/status/1519438992134967296
@@ -3291,7 +3291,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Testicular fracture + Abscess.",
     media: {
       kind: "gif",
-      src: "/imports/1519438992134967296.mp4",
+      src: "/api/media/1519438992134967296.mp4",
     },
   },
   // [61 eng]  https://x.com/TaotePOCUS/status/1466104486095687683
@@ -3313,7 +3313,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". Normal BMI RUQ pain + nauseas Mobile echogenic lesion con posterior acoustic shadowing within Vesícula lumen Cholelithiasis in children.",
     media: {
       kind: "gif",
-      src: "/imports/1466104486095687683.mp4",
+      src: "/api/media/1466104486095687683.mp4",
     },
   },
   // [60 eng]  https://x.com/TaotePOCUS/status/1558120189668888576
@@ -3334,7 +3334,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "LV apical Aneurisma + thrombus.",
     media: {
       kind: "gif",
-      src: "/imports/1558120189668888576.mp4",
+      src: "/api/media/1558120189668888576.mp4",
     },
   },
   // [60 eng]  https://x.com/TaotePOCUS/status/1415466832279003138
@@ -3354,7 +3354,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Highly specific US sign of Neumotórax.",
     media: {
       kind: "gif",
-      src: "/imports/1415466832279003138.mp4",
+      src: "/api/media/1415466832279003138.mp4",
     },
   },
   // [59 eng]  https://x.com/TaotePOCUS/status/1597701872848359425
@@ -3374,7 +3374,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Good Physical Exam includes.",
     media: {
       kind: "image",
-      src: "/imports/1597701872848359425.jpg",
+      src: "/api/media/1597701872848359425.jpg",
     },
   },
   // [59 eng]  https://x.com/TaotePOCUS/status/1555190132655144960
@@ -3394,7 +3394,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Adrenal metastasis due Breast Ca.",
     media: {
       kind: "gif",
-      src: "/imports/1555190132655144960.mp4",
+      src: "/api/media/1555190132655144960.mp4",
     },
   },
   // [59 eng]  https://x.com/TaotePOCUS/status/1492196870587830274
@@ -3415,7 +3415,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Ileitis ¿Anisakiasis?.",
     media: {
       kind: "gif",
-      src: "/imports/1492196870587830274.mp4",
+      src: "/api/media/1492196870587830274.mp4",
     },
   },
   // [59 eng]  https://x.com/TaotePOCUS/status/1411164486162071552
@@ -3435,7 +3435,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "new brother in the familily.",
     media: {
       kind: "image",
-      src: "/imports/1411164486162071552.jpg",
+      src: "/api/media/1411164486162071552.jpg",
     },
   },
   // [59 eng]  https://x.com/TaotePOCUS/status/1364305290062135299
@@ -3457,7 +3457,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Young Metastasic Anaplastic Ca (, ,) 1 o Agudo chest pain + SOB Hg Malignant right Hemothorax 1/3].",
     media: {
       kind: "gif",
-      src: "/imports/1364305290062135299.mp4",
+      src: "/api/media/1364305290062135299.mp4",
     },
   },
   // [59 eng]  https://x.com/TaotePOCUS/status/1358581694203387904
@@ -3478,7 +3478,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo enteritis of presumable bacterial origin.",
     media: {
       kind: "gif",
-      src: "/imports/1358581694203387904.mp4",
+      src: "/api/media/1358581694203387904.mp4",
     },
   },
   // [58 eng]  https://x.com/TaotePOCUS/status/1736780738526089235
@@ -3498,7 +3498,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Obstructive Uropathy due urinary retention.",
     media: {
       kind: "image",
-      src: "/imports/1736780738526089235.jpg",
+      src: "/api/media/1736780738526089235.jpg",
     },
   },
   // [58 eng]  https://x.com/TaotePOCUS/status/1533234632212238337
@@ -3519,7 +3519,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "50s CKD-HD.",
     media: {
       kind: "gif",
-      src: "/imports/1533234632212238337.mp4",
+      src: "/api/media/1533234632212238337.mp4",
     },
   },
   // [58 eng]  https://x.com/TaotePOCUS/status/1456647193679515650
@@ -3539,7 +3539,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Recurrent hematuria + low urinary symptoms Bladder Stones.",
     media: {
       kind: "gif",
-      src: "/imports/1456647193679515650.mp4",
+      src: "/api/media/1456647193679515650.mp4",
     },
   },
   // [58 eng]  https://x.com/TaotePOCUS/status/1376718759667376130
@@ -3560,7 +3560,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Young .",
     media: {
       kind: "gif",
-      src: "/imports/1376718759667376130.mp4",
+      src: "/api/media/1376718759667376130.mp4",
     },
   },
   // [57 eng]  https://x.com/TaotePOCUS/status/1529814079459602434
@@ -3580,7 +3580,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Kidney Cyst.",
     media: {
       kind: "gif",
-      src: "/imports/1529814079459602434.mp4",
+      src: "/api/media/1529814079459602434.mp4",
     },
   },
   // [57 eng]  https://x.com/TaotePOCUS/status/1423371592076349451
@@ -3601,7 +3601,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "60s, BMI 30 Strong family Hx of DVT (3⃣1st degree relative) edema.",
     media: {
       kind: "gif",
-      src: "/imports/1423371592076349451.mp4",
+      src: "/api/media/1423371592076349451.mp4",
     },
   },
   // [57 eng]  https://x.com/TaotePOCUS/status/1399799987945545728
@@ -3623,7 +3623,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". Dolor abdominal, vómitos, diarrhea & fiebre. Soft abdomen. Normal urine sediment summary Absence of right kidney Left kidney Incidental…",
     media: {
       kind: "gif",
-      src: "/imports/1399799987945545728.mp4",
+      src: "/api/media/1399799987945545728.mp4",
     },
   },
   // [57 eng]  https://x.com/TaotePOCUS/status/1355919818566852610
@@ -3643,7 +3643,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "caso: Pre-Covid.",
     media: {
       kind: "gif",
-      src: "/imports/1355919818566852610.mp4",
+      src: "/api/media/1355919818566852610.mp4",
     },
   },
   // [57 eng]  https://x.com/TaotePOCUS/status/1346500193555017728
@@ -3664,7 +3664,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Middle age .",
     media: {
       kind: "video",
-      src: "/imports/1346500193555017728.mp4",
+      src: "/api/media/1346500193555017728.mp4",
     },
   },
   // [56 eng]  https://x.com/TaotePOCUS/status/1678465706772377600
@@ -3686,7 +3686,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ", Cutaneous Lupus 1 hour of typical angina First ECG at arrival Second ECG 1 hour later Third ECG 48 hours later (no intervention other…",
     media: {
       kind: "image",
-      src: "/imports/1678465706772377600.jpg",
+      src: "/api/media/1678465706772377600.jpg",
     },
   },
   // [56 eng]  https://x.com/TaotePOCUS/status/1591131508773097474
@@ -3706,7 +3706,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Group 3: Hipertensión pulmonar.",
     media: {
       kind: "gif",
-      src: "/imports/1591131508773097474.mp4",
+      src: "/api/media/1591131508773097474.mp4",
     },
   },
   // [56 eng]  https://x.com/TaotePOCUS/status/1354915589790314500
@@ -3727,7 +3727,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "POCUS Curiosity Young .",
     media: {
       kind: "gif",
-      src: "/imports/1354915589790314500.mp4",
+      src: "/api/media/1354915589790314500.mp4",
     },
   },
   // [55 eng]  https://x.com/TaotePOCUS/status/1552326384776667136
@@ -3749,7 +3749,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Bilateral Derrame pleural in CXR Left pleural effusion in PLAX “Generous”crystalloid infusion for several days.",
     media: {
       kind: "gif",
-      src: "/imports/1552326384776667136.mp4",
+      src: "/api/media/1552326384776667136.mp4",
     },
   },
   // [55 eng]  https://x.com/TaotePOCUS/status/1350820659874705408
@@ -3770,7 +3770,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "80 .",
     media: {
       kind: "gif",
-      src: "/imports/1350820659874705408.mp4",
+      src: "/api/media/1350820659874705408.mp4",
     },
   },
   // [54 eng]  https://x.com/TaotePOCUS/status/1623784710265503744
@@ -3790,7 +3790,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Aortic Valve Endocarditis.",
     media: {
       kind: "video",
-      src: "/imports/1623784710265503744.mp4",
+      src: "/api/media/1623784710265503744.mp4",
     },
   },
   // [54 eng]  https://x.com/TaotePOCUS/status/1615434430880833544
@@ -3810,7 +3810,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hemodialysis catheter-related central Trombosis venosa.",
     media: {
       kind: "gif",
-      src: "/imports/1615434430880833544.mp4",
+      src: "/api/media/1615434430880833544.mp4",
     },
   },
   // [54 eng]  https://x.com/TaotePOCUS/status/1596892026511187968
@@ -3830,7 +3830,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Lung Ca con liver mtt & Abdominal aorta Aneurisma w/ mural thrombus.",
     media: {
       kind: "gif",
-      src: "/imports/1596892026511187968.mp4",
+      src: "/api/media/1596892026511187968.mp4",
     },
   },
   // [54 eng]  https://x.com/TaotePOCUS/status/1408228066812366849
@@ -3850,7 +3850,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Subcapsular Hepatic Hematoma after laparoscopic surgery.",
     media: {
       kind: "gif",
-      src: "/imports/1408228066812366849.mp4",
+      src: "/api/media/1408228066812366849.mp4",
     },
   },
   // [54 eng]  https://x.com/TaotePOCUS/status/1356706105116794884
@@ -3872,7 +3872,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". CAD + DAPT Working on 1 week of calf swelling Search for assistance in con suspected DVT No DVT signs Intramuscular hematoma In this caso…",
     media: {
       kind: "gif",
-      src: "/imports/1356706105116794884.mp4",
+      src: "/api/media/1356706105116794884.mp4",
     },
   },
   // [53 eng]  https://x.com/TaotePOCUS/status/1497147699522646041
@@ -3892,7 +3892,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "OMI or not?.",
     media: {
       kind: "image",
-      src: "/imports/1497147699522646041.jpg",
+      src: "/api/media/1497147699522646041.jpg",
     },
   },
   // [53 eng]  https://x.com/TaotePOCUS/status/1458898784105254925
@@ -3914,7 +3914,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Oropharyngeal Ca in PC Cough + SOB Left lower consolidation w/ air bronchogram Neumonía.",
     media: {
       kind: "gif",
-      src: "/imports/1458898784105254925.mp4",
+      src: "/api/media/1458898784105254925.mp4",
     },
   },
   // [53 eng]  https://x.com/TaotePOCUS/status/1449080904828211204
@@ -3934,7 +3934,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "eye of the Dragon.",
     media: {
       kind: "gif",
-      src: "/imports/1449080904828211204.mp4",
+      src: "/api/media/1449080904828211204.mp4",
     },
   },
   // [53 eng]  https://x.com/TaotePOCUS/status/1419383521756565507
@@ -3954,7 +3954,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Femoral Vein Thrombosis.",
     media: {
       kind: "gif",
-      src: "/imports/1419383521756565507.mp4",
+      src: "/api/media/1419383521756565507.mp4",
     },
   },
   // [53 eng]  https://x.com/TaotePOCUS/status/1358468252322721793
@@ -3975,7 +3975,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "QUIZ *omited reason* A: POCUS during hospitalization B: POCUS 2 month later 1.",
     media: {
       kind: "gif",
-      src: "/imports/1358468252322721793.mp4",
+      src: "/api/media/1358468252322721793.mp4",
     },
   },
   // [52 eng]  https://x.com/TaotePOCUS/status/1619754291769802753
@@ -3995,7 +3995,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Renal cell carcinoma.",
     media: {
       kind: "gif",
-      src: "/imports/1619754291769802753.mp4",
+      src: "/api/media/1619754291769802753.mp4",
     },
   },
   // [52 eng]  https://x.com/TaotePOCUS/status/1388961966719385602
@@ -4017,7 +4017,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Prior abdominal Dolor abdominal + vómitos Dilated stomach Dilated small bowel > 2,5 cm Líquido libre Innefective peristalsis (not shown)…",
     media: {
       kind: "gif",
-      src: "/imports/1388961966719385602.mp4",
+      src: "/api/media/1388961966719385602.mp4",
     },
   },
   // [51 eng]  https://x.com/TaotePOCUS/status/1430949035624521732
@@ -4037,7 +4037,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "POCUS.",
     media: {
       kind: "gif",
-      src: "/imports/1430949035624521732.mp4",
+      src: "/api/media/1430949035624521732.mp4",
     },
   },
   // [51 eng]  https://x.com/TaotePOCUS/status/1381802460138901504
@@ -4059,7 +4059,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Thrombolyzed Agudo Stroke 24 hour later Hematocrit Pericholecystic fluid () CT: plus bilateral retroperitoneal hematoma Repeat POCUS 2…",
     media: {
       kind: "gif",
-      src: "/imports/1381802460138901504.mp4",
+      src: "/api/media/1381802460138901504.mp4",
     },
   },
   // [51 eng]  https://x.com/TaotePOCUS/status/1378371828956155906
@@ -4079,7 +4079,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Sci-hub in Telegram bot.",
     media: {
       kind: "image",
-      src: "/imports/1378371828956155906.jpg",
+      src: "/api/media/1378371828956155906.jpg",
     },
   },
   // [51 eng]  https://x.com/TaotePOCUS/status/1362842724769148932
@@ -4101,7 +4101,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Young During a race: Fell off ABC Focal right basal Líneas B Clear Líneas A / B-lines interface Subpleural consolidation + B-lines Lung…",
     media: {
       kind: "image",
-      src: "/imports/1362842724769148932.jpg",
+      src: "/api/media/1362842724769148932.jpg",
     },
   },
   // [51 eng]  https://x.com/TaotePOCUS/status/1348695091381219329
@@ -4121,7 +4121,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: ". Obstructive Jaudince (BT 40!!). Advanced Vesícula Ca.",
     media: {
       kind: "gif",
-      src: "/imports/1348695091381219329.mp4",
+      src: "/api/media/1348695091381219329.mp4",
     },
   },
   // [51 eng]  https://x.com/TaotePOCUS/status/1347729571332952066
@@ -4141,7 +4141,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "55y.",
     media: {
       kind: "video",
-      src: "/imports/1347729571332952066.mp4",
+      src: "/api/media/1347729571332952066.mp4",
     },
   },
   // [50 eng]  https://x.com/TaotePOCUS/status/1457391879822065670
@@ -4163,7 +4163,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Heart rate in Afib con PLAX M mode through anterior mitral leaflet Measure maximum N of cicles ___ “LPM” N of cicles = Heart Rate In this…",
     media: {
       kind: "image",
-      src: "/imports/1457391879822065670.jpg",
+      src: "/api/media/1457391879822065670.jpg",
     },
   },
   // [50 eng]  https://x.com/TaotePOCUS/status/1434284074525396997
@@ -4183,7 +4183,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo Colecistitis.",
     media: {
       kind: "gif",
-      src: "/imports/1434284074525396997.mp4",
+      src: "/api/media/1434284074525396997.mp4",
     },
   },
   // [50 eng]  https://x.com/TaotePOCUS/status/1401608480344186882
@@ -4203,7 +4203,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Calf pain + edema Popliteal DVT.",
     media: {
       kind: "gif",
-      src: "/imports/1401608480344186882.mp4",
+      src: "/api/media/1401608480344186882.mp4",
     },
   },
   // [50 eng]  https://x.com/TaotePOCUS/status/1366541169946202113
@@ -4225,7 +4225,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Young Severo diarrhea + vómitos Dry mucous membranes, CRT Flat IVC Tx: 30 cc/kg RL + Sx CRT Agudo Gastroenteritis + DH IVC is not a good…",
     media: {
       kind: "gif",
-      src: "/imports/1366541169946202113.mp4",
+      src: "/api/media/1366541169946202113.mp4",
     },
   },
   // [49 eng]  https://x.com/TaotePOCUS/status/1566972923520458758
@@ -4245,7 +4245,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Guess who’s back in town ?.",
     media: {
       kind: "gif",
-      src: "/imports/1566972923520458758.mp4",
+      src: "/api/media/1566972923520458758.mp4",
     },
   },
   // [49 eng]  https://x.com/TaotePOCUS/status/1353067258495418372
@@ -4267,7 +4267,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". PMH: Left renal atrophy + Staghorn stone Right lumbar pain + fiebre. Complicated UTI. AKIN II Right moderate HUN + proximal ureteral…",
     media: {
       kind: "gif",
-      src: "/imports/1353067258495418372.mp4",
+      src: "/api/media/1353067258495418372.mp4",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1728801617447641558
@@ -4288,7 +4288,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Massive preperitoneal hematoma.",
     media: {
       kind: "image",
-      src: "/imports/1728801617447641558.jpg",
+      src: "/api/media/1728801617447641558.jpg",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1481986196351901698
@@ -4308,7 +4308,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Ovary Teratoma.",
     media: {
       kind: "gif",
-      src: "/imports/1481986196351901698.mp4",
+      src: "/api/media/1481986196351901698.mp4",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1446970169008476162
@@ -4328,7 +4328,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Tragedy.",
     media: {
       kind: "gif",
-      src: "/imports/1446970169008476162.mp4",
+      src: "/api/media/1446970169008476162.mp4",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1438251531535634435
@@ -4348,7 +4348,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Pneumoperitoneum.",
     media: {
       kind: "gif",
-      src: "/imports/1438251531535634435.mp4",
+      src: "/api/media/1438251531535634435.mp4",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1404526990653366283
@@ -4369,7 +4369,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "PMH: Insuficiencia cardíaca Palpitations.",
     media: {
       kind: "image",
-      src: "/imports/1404526990653366283.jpg",
+      src: "/api/media/1404526990653366283.jpg",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1401992547040366594
@@ -4389,7 +4389,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Abdominal Aneurisma aórtico.",
     media: {
       kind: "gif",
-      src: "/imports/1401992547040366594.mp4",
+      src: "/api/media/1401992547040366594.mp4",
     },
   },
   // [48 eng]  https://x.com/TaotePOCUS/status/1389767040907481090
@@ -4411,7 +4411,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Bilateral Staghorn renal stones ED : New left colic pain Bilateral renal pelvis con calcified masses & posterior acoustic shadowing Left…",
     media: {
       kind: "gif",
-      src: "/imports/1389767040907481090.mp4",
+      src: "/api/media/1389767040907481090.mp4",
     },
   },
   // [47 eng]  https://x.com/TaotePOCUS/status/1485329161057144836
@@ -4432,7 +4432,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Intestinal subocclusion due small bowel tumor.",
     media: {
       kind: "gif",
-      src: "/imports/1485329161057144836.mp4",
+      src: "/api/media/1485329161057144836.mp4",
     },
   },
   // [47 eng]  https://x.com/TaotePOCUS/status/1410013975253864450
@@ -4452,7 +4452,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "RUQ pain +) Murphy Agudo Colecistitis.",
     media: {
       kind: "gif",
-      src: "/imports/1410013975253864450.mp4",
+      src: "/api/media/1410013975253864450.mp4",
     },
   },
   // [47 eng]  https://x.com/TaotePOCUS/status/1398381319479083021
@@ -4474,7 +4474,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "CAD, HTN, DM CP + ARF < 1h 180/120, HR 120, RR > 40, Sp02 80% (FIO2 ~80) CRT >5 Bilat Líneas B ST aVR V1, Hyperacute T waves V2-3 & diffuse…",
     media: {
       kind: "image",
-      src: "/imports/1398381319479083021.jpg",
+      src: "/api/media/1398381319479083021.jpg",
     },
   },
   // [47 eng]  https://x.com/TaotePOCUS/status/1362124746767368199
@@ -4496,7 +4496,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "2 weeks of cough Pleuritic chest pain Alveolar consolidation + inner Líneas A CT Lung Abscess Tx: Amox/Clav + F/U con .",
     media: {
       kind: "image",
-      src: "/imports/1362124746767368199.jpg",
+      src: "/api/media/1362124746767368199.jpg",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1733509772773576740
@@ -4517,7 +4517,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "post renal Tx (6d).",
     media: {
       kind: "image",
-      src: "/imports/1733509772773576740.jpg",
+      src: "/api/media/1733509772773576740.jpg",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1710296182042267823
@@ -4538,7 +4538,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Aortic & tricuspid valve infective endocarditis.",
     media: {
       kind: "video",
-      src: "/imports/1710296182042267823.mp4",
+      src: "/api/media/1710296182042267823.mp4",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1468178824588189697
@@ -4560,7 +4560,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "48h w/ intermittent CP worst CP of 3h & sweating () No RF for Next cath center > 24h away sorry for V1-V3 calibration) Would you…",
     media: {
       kind: "image",
-      src: "/imports/1468178824588189697.jpg",
+      src: "/api/media/1468178824588189697.jpg",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1433437685721481226
@@ -4580,7 +4580,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "HTN nephrosclerosis-cardiopathy or Infiltrative.",
     media: {
       kind: "gif",
-      src: "/imports/1433437685721481226.mp4",
+      src: "/api/media/1433437685721481226.mp4",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1426019797737910273
@@ -4600,7 +4600,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Trans-axilar tumoral aortic view.",
     media: {
       kind: "gif",
-      src: "/imports/1426019797737910273.mp4",
+      src: "/api/media/1426019797737910273.mp4",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1419742810039853062
@@ -4620,7 +4620,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Fatty Liver.",
     media: {
       kind: "gif",
-      src: "/imports/1419742810039853062.mp4",
+      src: "/api/media/1419742810039853062.mp4",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1412921572902555648
@@ -4641,7 +4641,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Non compaction cardiomyopathy, Severo biventricular dysfunction.",
     media: {
       kind: "gif",
-      src: "/imports/1412921572902555648.mp4",
+      src: "/api/media/1412921572902555648.mp4",
     },
   },
   // [46 eng]  https://x.com/TaotePOCUS/status/1373721547802824709
@@ -4661,7 +4661,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Arm Intramuscular Hematoma in heparin site.",
     media: {
       kind: "gif",
-      src: "/imports/1373721547802824709.mp4",
+      src: "/api/media/1373721547802824709.mp4",
     },
   },
   // [45 eng]  https://x.com/TaotePOCUS/status/1650176051199242244
@@ -4682,7 +4682,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hospitalized for X cause.",
     media: {
       kind: "video",
-      src: "/imports/1650176051199242244.mp4",
+      src: "/api/media/1650176051199242244.mp4",
     },
   },
   // [44 eng]  https://x.com/TaotePOCUS/status/1517885602468823040
@@ -4702,7 +4702,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hepatic Cysts.",
     media: {
       kind: "gif",
-      src: "/imports/1517885602468823040.mp4",
+      src: "/api/media/1517885602468823040.mp4",
     },
   },
   // [44 eng]  https://x.com/TaotePOCUS/status/1454149069333540876
@@ -4723,7 +4723,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo mitral stenosis.",
     media: {
       kind: "image",
-      src: "/imports/1454149069333540876.jpg",
+      src: "/api/media/1454149069333540876.jpg",
     },
   },
   // [43 eng]  https://x.com/TaotePOCUS/status/1600512394383740929
@@ -4743,7 +4743,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Before a paracentesis.",
     media: {
       kind: "gif",
-      src: "/imports/1600512394383740929.mp4",
+      src: "/api/media/1600512394383740929.mp4",
     },
   },
   // [43 eng]  https://x.com/TaotePOCUS/status/1587957754756362240
@@ -4763,7 +4763,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Giant incisional hernia con gastric obstruction.",
     media: {
       kind: "gif",
-      src: "/imports/1587957754756362240.mp4",
+      src: "/api/media/1587957754756362240.mp4",
     },
   },
   // [43 eng]  https://x.com/TaotePOCUS/status/1385767831543992321
@@ -4784,7 +4784,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "10h con ongoing CP.",
     media: {
       kind: "gif",
-      src: "/imports/1385767831543992321.mp4",
+      src: "/api/media/1385767831543992321.mp4",
     },
   },
   // [42 eng]  https://x.com/TaotePOCUS/status/1433611913288687623
@@ -4805,7 +4805,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Lymphoma.",
     media: {
       kind: "gif",
-      src: "/imports/1433611913288687623.mp4",
+      src: "/api/media/1433611913288687623.mp4",
     },
   },
   // [42 eng]  https://x.com/TaotePOCUS/status/1433145312789549060
@@ -4826,7 +4826,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "> 30y ago Iodine-131.",
     media: {
       kind: "image",
-      src: "/imports/1433145312789549060.jpg",
+      src: "/api/media/1433145312789549060.jpg",
     },
   },
   // [42 eng]  https://x.com/TaotePOCUS/status/1361862336328437760
@@ -4847,7 +4847,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Pain Tx: NSAID + Antispasmodics + Fentanyl up to 2.5 mcg/kg response.",
     media: {
       kind: "image",
-      src: "/imports/1361862336328437760.jpg",
+      src: "/api/media/1361862336328437760.jpg",
     },
   },
   // [41 eng]  https://x.com/TaotePOCUS/status/1600147085533188097
@@ -4867,7 +4867,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Bilateral Severo Hydroureteronephrosis due Gynecologic Ca.",
     media: {
       kind: "gif",
-      src: "/imports/1600147085533188097.mp4",
+      src: "/api/media/1600147085533188097.mp4",
     },
   },
   // [41 eng]  https://x.com/TaotePOCUS/status/1481265283583074307
@@ -4888,7 +4888,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Prostate Ca.",
     media: {
       kind: "gif",
-      src: "/imports/1481265283583074307.mp4",
+      src: "/api/media/1481265283583074307.mp4",
     },
   },
   // [41 eng]  https://x.com/TaotePOCUS/status/1470545001977462785
@@ -4908,7 +4908,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Torus Fracture.",
     media: {
       kind: "gif",
-      src: "/imports/1470545001977462785.mp4",
+      src: "/api/media/1470545001977462785.mp4",
     },
   },
   // [41 eng]  https://x.com/TaotePOCUS/status/1431349065623683075
@@ -4928,7 +4928,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "POCUS.",
     media: {
       kind: "image",
-      src: "/imports/1431349065623683075.jpg",
+      src: "/api/media/1431349065623683075.jpg",
     },
   },
   // [41 eng]  https://x.com/TaotePOCUS/status/1380316156075126789
@@ -4948,7 +4948,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Insuficiencia cardíaca caso Furosemide 4kg Admision 72h.",
     media: {
       kind: "gif",
-      src: "/imports/1380316156075126789.mp4",
+      src: "/api/media/1380316156075126789.mp4",
     },
   },
   // [39 eng]  https://x.com/TaotePOCUS/status/1536884508544344065
@@ -4970,7 +4970,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "I think I will start printing a QR code in the medical records when I something interesting.",
     media: {
       kind: "image",
-      src: "/imports/1536884508544344065.jpg",
+      src: "/api/media/1536884508544344065.jpg",
     },
   },
   // [39 eng]  https://x.com/TaotePOCUS/status/1479513230829670404
@@ -4991,7 +4991,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Repaired Abdominal Aorta Aneurisma.",
     media: {
       kind: "gif",
-      src: "/imports/1479513230829670404.mp4",
+      src: "/api/media/1479513230829670404.mp4",
     },
   },
   // [39 eng]  https://x.com/TaotePOCUS/status/1396537595329396736
@@ -5012,7 +5012,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Rural.",
     media: {
       kind: "gif",
-      src: "/imports/1396537595329396736.mp4",
+      src: "/api/media/1396537595329396736.mp4",
     },
   },
   // [38 eng]  https://x.com/TaotePOCUS/status/1438150505474232324
@@ -5032,7 +5032,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Intravesical Ureteral Jet.",
     media: {
       kind: "gif",
-      src: "/imports/1438150505474232324.mp4",
+      src: "/api/media/1438150505474232324.mp4",
     },
   },
   // [38 eng]  https://x.com/TaotePOCUS/status/1362199599834931207
@@ -5052,7 +5052,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "PV: High pulsatility.",
     media: {
       kind: "gif",
-      src: "/imports/1362199599834931207.mp4",
+      src: "/api/media/1362199599834931207.mp4",
     },
   },
   // [38 eng]  https://x.com/TaotePOCUS/status/1350435654442823681
@@ -5074,7 +5074,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". Left Agudo renal colic. 1st episode Left ureterovesical calculi Twinkling artifact.",
     media: {
       kind: "gif",
-      src: "/imports/1350435654442823681.mp4",
+      src: "/api/media/1350435654442823681.mp4",
     },
   },
   // [38 eng]  https://x.com/TaotePOCUS/status/1348270354557530113
@@ -5096,7 +5096,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". Frailty. CLD CHILD B. New decompensated cirrhosis (worsening HE, new ascitis). Domiciliary visit Dx: Lesion compatible con HCC Discussed…",
     media: {
       kind: "gif",
-      src: "/imports/1348270354557530113.mp4",
+      src: "/api/media/1348270354557530113.mp4",
     },
   },
   // [37 eng]  https://x.com/TaotePOCUS/status/1446549944773533699
@@ -5116,7 +5116,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Rib Fracture.",
     media: {
       kind: "gif",
-      src: "/imports/1446549944773533699.mp4",
+      src: "/api/media/1446549944773533699.mp4",
     },
   },
   // [37 eng]  https://x.com/TaotePOCUS/status/1428868394888089615
@@ -5136,7 +5136,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Splenic vascular calcifications in ESRD/ PD.",
     media: {
       kind: "gif",
-      src: "/imports/1428868394888089615.mp4",
+      src: "/api/media/1428868394888089615.mp4",
     },
   },
   // [37 eng]  https://x.com/TaotePOCUS/status/1403746101425999873
@@ -5158,7 +5158,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Congestion Hepática Pasiva: Alteración patrón doppler VH y VP Ecografía - Middleton 2005 Se que existe data desde los 90s pero me pareció…",
     media: {
       kind: "image",
-      src: "/imports/1403746101425999873.jpg",
+      src: "/api/media/1403746101425999873.jpg",
     },
   },
   // [36 eng]  https://x.com/TaotePOCUS/status/1558518037753475072
@@ -5179,7 +5179,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Uterine Cancer.",
     media: {
       kind: "gif",
-      src: "/imports/1558518037753475072.mp4",
+      src: "/api/media/1558518037753475072.mp4",
     },
   },
   // [36 eng]  https://x.com/TaotePOCUS/status/1407368938623750145
@@ -5199,7 +5199,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Game Omitted clinical data Diagnosis.",
     media: {
       kind: "gif",
-      src: "/imports/1407368938623750145.mp4",
+      src: "/api/media/1407368938623750145.mp4",
     },
   },
   // [36 eng]  https://x.com/TaotePOCUS/status/1392572365612199936
@@ -5221,7 +5221,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Right testicular trauma 1M ago Fluctuant mass above RT w/ spontaneous drainage of pus Hematoma peri, Hypoechoic lesion in superior pole,…",
     media: {
       kind: "image",
-      src: "/imports/1392572365612199936.jpg",
+      src: "/api/media/1392572365612199936.jpg",
     },
   },
   // [36 eng]  https://x.com/TaotePOCUS/status/1382417279875436554
@@ -5242,7 +5242,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Dementia.",
     media: {
       kind: "image",
-      src: "/imports/1382417279875436554.jpg",
+      src: "/api/media/1382417279875436554.jpg",
     },
   },
   // [36 eng]  https://x.com/TaotePOCUS/status/1372762943238983681
@@ -5262,7 +5262,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "of the incoming !.",
     media: {
       kind: "gif",
-      src: "/imports/1372762943238983681.mp4",
+      src: "/api/media/1372762943238983681.mp4",
     },
   },
   // [36 eng]  https://x.com/TaotePOCUS/status/1359235031487696902
@@ -5282,7 +5282,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Big renal cyst.",
     media: {
       kind: "gif",
-      src: "/imports/1359235031487696902.mp4",
+      src: "/api/media/1359235031487696902.mp4",
     },
   },
   // [35 eng]  https://x.com/TaotePOCUS/status/1606772937884827650
@@ -5302,7 +5302,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Staghorn calculi.",
     media: {
       kind: "gif",
-      src: "/imports/1606772937884827650.mp4",
+      src: "/api/media/1606772937884827650.mp4",
     },
   },
   // [35 eng]  https://x.com/TaotePOCUS/status/1463911160491692032
@@ -5322,7 +5322,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Peritonsillar Abscess.",
     media: {
       kind: "image",
-      src: "/imports/1463911160491692032.jpg",
+      src: "/api/media/1463911160491692032.jpg",
     },
   },
   // [35 eng]  https://x.com/TaotePOCUS/status/1352401390933577744
@@ -5342,7 +5342,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: ". T2D Agudo monocular vision loss @askpocus Diagnosis?.",
     media: {
       kind: "gif",
-      src: "/imports/1352401390933577744.mp4",
+      src: "/api/media/1352401390933577744.mp4",
     },
   },
   // [35 eng]  https://x.com/TaotePOCUS/status/1160256047522541568
@@ -5362,7 +5362,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "¡Got my @ButterflyNetInc! @MUE_14 @UrgenciaUC.",
     media: {
       kind: "image",
-      src: "/imports/1160256047522541568.jpg",
+      src: "/api/media/1160256047522541568.jpg",
     },
   },
   // [35 eng]  https://x.com/TaotePOCUS/status/1032689443499651073
@@ -5383,7 +5383,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "30 y.",
     media: {
       kind: "image",
-      src: "/imports/1032689443499651073.jpg",
+      src: "/api/media/1032689443499651073.jpg",
     },
   },
   // [34 eng]  https://x.com/TaotePOCUS/status/1550219809027084288
@@ -5404,7 +5404,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Myeloma Kidney.",
     media: {
       kind: "gif",
-      src: "/imports/1550219809027084288.mp4",
+      src: "/api/media/1550219809027084288.mp4",
     },
   },
   // [34 eng]  https://x.com/TaotePOCUS/status/1375940215978725377
@@ -5425,7 +5425,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Left Infraclavicular left lesion > 9M No pain.",
     media: {
       kind: "gif",
-      src: "/imports/1375940215978725377.mp4",
+      src: "/api/media/1375940215978725377.mp4",
     },
   },
   // [34 eng]  https://x.com/TaotePOCUS/status/1366110406142525442
@@ -5446,7 +5446,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Left neck swelling (1 week).",
     media: {
       kind: "gif",
-      src: "/imports/1366110406142525442.mp4",
+      src: "/api/media/1366110406142525442.mp4",
     },
   },
   // [33 eng]  https://x.com/TaotePOCUS/status/1569115933846773760
@@ -5467,7 +5467,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "While reading about mercurial diuretics Renosarca already recognized (1938 article).",
     media: {
       kind: "image",
-      src: "/imports/1569115933846773760.jpg",
+      src: "/api/media/1569115933846773760.jpg",
     },
   },
   // [33 eng]  https://x.com/TaotePOCUS/status/1556671471358840832
@@ -5487,7 +5487,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "1: No pulse 2: Post Diagnosis?.",
     media: {
       kind: "image",
-      src: "/imports/1556671471358840832.jpg",
+      src: "/api/media/1556671471358840832.jpg",
     },
   },
   // [33 eng]  https://x.com/TaotePOCUS/status/1465517778102894593
@@ -5508,7 +5508,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Insuficiencia cardíaca.",
     media: {
       kind: "image",
-      src: "/imports/1465517778102894593.jpg",
+      src: "/api/media/1465517778102894593.jpg",
     },
   },
   // [33 eng]  https://x.com/TaotePOCUS/status/1369443202609086472
@@ -5528,7 +5528,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Conclusion.",
     media: {
       kind: "image",
-      src: "/imports/1369443202609086472.jpg",
+      src: "/api/media/1369443202609086472.jpg",
     },
   },
   // [33 eng]  https://x.com/TaotePOCUS/status/1363536919402053635
@@ -5548,7 +5548,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Prostate Ca.",
     media: {
       kind: "gif",
-      src: "/imports/1363536919402053635.mp4",
+      src: "/api/media/1363536919402053635.mp4",
     },
   },
   // [32 eng]  https://x.com/TaotePOCUS/status/1664641826223976452
@@ -5568,7 +5568,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Splenomegaly.",
     media: {
       kind: "video",
-      src: "/imports/1664641826223976452.mp4",
+      src: "/api/media/1664641826223976452.mp4",
     },
   },
   // [32 eng]  https://x.com/TaotePOCUS/status/1599152046569316354
@@ -5588,7 +5588,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Insuficiencia cardíaca secondary to CHD.",
     media: {
       kind: "gif",
-      src: "/imports/1599152046569316354.mp4",
+      src: "/api/media/1599152046569316354.mp4",
     },
   },
   // [32 eng]  https://x.com/TaotePOCUS/status/1449161898243526661
@@ -5609,7 +5609,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Stroke, thrombolized pericholecystic hemorrhage (> 12 months ago).",
     media: {
       kind: "gif",
-      src: "/imports/1449161898243526661.mp4",
+      src: "/api/media/1449161898243526661.mp4",
     },
   },
   // [32 eng]  https://x.com/TaotePOCUS/status/1439043567247372292
@@ -5629,7 +5629,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Umbilical Cystic Lesion.",
     media: {
       kind: "gif",
-      src: "/imports/1439043567247372292.mp4",
+      src: "/api/media/1439043567247372292.mp4",
     },
   },
   // [32 eng]  https://x.com/TaotePOCUS/status/1409708708154679303
@@ -5651,7 +5651,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Incidental CT finding in patient scanned for trauma: Right small Neumonía anterior to the heart Focused Focal Líneas B Patient recognized…",
     media: {
       kind: "gif",
-      src: "/imports/1409708708154679303.mp4",
+      src: "/api/media/1409708708154679303.mp4",
     },
   },
   // [31 eng]  https://x.com/TaotePOCUS/status/1591455742988587010
@@ -5671,7 +5671,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Pyonephrosis.",
     media: {
       kind: "gif",
-      src: "/imports/1591455742988587010.mp4",
+      src: "/api/media/1591455742988587010.mp4",
     },
   },
   // [31 eng]  https://x.com/TaotePOCUS/status/1459705563588304896
@@ -5692,7 +5692,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "BIC Reflex Hammer.",
     media: {
       kind: "image",
-      src: "/imports/1459705563588304896.jpg",
+      src: "/api/media/1459705563588304896.jpg",
     },
   },
   // [30 eng]  https://x.com/TaotePOCUS/status/1594033978536734720
@@ -5712,7 +5712,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "RV thrombus.",
     media: {
       kind: "gif",
-      src: "/imports/1594033978536734720.mp4",
+      src: "/api/media/1594033978536734720.mp4",
     },
   },
   // [30 eng]  https://x.com/TaotePOCUS/status/1571290952773369856
@@ -5732,7 +5732,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Coworker con recurrent Dolor abdominal.",
     media: {
       kind: "image",
-      src: "/imports/1571290952773369856.jpg",
+      src: "/api/media/1571290952773369856.jpg",
     },
   },
   // [30 eng]  https://x.com/TaotePOCUS/status/1359551486573871106
@@ -5754,7 +5754,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "While hit himself con his other foot on the heel Inmediate pain & difficulty walking Thompson [+] Achilles Tendon Rupture.",
     media: {
       kind: "image",
-      src: "/imports/1359551486573871106.jpg",
+      src: "/api/media/1359551486573871106.jpg",
     },
   },
   // [29 eng]  https://x.com/TaotePOCUS/status/1492541891036041221
@@ -5774,7 +5774,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Anteroseptal Myocardial Infarction.",
     media: {
       kind: "gif",
-      src: "/imports/1492541891036041221.mp4",
+      src: "/api/media/1492541891036041221.mp4",
     },
   },
   // [28 eng]  https://x.com/TaotePOCUS/status/1447632112673243136
@@ -5794,7 +5794,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Bladder Stones.",
     media: {
       kind: "gif",
-      src: "/imports/1447632112673243136.mp4",
+      src: "/api/media/1447632112673243136.mp4",
     },
   },
   // [28 eng]  https://x.com/TaotePOCUS/status/1430687610272423939
@@ -5816,7 +5816,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Color Doppler of Splenic Vein Pulsatile flow High RAP* *In the right clinical context.",
     media: {
       kind: "gif",
-      src: "/imports/1430687610272423939.mp4",
+      src: "/api/media/1430687610272423939.mp4",
     },
   },
   // [28 eng]  https://x.com/TaotePOCUS/status/1398741286975385600
@@ -5837,7 +5837,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Hx of biliary digestive anastomosis post complicated cholecistectomy (> 15y ago).",
     media: {
       kind: "gif",
-      src: "/imports/1398741286975385600.mp4",
+      src: "/api/media/1398741286975385600.mp4",
     },
   },
   // [27 eng]  https://x.com/TaotePOCUS/status/1391925320484278274
@@ -5858,7 +5858,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "4 weeks of right knee pain A cutaneous cord is palpated at suprarotullian level.",
     media: {
       kind: "gif",
-      src: "/imports/1391925320484278274.mp4",
+      src: "/api/media/1391925320484278274.mp4",
     },
   },
   // [27 eng]  https://x.com/TaotePOCUS/status/1371661329963089923
@@ -5879,7 +5879,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Young Myalgias, fiebre, vómitos + diarrhea.",
     media: {
       kind: "gif",
-      src: "/imports/1371661329963089923.mp4",
+      src: "/api/media/1371661329963089923.mp4",
     },
   },
   // [27 eng]  https://x.com/TaotePOCUS/status/1352415232463921154
@@ -5901,7 +5901,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Healthy young To drain or not? 2⃣ Polls below 1: con just inspection 2: With @askpocus 1/4].",
     media: {
       kind: "image",
-      src: "/imports/1352415232463921154.jpg",
+      src: "/api/media/1352415232463921154.jpg",
     },
   },
   // [26 eng]  https://x.com/TaotePOCUS/status/1496151647831134208
@@ -5921,7 +5921,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Free abdominal fluid in PD user.",
     media: {
       kind: "gif",
-      src: "/imports/1496151647831134208.mp4",
+      src: "/api/media/1496151647831134208.mp4",
     },
   },
   // [26 eng]  https://x.com/TaotePOCUS/status/1396216546305921026
@@ -5943,7 +5943,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Fell on a bush con thorns Linear hyperchoic material (2) Hand Foreign Bodies Tx: Profilactic ATB.",
     media: {
       kind: "gif",
-      src: "/imports/1396216546305921026.mp4",
+      src: "/api/media/1396216546305921026.mp4",
     },
   },
   // [26 eng]  https://x.com/TaotePOCUS/status/1354540067281317888
@@ -5963,7 +5963,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Severo hepatic steatosis.",
     media: {
       kind: "gif",
-      src: "/imports/1354540067281317888.mp4",
+      src: "/api/media/1354540067281317888.mp4",
     },
   },
   // [25 eng]  https://x.com/TaotePOCUS/status/1590827044023439360
@@ -5983,7 +5983,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Complicated Agudo Colecistitis.",
     media: {
       kind: "gif",
-      src: "/imports/1590827044023439360.mp4",
+      src: "/api/media/1590827044023439360.mp4",
     },
   },
   // [25 eng]  https://x.com/TaotePOCUS/status/1389377453181788167
@@ -6003,7 +6003,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Inter-atrial septal Aneurisma.",
     media: {
       kind: "gif",
-      src: "/imports/1389377453181788167.mp4",
+      src: "/api/media/1389377453181788167.mp4",
     },
   },
   // [25 eng]  https://x.com/TaotePOCUS/status/1371973165363105797
@@ -6025,7 +6025,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". No relevant PMH done in the ER, ultimately diagnosed con Severo dengue What do you think of that PM ?.",
     media: {
       kind: "gif",
-      src: "/imports/1371973165363105797.mp4",
+      src: "/api/media/1371973165363105797.mp4",
     },
   },
   // [24 eng]  https://x.com/TaotePOCUS/status/1462450387831689236
@@ -6045,7 +6045,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Painful non-reducible inguinal mass Omentum Inguinal Hernia.",
     media: {
       kind: "gif",
-      src: "/imports/1462450387831689236.mp4",
+      src: "/api/media/1462450387831689236.mp4",
     },
   },
   // [23 eng]  https://x.com/TaotePOCUS/status/1408886638034489352
@@ -6065,7 +6065,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Gastric Ca in palliative care & CT correlation.",
     media: {
       kind: "gif",
-      src: "/imports/1408886638034489352.mp4",
+      src: "/api/media/1408886638034489352.mp4",
     },
   },
   // [22 eng]  https://x.com/TaotePOCUS/status/1460087284036866049
@@ -6087,7 +6087,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "I was doing a visit Forgot the gel So I had to improvised Corporal cream of honey & coco! Nice images by the way).",
     media: {
       kind: "image",
-      src: "/imports/1460087284036866049.jpg",
+      src: "/api/media/1460087284036866049.jpg",
     },
   },
   // [22 eng]  https://x.com/TaotePOCUS/status/1406661256191299585
@@ -6107,7 +6107,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "50s.",
     media: {
       kind: "image",
-      src: "/imports/1406661256191299585.jpg",
+      src: "/api/media/1406661256191299585.jpg",
     },
   },
   // [22 eng]  https://x.com/TaotePOCUS/status/1362466668979585029
@@ -6129,7 +6129,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       ". T2D. Permanent AF on VKA Agudo left arm pain & swelling after lifting a weigh . INR 2,5 Intramuscular Hematoma F/U in 1 week.",
     media: {
       kind: "image",
-      src: "/imports/1362466668979585029.jpg",
+      src: "/api/media/1362466668979585029.jpg",
     },
   },
   // [22 eng]  https://x.com/TaotePOCUS/status/1351651839851302915
@@ -6149,7 +6149,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Agudo Colecistitis.",
     media: {
       kind: "gif",
-      src: "/imports/1351651839851302915.mp4",
+      src: "/api/media/1351651839851302915.mp4",
     },
   },
   // [21 eng]  https://x.com/TaotePOCUS/status/1673807899284451329
@@ -6169,7 +6169,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Cirrhosis con hepatofugal portal venous flow & perisplenic collaterals.",
     media: {
       kind: "image",
-      src: "/imports/1673807899284451329.jpg",
+      src: "/api/media/1673807899284451329.jpg",
     },
   },
   // [21 eng]  https://x.com/TaotePOCUS/status/1376250460697399303
@@ -6190,7 +6190,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Left Infraclavicular nodular lesion > 9M.",
     media: {
       kind: "gif",
-      src: "/imports/1376250460697399303.mp4",
+      src: "/api/media/1376250460697399303.mp4",
     },
   },
   // [21 eng]  https://x.com/TaotePOCUS/status/1359901231465062402
@@ -6210,7 +6210,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "magic of life.",
     media: {
       kind: "gif",
-      src: "/imports/1359901231465062402.mp4",
+      src: "/api/media/1359901231465062402.mp4",
     },
   },
   // [20 eng]  https://x.com/TaotePOCUS/status/1355610803882389506
@@ -6232,7 +6232,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Dx: Metastasic prostate cancer DRAW results @ZarrarRJ (RT) @manuelfconcha56 () @pocusologist (any answer) @areinamo21 (more ) DM pls) In…",
     media: {
       kind: "video",
-      src: "/imports/1355610803882389506.mp4",
+      src: "/api/media/1355610803882389506.mp4",
     },
   },
   // [19 eng]  https://x.com/TaotePOCUS/status/1371599215948877826
@@ -6253,7 +6253,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Gastric Ca Fell days ago.",
     media: {
       kind: "gif",
-      src: "/imports/1371599215948877826.mp4",
+      src: "/api/media/1371599215948877826.mp4",
     },
   },
   // [19 eng]  https://x.com/TaotePOCUS/status/1288319953641377792
@@ -6275,7 +6275,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "Cualitative con @ButterflyNetInc in a ambulatory CHF patient @ThinkingCC @ArgaizR @FH_Verbrugge @NephroP @POCUSAcademy @paomorejon.",
     media: {
       kind: "video",
-      src: "/imports/1288319953641377792.mp4",
+      src: "/api/media/1288319953641377792.mp4",
     },
   },
   // [19 eng]  https://x.com/TaotePOCUS/status/1033455344696139777
@@ -6295,7 +6295,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: ". Women. Healthy. Pregnant 20 weeks. Síncope w/o other symp. No prev episodes.",
     media: {
       kind: "image",
-      src: "/imports/1033455344696139777.jpg",
+      src: "/api/media/1033455344696139777.jpg",
     },
   },
   // [18 eng]  https://x.com/TaotePOCUS/status/1358839960137306120
@@ -6317,7 +6317,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "1ary care consult 2 days ago fall jumping on a trampoline Pain & mild forearm swelling X-ray & cast Cubital fracture.",
     media: {
       kind: "image",
-      src: "/imports/1358839960137306120.jpg",
+      src: "/api/media/1358839960137306120.jpg",
     },
   },
   // [18 eng]  https://x.com/TaotePOCUS/status/1351909069074923525
@@ -6337,7 +6337,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Bacterial Neumonía.",
     media: {
       kind: "gif",
-      src: "/imports/1351909069074923525.mp4",
+      src: "/api/media/1351909069074923525.mp4",
     },
   },
   // [17 eng]  https://x.com/TaotePOCUS/status/1403884255487401986
@@ -6359,7 +6359,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "PMH: Cervix Ca + RT Pelvic pain + hematuria Dysfunction of 3-lumen catheter catheter Distended bladder + big clot Líneas A artifact ( in…",
     media: {
       kind: "gif",
-      src: "/imports/1403884255487401986.mp4",
+      src: "/api/media/1403884255487401986.mp4",
     },
   },
   // [17 eng]  https://x.com/TaotePOCUS/status/1389832486448992258
@@ -6379,7 +6379,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Prostate Ca.",
     media: {
       kind: "gif",
-      src: "/imports/1389832486448992258.mp4",
+      src: "/api/media/1389832486448992258.mp4",
     },
   },
   // [17 eng]  https://x.com/TaotePOCUS/status/1358912084663275522
@@ -6401,7 +6401,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
       "In patient con RHF don’t be surprised when you find diffuse wall tickenning Vesícula.",
     media: {
       kind: "gif",
-      src: "/imports/1358912084663275522.mp4",
+      src: "/api/media/1358912084663275522.mp4",
     },
   },
   // [14 eng]  https://x.com/TaotePOCUS/status/1665817400569217025
@@ -6422,7 +6422,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "My infant (< 2 months) had an ugly cough & nasal congestion.",
     media: {
       kind: "video",
-      src: "/imports/1665817400569217025.mp4",
+      src: "/api/media/1665817400569217025.mp4",
     },
   },
   // [13 eng]  https://x.com/TaotePOCUS/status/1452329040883458055
@@ -6443,7 +6443,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Yesterday I made this mango marmalade gift from a patient) Man doesn’t live only by.",
     media: {
       kind: "image",
-      src: "/imports/1452329040883458055.jpg",
+      src: "/api/media/1452329040883458055.jpg",
     },
   },
   // [13 eng]  https://x.com/TaotePOCUS/status/1402802195771367431
@@ -6463,7 +6463,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Normal.",
     media: {
       kind: "gif",
-      src: "/imports/1402802195771367431.mp4",
+      src: "/api/media/1402802195771367431.mp4",
     },
   },
   // [13 eng]  https://x.com/TaotePOCUS/status/1357822442119573507
@@ -6483,7 +6483,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "I don't know if it's a bird.",
     media: {
       kind: "gif",
-      src: "/imports/1357822442119573507.mp4",
+      src: "/api/media/1357822442119573507.mp4",
     },
   },
   // [12 eng]  https://x.com/TaotePOCUS/status/1388556063956418562
@@ -6503,7 +6503,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Dino - Abscess.",
     media: {
       kind: "image",
-      src: "/imports/1388556063956418562.jpg",
+      src: "/api/media/1388556063956418562.jpg",
     },
   },
   // [11 eng]  https://x.com/TaotePOCUS/status/1407889584617295874
@@ -6523,7 +6523,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "HV: Police sign (~ Severo TR).",
     media: {
       kind: "gif",
-      src: "/imports/1407889584617295874.mp4",
+      src: "/api/media/1407889584617295874.mp4",
     },
   },
   // [9 eng]  https://x.com/TaotePOCUS/status/1363920067667329029
@@ -6543,7 +6543,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "1.",
     media: {
       kind: "gif",
-      src: "/imports/1363920067667329029.mp4",
+      src: "/api/media/1363920067667329029.mp4",
     },
   },
   // [8 eng]  https://x.com/TaotePOCUS/status/1496221694356340741
@@ -6563,7 +6563,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Last week of work in Hanga Roa from.",
     media: {
       kind: "image",
-      src: "/imports/1496221694356340741.jpg",
+      src: "/api/media/1496221694356340741.jpg",
     },
   },
   // [8 eng]  https://x.com/TaotePOCUS/status/1359974484715991047
@@ -6583,7 +6583,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Aquí otra Estenosis Aórtica detectada con @ButterflyNetInc.",
     media: {
       kind: "gif",
-      src: "/imports/1359974484715991047.mp4",
+      src: "/api/media/1359974484715991047.mp4",
     },
   },
   // [6 eng]  https://x.com/TaotePOCUS/status/1391092353885216773
@@ -6604,7 +6604,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Rib Fracture Playing football he was elbowed in the side.",
     media: {
       kind: "gif",
-      src: "/imports/1391092353885216773.mp4",
+      src: "/api/media/1391092353885216773.mp4",
     },
   },
   // [5 eng]  https://x.com/TaotePOCUS/status/1398399817257304070
@@ -6624,7 +6624,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Full stomach in SBO caso.",
     media: {
       kind: "gif",
-      src: "/imports/1398399817257304070.mp4",
+      src: "/api/media/1398399817257304070.mp4",
     },
   },
   // [3 eng]  https://x.com/TaotePOCUS/status/1297271280312475648
@@ -6645,7 +6645,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Not all HUN is 2⃣ urolithiasis Qx: Endometrial Ca.",
     media: {
       kind: "video",
-      src: "/imports/1297271280312475648.mp4",
+      src: "/api/media/1297271280312475648.mp4",
     },
   },
   // [2 eng]  https://x.com/TaotePOCUS/status/1450689933962850304
@@ -6665,7 +6665,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Sometimes you got just 1 shot PV & systolic peak of HA).",
     media: {
       kind: "image",
-      src: "/imports/1450689933962850304.jpg",
+      src: "/api/media/1450689933962850304.jpg",
     },
   },
   // [1 eng]  https://x.com/TaotePOCUS/status/1252063545010905094
@@ -6685,7 +6685,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: ". Advanced prostate cancer. PSA > 100. Creat 15.",
     media: {
       kind: "video",
-      src: "/imports/1252063545010905094.mp4",
+      src: "/api/media/1252063545010905094.mp4",
     },
   },
   // [0 eng]  https://x.com/TaotePOCUS/status/1665817126018469894
@@ -6706,7 +6706,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "My infant (< 2 months) had an ugly cough & nasal congestion.",
     media: {
       kind: "video",
-      src: "/imports/1665817126018469894.mp4",
+      src: "/api/media/1665817126018469894.mp4",
     },
   },
   // [0 eng]  https://x.com/TaotePOCUS/status/1646519339640827905
@@ -6726,7 +6726,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural + apical LV thrombus.",
     media: {
       kind: "video",
-      src: "/imports/1646519339640827905.mp4",
+      src: "/api/media/1646519339640827905.mp4",
     },
   },
   // [0 eng]  https://x.com/TaotePOCUS/status/1363921155644674054
@@ -6746,7 +6746,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "2.",
     media: {
       kind: "gif",
-      src: "/imports/1363921155644674054.mp4",
+      src: "/api/media/1363921155644674054.mp4",
     },
   },
   // [0 eng]  https://x.com/TaotePOCUS/status/1113978113803849728
@@ -6767,7 +6767,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     summary: "82 y .",
     media: {
       kind: "image",
-      src: "/imports/1113978113803849728.jpg",
+      src: "/api/media/1113978113803849728.jpg",
     },
   },
 ];

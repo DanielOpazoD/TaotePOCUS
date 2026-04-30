@@ -356,7 +356,11 @@ for (const c of slice) {
   const loop = DEFAULT_LOOP_BY_CATEGORY[category] || "blines";
 
   // Copy media into public/imports/ with a stable filename based on
-  // the tweet id. Idempotent: skip if already copied.
+  // the tweet id. Idempotent: skip if already copied. The folder is
+  // gitignored — production reads from the Netlify Blobs store named
+  // `imports`, populated by `scripts/upload-media-to-blobs.mjs`. Local
+  // dev still uses these files as the source of truth that the upload
+  // script reads from.
   const ext = extname(media.source);
   const destBasename = `${c.id}${ext}`;
   const dest = join(publicImportsDir, destBasename);
@@ -393,7 +397,12 @@ for (const c of slice) {
     ...(featured ? { featured: true } : {}),
     media: {
       kind: media.kind,
-      src: `/imports/${destBasename}`,
+      // URL points at the /api/media/[id] route handler, which streams
+      // from the `imports` blob store. After running this script,
+      // remember to also run `node scripts/upload-media-to-blobs.mjs`
+      // to push the new files to the store — until then, production
+      // will 404 on these `src` URLs.
+      src: `/api/media/${destBasename}`,
     },
     // Audit metadata: which tweet this came from. Not part of CaseRecord
     // type today — but harmless and useful for tracing back to the
