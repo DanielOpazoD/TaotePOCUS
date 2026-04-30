@@ -10,6 +10,8 @@ import {
   type BackupEnvelope,
   type RestoreResult,
 } from "@/lib/backup";
+import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
+import { dbBulkImport } from "@/app/actions/db";
 
 interface Props {
   /** Email of the current admin (best-effort tag inside the bundle). */
@@ -48,6 +50,11 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
   const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
   const [pendingRestore, setPendingRestore] = useState<BackupEnvelope | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
+  // DB sync state — separate from the file flow because the dialog
+  // copy and the failure modes are different.
+  const [dbBusy, setDbBusy] = useState(false);
+  const [dbConfirm, setDbConfirm] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   // Read the last-backup-at timestamp once on mount and after each
   // successful export. Stored separately from the bundle itself so a
@@ -135,6 +142,46 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
 
   const cancelRestore = () => {
     setPendingRestore(null);
+  };
+
+  // ─── DB upload ──────────────────────────────────────────────
+  // Push the current localStorage state to Postgres in a single
+  // atomic transaction. The server action wipes-and-rewrites every
+  // table, so it's safe to re-run; partial state can't leak in.
+  // Used for the initial migration and for re-syncing if drift ever
+  // builds up between local and DB.
+  const handleDbUpload = async () => {
+    setDbError(null);
+    setDbBusy(true);
+    try {
+      const env = buildBackup(currentEmail);
+      // The BackupEnvelope shape is intentionally loose (`unknown`-typed
+      // arrays / records) so file imports don't have to deep-validate
+      // before parsing. For this code path the source is our own
+      // `buildBackup`, which produces type-correct data — the cast
+      // matches what's actually there at runtime.
+      const result = await dbBulkImport(
+        env.data as Parameters<typeof dbBulkImport>[0],
+        currentEmail,
+      );
+      if (!result.ok) {
+        setDbError(
+          "No se pudo subir a la base de datos. Revisá los logs de Netlify Functions para el detalle.",
+        );
+        return;
+      }
+      const c = result.counts!;
+      notify(
+        `Subido a DB · ${c.overrides} reclasificaciones, ${c.categories} categorías, ${c.userCases} casos propios, ${c.favs} favoritos`,
+      );
+    } catch (err) {
+      setDbError(
+        err instanceof Error ? `Error: ${err.message}` : "Error desconocido durante la subida.",
+      );
+    } finally {
+      setDbBusy(false);
+      setDbConfirm(false);
+    }
   };
 
   // Pre-flight summary of what's currently in storage (so the admin
@@ -227,6 +274,83 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
           </p>
         )}
       </section>
+
+      {/* DB sync — only visible when the feature flag is on. Without
+          it the server actions have nowhere to land and the section
+          would be misleading. */}
+      {IS_NETLIFY_DB_ENABLED && (
+        <section className="backup-section">
+          <header className="backup-section-head">
+            <h3>Sincronizar con base de datos</h3>
+            <p>
+              Sube el estado actual de localStorage a Postgres (Netlify Database). La operación
+              reemplaza todos los datos en la DB con los locales — usar para la migración inicial o
+              para reconciliar drift después de un fallo de sincronización.
+            </p>
+          </header>
+          <ul className="backup-summary">
+            <li>
+              <strong>{preview.summary.overrides}</strong> reclasificaciones
+            </li>
+            <li>
+              <strong>{preview.summary.customCategories}</strong> categorías
+            </li>
+            <li>
+              <strong>{preview.summary.userCases}</strong> casos propios
+            </li>
+            <li>
+              <strong>{preview.summary.favorites}</strong> favoritos
+            </li>
+          </ul>
+          <button
+            type="button"
+            className="btn-primary backup-action"
+            onClick={() => setDbConfirm(true)}
+            disabled={dbBusy}
+          >
+            <Icon.upload /> {dbBusy ? "Subiendo…" : "Subir a base de datos"}
+          </button>
+          {dbError && (
+            <p className="backup-error" role="alert">
+              {dbError}
+            </p>
+          )}
+        </section>
+      )}
+
+      {dbConfirm && (
+        <div className="backup-confirm" role="alertdialog" aria-modal="true">
+          <div className="backup-confirm-card">
+            <h3>¿Subir a la base de datos?</h3>
+            <p>
+              Se va a sobrescribir el contenido de Postgres con el estado actual de tu navegador.
+              Esta operación es atómica — todo o nada.
+            </p>
+            <p className="backup-confirm-warn">
+              Si trabajaste desde otro dispositivo y hay datos solo en la DB, vas a perderlos. Para
+              casos así, primero exportá un backup desde el otro dispositivo.
+            </p>
+            <div className="backup-confirm-actions">
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => setDbConfirm(false)}
+                disabled={dbBusy}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleDbUpload}
+                disabled={dbBusy}
+              >
+                {dbBusy ? "Subiendo…" : "Subir y reemplazar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {pendingRestore && (
         <div className="backup-confirm" role="alertdialog" aria-modal="true">
