@@ -240,8 +240,13 @@ export default function Header({
         <div className="header-right">
           <ThemeToggle />
           {isAdmin && (
-            <button className="btn-primary" onClick={onNewCase}>
-              <Icon.plus /> Nuevo caso
+            <button
+              className="btn-primary btn-icon-only"
+              onClick={onNewCase}
+              aria-label="Nuevo caso"
+              title="Nuevo caso"
+            >
+              <Icon.plus />
             </button>
           )}
           {user ? (

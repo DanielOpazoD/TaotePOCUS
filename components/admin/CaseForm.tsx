@@ -124,7 +124,12 @@ export default function CaseForm({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.diagnosis.trim()) return;
+    // Validation tracks the simplified form: title + the single
+    // "Descripción" field (stored as `findings` for back-compat with
+    // the imported corpus). `summary` / `diagnosis` were dropped from
+    // the editing UI per the April-2026 simplification — they remain
+    // on `CaseRecord` for legacy data but are no longer captured here.
+    if (!form.title.trim() || !form.findings.trim()) return;
     const id = form.id || `u_${Date.now().toString(36)}`;
     onSave({ ...form, id });
   };
@@ -327,30 +332,18 @@ export default function CaseForm({
                 onChange={(e) => update({ date: e.target.value })}
               />
 
-              <label className="admin-label">Resumen del caso</label>
+              {/* Single description field. Replaces the old trio of
+                  Resumen / Hallazgos / Diagnóstico (Apr-2026 UX
+                  simplification). The data is stored in `findings` so
+                  the imported corpus and existing search continue to
+                  resolve without a migration. */}
+              <label className="admin-label">Descripción</label>
               <textarea
                 className="admin-input"
-                rows={3}
-                value={form.summary}
-                onChange={(e) => update({ summary: e.target.value })}
-                placeholder="Contexto clínico breve…"
-              />
-
-              <label className="admin-label">Hallazgos ecográficos</label>
-              <textarea
-                className="admin-input"
-                rows={3}
+                rows={6}
                 value={form.findings}
                 onChange={(e) => update({ findings: e.target.value })}
-                placeholder="Qué se ve en la imagen…"
-              />
-
-              <label className="admin-label">Diagnóstico</label>
-              <input
-                className="admin-input"
-                value={form.diagnosis}
-                onChange={(e) => update({ diagnosis: e.target.value })}
-                placeholder="Diagnóstico final"
+                placeholder="Describe el caso: contexto clínico, lo que se ve en la imagen, conclusión…"
                 required
               />
 
