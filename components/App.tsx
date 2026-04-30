@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -11,6 +11,7 @@ import { Header, Footer } from "./chrome";
 import { CaseModal, AuthModal } from "./modals";
 import { SEED_CASES } from "@/lib/data";
 import { derivePageHead } from "@/lib/headers";
+import { setMirrorFailureHandler } from "@/lib/db-mirror";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { useToast } from "@/hooks/useToast";
@@ -84,6 +85,27 @@ function AppInner() {
   // j/k, g+letter and `?`. The `/` shortcut for the search box lives
   // in the Header, co-located with the input it focuses.
   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
+
+  // ─── DB mirror failure handler (Stage 4) ────────────────────────
+  // When a write makes it to localStorage but fails to land in the
+  // DB, the repo / hooks call `notifyMirrorFailure` and we surface a
+  // toast. Rate-limited to once every 5 s so a sustained outage
+  // during a flurry of admin clicks doesn't spam the queue.
+  //
+  // The local write already succeeded by the time this fires — the
+  // user's data is safe in the browser. The toast nudges them to
+  // re-sync via Backup → "Subir a base de datos" once connectivity
+  // is restored.
+  const lastMirrorToastRef = useRef(0);
+  useEffect(() => {
+    setMirrorFailureHandler(() => {
+      const now = Date.now();
+      if (now - lastMirrorToastRef.current < 5000) return;
+      lastMirrorToastRef.current = now;
+      showToast("Cambio guardado local · sincronización con la base de datos pendiente");
+    });
+    return () => setMirrorFailureHandler(null);
+  }, [showToast]);
 
   // Per-case overrides — admin-edited fields persisted in localStorage.
   // Merged on top of the source catalog at render time so a future

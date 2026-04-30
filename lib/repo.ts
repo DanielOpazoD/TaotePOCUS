@@ -18,6 +18,7 @@ import { ADMIN_CREDENTIALS, IS_FIREBASE_ENABLED, IS_NETLIFY_DB_ENABLED } from ".
 import { SEED_CASES } from "./data";
 import { log } from "./log";
 import { AuthError } from "./errors";
+import { notifyMirrorFailure } from "./db-mirror";
 import type { CaseRecord, User } from "./types";
 import {
   dbListOverrides,
@@ -327,6 +328,11 @@ function currentMirrorEmail(): string | null {
  * out of the caller's promise chain. We deliberately don't `await` so
  * the local write returns immediately — the mirror catches up when it
  * can.
+ *
+ * Stage 4: failures are also pushed through `notifyMirrorFailure` so
+ * the UI can surface a toast. The repo doesn't know about React state
+ * — the handler registered by `App.tsx` does the rate-limiting and
+ * the actual toast call.
  */
 function mirror<T>(area: string, p: Promise<T>): void {
   void p
@@ -334,10 +340,12 @@ function mirror<T>(area: string, p: Promise<T>): void {
       // Detect the WriteResult-shaped failure from our own actions.
       if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
         log.warn(`DB mirror returned not-ok`, { area });
+        notifyMirrorFailure(area);
       }
     })
     .catch((err) => {
       log.warn(`DB mirror failed`, { area }, err);
+      notifyMirrorFailure(area);
     });
 }
 

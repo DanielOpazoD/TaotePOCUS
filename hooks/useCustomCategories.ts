@@ -5,6 +5,7 @@ import { usePersistedState } from "./usePersistedState";
 import { CATEGORIES } from "@/lib/data";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
 import { log } from "@/lib/log";
+import { notifyMirrorFailure } from "@/lib/db-mirror";
 import {
   dbAddCategory,
   dbListCategories,
@@ -27,9 +28,13 @@ function mirrorDb(area: string, p: Promise<unknown>): void {
     .then((r) => {
       if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
         log.warn(`DB mirror returned not-ok`, { area });
+        notifyMirrorFailure(area);
       }
     })
-    .catch((err) => log.warn(`DB mirror failed`, { area }, err));
+    .catch((err) => {
+      log.warn(`DB mirror failed`, { area }, err);
+      notifyMirrorFailure(area);
+    });
 }
 
 /**
