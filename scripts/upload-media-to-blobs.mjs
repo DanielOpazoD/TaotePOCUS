@@ -28,7 +28,7 @@
 import { getStore } from "@netlify/blobs";
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { homedir, platform } from "node:os";
 
 const STORE_NAME = "imports";
 const LOCAL_DIR = "public/imports";
@@ -60,8 +60,22 @@ function resolveAuth() {
     };
   }
 
-  // 3. Auto-discover from `netlify login` config.
-  const cliConfig = readJsonIfExists(join(homedir(), ".netlify", "config.json"));
+  // 3. Auto-discover from `netlify login` config. The CLI uses
+  // platform-specific config paths via the `conf` package — check
+  // both the macOS Preferences directory and the XDG-style fallback.
+  const candidatePaths = [
+    platform() === "darwin"
+      ? join(homedir(), "Library", "Preferences", "netlify", "config.json")
+      : null,
+    join(homedir(), ".config", "netlify", "config.json"),
+    join(homedir(), ".netlify", "config.json"),
+  ].filter(Boolean);
+
+  let cliConfig = null;
+  for (const p of candidatePaths) {
+    cliConfig = readJsonIfExists(p);
+    if (cliConfig) break;
+  }
   const projectState = readJsonIfExists(join(process.cwd(), ".netlify", "state.json"));
   const userId = cliConfig?.userId;
   const token = userId ? cliConfig?.users?.[userId]?.auth?.token : null;
@@ -131,8 +145,29 @@ async function main() {
         console.log(`  ↑ ${uploaded} uploaded · ${i + 1}/${files.length} (${pct}%)`);
       }
     } catch (err) {
-      console.error(`  ✗ ${key} failed:`, err.message);
+      const msg = err?.message ?? String(err);
+      console.error(`  ✗ ${key} failed:`, msg);
       failed += 1;
+      // Auth errors are terminal — no point in spamming the same
+      // failure 273 more times. Bail out with actionable hints.
+      if (/401|403|unauthor/i.test(msg)) {
+        console.error("");
+        console.error("Auth error — the CLI session token is short-lived.");
+        console.error("Generate a Personal Access Token instead:");
+        console.error("  1. https://app.netlify.com/user/applications#personal-access-tokens");
+        console.error("  2. New access token → name it (e.g. 'pocus media upload')");
+        console.error("  3. Copy the value and re-run with:");
+        console.error("       NETLIFY_AUTH_TOKEN=<token> \\");
+        console.error("       NETLIFY_SITE_ID=" + (auth.siteID || "<site-id>") + " \\");
+        console.error("       node scripts/upload-media-to-blobs.mjs");
+        console.error("");
+        console.error(
+          "The script is idempotent — the " +
+            uploaded +
+            " already-uploaded files will be skipped on the next run.",
+        );
+        break;
+      }
     }
   }
 
