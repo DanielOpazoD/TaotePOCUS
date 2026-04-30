@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { CaseCard, BentoGrid } from "./cards";
+import { CaseCard } from "./cards";
 import EmptyState from "./EmptyState";
 import type { CaseRecord, Category, View } from "@/lib/types";
 
@@ -86,14 +86,19 @@ interface Props {
 
 /**
  * Decides what fills the main column based on view + filter state and
- * delegates to the right sub-tree. Four branches:
+ * delegates to the right sub-tree. Three branches:
  *
  *   1. Admin route (and the user is admin) → `<AdminPanel>`
  *   2. Filter yields zero results          → `<EmptyState>` with a
  *      contextual CTA (clear filters / explore atlas / nothing)
- *   3. Atlas landing, unfiltered           → `<BentoGrid>` (2×2 hero +
- *      quote cards interleaved + standard cards)
- *   4. Otherwise                           → uniform `.case-grid`
+ *   3. Otherwise                           → uniform `.case-grid`
+ *
+ * The Atlas landing used to special-case into a Bento layout (one
+ * 2×2 hero + interleaved QuoteCards). User feedback in May-2026
+ * asked for the catalog to read as a single uniform thumbnail grid
+ * across every section — same vocabulary as the admin classifier
+ * — so the hero and quote chrome were dropped. Atlas now falls
+ * through to branch 3 like every other section.
  *
  * Extracted from App.tsx so the rendering branch isn't a 60-line
  * nested ternary inside the JSX. The branching is the same; this just
@@ -173,29 +178,8 @@ export default function MainGrid({
     return <EmptyState view={view} action={action} />;
   }
 
-  // Atlas landing without any filter applied — render the bento.
-  const isAtlasLandingUnfiltered =
-    view.kind === "section" &&
-    view.section === "atlas" &&
-    !cat &&
-    tags.length === 0 &&
-    !query.trim();
-
-  if (isAtlasLandingUnfiltered) {
-    return (
-      <BentoGrid
-        cases={filtered}
-        favs={favs}
-        onOpen={onOpen}
-        onFav={onToggleFav}
-        onDelete={isAdmin ? onDelete : undefined}
-        onPurge={isAdmin ? onPurgeImport : undefined}
-        onPatch={isAdmin ? onPatch : undefined}
-        categories={isAdmin ? categories : undefined}
-      />
-    );
-  }
-
+  // Atlas landing falls through to the uniform `case-grid` below —
+  // the Bento hero was removed in May-2026 (see file header).
   return (
     <div className="case-grid">
       {filtered.map((c) => (
