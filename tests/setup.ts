@@ -51,6 +51,19 @@ if (!("ResizeObserver" in window)) {
   (window as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
 }
 
+// ─── Server Action: session cookie ────────────────────────────────────────
+// `lib/repo > localAuth.login/.logout` fires `setSessionAction` /
+// `clearSessionAction` to mint and clear the server-side session cookie.
+// Those actions depend on `next/headers > cookies()` which only works
+// inside a real request context — happy-dom doesn't provide one, so
+// importing the real module would throw at call time. Mock it globally
+// to a no-op resolver. Suites that exercise the actions directly can
+// override per-file.
+vi.mock("@/app/actions/session", () => ({
+  setSessionAction: vi.fn().mockResolvedValue({ ok: true }),
+  clearSessionAction: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
 // ─── next/navigation router ───────────────────────────────────────────────
 // The TransitionLink component (chrome) calls `useRouter()` to wrap
 // navigations in startViewTransition. Outside of the App Router runtime

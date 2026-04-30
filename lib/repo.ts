@@ -28,6 +28,7 @@ import type { ListPagedOptions } from "./repo-types";
 import { localCases, type CasesRepo } from "./repo/local-cases";
 import { localFavs, type FavsRepo } from "./repo/local-favs";
 import { dualWriteCases, dualWriteFavs } from "./repo/dual-write";
+import { setSessionAction, clearSessionAction } from "@/app/actions/session";
 
 // Re-export the pagination contract so existing consumers that import
 // from `@/lib/repo` keep working.
@@ -111,6 +112,18 @@ const localAuth = {
       log.error("Failed to persist session", { area: "auth", reason: result.reason });
       throw new AuthError("unknown", "No se pudo persistir la sesión");
     }
+    // Mint the server-side session cookie. Best-effort: if the
+    // server is unreachable or `AUTH_SECRET` is missing in prod,
+    // the local session still works but DB writes will be rejected
+    // (the user will see the mirror-failure toast). We don't block
+    // login on the cookie request — `setSessionAction` is fast in
+    // practice and a delayed cookie just means the first DB write
+    // after login may fail until the cookie lands.
+    void setSessionAction({
+      email: user.email,
+      role: user.role,
+      expiresAt: user.expiresAt,
+    }).catch((err) => log.warn("Failed to set server session cookie", { area: "auth" }, err));
     log.info("Login success", {
       area: "auth",
       email: user.email,
@@ -123,6 +136,12 @@ const localAuth = {
     const u = Store.getUser();
     if (u) log.info("Logout", { area: "auth", email: u.email });
     Store.clearUser();
+    // Clear the server session cookie too. Fire-and-forget — if the
+    // network is down the cookie will eventually expire on its own,
+    // and we still cleared the local session.
+    void clearSessionAction().catch((err) =>
+      log.warn("Failed to clear server session cookie", { area: "auth" }, err),
+    );
   },
   async msUntilExpiry(): Promise<number> {
     const u = await this.current();
