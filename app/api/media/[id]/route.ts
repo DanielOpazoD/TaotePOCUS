@@ -42,10 +42,15 @@ export async function GET(_req: Request, { params }: Context) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  // Prefer the blob's own type when present (set at upload time);
-  // fall back to extension sniffing for blobs uploaded without
-  // explicit metadata.
-  const type = blob.type || contentTypeFromKey(id);
+  // Always prefer extension-based detection. Netlify Blobs stores
+  // every uploaded buffer with `binary/octet-stream` as its `type`
+  // (the SDK doesn't expose a way to set the MIME at upload time),
+  // so blob.type is never useful. The keys are deterministic
+  // (`<id>.<ext>`) and `contentTypeFromKey` handles every format the
+  // Twitter import produces; only an unknown extension falls through
+  // to the blob's own type as a last resort.
+  const fromExt = contentTypeFromKey(id);
+  const type = fromExt !== "application/octet-stream" ? fromExt : blob.type || fromExt;
 
   return new NextResponse(blob, {
     status: 200,
