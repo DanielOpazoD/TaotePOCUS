@@ -377,8 +377,11 @@ select.classifier-aux-input {
 }
 
 /* Soft-delete affordance — same chip footprint as the review badge,
- * pinned to the top-left so the two never overlap. Hidden until card
- * hover so the chrome stays calm in the default state. */
+ * pinned to the top-left so the two never overlap. Always visible
+ * but at lower opacity until the card is hovered, so the option is
+ * discoverable without dominating the visual. (Earlier hover-only
+ * version was effectively invisible — admin couldn't find delete on
+ * already-classified cases.) */
 .classifier-card-delete {
   position: absolute;
   top: 8px;
@@ -392,11 +395,9 @@ select.classifier-aux-input {
   background: var(--surface);
   color: var(--ink-mute);
   cursor: pointer;
-  opacity: 0;
-  transform: translateY(-2px);
+  opacity: 0.45;
   transition:
     opacity var(--duration-fast) ease,
-    transform var(--duration-fast) ease,
     color var(--duration-fast) ease,
     border-color var(--duration-fast) ease;
 }
@@ -407,9 +408,9 @@ select.classifier-aux-input {
 .classifier-card:hover .classifier-card-delete,
 .classifier-card-delete:focus-visible {
   opacity: 1;
-  transform: translateY(0);
 }
 .classifier-card-delete:hover {
   color: var(--crit);
   border-color: var(--crit);
+  opacity: 1;
 }
