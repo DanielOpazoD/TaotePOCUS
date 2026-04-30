@@ -1,8 +1,0 @@
-# Netlify Database migrations live here. Files are SQL by default
-# (or `.ts` if Drizzle is added later). Filenames must be sortable by
-# application order — convention is `0001_name.sql`, `0002_name.sql`,
-# etc. Each file is applied exactly once and recorded by the Netlify
-# infra; pending vs applied state shows up in `netlify database status`.
-#
-# This .gitkeep is only here to make the empty directory trackable —
-# delete it once a real migration file lands.
