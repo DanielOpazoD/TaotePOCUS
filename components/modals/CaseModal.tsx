@@ -31,6 +31,9 @@ interface Props {
   hasOverride?: boolean;
   /** Toggle the editorial-review marker. Admin only. */
   onToggleReviewed?: () => void;
+  /** Soft-delete this case. Admin only. Triggers the parent's confirm
+   *  dialog — the actual deletion happens after the admin confirms. */
+  onDelete?: () => void;
   /** Position of the current case in the navigable set (1-based). */
   position?: number;
   /** Total cases in the navigable set, for the "X / N" indicator. */
@@ -56,6 +59,7 @@ export default function CaseModal({
   onResetOverride,
   hasOverride,
   onToggleReviewed,
+  onDelete,
 }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -429,6 +433,16 @@ export default function CaseModal({
                   aria-label="Restaurar original"
                 >
                   Restaurar
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={onDelete}
+                  className="btn-edit btn-edit--danger"
+                  title="Eliminar este caso (puede restaurarse desde la papelera de admin)"
+                  aria-label="Eliminar caso"
+                >
+                  {Icon.trash()} Eliminar
                 </button>
               )}
             </div>

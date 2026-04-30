@@ -544,6 +544,17 @@ button:hover > .kbd-hint {
   color: var(--accent-ink);
   border-color: var(--accent-ink);
 }
+.modal-actions button.btn-edit--danger {
+  /* Destructive variant — soft red so it reads as "careful" without
+     dominating the row of admin actions. The hover state intensifies
+     the color to make the consequence unambiguous. */
+  color: var(--crit);
+  border-color: color-mix(in oklch, var(--crit) 50%, var(--hairline));
+}
+.modal-actions button.btn-edit--danger:hover {
+  background: var(--crit-soft);
+  border-color: var(--crit);
+}
 .modal-actions button svg {
   width: 14px;
   height: 14px;

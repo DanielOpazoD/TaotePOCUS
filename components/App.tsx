@@ -436,6 +436,21 @@ function AppInner() {
                       }
                     : undefined
                 }
+                // Eliminar — admin only. Routes through the existing
+                // pendingDelete + ConfirmDialog flow that the classifier
+                // and "Mis casos" tab already use, so the confirmation
+                // copy and the soft-delete vs purge logic stay in one
+                // place. We close the modal first so the admin sees
+                // the confirm dialog cleanly.
+                onDelete={
+                  isAdmin
+                    ? () => {
+                        const target = openCase;
+                        replacePatch({ caso: null });
+                        setPendingDelete(target);
+                      }
+                    : undefined
+                }
               />
             </ErrorBoundary>
           );
