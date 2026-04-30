@@ -66,6 +66,11 @@ export default function CaseForm({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  // Secondary uploader: appends to `mediaExtra` so the same case can
+  // host a sequence of images (e.g. parasternal + apical + subcostal
+  // views). The primary `media` field still acts as the cover for
+  // the card thumbnail; the modal carousel renders all of them.
+  const extraFileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -76,13 +81,14 @@ export default function CaseForm({
 
   const update = (patch: Partial<CaseRecord>) => setForm((f) => ({ ...f, ...patch }));
 
-  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    // Reset the input so re-selecting the same file still fires onChange.
-    e.target.value = "";
-    if (!f) return;
+  // Shared upload pipeline. Validates size + MIME, base64-encodes the
+  // file, and routes the resulting `Media` either to the primary
+  // `media` field or appends to `mediaExtra`. Returns true on success
+  // so the caller knows whether to clear the input (it always clears,
+  // but having a return value makes future flows like "drop = upload"
+  // composable).
+  const processFile = async (f: File, target: "primary" | "extra"): Promise<void> => {
     setUploadError(null);
-
     if (f.size > MAX_UPLOAD_BYTES) {
       setUploadError(
         `El archivo pesa ${formatBytes(f.size)}. Máximo permitido: ${formatBytes(
@@ -95,7 +101,6 @@ export default function CaseForm({
       setUploadError(`Formato no soportado: ${f.type || "desconocido"}.`);
       return;
     }
-
     setUploading(true);
     try {
       const url = await fileToDataUrl(f);
@@ -105,13 +110,48 @@ export default function CaseForm({
           ? "gif"
           : "image";
       const media: Media = { kind, src: url, name: f.name, type: f.type };
-      update({ media });
+      if (target === "primary") {
+        update({ media });
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          mediaExtra: [...(prev.mediaExtra ?? []), media],
+        }));
+      }
     } catch {
       setUploadError("No se pudo leer el archivo.");
     } finally {
       setUploading(false);
     }
   };
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    // Reset the input so re-selecting the same file still fires onChange.
+    e.target.value = "";
+    if (!f) return;
+    await processFile(f, "primary");
+  };
+
+  // Bulk-add additional media via the secondary uploader. We accept
+  // multiple files in one pick so the admin can drop a whole gallery
+  // (e.g. four echocardiographic views) without four round-trips.
+  const onExtraFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    for (const f of files) {
+      // Sequential rather than parallel so the size validation stops
+      // on the first oversized file and the admin sees one clear
+      // error instead of a stack of toasts.
+      await processFile(f, "extra");
+    }
+  };
+
+  const removeExtra = (i: number) =>
+    setForm((prev) => ({
+      ...prev,
+      mediaExtra: (prev.mediaExtra ?? []).filter((_, idx) => idx !== i),
+    }));
 
   const addTag = () => {
     const t = tagInput.trim();
@@ -210,6 +250,63 @@ export default function CaseForm({
                   >
                     Quitar
                   </button>
+                </div>
+              )}
+              {/* Secondary uploader for multi-image cases. Hidden until
+                  the primary media is set so the form has a clear
+                  primary→extras flow (no orphaned extras without a
+                  cover). The button + thumbnail strip mirror the
+                  primary uploader's vocabulary. */}
+              {form.media && (
+                <div className="admin-media-extra">
+                  <label className="admin-label">Imágenes adicionales</label>
+                  <small className="admin-hint">
+                    Se mostrarán en el modal como un carrusel después de la imagen principal.
+                  </small>
+                  {form.mediaExtra && form.mediaExtra.length > 0 && (
+                    <ul className="admin-media-extra-list">
+                      {form.mediaExtra.map((m, i) => (
+                        <li key={`${m.src}-${i}`} className="admin-media-extra-item">
+                          {m.kind === "video" ? (
+                            <video
+                              src={m.src}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="admin-media-extra-thumb"
+                            />
+                          ) : (
+                            <img src={m.src} alt="" className="admin-media-extra-thumb" />
+                          )}
+                          <span className="admin-media-extra-name">{m.name}</span>
+                          <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => removeExtra(i)}
+                            aria-label={`Quitar ${m.name ?? `imagen ${i + 1}`}`}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button
+                    type="button"
+                    className="btn-ghost admin-media-extra-add"
+                    onClick={() => extraFileRef.current?.click()}
+                  >
+                    + Añadir otra imagen
+                  </button>
+                  <input
+                    ref={extraFileRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={onExtraFiles}
+                    hidden
+                  />
                 </div>
               )}
               {uploadError && (

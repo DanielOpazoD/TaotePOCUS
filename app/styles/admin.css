@@ -169,6 +169,55 @@ textarea.admin-input {
   font-family: var(--mono);
   font-size: 11px;
 }
+
+/* Multi-image case: secondary uploader and the thumbnail strip of
+   already-attached extras. Visible only after the primary media is
+   set so the form has a clear cover → extras flow. */
+.admin-media-extra {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.admin-media-extra-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.admin-media-extra-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+.admin-media-extra-thumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: #000;
+  flex: 0 0 auto;
+}
+.admin-media-extra-name {
+  flex: 1;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-media-extra-add {
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 6px 10px;
+}
 .link-btn {
   background: none;
   border: none;

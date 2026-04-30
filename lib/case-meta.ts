@@ -1,9 +1,9 @@
 /**
  * Editorial helpers for the case modal: reading-time estimate, difficulty
- * label, last-updated formatting. Pure — testable in isolation.
+ * label, last-updated formatting, media list. Pure — testable in isolation.
  */
 
-import type { CaseRecord } from "./types";
+import type { CaseRecord, Media } from "./types";
 
 /** Words per minute used for the estimate. Conservative for a Spanish
  *  reader skimming clinical content with technical terms. */
@@ -51,4 +51,23 @@ export function lastUpdatedFor(c: CaseRecord): string {
 export function wasUpdatedAfterPublication(c: CaseRecord): boolean {
   if (!c.lastUpdated) return false;
   return new Date(c.lastUpdated).getTime() - new Date(c.date).getTime() > 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Unified media list for a case. Returns the primary `media` followed
+ * by everything in `mediaExtra` (filtering out empty entries). Empty
+ * array when the case has no real media — callers fall back to the
+ * synthetic cine-loop in that case.
+ *
+ * Why a helper: the two-field shape (`media` + `mediaExtra`) is a
+ * back-compat compromise — adding `media: Media[]` would have
+ * required migrating the 326 imported cases. Centralizing the join
+ * here keeps every consumer (modal, card, search index) reading the
+ * full list without each having to remember the split.
+ */
+export function getCaseMedia(c: CaseRecord): Media[] {
+  const list: Media[] = [];
+  if (c.media) list.push(c.media);
+  if (c.mediaExtra && c.mediaExtra.length > 0) list.push(...c.mediaExtra);
+  return list;
 }

@@ -340,16 +340,10 @@ function AppInner() {
 
       {openCase &&
         (() => {
-          // Compute nav within the current filtered set so ←/→ flips
-          // through the same list the user just narrowed. If the
-          // current case isn't in `filtered` (rare — opened via deep
-          // link with active filters that exclude it), fall back to
-          // `allCases` so navigation still works.
-          const navList =
-            filtered.length > 0 && filtered.some((c) => c.id === openCase.id) ? filtered : allCases;
-          const idx = navList.findIndex((c) => c.id === openCase.id);
-          const prev = idx > 0 ? navList[idx - 1] : null;
-          const next = idx >= 0 && idx < navList.length - 1 ? navList[idx + 1] : null;
+          // Inter-case navigation (prev/next) was removed in Apr-2026.
+          // The IIFE wrapper is kept because the JSX inside still
+          // depends on `openCase` being non-null; the body is now
+          // straight render with no extra computation.
           return (
             // The modal is the most error-prone subtree (dialog API,
             // focus trap, swipe gesture, scroll listener, kbd shortcuts,
@@ -381,10 +375,6 @@ function AppInner() {
                 onFav={() => toggleFav(openCase.id)}
                 onShare={() => onShare(openCase)}
                 onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
-                position={idx >= 0 ? idx + 1 : undefined}
-                total={navList.length}
-                onPrev={prev ? () => replacePatch({ caso: prev.id }) : undefined}
-                onNext={next ? () => replacePatch({ caso: next.id }) : undefined}
                 // Admin-only: edit any case (seed / imported / uploaded).
                 // The form is reused; the save path branches on origin.
                 onEdit={

@@ -246,6 +246,114 @@ button:hover > .kbd-hint {
   width: 100%;
   height: 100%;
 }
+
+/* ─── Multi-media carousel ────────────────────────────────────────
+ *
+ * Active when a case has more than one attached media item (see
+ * `mediaExtra` on CaseRecord and `getCaseMedia` in lib/case-meta).
+ * Single-item cases render a bare CineLoop and never see this CSS.
+ *
+ * Layout: a horizontal scroll-snap track of full-width slides, with
+ * absolutely-positioned chevron buttons on the left/right edges and
+ * a row of dot indicators below. Touch swipe and keyboard arrows
+ * (when the track has focus) work natively via scroll-snap; the
+ * chevrons just provide a visible affordance for mouse users.
+ */
+.modal-loop-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.modal-loop-track {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+}
+.modal-loop-track::-webkit-scrollbar {
+  display: none;
+}
+.modal-loop-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The CineLoop inside renders its own wrapper with the right
+     aspect ratio; we just give it the full slide area and let the
+     existing `.modal-loop .cine-wrap` rules size it. */
+}
+.modal-loop-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    opacity 120ms ease;
+  z-index: 2;
+}
+.modal-loop-nav:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.8);
+}
+.modal-loop-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.modal-loop-nav--prev {
+  left: 12px;
+}
+.modal-loop-nav--next {
+  right: 12px;
+}
+.modal-loop-dots {
+  position: absolute;
+  bottom: 64px; /* clear of the play/pause/speed controls */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  z-index: 2;
+}
+.modal-loop-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    transform 120ms ease;
+}
+.modal-loop-dot:hover {
+  background: rgba(255, 255, 255, 0.65);
+}
+.modal-loop-dot.active {
+  background: #fff;
+  transform: scale(1.2);
+}
+
 .modal-loop-controls {
   position: absolute;
   bottom: 16px;

@@ -9,11 +9,12 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useSwipeToClose } from "@/hooks/useSwipeToClose";
 import {
   difficultyLabel,
+  getCaseMedia,
   lastUpdatedFor,
   readingTimeFor,
   wasUpdatedAfterPublication,
 } from "@/lib/case-meta";
-import type { CaseRecord } from "@/lib/types";
+import type { CaseRecord, Media } from "@/lib/types";
 
 interface Props {
   caso: CaseRecord;
@@ -38,14 +39,13 @@ interface Props {
    *  from `onDelete`: this removes the metadata override and the
    *  blob from the media store; the case never reappears. */
   onPurge?: () => void;
-  /** Position of the current case in the navigable set (1-based). */
-  position?: number;
-  /** Total cases in the navigable set, for the "X / N" indicator. */
-  total?: number;
-  /** Open the previous case. Disabled when the current is the first. */
-  onPrev?: () => void;
-  /** Open the next case. Disabled when the current is the last. */
-  onNext?: () => void;
+  // Inter-case navigation (prev/next position/total) was removed in
+  // Apr-2026 per user feedback: the arrows let the reader leave the
+  // case they just clicked into without an explicit gesture, which
+  // was disorienting on touch. Navigation between cases now happens
+  // only via the grid (close → click another). When a case has
+  // multiple media items, the modal renders an internal carousel —
+  // see `getCaseMedia` and `.modal-loop-carousel` below.
 }
 
 export default function CaseModal({
@@ -55,10 +55,6 @@ export default function CaseModal({
   onFav,
   onShare,
   onPresent,
-  position,
-  total,
-  onPrev,
-  onNext,
   onEdit,
   onResetOverride,
   hasOverride,
@@ -92,6 +88,12 @@ export default function CaseModal({
     () => caso.findings || caso.summary || caso.diagnosis || "",
     [caso.findings, caso.summary, caso.diagnosis],
   );
+
+  // Unified media list for this case. May be empty (case has only the
+  // synthetic cine-loop) or contain one or more uploaded items. The
+  // modal renders an internal carousel when length > 1 so the reader
+  // can step through every attached image without leaving the case.
+  const mediaList = useMemo(() => getCaseMedia(caso), [caso]);
 
   // schema.org structured data for the case. Search engines and rich-
   // result tools (e.g. Google Search Console) parse this JSON-LD to
@@ -138,12 +140,14 @@ export default function CaseModal({
 
   // Keyboard shortcuts for the modal:
   //   - Escape  → close
-  //   - ←/→     → previous / next case (when the parent provides
-  //              navigation callbacks; ignored if the user is typing
-  //              in a field, e.g. inside a search box that the modal
-  //              might one day host)
   //   - F / S / P → toggle fav / share / present (mirrors the
   //              kbd hints rendered next to those action buttons)
+  //
+  // ←/→ used to step between cases in the section. They were dropped
+  // in Apr-2026 along with the visible prev/next arrows. The reader
+  // now navigates via the grid; arrow keys inside the modal scroll
+  // the multi-media carousel instead (handled by the carousel's
+  // native scroll-snap, no explicit listener needed).
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       // Ignore shortcuts while typing in a field — the user is
@@ -164,16 +168,6 @@ export default function CaseModal({
         onClose();
         return;
       }
-      if (e.key === "ArrowLeft" && onPrev) {
-        e.preventDefault();
-        onPrev();
-        return;
-      }
-      if (e.key === "ArrowRight" && onNext) {
-        e.preventDefault();
-        onNext();
-        return;
-      }
       if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         onFav();
@@ -192,7 +186,7 @@ export default function CaseModal({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, onPrev, onNext, onFav, onShare, onPresent]);
+  }, [onClose, onFav, onShare, onPresent]);
 
   // Click on the dialog element itself = backdrop click = close.
   const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
@@ -245,37 +239,6 @@ export default function CaseModal({
           aria-hidden="true"
           style={{ transform: `scaleX(${readProgress})` }}
         />
-        {/* Per-modal nav: prev / position / next pill, pinned to the
-            top edge of the dialog. Hidden on the first/last item or
-            when the parent didn't provide nav callbacks (e.g. opened
-            via a deep link without a filter context). */}
-        {position !== undefined && total !== undefined && total > 1 && (
-          <div className="modal-nav" aria-label="Navegación entre casos">
-            <button
-              type="button"
-              className="modal-nav-btn"
-              onClick={onPrev}
-              disabled={!onPrev}
-              aria-label="Caso anterior"
-              title="Anterior (←)"
-            >
-              {Icon.arrowLeft()}
-            </button>
-            <span className="modal-nav-pos tnum" aria-live="polite">
-              {position} / {total}
-            </span>
-            <button
-              type="button"
-              className="modal-nav-btn"
-              onClick={onNext}
-              disabled={!onNext}
-              aria-label="Caso siguiente"
-              title="Siguiente (→)"
-            >
-              {Icon.arrowRight()}
-            </button>
-          </div>
-        )}
         <button
           className="modal-close"
           onClick={onClose}
@@ -286,20 +249,7 @@ export default function CaseModal({
         </button>
         <div className="modal-grid">
           <div className="modal-loop">
-            <CineLoop
-              kind={caso.loop}
-              aspect="1/1"
-              speed={speed}
-              paused={paused}
-              showChrome={true}
-              media={caso.media}
-              quality="full"
-              // In the modal we honor the media's native ratio so the
-              // user sees the case at its real proportions instead of
-              // squeezed into a square. The thumbnail in the grid keeps
-              // the uniform 1/1 to preserve the grid rhythm.
-              preserveNativeAspect={true}
-            />
+            <ModalLoopMedia caso={caso} mediaList={mediaList} speed={speed} paused={paused} />
             <div className="modal-loop-controls">
               <button
                 onClick={() => setPaused((p) => !p)}
@@ -469,3 +419,133 @@ export default function CaseModal({
 // (Apr-2026 UX simplification). The pull-quote aside lived next to
 // the Hallazgos paragraph; with a single Descripción section the
 // marginalia no longer has a clear anchor.
+
+/**
+ * Modal media surface. Two render paths:
+ *
+ *   - 0 or 1 item: a single `<CineLoop>` filling the loop pane, same
+ *     as before multi-media support landed. Empty list falls through
+ *     to the synthetic cine-loop.
+ *   - 2+ items: a horizontal scroll-snap carousel with one CineLoop
+ *     per slide, prev/next chevrons, and dot indicators below. The
+ *     scroll-snap container does the heavy lifting (touch swipe,
+ *     keyboard arrows when focused, mouse drag) — we only add the
+ *     button affordances and track the active index for the dots.
+ *
+ * The carousel intentionally lives inside `.modal-loop` so the
+ * surrounding chrome (play/pause/speed controls below) acts on the
+ * currently-visible slide via the shared `paused` / `speed` state.
+ */
+function ModalLoopMedia({
+  caso,
+  mediaList,
+  speed,
+  paused,
+}: {
+  caso: CaseRecord;
+  mediaList: Media[];
+  speed: number;
+  paused: boolean;
+}) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [active, setActive] = useState(0);
+
+  const isMulti = mediaList.length > 1;
+
+  // Track active slide via scroll position. Cheaper than IntersectionObserver
+  // for a small slide count, and works during smooth-scroll animations
+  // where the IO callback fires only at threshold crossings.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || !isMulti) return;
+    const onScroll = () => {
+      const w = track.clientWidth;
+      if (w === 0) return;
+      const i = Math.round(track.scrollLeft / w);
+      setActive(Math.max(0, Math.min(mediaList.length - 1, i)));
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  }, [isMulti, mediaList.length]);
+
+  const goTo = (i: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" });
+  };
+
+  // Single-item path — render exactly what the modal used to render
+  // before multi-media support, so the visual is byte-for-byte
+  // unchanged for the 326 imported cases that have one media or none.
+  if (!isMulti) {
+    return (
+      <CineLoop
+        kind={caso.loop}
+        aspect="1/1"
+        speed={speed}
+        paused={paused}
+        showChrome={true}
+        media={mediaList[0] ?? caso.media}
+        quality="full"
+        preserveNativeAspect={true}
+      />
+    );
+  }
+
+  return (
+    <div className="modal-loop-carousel" role="region" aria-label="Galería del caso">
+      <div className="modal-loop-track" ref={trackRef}>
+        {mediaList.map((m, i) => (
+          <div
+            className="modal-loop-slide"
+            key={`${m.src}-${i}`}
+            aria-roledescription="slide"
+            aria-label={`Imagen ${i + 1} de ${mediaList.length}`}
+          >
+            <CineLoop
+              kind={caso.loop}
+              aspect="1/1"
+              speed={speed}
+              paused={paused || i !== active}
+              showChrome={true}
+              media={m}
+              quality="full"
+              preserveNativeAspect={true}
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="modal-loop-nav modal-loop-nav--prev"
+        onClick={() => goTo(Math.max(0, active - 1))}
+        disabled={active === 0}
+        aria-label="Imagen anterior"
+      >
+        {Icon.arrowLeft()}
+      </button>
+      <button
+        type="button"
+        className="modal-loop-nav modal-loop-nav--next"
+        onClick={() => goTo(Math.min(mediaList.length - 1, active + 1))}
+        disabled={active === mediaList.length - 1}
+        aria-label="Imagen siguiente"
+      >
+        {Icon.arrowRight()}
+      </button>
+      <div className="modal-loop-dots" role="tablist" aria-label="Seleccionar imagen del caso">
+        {mediaList.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            aria-label={`Ir a imagen ${i + 1}`}
+            className={`modal-loop-dot${i === active ? " active" : ""}`}
+            onClick={() => goTo(i)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

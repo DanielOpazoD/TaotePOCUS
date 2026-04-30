@@ -96,8 +96,20 @@ export interface CaseRecord {
   diagnosis: string;
   summary: string;
   featured?: boolean;
-  /** Optional uploaded media. Absence (undefined) means "use the synthetic loop". */
+  /**
+   * Primary uploaded media (the "cover" item shown on the card and as
+   * the first slide in the modal carousel). Absence (undefined) means
+   * "use the synthetic loop".
+   */
   media?: Media;
+  /**
+   * Additional media items attached to the same case. Surfaced inside
+   * the modal as a horizontal carousel; the card thumbnail still
+   * renders only `media`. The split (`media` + `mediaExtra`) is a
+   * back-compat compromise so the imported corpus stays as-is — see
+   * `getCaseMedia` in `lib/case-meta.ts` for the unified read path.
+   */
+  mediaExtra?: Media[];
   /**
    * Editorial difficulty hint. Used to filter the catalog and to show
    * a pill in the case modal. Cases without an explicit value default
