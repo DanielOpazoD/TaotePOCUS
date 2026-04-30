@@ -58,6 +58,10 @@ interface Props {
   onRemoveCategory?: (id: string) => boolean;
   /** Predicate — is this id a runtime-defined custom category? */
   isCustomCategory?: (id: string) => boolean;
+  /** Predicate / setter for the visibility of a category in the
+   *  public sidebar. Built-ins and custom alike can be hidden. */
+  isCategoryHidden?: (id: string) => boolean;
+  onSetCategoryHidden?: (id: string, hidden: boolean) => void;
   /** Email of the current admin (used to tag backup envelopes). */
   currentEmail?: string | null;
   /** Toast surface — forwarded to AdminPanel's BackupPanel for
@@ -113,6 +117,8 @@ export default function MainGrid({
   onRenameCategory,
   onRemoveCategory,
   isCustomCategory,
+  isCategoryHidden,
+  onSetCategoryHidden,
   currentEmail,
   notify,
   favs,
@@ -138,6 +144,8 @@ export default function MainGrid({
         onRenameCategory={onRenameCategory}
         onRemoveCategory={onRemoveCategory}
         isCustomCategory={isCustomCategory}
+        isCategoryHidden={isCategoryHidden}
+        onSetCategoryHidden={onSetCategoryHidden}
         currentEmail={currentEmail}
         notify={notify}
         onEdit={onEdit}

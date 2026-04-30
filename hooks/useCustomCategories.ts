@@ -15,6 +15,7 @@ import {
 import type { Category } from "@/lib/types";
 
 const STORAGE_KEY = "customCategories";
+const HIDDEN_KEY = "hiddenCategoryIds";
 
 /**
  * Fire-and-forget DB mirror. Mirrors the helper in `lib/repo.ts` —
@@ -109,10 +110,49 @@ export function useCustomCategories() {
     },
   });
 
+  // Hidden categories — admin can mark any category (built-in or
+  // custom) as hidden; it stays in the catalog (cases keep their
+  // assignment) but doesn't appear in the public Atlas POCUS sidebar.
+  // Useful for trimming the nav when a built-in like "Obstétrico"
+  // has very few cases the admin doesn't want to surface.
+  //
+  // Persisted as a string[] so a corrupt entry (non-string) just
+  // gets dropped without crashing the editor.
+  const [hiddenIds, setHiddenIds] = usePersistedState<string[]>(HIDDEN_KEY, [], {
+    deserialize: (raw) => {
+      try {
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return undefined;
+        return arr.filter((x): x is string => typeof x === "string" && x.length > 0);
+      } catch {
+        return undefined;
+      }
+    },
+  });
+
   const builtInIds = useMemo(() => new Set(CATEGORIES.map((c) => c.id)), []);
   const isCustom = useCallback((id: string) => !builtInIds.has(id), [builtInIds]);
 
+  const hiddenSet = useMemo(() => new Set(hiddenIds), [hiddenIds]);
+  const isHidden = useCallback((id: string) => hiddenSet.has(id), [hiddenSet]);
+  const setHidden = useCallback(
+    (id: string, hidden: boolean) => {
+      const next = hidden
+        ? Array.from(new Set([...hiddenIds, id]))
+        : hiddenIds.filter((x) => x !== id);
+      setHiddenIds(next);
+    },
+    [hiddenIds, setHiddenIds],
+  );
+
   const categories = useMemo<Category[]>(() => [...CATEGORIES, ...customs], [customs]);
+  // Filtered list used by public surfaces (sidebar, hero, etc.).
+  // Admin views still get the full `categories` so the editor can
+  // toggle visibility on hidden ones.
+  const visibleCategories = useMemo<Category[]>(
+    () => categories.filter((c) => !hiddenSet.has(c.id)),
+    [categories, hiddenSet],
+  );
 
   // DB hydration. Stage 3 — when the flag is on, fetch the DB's
   // categories on mount and replace the local state if the DB has
@@ -193,10 +233,21 @@ export function useCustomCategories() {
 
   return {
     customCategories: customs,
+    /** Built-in + custom (full set, including hidden). Use this in the
+     *  Categories editor where the admin is managing visibility. */
     categories,
+    /** Built-in + custom MINUS hidden ones. Use this in public-facing
+     *  surfaces (sidebar nav, hero, classifier dropdowns). */
+    visibleCategories,
     addCategory,
     renameCategory,
     removeCategory,
     isCustom,
+    /** Predicate: is this category currently hidden from the public
+     *  Atlas POCUS view? */
+    isHidden,
+    /** Toggle visibility. Pass `hidden: true` to hide, `false` to show.
+     *  Works for both built-in and custom categories. */
+    setHidden,
   };
 }

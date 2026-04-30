@@ -46,6 +46,8 @@ interface Props {
   onRenameCategory?: (id: string, label: string) => boolean;
   onRemoveCategory?: (id: string) => boolean;
   isCustomCategory?: (id: string) => boolean;
+  isCategoryHidden?: (id: string) => boolean;
+  onSetCategoryHidden?: (id: string, hidden: boolean) => void;
   /** Email of the current admin — tagged inside backup envelopes. */
   currentEmail?: string | null;
   /** Toast surface for backup feedback ("Exportado · 47 cambios"). */
@@ -88,6 +90,8 @@ export default function AdminPanel({
   onRenameCategory,
   onRemoveCategory,
   isCustomCategory,
+  isCategoryHidden,
+  onSetCategoryHidden,
   currentEmail,
   notify,
 }: Props) {
@@ -166,6 +170,8 @@ export default function AdminPanel({
           onRename={onRenameCategory!}
           onRemove={onRemoveCategory!}
           isCustom={isCustomCategory!}
+          isHidden={isCategoryHidden ?? (() => false)}
+          setHidden={onSetCategoryHidden ?? (() => undefined)}
           caseCounts={categoryCaseCounts ?? {}}
         />
       ) : tab === "backup" ? (

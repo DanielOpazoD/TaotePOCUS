@@ -114,15 +114,19 @@ function AppInner() {
   // re-import (apply-twitter-import.mjs) doesn't blow away admin edits.
   const { overrides, setOverride, clearOverride } = useCaseOverrides();
 
-  // Admin-managed categories. The hook returns built-in + custom in
-  // a single `categories` list; we pass that down to the classifier
-  // and the case form so they pick up runtime additions automatically.
+  // Admin-managed categories. The hook returns the full `categories`
+  // list (built-in + custom, including hidden) for the Categories
+  // editor. `isHidden` / `setHidden` drive the visibility toggle that
+  // lets the admin trim the public sidebar nav without deleting
+  // anything from the catalog.
   const {
     categories,
     addCategory,
     renameCategory,
     removeCategory,
     isCustom: isCustomCategory,
+    isHidden: isCategoryHidden,
+    setHidden: setCategoryHidden,
   } = useCustomCategories();
 
   // Combined case list for public flows. AdminPanel sees `userCases.live`
@@ -160,7 +164,12 @@ function AppInner() {
     return counts;
   }, [allCases]);
 
-  const { scopedCases, sectionCategories, sectionTags, filtered } = useCaseFilters({
+  const {
+    scopedCases,
+    sectionCategories: rawSectionCategories,
+    sectionTags,
+    filtered,
+  } = useCaseFilters({
     allCases,
     favs,
     view,
@@ -169,6 +178,15 @@ function AppInner() {
     query,
     sort,
   });
+
+  // Public sidebar / hero exclude any category the admin hid from the
+  // Atlas POCUS view. Cases assigned to a hidden category still
+  // exist (filterable via search / direct URL); they just don't
+  // surface in the nav rail.
+  const sectionCategories = useMemo(
+    () => rawSectionCategories.filter((c) => !isCategoryHidden(c.id)),
+    [rawSectionCategories, isCategoryHidden],
+  );
 
   const openCase = useMemo<CaseRecord | null>(
     () => (openCaseId ? (allCases.find((c) => c.id === openCaseId) ?? null) : null),
@@ -370,6 +388,8 @@ function AppInner() {
               onRenameCategory={renameCategory}
               onRemoveCategory={removeCategory}
               isCustomCategory={isCustomCategory}
+              isCategoryHidden={isCategoryHidden}
+              onSetCategoryHidden={setCategoryHidden}
               currentEmail={user?.email ?? null}
               notify={showToast}
               favs={favs}

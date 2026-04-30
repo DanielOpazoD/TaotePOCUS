@@ -16,6 +16,10 @@ interface Props {
   onRemove: (id: string) => boolean;
   /** Predicate — is this id a runtime-defined custom category? */
   isCustom: (id: string) => boolean;
+  /** Predicate — is this category hidden from the public Atlas view? */
+  isHidden: (id: string) => boolean;
+  /** Toggle visibility for any category (built-in or custom). */
+  setHidden: (id: string, hidden: boolean) => void;
   /** Count of cases per category id, for the "in use" hint shown
    *  next to each row and as a guard against blind deletion. */
   caseCounts: Record<string, number>;
@@ -34,6 +38,8 @@ export default function CategoriesEditor({
   onRename,
   onRemove,
   isCustom,
+  isHidden,
+  setHidden,
   caseCounts,
 }: Props) {
   const [draft, setDraft] = useState("");
@@ -110,16 +116,37 @@ export default function CategoriesEditor({
         <span className="admin-trash-count">{builtIns.length} categorías</span>
       </div>
       <ul className="categories-list">
-        {builtIns.map((c) => (
-          <li key={c.id} className="categories-row">
-            <span className="categories-row-label">{c.label}</span>
-            <span className="categories-row-id">{c.id}</span>
-            <span className="categories-row-count">
-              {caseCounts[c.id] ?? 0} caso{caseCounts[c.id] === 1 ? "" : "s"}
-            </span>
-            <span className="categories-row-actions categories-row-actions--locked">Integrada</span>
-          </li>
-        ))}
+        {builtIns.map((c) => {
+          const hidden = isHidden(c.id);
+          return (
+            <li key={c.id} className={`categories-row${hidden ? " is-hidden" : ""}`}>
+              <span className="categories-row-label">{c.label}</span>
+              <span className="categories-row-id">{c.id}</span>
+              <span className="categories-row-count">
+                {caseCounts[c.id] ?? 0} caso{caseCounts[c.id] === 1 ? "" : "s"}
+              </span>
+              <span className="categories-row-actions">
+                <button
+                  type="button"
+                  className={`categories-visibility-toggle${hidden ? " is-hidden" : ""}`}
+                  onClick={() => setHidden(c.id, !hidden)}
+                  aria-label={
+                    hidden ? `Mostrar ${c.label} en el atlas` : `Ocultar ${c.label} del atlas`
+                  }
+                  aria-pressed={!hidden}
+                  title={
+                    hidden
+                      ? "Oculta en el sidebar público — click para mostrar"
+                      : "Visible en el sidebar público — click para ocultar"
+                  }
+                >
+                  {hidden ? "🚫" : "👁"}
+                </button>
+                <span className="categories-row-locked-label">Integrada</span>
+              </span>
+            </li>
+          );
+        })}
       </ul>
 
       <div className="admin-section-head">
@@ -135,8 +162,9 @@ export default function CategoriesEditor({
           {customs.map((c) => {
             const isEditing = editingId === c.id;
             const inUse = caseCounts[c.id] ?? 0;
+            const hidden = isHidden(c.id);
             return (
-              <li key={c.id} className="categories-row">
+              <li key={c.id} className={`categories-row${hidden ? " is-hidden" : ""}`}>
                 {isEditing ? (
                   <input
                     type="text"
@@ -162,6 +190,20 @@ export default function CategoriesEditor({
                 <span className="categories-row-actions">
                   {!isEditing && (
                     <>
+                      <button
+                        type="button"
+                        className={`categories-visibility-toggle${hidden ? " is-hidden" : ""}`}
+                        onClick={() => setHidden(c.id, !hidden)}
+                        aria-label={hidden ? `Mostrar ${c.label}` : `Ocultar ${c.label}`}
+                        aria-pressed={!hidden}
+                        title={
+                          hidden
+                            ? "Oculta en el sidebar público — click para mostrar"
+                            : "Visible en el sidebar público — click para ocultar"
+                        }
+                      >
+                        {hidden ? "🚫" : "👁"}
+                      </button>
                       <button
                         type="button"
                         className="icon-btn"
