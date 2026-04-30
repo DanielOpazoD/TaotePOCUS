@@ -20,42 +20,50 @@
     animation: none;
   }
 }
+/* The single section header used across every route. Compact by
+   design — see `components/hero/CompactHead.tsx` for the rationale.
+   Vertical rhythm chosen so the toolbar + grid below feel like the
+   primary content; the head reads as a quiet label, not a banner. */
 .section-head {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
   gap: var(--space-4);
   flex-wrap: wrap;
 }
 .section-head h1 {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: 38px;
-  letter-spacing: -0.025em;
-  margin: 0 0 4px;
-  line-height: 1.05;
+  font-variation-settings: var(--serif-h2);
+  /* Drops from the legacy hero scale (38px) to a compact display
+     size that still reads as a section title but yields ~30vh of
+     extra real estate above the fold for the case grid. */
+  font-size: clamp(24px, 1vw + 22px, 30px);
+  letter-spacing: -0.02em;
+  margin: 0 0 2px;
+  line-height: 1.1;
 }
 .section-head p {
   margin: 0;
   color: var(--ink-mute);
-  font-size: 14px;
+  font-size: 13px;
   max-width: 560px;
 }
 .section-head .crumb {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--ink-mute);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 .section-head .crumb-dot {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   background: currentColor;
   border-radius: 50%;
   opacity: 0.5;
@@ -63,15 +71,29 @@
 .section-head .crumb-glyph {
   display: inline-grid;
   place-items: center;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   margin-left: 2px;
   color: var(--section-accent-ink, currentColor);
   opacity: 0.85;
 }
 .section-head .crumb-glyph svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
+}
+
+/* View-transition-names so navigating between sections / categories
+   morphs the h1 and crumb in place rather than fading. Wrapped in
+   @supports — Firefox falls back to the page-level cross-fade and
+   the names are ignored. (These rules used to live in `hero.css`;
+   moved here when that file was removed.) */
+@supports (view-transition-name: hero-h1) {
+  .section-head h1 {
+    view-transition-name: hero-h1;
+  }
+  .section-head .crumb {
+    view-transition-name: hero-crumb;
+  }
 }
 
 /* =================== TOOLBAR MICROINTERACTIONS =================== */

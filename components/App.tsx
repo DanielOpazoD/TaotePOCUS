@@ -250,13 +250,7 @@ function AppInner() {
               or the grid below. Each boundary logs through lib/log so
               Sentry sees the failure once it's wired. */}
           <ErrorBoundary name="hero">
-            <SectionHero
-              view={view}
-              cat={cat}
-              head={head}
-              scopedCases={scopedCases}
-              onOpenCase={(id) => pushPatch({ caso: id })}
-            />
+            <SectionHero view={view} cat={cat} head={head} />
           </ErrorBoundary>
           <Toolbar
             count={filtered.length}

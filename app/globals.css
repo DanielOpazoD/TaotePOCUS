@@ -25,7 +25,9 @@
 @import "./styles/layout.css";
 @import "./styles/sidebar.css";
 @import "./styles/main.css";
-@import "./styles/hero.css";
+/* `./styles/hero.css` was removed in May-2026 along with the per-section
+   heros it styled (atlas / ecg / cases / info). The single compact
+   `.section-head` rules now live in `./styles/main.css`. */
 
 /* Cards (case grid, featured row, hover preview) */
 @import "./styles/cards.css";

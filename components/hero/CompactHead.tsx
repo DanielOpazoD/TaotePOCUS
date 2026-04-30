@@ -9,14 +9,22 @@ interface Props {
 }
 
 /**
- * Compact hero fallback. Used by favs / admin / category-narrowed
- * views — anywhere the dramatic section-specific decoration would be
- * misleading. Carries the same `view-transition-name` as the full
- * heros (in CSS) so navigating between hero ↔ compact morphs cleanly.
+ * Compact section header. The single header style across every
+ * section. Three lines — eyebrow crumb, h1, subtitle — and that's
+ * it. The dramatic per-section heros (auroras, sparklines, ECG
+ * strips, gradient titles, geometric posters) were removed in
+ * May-2026 because they pushed the case grid below the fold; users
+ * read this app as a working catalog, not a magazine cover, so the
+ * header now sits as quietly as possible to give the grid the
+ * vertical space it deserves.
+ *
+ * The `view-transition-name`s for h1 and crumb live in `main.css`
+ * so morphing between section ↔ category pages still pairs the
+ * same elements before/after navigation.
  */
 export default function CompactHead({ head, cat }: Props) {
   return (
-    <div className="section-head section-head--compact">
+    <div className="section-head">
       <div>
         <div className="crumb">
           <span>Taote POCUS</span>

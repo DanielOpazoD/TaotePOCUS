@@ -1,9 +1,7 @@
-// Section-specific heros + the compact fallback. Each one owns its
-// own personality (atlas / ecg / cases / info); the SectionHero
-// dispatcher in components/SectionHero.tsx picks one based on the
-// current view.
-export { default as AtlasHero } from "./AtlasHero";
-export { default as EcgHero } from "./EcgHero";
-export { default as CasesHero } from "./CasesHero";
-export { default as InfoHero } from "./InfoHero";
+// Section header. Only the compact head ships now — see
+// `components/SectionHero.tsx` for the rationale of having a single
+// uniform header across every section. The per-section variants
+// (AtlasHero / EcgHero / CasesHero / InfoHero) were removed in
+// May-2026 along with the sparkline + useCountUp helpers they
+// consumed.
 export { default as CompactHead } from "./CompactHead";
