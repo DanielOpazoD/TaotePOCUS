@@ -773,6 +773,125 @@
   color: white;
   transform: scale(1.1);
 }
+
+/* ─── Quick-reclassify chip + popover (admin) ──────────────────
+ * Sits to the right of the delete chips on each thumbnail. The
+ * trigger looks like a small ⇄ pill; clicking opens an inline
+ * popover with section + category options. Designed to feel like
+ * Linear's quick-assign menus — a single click both opens and
+ * applies, no nested submenus.
+ */
+.quick-reclassify {
+  position: absolute;
+  top: 10px;
+  left: 74px;
+  z-index: 4;
+}
+.quick-reclassify-trigger {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition:
+    transform var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.quick-reclassify-trigger:hover,
+.quick-reclassify-trigger[aria-expanded="true"] {
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
+  transform: scale(1.1);
+}
+
+/* The popover floats above the thumbnail. We size it to fit the
+ * longest label without overflow, and pin to the top-left of the
+ * trigger so it stays inside the viewport on most cards.
+ */
+.quick-reclassify-popover {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  min-width: 180px;
+  max-width: 240px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  padding: 6px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: quick-reclassify-pop 0.12s var(--ease-standard);
+}
+@keyframes quick-reclassify-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.quick-reclassify-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.quick-reclassify-group + .quick-reclassify-group {
+  border-top: 1px solid var(--hairline);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+.quick-reclassify-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mute);
+  padding: 4px 8px 2px;
+}
+.quick-reclassify-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
+}
+.quick-reclassify-item:hover {
+  background: var(--surface-2);
+}
+.quick-reclassify-item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 500;
+}
+.quick-reclassify-check {
+  width: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  flex: 0 0 12px;
+}
 @keyframes crit-pulse {
   0%,
   70%,

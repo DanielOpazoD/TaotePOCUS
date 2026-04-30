@@ -182,6 +182,8 @@ export default function MainGrid({
         onFav={onToggleFav}
         onDelete={isAdmin ? onDelete : undefined}
         onPurge={isAdmin ? onPurgeImport : undefined}
+        onPatch={isAdmin ? onPatch : undefined}
+        categories={isAdmin ? categories : undefined}
       />
     );
   }
@@ -199,6 +201,9 @@ export default function MainGrid({
           // CaseCard so they don't trigger onOpen.
           onDelete={isAdmin ? () => onDelete(c) : undefined}
           onPurge={isAdmin && onPurgeImport ? () => onPurgeImport(c) : undefined}
+          // Admin-only quick-reclassify chip + popover.
+          onPatch={isAdmin ? onPatch : undefined}
+          categories={isAdmin ? categories : undefined}
         />
       ))}
     </div>

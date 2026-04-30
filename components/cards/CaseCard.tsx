@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
+import QuickReclassify from "./QuickReclassify";
 import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
-import type { CaseRecord } from "@/lib/types";
+import type { CaseRecord, Category } from "@/lib/types";
 
 interface Props {
   caso: CaseRecord;
@@ -19,9 +20,25 @@ interface Props {
   /** Admin only: permanent-delete the case (irreversible). Same chip
    *  cluster as `onDelete`, but a separate red × button. */
   onPurge?: () => void;
+  /** Admin only: apply a section / category override directly from
+   *  the card. When provided alongside `categories`, a `⇄` chip
+   *  opens a quick-reclassify popover. */
+  onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
+  /** Categories list (built-in + custom). Required if `onPatch` is
+   *  passed — without it the popover would only show sections. */
+  categories?: Category[];
 }
 
-export default function CaseCard({ caso, isFav, onFav, onOpen, onDelete, onPurge }: Props) {
+export default function CaseCard({
+  caso,
+  isFav,
+  onFav,
+  onOpen,
+  onDelete,
+  onPurge,
+  onPatch,
+  categories,
+}: Props) {
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const isCrit = caso.tags.includes("Crítico");
   const [bursting, setBursting] = useState(false);
@@ -117,6 +134,9 @@ export default function CaseCard({ caso, isFav, onFav, onOpen, onDelete, onPurge
           >
             ✕
           </button>
+        )}
+        {onPatch && categories && (
+          <QuickReclassify caso={caso} categories={categories} onPatch={onPatch} />
         )}
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
