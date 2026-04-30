@@ -72,6 +72,27 @@ export const IS_ADMIN_BYPASS_ENABLED =
   !IS_PRODUCTION && readString("NEXT_PUBLIC_ADMIN_BYPASS", "") === "1";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Netlify Database
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Postgres database provisioned via Netlify (Neon under the hood). Wiring
+// strategy is documented in `app/actions/db.ts` and `lib/repo.ts`:
+//
+//   1. localStorage stays the source of truth.
+//   2. Setting NEXT_PUBLIC_USE_DB=1 turns on dual-write — every mutation
+//      that hits localStorage also fires off a best-effort mirror to the
+//      DB via the Server Actions in `app/actions/db.ts`. Reads stay local.
+//   3. A future flip changes reads to "DB first, local fallback".
+//   4. Eventually localStorage demotes to an offline cache.
+//
+// Hard-disabled when running outside the browser (the actions need to
+// be invoked from a request context). Setting the flag without a
+// linked Netlify site does no harm — the action calls just fail and
+// the UI keeps working off localStorage.
+
+export const IS_NETLIFY_DB_ENABLED = readString("NEXT_PUBLIC_USE_DB", "") === "1";
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Firebase
 // ─────────────────────────────────────────────────────────────────────────────
 //

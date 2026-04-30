@@ -14,11 +14,20 @@
 // gives a clear local fallback if Firebase is misconfigured.
 
 import { Store, type WriteResult } from "./store";
-import { ADMIN_CREDENTIALS, IS_FIREBASE_ENABLED } from "./env";
+import { ADMIN_CREDENTIALS, IS_FIREBASE_ENABLED, IS_NETLIFY_DB_ENABLED } from "./env";
 import { SEED_CASES } from "./data";
 import { log } from "./log";
 import { AuthError } from "./errors";
 import type { CaseRecord, User } from "./types";
+import {
+  dbSetOverride,
+  dbClearOverride,
+  dbSaveUserCase,
+  dbRemoveUserCase,
+  dbRestoreUserCase,
+  dbPurgeUserCase,
+  dbSetFavs,
+} from "@/app/actions/db";
 
 // ─── Pagination contract ─────────────────────────────────────────────────────
 //
@@ -283,6 +292,104 @@ const localFavs = {
   },
 };
 
+// ─── Dual-write to Netlify Database ──────────────────────────────────────────
+//
+// When `IS_NETLIFY_DB_ENABLED` is true, every successful mutation on the
+// local backend is also mirrored to Postgres via the server actions in
+// `app/actions/db.ts`. The DB write is fire-and-forget — it never blocks
+// the local op or surfaces an error to the UI. If the mirror fails (DB
+// down, network blip, server action error) the local write still
+// succeeded and the user sees a normal completion. A periodic sync /
+// reconciliation step (future commit) will close any drift.
+//
+// Reads stay local for now. The transition stages are documented in
+// `lib/env.ts` next to the flag definition.
+
+/**
+ * Best-effort identity for the mirror. We don't have user state piped
+ * through the repo facade today, so we read from `Store` (the same
+ * place `useSession` reads). Returns `null` for guest / unloaded.
+ */
+function currentMirrorEmail(): string | null {
+  try {
+    const u = Store.getUser();
+    return u?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fire-and-forget DB mirror. Logs warnings on failure but never throws
+ * out of the caller's promise chain. We deliberately don't `await` so
+ * the local write returns immediately — the mirror catches up when it
+ * can.
+ */
+function mirror<T>(area: string, p: Promise<T>): void {
+  void p
+    .then((r) => {
+      // Detect the WriteResult-shaped failure from our own actions.
+      if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
+        log.warn(`DB mirror returned not-ok`, { area });
+      }
+    })
+    .catch((err) => {
+      log.warn(`DB mirror failed`, { area }, err);
+    });
+}
+
+const dualWriteCases: CasesRepo = {
+  ...localCases,
+  // Bind read methods so `this` resolves to localCases — otherwise
+  // the spread loses the `listSeed`/`listUserRaw` chain.
+  listAll: () => localCases.listAll(),
+  listUser: () => localCases.listUser(),
+  listTrashed: () => localCases.listTrashed(),
+  async save(c, current) {
+    const r = await localCases.save(c, current);
+    if (r.ok) {
+      const isUpdate = current.some((x) => x.id === c.id);
+      mirror("cases.save", dbSaveUserCase(c, currentMirrorEmail(), isUpdate));
+    }
+    return r;
+  },
+  async remove(id, current, by) {
+    const r = await localCases.remove(id, current, by);
+    if (r.ok) mirror("cases.remove", dbRemoveUserCase(id, by ?? currentMirrorEmail()));
+    return r;
+  },
+  async restore(id, current) {
+    const r = await localCases.restore(id, current);
+    if (r.ok) mirror("cases.restore", dbRestoreUserCase(id));
+    return r;
+  },
+  async purge(id, current) {
+    const r = await localCases.purge(id, current);
+    if (r.ok) mirror("cases.purge", dbPurgeUserCase(id));
+    return r;
+  },
+  async setOverride(id, patch) {
+    const r = await localCases.setOverride(id, patch);
+    if (r.ok) mirror("cases.setOverride", dbSetOverride(id, patch, currentMirrorEmail()));
+    return r;
+  },
+  async clearOverride(id) {
+    const r = await localCases.clearOverride(id);
+    if (r.ok) mirror("cases.clearOverride", dbClearOverride(id));
+    return r;
+  },
+};
+
+const dualWriteFavs: FavsRepo = {
+  ...localFavs,
+  list: (email?: string | null) => localFavs.list(email),
+  async toggle(email, id, current) {
+    const out = await localFavs.toggle(email, id, current);
+    if (out.result.ok) mirror("favs.toggle", dbSetFavs(email ?? null, out.next));
+    return out;
+  },
+};
+
 // ─── Dispatch ────────────────────────────────────────────────────────────────
 //
 // The Firebase backend lives in sibling files. We import lazily so that
@@ -296,6 +403,16 @@ type FavsRepo = typeof localFavs;
 let _auth: AuthRepo = localAuth;
 let _cases: CasesRepo = localCases;
 let _favs: FavsRepo = localFavs;
+
+// Netlify DB dual-write activates synchronously when the flag is set.
+// No async initialization needed — the wrappers compose with localCases
+// at module load. Firebase, when configured, takes precedence below
+// because it replaces the entire local backend (auth + cases + favs).
+if (IS_NETLIFY_DB_ENABLED) {
+  _cases = dualWriteCases;
+  _favs = dualWriteFavs;
+  log.info("Netlify DB dual-write active", { area: "repo" });
+}
 
 /* v8 ignore start — Firebase dispatch path requires a configured project */
 if (IS_FIREBASE_ENABLED) {

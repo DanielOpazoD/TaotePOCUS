@@ -3,9 +3,29 @@
 import { useCallback, useMemo } from "react";
 import { usePersistedState } from "./usePersistedState";
 import { CATEGORIES } from "@/lib/data";
+import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
+import { log } from "@/lib/log";
+import { dbAddCategory, dbRenameCategory, dbRemoveCategory } from "@/app/actions/db";
 import type { Category } from "@/lib/types";
 
 const STORAGE_KEY = "customCategories";
+
+/**
+ * Fire-and-forget DB mirror. Mirrors the helper in `lib/repo.ts` —
+ * the local write is the source of truth; the DB sync is best-effort
+ * and never blocks the UI. Logged on failure so we know if drift is
+ * happening, but the user's mutation is already saved locally.
+ */
+function mirrorDb(area: string, p: Promise<unknown>): void {
+  if (!IS_NETLIFY_DB_ENABLED) return;
+  void p
+    .then((r) => {
+      if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
+        log.warn(`DB mirror returned not-ok`, { area });
+      }
+    })
+    .catch((err) => log.warn(`DB mirror failed`, { area }, err));
+}
 
 /**
  * Slug-style id derived from a label. Custom ids are prefixed with
@@ -103,6 +123,9 @@ export function useCustomCategories() {
       }
       const next: Category = { id, label: trimmed };
       setCustoms([...customs, next]);
+      // Mirror to Postgres (best-effort) so the category exists in
+      // the DB next time the admin loads from another device.
+      mirrorDb("categories.add", dbAddCategory(id, trimmed, null));
       return next;
     },
     [categories, customs, setCustoms],
@@ -114,6 +137,7 @@ export function useCustomCategories() {
       const trimmed = label.trim();
       if (!trimmed) return false;
       setCustoms(customs.map((c) => (c.id === id ? { ...c, label: trimmed } : c)));
+      mirrorDb("categories.rename", dbRenameCategory(id, trimmed));
       return true;
     },
     [builtInIds, customs, setCustoms],
@@ -123,6 +147,7 @@ export function useCustomCategories() {
     (id: string) => {
       if (builtInIds.has(id)) return false; // built-ins can't be deleted
       setCustoms(customs.filter((c) => c.id !== id));
+      mirrorDb("categories.remove", dbRemoveCategory(id));
       return true;
     },
     [builtInIds, customs, setCustoms],
