@@ -146,9 +146,20 @@ export interface CaseRecord {
    *
    *   - `x` / `y`: 0–100, percentages applied via `object-position`.
    *     Default 50/50 (centered).
-   *   - `scale`: multiplier applied via `transform: scale(...)`. Range
-   *     0.5–3, default 1. Below 1 leaves margin around the image
-   *     inside the cell; above 1 crops in (zoom).
+   *   - `scale`: zoom multiplier. Range 0.5–3, default 1.
+   *
+   * Scale crosses a `cover ↔ contain` threshold at 1:
+   *
+   *   - At `scale = 1` the image renders with the default
+   *     `object-fit: cover` (fills the cell, cropping whichever axis
+   *     overflows). This is the legacy framing.
+   *   - At `scale > 1` cover stays in effect with an additional
+   *     `transform: scale(N)` — the same crop, zoomed further in.
+   *   - At `scale < 1` the renderer SWITCHES to `object-fit: contain`,
+   *     so the full image is visible (letterboxed if the aspect
+   *     differs) and the previously-cropped regions appear. The
+   *     transform scale composes on top to shrink the visible image
+   *     further within the letterbox if needed.
    *
    * All three are optional; omitting any leaves the default. The
    * external container (the grid cell, the modal pane) is not touched.

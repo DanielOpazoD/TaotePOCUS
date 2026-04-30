@@ -55,13 +55,27 @@ export default function CineLoop({
   const focusX = focus?.x ?? 50;
   const focusY = focus?.y ?? 50;
   const focusScale = focus?.scale ?? 1;
-  // Style applied inline to <video>/<img>. Object-position handles the
-  // pan; the transform scales the element relative to its center,
-  // which over an `object-fit: cover` parent acts like a zoom in/out
-  // without resizing the wrapper. We omit the transform when scale
-  // is 1 to avoid creating a useless compositing layer.
+  // Style applied inline to <video>/<img>. Three pieces:
+  //
+  //   - `objectPosition` handles the pan (x/y as percentages).
+  //   - `transform: scale(...)` zooms the element relative to its
+  //     center. Omitted at scale=1 to avoid a useless compositing
+  //     layer.
+  //   - `objectFit` SWITCHES from the default `cover` (set in
+  //     `app/styles/cine.css`) to `contain` whenever the user pulls
+  //     the focus zoom below 1. Cover crops to fill the cell, so a
+  //     transform scale<1 just shrinks the *cropped* view inside the
+  //     same cell — the cropped sides never reappear, which is
+  //     counterintuitive and was the user-reported bug. Contain fits
+  //     the whole image inside the cell (with letterbox), so going
+  //     below 1 reveals the previously-cropped regions. The transform
+  //     scale<1 then composes on top to shrink further within the
+  //     letterbox if the admin really wants a small inset preview.
+  //     At scale=1 we inherit `cover` unchanged so existing card
+  //     framings are byte-for-byte preserved.
   const mediaStyle: React.CSSProperties = {
     objectPosition: `${focusX}% ${focusY}%`,
+    ...(focusScale < 1 ? { objectFit: "contain" as const } : {}),
     ...(focusScale !== 1 ? { transform: `scale(${focusScale})` } : {}),
   };
   // Native aspect ratio of the loaded media, captured after the video
