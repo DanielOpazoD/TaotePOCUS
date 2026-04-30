@@ -68,8 +68,11 @@ export const IS_PRODUCTION = process.env.NODE_ENV === "production";
  * Hard-disabled in production builds even if the env var is set, so a
  * leaked `.env` can't accidentally open admin to the public.
  */
+// Direct dot-access (see note on IS_NETLIFY_DB_ENABLED below). Bracket-
+// access via readString isn't statically replaced by Turbopack, so the
+// flag would silently resolve to false in client bundles.
 export const IS_ADMIN_BYPASS_ENABLED =
-  !IS_PRODUCTION && readString("NEXT_PUBLIC_ADMIN_BYPASS", "") === "1";
+  !IS_PRODUCTION && process.env.NEXT_PUBLIC_ADMIN_BYPASS === "1";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Netlify Database
@@ -90,7 +93,12 @@ export const IS_ADMIN_BYPASS_ENABLED =
 // linked Netlify site does no harm — the action calls just fail and
 // the UI keeps working off localStorage.
 
-export const IS_NETLIFY_DB_ENABLED = readString("NEXT_PUBLIC_USE_DB", "") === "1";
+// Direct dot-access so Turbopack/Next can statically replace this at
+// build time. `readString(name, …)` uses bracket-access (`process.env[name]`)
+// which the bundler can't follow — the value would be `undefined` at
+// runtime in the client. Keep this pattern for any `NEXT_PUBLIC_*` flag
+// that gates JSX visibility.
+export const IS_NETLIFY_DB_ENABLED = process.env.NEXT_PUBLIC_USE_DB === "1";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Firebase
