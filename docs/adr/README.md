@@ -15,8 +15,9 @@ forward.
 | 0005 | [Observability with Sentry](./0005-observability-with-sentry.md)                               | Accepted                                               |
 | 0006 | [Netlify Database dual-write with staged migration](./0006-netlify-database-dual-write.md)     | Accepted                                               |
 | 0007 | [Server-side session for Server Actions authorization](./0007-server-side-session.md)          | Accepted                                               |
-| 0008 | [Canonical `description` field, deprecate the trio](./0008-canonical-description-field.md)     | Accepted                                               |
+| 0008 | [Canonical `description` field, deprecate the trio](./0008-canonical-description-field.md)     | Accepted (superseded by 0010)                          |
 | 0009 | [Uniform catalog UI: single header, single grid](./0009-uniform-catalog-ui.md)                 | Accepted                                               |
+| 0010 | [Drop the legacy narrative trio](./0010-drop-legacy-narrative-trio.md)                         | Accepted                                               |
 
 ## How to add an ADR
 

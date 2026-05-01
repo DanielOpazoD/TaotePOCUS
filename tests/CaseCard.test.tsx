@@ -21,9 +21,7 @@ const baseCase = caseFactory({
   author: "Dra. Test",
   role: "Medicina",
   date: "2026-04-18",
-  findings: "Hallazgos de prueba.",
-  diagnosis: "Diagnóstico de prueba",
-  summary: "Resumen breve.",
+  description: "Hallazgos de prueba: imagen sospechosa.",
 });
 
 describe("CaseCard", () => {

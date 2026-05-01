@@ -20,17 +20,17 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
   );
   const [idx, setIdx] = useState(startIdx);
   const [paused, setPaused] = useState(false);
-  const [revealed, setRevealed] = useState(false);
+  // The diagnosis-reveal state (`revealed` + R-key handler) was
+  // removed in May-2026 along with the separate `diagnosis` field.
+  // See `presentation-findings` block below.
   const containerRef = useRef<HTMLDivElement | null>(null);
   const caso = cases[idx];
 
   const prev = useCallback(() => {
     setIdx((i) => (i - 1 + cases.length) % cases.length);
-    setRevealed(false);
   }, [cases.length]);
   const next = useCallback(() => {
     setIdx((i) => (i + 1) % cases.length);
-    setRevealed(false);
   }, [cases.length]);
 
   useEffect(() => {
@@ -49,7 +49,8 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
         e.preventDefault();
         prev();
       } else if (e.key === "p" || e.key === "P") setPaused((p) => !p);
-      else if (e.key === "r" || e.key === "R") setRevealed((r) => !r);
+      // The R key used to toggle a diagnosis reveal — gone with
+      // ADR-0010. P (pause) is the only single-letter shortcut now.
     };
     window.addEventListener("keydown", onKey);
 
@@ -113,29 +114,17 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
         {/* Body uses the canonical description; legacy `findings` is
             covered by the fallback chain inside `getDescription`. */}
         <p className="presentation-findings">{getDescription(caso)}</p>
-        {/* The "reveal diagnosis" mechanic only makes sense when the
-            case carries a *separate* diagnosis line distinct from the
-            description body. Cases written through the simplified form
-            (May-2026+) collapse everything into `description`, so they
-            naturally render without a reveal button. Legacy imports
-            with a populated `diagnosis` keep the pedagogical pattern. */}
-        {caso.diagnosis && caso.diagnosis !== getDescription(caso) ? (
-          revealed ? (
-            <div className="presentation-diagnosis">
-              <span className="label">Diagnóstico</span>
-              <p>{caso.diagnosis}</p>
-            </div>
-          ) : (
-            <button className="presentation-reveal" onClick={() => setRevealed(true)}>
-              Revelar diagnóstico (R)
-            </button>
-          )
-        ) : null}
+        {/* The "reveal diagnosis" pedagogical mechanic was removed in
+            May-2026 (ADR-0010): with the trio collapsed into a single
+            `description`, there's no separate diagnosis line to
+            reveal. The button + state are gone. Future work may
+            reintroduce a "spoiler" toggle that splits the description
+            on a configurable marker — out of scope for the migration. */}
       </div>
 
       <div className="presentation-help">
         <kbd>←</kbd>/<kbd>→</kbd> navegar &nbsp;·&nbsp; <kbd>P</kbd> pausa &nbsp;·&nbsp;{" "}
-        <kbd>R</kbd> revelar &nbsp;·&nbsp; <kbd>Esc</kbd> salir
+        <kbd>Esc</kbd> salir
       </div>
     </div>
   );

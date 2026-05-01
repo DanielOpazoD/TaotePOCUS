@@ -57,9 +57,7 @@ export default function CaseForm({
     author: currentUser?.name || "Administrador",
     role: "Administrador",
     date: new Date().toISOString().slice(0, 10),
-    findings: "",
-    diagnosis: "",
-    summary: "",
+    description: "",
     featured: false,
   };
   const [form, setForm] = useState<CaseRecord>(initial || blank);
@@ -163,12 +161,12 @@ export default function CaseForm({
 
   const removeTag = (t: string) => update({ tags: form.tags.filter((x) => x !== t) });
 
-  // Description is the single body field shown in the form. We read
-  // through `getDescription` so editing a legacy case (with text in
-  // `findings`/`summary`/`diagnosis` but not yet in `description`)
-  // pre-fills correctly; we always write back to `description`, the
-  // canonical field. A future bulk migration can backfill every
-  // legacy row and let us drop the fallback chain entirely.
+  // Description is the single body field shown in the form. Reads
+  // and writes go through the canonical `description` field; the
+  // fallback chain that used to live in `getDescription` was
+  // removed when ADR-0010 backfilled the legacy data. The helper
+  // call stays as a single read point for future cross-cutting
+  // transforms (sanitization, localization, etc.).
   const description = getDescription(form);
 
   const submit = (e: React.FormEvent) => {
@@ -433,14 +431,11 @@ export default function CaseForm({
                 onChange={(e) => update({ date: e.target.value })}
               />
 
-              {/* Single description field. Replaces the trio of
+              {/* Single description field. Replaced the trio of
                   Resumen / Hallazgos / Diagnóstico that used to live
-                  here (Apr-2026 simplification). Writes to the
-                  canonical `description` field; reads via
-                  `getDescription` so editing a legacy case pre-fills
-                  from `findings` / `summary` / `diagnosis` instead of
-                  showing an empty box. See `lib/case-description.ts`
-                  for the full migration story. */}
+                  here (Apr-2026 simplification + May-2026 backfill,
+                  ADR-0010). Reads and writes the canonical
+                  `description` field directly. */}
               <label className="admin-label">Descripción</label>
               <textarea
                 className="admin-input"

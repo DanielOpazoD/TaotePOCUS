@@ -45,9 +45,12 @@ const slice = data.candidates.slice(0, count);
 //   🌀/🔹 bullet point findings
 //   💮 <Diagnosis>
 //
-// We extract title / findings / diagnosis / summary by line-level
-// pattern matching. Decorative Unicode (𝗟𝘂𝗻𝗴 etc.) is normalized to
-// plain ASCII via NFKC. HTML entities (&amp; &gt;) are unescaped.
+// We extract title + description by line-level pattern matching.
+// (Pre-ADR-0010 we also emitted separate `findings` / `summary` /
+// `diagnosis` fields; that trio collapsed into one `description`
+// field — see `parseFields` below for the actual extraction.)
+// Decorative Unicode (𝗟𝘂𝗻𝗴 etc.) is normalized to plain ASCII via
+// NFKC. HTML entities (&amp; &gt;) are unescaped.
 
 function normalize(s) {
   return s
@@ -236,44 +239,38 @@ function parseFields(rawText) {
   title = tidyCase(title);
   title = trimTo(title, 70);
 
-  // ── Findings ──────────────────────────────────────────────────────
-  // Prefer bullet-marked lines (🌀/🔹) which are the user's curated
-  // sonographic findings. Otherwise use the cleaned body prose.
+  // ── Description ──────────────────────────────────────────────────
+  // Single canonical body field (replaces the old `findings` /
+  // `summary` / `diagnosis` trio per ADR-0010). Prefer bullet-marked
+  // lines (🌀/🔹) which are the user's curated sonographic findings;
+  // otherwise use the cleaned body prose. The trio's other purposes
+  // — `summary` for a short label, `diagnosis` for the conclusion —
+  // are no longer separate columns; the longer description carries
+  // them implicitly.
   const bulletLines = lines.filter((l) => BULLET.test(l));
-  let findings;
+  let description;
   if (bulletLines.length > 0) {
     const cleanedBullets = bulletLines
       .map((l) => cleanLine(l.replace(BULLET, "")))
       .map((l) => translate(l))
       .filter(Boolean);
-    findings = cleanedBullets.join(". ");
+    description = cleanedBullets.join(". ");
   } else {
     const body = lines
       .filter((l) => !DX_MARK.test(l))
       .map((l) => cleanLine(l))
       .filter(Boolean)
       .join(" ");
-    findings = translate(body);
+    description = translate(body);
   }
-  if (findings && !/[.…!?]$/.test(findings)) findings += ".";
-  if (!findings) findings = `${title}.`;
-  findings = trimTo(findings, 280);
+  if (description && !/[.…!?]$/.test(description)) description += ".";
+  if (!description) description = `${title}.`;
+  description = trimTo(description, 280);
 
-  // ── Summary ───────────────────────────────────────────────────────
-  // One short neutral sentence. Prefer the diagnosis when present
-  // (the case "is" the diagnosis); otherwise use the first sentence
-  // of the body.
-  let summary;
-  if (dxLine) {
-    summary = `${diagnosis}.`;
-  } else {
-    const firstSentence = findings.split(/\.\s+/)[0] || findings;
-    summary = firstSentence;
-    if (!summary.endsWith(".")) summary += ".";
-  }
-  summary = trimTo(summary, 140);
-
-  return { title, findings, diagnosis, summary };
+  // `diagnosis` is computed above only so we can use it as the title
+  // when the user marked one (`💮` line). It's NOT emitted as a
+  // separate field on the CaseRecord output anymore.
+  return { title, description };
 }
 
 // ─── Defaults for unclassified ───────────────────────────────────────────────
@@ -350,7 +347,7 @@ for (const c of slice) {
     continue;
   }
 
-  const { title, findings, diagnosis, summary } = parseFields(c.text);
+  const { title, description } = parseFields(c.text);
   const category =
     c.classification.category || DEFAULT_CATEGORY_BY_SECTION[c.classification.section] || "cardiac";
   const loop = DEFAULT_LOOP_BY_CATEGORY[category] || "blines";
@@ -391,9 +388,7 @@ for (const c of slice) {
     author: "@TaotePOCUS",
     role: "Médico",
     date: c.createdAt.slice(0, 10),
-    findings,
-    diagnosis,
-    summary,
+    description,
     ...(featured ? { featured: true } : {}),
     media: {
       kind: media.kind,

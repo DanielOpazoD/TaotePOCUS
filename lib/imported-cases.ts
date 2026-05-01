@@ -25,9 +25,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-21",
-    findings: "Evaluación ecocardiográfica de enfermedad coronaria.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Evaluación ecocardiográfica de enfermedad coronaria.",
+    description: "Evaluación ecocardiográfica de enfermedad coronaria.",
     featured: true,
     media: {
       kind: "image",
@@ -46,9 +44,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-05",
-    findings: "Basic sono-semiology approach.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Basic sono-semiology approach.",
+    description: "Basic sono-semiology approach.",
     featured: true,
     media: {
       kind: "image",
@@ -67,9 +63,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-03-14",
-    findings: "specific sign of Neumotórax.",
-    diagnosis: "Punto pulmonar",
-    summary: "Punto pulmonar.",
+    description: "specific sign of Neumotórax.",
     featured: true,
     media: {
       kind: "gif",
@@ -88,10 +82,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-07",
-    findings:
+    description:
       "Dilated small bowel loop >3 cm. To & Fro sign (Dysfunctional peristalsis). Keyboard sign (Prominent plicae circulares). Tanga Sign (inter-loop Líquido libre).",
-    diagnosis: "Obstrucción intestinal",
-    summary: "Obstrucción intestinal.",
     featured: true,
     media: {
       kind: "gif",
@@ -110,9 +102,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-09",
-    findings: "Compilación of all cases I tweeted.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Compilación of all cases I tweeted.",
+    description: "Compilación of all cases I tweeted.",
     featured: true,
     media: {
       kind: "image",
@@ -131,10 +121,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-04-09",
-    findings:
+    description:
       "Dilated small bowel loop >3 cm. To & Fro sign (Ineffective peristalsis). Keyboard sign (Prominent plicae circularis). Inter-loop Líquido libre.",
-    diagnosis: "Obstrucción intestinal",
-    summary: "Obstrucción intestinal.",
     featured: true,
     media: {
       kind: "gif",
@@ -153,9 +141,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-09-28",
-    findings: "derecho Congestión venosa evaluación.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "derecho Congestión venosa evaluación.",
+    description: "derecho Congestión venosa evaluación.",
     featured: true,
     media: {
       kind: "image",
@@ -174,11 +160,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-25",
-    findings:
+    description:
       "Síncope HR 120, 110/70, SpO2 91%, RR 22, CRT 5 edema Hg 7, VCM | EKG: ST, TWI V1-V4 RV>LV, McConnell’s, pDVT CT: PE & Myoma Tx: Anticoag / Tx Stable HR CRT In 24h Tromboembolismo pulmonar 1/3].",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Síncope HR 120, 110/70, SpO2 91%, RR 22, CRT 5 edema Hg 7, VCM | EKG: ST, TWI V1-V4 RV>LV, McConnell’s, pDVT CT: PE & Myoma Tx: Anticoag /…",
     featured: true,
     media: {
       kind: "gif",
@@ -197,9 +180,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-04",
-    findings: "Durante el FAST no olvidar explorar el punta hepática !!",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Durante el FAST no olvidar explorar el punta hepática !!.",
+    description: "Durante el FAST no olvidar explorar el punta hepática !!",
     featured: true,
     media: {
       kind: "gif",
@@ -218,9 +199,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-12",
-    findings: "Examen físico ecográfico.",
-    diagnosis: "Examen físico ecográfico",
-    summary: "Examen físico ecográfico.",
+    description: "Examen físico ecográfico.",
     featured: true,
     media: {
       kind: "gif",
@@ -239,9 +218,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-22",
-    findings: "Empiema pleural.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Empiema pleural.",
+    description: "Empiema pleural.",
     media: {
       kind: "gif",
       src: "/api/media/1451609510347513859.mp4",
@@ -259,9 +236,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-04",
-    findings: "Aproximación inicial.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Aproximación inicial.",
+    description: "Aproximación inicial.",
     media: {
       kind: "image",
       src: "/api/media/1588526749918195712.jpg",
@@ -279,9 +254,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-21",
-    findings: "Ecografía clínica NEJM review.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Ecografía clínica NEJM review.",
+    description: "Ecografía clínica NEJM review.",
     media: {
       kind: "image",
       src: "/api/media/1451169012591759363.jpg",
@@ -299,10 +272,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-25",
-    findings:
+    description:
       "24h w/ Dolor abdominal, vómitos & diarrhea. Blumberg (+) Appendix > 6 mm diameter Periappend fluid Target sign.",
-    diagnosis: "Agudo Apendicitis",
-    summary: "Agudo Apendicitis.",
     media: {
       kind: "gif",
       src: "/api/media/1441827356000333824.mp4",
@@ -320,9 +291,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-03",
-    findings: "Líneas B patrones en pulmonar DOI: 10.3949/ccjm.88a.20141.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Líneas B patrones en pulmonar DOI: 10.3949/ccjm.88a.20141.",
+    description: "Líneas B patrones en pulmonar DOI: 10.3949/ccjm.88a.20141.",
     media: {
       kind: "image",
       src: "/api/media/1400587174194647041.jpg",
@@ -340,9 +309,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-07",
-    findings: "Uncontrolled DM Agudo monocular visual loss.",
-    diagnosis: "Desprendimiento de retina",
-    summary: "Desprendimiento de retina.",
+    description: "Uncontrolled DM Agudo monocular visual loss.",
     media: {
       kind: "gif",
       src: "/api/media/1423818531095842818.mp4",
@@ -360,10 +327,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-08",
-    findings:
-      "tos seca + fiebre Normal Probe on right axilla (Long & trans) Bacterial Neumonía A profile Alveolar Consolidation Normal) + Air Bronchogram.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "tos seca + fiebre Normal Probe on right axilla (Long & trans) Bacterial Neumonía A profile Alveolar Consolidation Normal) + Air Bronchogram.",
     media: {
       kind: "gif",
@@ -382,9 +346,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-08",
-    findings: "Hipertensión pulmonar severa.",
-    diagnosis: "Hipertensión pulmonar severa",
-    summary: "Hipertensión pulmonar severa.",
+    description: "Hipertensión pulmonar severa.",
     media: {
       kind: "gif",
       src: "/api/media/1435408238997016579.mp4",
@@ -402,9 +364,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-20",
-    findings: "Insuficiencia cardíaca caso con Severo Congestión venosa.",
-    diagnosis: "Insuficiencia cardíaca caso con Severo Congestión venosa",
-    summary: "Insuficiencia cardíaca caso con Severo Congestión venosa.",
+    description: "Insuficiencia cardíaca caso con Severo Congestión venosa.",
     media: {
       kind: "video",
       src: "/api/media/1594356219107573761.mp4",
@@ -422,9 +382,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-04-19",
-    findings: "Colecistitis aguda alitiásica.",
-    diagnosis: "Colecistitis aguda alitiásica",
-    summary: "Colecistitis aguda alitiásica.",
+    description: "Colecistitis aguda alitiásica.",
     media: {
       kind: "video",
       src: "/api/media/1648749003121516546.mp4",
@@ -442,9 +400,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-15",
-    findings: "Pulmonary infarction 2• to PE.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Pulmonary infarction 2• to PE.",
+    description: "Pulmonary infarction 2• to PE.",
     media: {
       kind: "gif",
       src: "/api/media/1427015971315781633.mp4",
@@ -462,10 +418,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-30",
-    findings:
+    description:
       "> 2 week w/ Dolor abdominal Murphy GB wall tickenning Pericholecystic fluid Pericholecystic collection Air intraluminal artifact Tx: ATB & . In peritoneal cavity small stones were found 1/3.",
-    diagnosis: "Agudo Colecistitis w/ pericholecystic abscess",
-    summary: "Agudo Colecistitis w/ pericholecystic abscess.",
     media: {
       kind: "gif",
       src: "/api/media/1432487654680055810.mp4",
@@ -483,9 +437,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-26",
-    findings: "VExUS 3 ≠ furosemida.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "VExUS 3 ≠ furosemida.",
+    description: "VExUS 3 ≠ furosemida.",
     media: {
       kind: "image",
       src: "/api/media/1551969312709087233.jpg",
@@ -503,10 +455,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-19",
-    findings:
-      "> Dolor abdominal Vesícula wall thickening Multiple (shadow artifact) +) Murphy Agudo Colecistitis.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "> Dolor abdominal Vesícula wall thickening Multiple (shadow artifact) +) Murphy Agudo Colecistitis.",
     media: {
       kind: "gif",
@@ -525,10 +474,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-05",
-    findings:
+    description:
       "Agudo chest pain + respiratory distress + tachycardia. Absent right breath sounds. Colleague dx Tx pneumo. Quickly performed needle decompression rapid recovery! Neumotórax after tube +) L Sliding (-) R Sliding.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Agudo chest pain + respiratory distress + tachycardia.",
     media: {
       kind: "gif",
       src: "/api/media/1467637736802861062.mp4",
@@ -546,9 +493,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-06",
-    findings: "PI < 30% Normal. PI > 50% Severly Abnormal.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "PI < 30% Normal.",
+    description: "PI < 30% Normal. PI > 50% Severly Abnormal.",
     media: {
       kind: "gif",
       src: "/api/media/1379512336206159879.mp4",
@@ -566,11 +511,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-27",
-    findings:
+    description:
       "Contest | Let’s play a little game! REWARD : Popular Lung US course ( via storage) DRAW (in 5d) among participants who Answer the caso (in / any try) Give or RT CASE Describe pathology findings. Propose a DD that explains the whole picture.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Contest | Let’s play a little game! REWARD : Popular Lung US course ( via storage) DRAW (in 5d) among participants who Answer the caso (in…",
     media: {
       kind: "gif",
       src: "/api/media/1354269183555600384.mp4",
@@ -588,10 +530,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-13",
-    findings:
+    description:
       "Estimate LV systolic function. Normal < 7 mm. Other causes of EPSS. MRI study(Silverstein 2006).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Estimate LV systolic function.",
     media: {
       kind: "image",
       src: "/api/media/1360731978937556999.jpg",
@@ -609,9 +549,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-08-19",
-    findings: "Static air bronchogram in a patient con confirmed atelectasia.",
-    diagnosis: "Static air bronchogram in a patient con confirmed atelectasia",
-    summary: "Static air bronchogram in a patient con confirmed atelectasia.",
+    description: "Static air bronchogram in a patient con confirmed atelectasia.",
     media: {
       kind: "gif",
       src: "/api/media/1560424553557393414.mp4",
@@ -629,11 +567,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-04",
-    findings:
+    description:
       "SOB > 3 weeks Hemoptysis + murmur + edema @kosmosplatform B profile + Bilateral effusion Mild ascitis IVC > 2 cm. HV: S < D. PV: High PI w/ reverse flow Severo Ao insuff + vegetation Dx: Aortic Valve Endocarditis ATB +.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "SOB > 3 weeks Hemoptysis + murmur + edema @kosmosplatform B profile + Bilateral effusion Mild ascitis IVC > 2 cm.",
     media: {
       kind: "image",
       src: "/api/media/1544080533793083392.jpg",
@@ -651,9 +586,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-13",
-    findings: "R base.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "R base.",
+    description: "R base.",
     media: {
       kind: "gif",
       src: "/api/media/1426301294831149068.mp4",
@@ -671,10 +604,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-10",
-    findings:
-      "Chest pain <1 h pain ECG Biphasic T wave V2-V4 (Type A WS) Septal WMA Cx: Proximal critical LAD stenosis Wellens Syndrome.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Chest pain <1 h pain ECG Biphasic T wave V2-V4 (Type A WS) Septal WMA Cx: Proximal critical LAD stenosis Wellens Syndrome.",
     media: {
       kind: "gif",
@@ -693,10 +623,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-04",
-    findings:
+    description:
       "HFrEF, AF, PM user 1W SOB, orthopnea. Noedema. 105/70 SpO2 98% RR 17 Jaudince (Bili 3) EF . 4 chamber dilatation Bilat Líneas B + Pleural eff Dilated IVC. DP Porta: pulsatility DHF Tx: Diuretics. Optimize GDMT 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "HFrEF, AF, PM user 1W SOB, orthopnea.",
     media: {
       kind: "gif",
       src: "/api/media/1378797632240414723.mp4",
@@ -714,10 +642,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-27",
-    findings:
+    description:
       "> 5y ago Dx con AAA ~ 4 cm. Abandoned follow up Returned to primary care controls = Infrarrenal AAA ~ 7,5 cm Concentric Mural thrombus Abdominal Aorta Aneurisma.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "> 5y ago Dx con AAA ~ 4 cm.",
     media: {
       kind: "gif",
       src: "/api/media/1409229482272112643.mp4",
@@ -735,10 +661,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-03",
-    findings:
+    description:
       "50yHTN. Hx of Episodic sweating & palpitations < 12h SOB + diaphoresis BP 220/120. HR 125. SpO2 80% CRT >5 bilat Líneas B + RUQ mass Tx: NIV + CI 1° NTG + 2° Labetalol* Stable Emergent to tertiary center (4k km) Pheochromocytoma !? 1/3].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "50yHTN.",
     media: {
       kind: "gif",
       src: "/api/media/1357027351566106625.mp4",
@@ -756,11 +680,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-26",
-    findings:
+    description:
       "Afib con Preexcitation A licence to Kill Irregular Wide Tachycardia (IWT) AV nodal BB, Adenosine, CBC, Dig, Amio = Risk FV ECV, Procainamide, Ibutilide Real caso Young adult . Palpitations. HD stable. 100J WPW.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Afib con Preexcitation A licence to Kill Irregular Wide Tachycardia (IWT) AV nodal BB, Adenosine, CBC, Dig, Amio = Risk FV ECV,…",
     media: {
       kind: "image",
       src: "/api/media/1386766517552009217.jpg",
@@ -778,9 +699,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-03",
-    findings: "Bacterial Neumonía Non translobar alveolar consolidation con air bronchogram.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Bacterial Neumonía Non translobar alveolar consolidation con air bronchogram.",
+    description: "Bacterial Neumonía Non translobar alveolar consolidation con air bronchogram.",
     media: {
       kind: "gif",
       src: "/api/media/1422632248591912967.mp4",
@@ -798,10 +717,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-06",
-    findings:
+    description:
       "Middle age . Síncope performed Re-interrogated: HAART user (VL). > 12m exertional dyspnea, bendopnea, Dolor abdominal. No leg edema. Minimized symptoms by “depression”and overweight. AngioCT no PE Dx: Severo PAH @ThinkingCC @ArgaizR.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Middle age .",
     media: {
       kind: "video",
       src: "/api/media/1346901214101958661.mp4",
@@ -819,11 +736,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-18",
-    findings:
+    description:
       ". HTN. T2D. CKD. Peritoneal dialysis. Irregular adherence Agudo dyspnea. BP 220/100 RR 30. SpO2 84% Diffuse Bilateral Líneas B Small bilateral PE Edema pulmonar Tx: High dose / O2. Good response. NIV was not necessary 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". HTN. T2D. CKD. Peritoneal dialysis. Irregular adherence Agudo dyspnea. BP 220/100 RR 30. SpO2 84% Diffuse Bilateral Líneas B Small…",
     media: {
       kind: "gif",
       src: "/api/media/1351168003455516676.mp4",
@@ -841,9 +755,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-22",
-    findings: "ERSD-HD > cervicalgia & fiebre MR: C6-7 Spondylodiscitis 2): Sthap capitis (+).",
-    diagnosis: "Right side Endocarditis complicating CVC-BSI",
-    summary: "Right side Endocarditis complicating CVC-BSI.",
+    description: "ERSD-HD > cervicalgia & fiebre MR: C6-7 Spondylodiscitis 2): Sthap capitis (+).",
     media: {
       kind: "gif",
       src: "/api/media/1550611179852050432.mp4",
@@ -861,10 +773,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-04",
-    findings:
+    description:
       "Multiorgan POCUS evaluación caso: Advanced HF 50s . Non compaction cardiomiopathy con BiV Severo systolic dysfunction, AF, PM user. On VKA. Regular adherence 2⃣ in last 6M x DHF (, Bilat PE & 3). New w/ same clinical pattern Time for ! 1/.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Multiorgan POCUS evaluación caso: Advanced HF 50s .",
     media: {
       kind: "gif",
       src: "/api/media/1422713775174598657.mp4",
@@ -882,9 +792,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-01-01",
-    findings: "Blue color in portal vein doppler, never a good sign.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Blue color in portal vein doppler, never a good sign.",
+    description: "Blue color in portal vein doppler, never a good sign.",
     media: {
       kind: "gif",
       src: "/api/media/1609635280687865857.mp4",
@@ -902,10 +810,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-30",
-    findings:
+    description:
       "Probable Pheochromocytoma HTN + paroxysmal sympathetic symptoms. CT scan: right SR mass. Pending urinary Methanephrines.",
-    diagnosis: "Right Tumor suprarrenal",
-    summary: "Right Tumor suprarrenal.",
     media: {
       kind: "gif",
       src: "/api/media/1608892018629152768.mp4",
@@ -923,9 +829,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-09",
-    findings: "Neumonía Right lower lobe consolidation Dynamic air bronchogram.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Neumonía Right lower lobe consolidation Dynamic air bronchogram.",
+    description: "Neumonía Right lower lobe consolidation Dynamic air bronchogram.",
     media: {
       kind: "gif",
       src: "/api/media/1457933751766421505.mp4",
@@ -943,9 +847,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-15",
-    findings: "Caso POCUS.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Caso POCUS.",
+    description: "Caso POCUS.",
     media: {
       kind: "video",
       src: "/api/media/1669437834753712128.mp4",
@@ -963,9 +865,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-06",
-    findings: "Qualitative US evaluación of JVP High CVP Low CVP.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Qualitative US evaluación of JVP High CVP Low CVP.",
+    description: "Qualitative US evaluación of JVP High CVP Low CVP.",
     media: {
       kind: "gif",
       src: "/api/media/1412524263630946310.mp4",
@@ -983,10 +883,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-24",
-    findings:
+    description:
       "Advanced Gastric Ca in domiciliary PC New dyspnea & hypoxemia HR 105. BP 100/70. Sp02 92% NC 2L in RV > LV, D-Sign McConnell’s Sign Right small Derrame pleural Mild ascitis Bilateral femoral thrombus Agudo Tromboembolismo pulmonar.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Advanced Gastric Ca in domiciliary PC New dyspnea & hypoxemia HR 105.",
     media: {
       kind: "gif",
       src: "/api/media/1418762440221790210.mp4",
@@ -1004,9 +902,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-22",
-    findings: "Shortness of Breath Algorithm.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Shortness of Breath Algorithm.",
+    description: "Shortness of Breath Algorithm.",
     media: {
       kind: "image",
       src: "/api/media/1373843654998118400.jpg",
@@ -1024,10 +920,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-05",
-    findings:
+    description:
       "Apendicitis | US findings | A. comp, blind ended aperistaltic tubular structure in RLQ B. Lesion C. Diameter > 6 mm D. Lumen distended con hypoechoic material E. Appendicolith F. Periapend G. Echogenic pericecal Eg w/ cases.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Apendicitis | US findings | A.",
     media: {
       kind: "image",
       src: "/api/media/1357790136537341953.jpg",
@@ -1045,9 +939,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-16",
-    findings: "Septic Knee Arthritis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Septic Knee Arthritis.",
+    description: "Septic Knee Arthritis.",
     media: {
       kind: "gif",
       src: "/api/media/1460700066201669638.mp4",
@@ -1065,9 +957,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-09-15",
-    findings: "Pre & post.",
-    diagnosis: "Taponamiento cardíaco after pacemaker insertion",
-    summary: "Taponamiento cardíaco after pacemaker insertion.",
+    description: "Pre & post.",
     media: {
       kind: "image",
       src: "/api/media/1702746929325629677.jpg",
@@ -1085,9 +975,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-10-03",
-    findings: "Hemiplegia + aphasia.",
-    diagnosis: "Agudo thrombotic occlusion of the common carotid artery",
-    summary: "Agudo thrombotic occlusion of the common carotid artery.",
+    description: "Hemiplegia + aphasia.",
     media: {
       kind: "gif",
       src: "/api/media/1577055703432564736.mp4",
@@ -1105,10 +993,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-04",
-    findings:
+    description:
       "SOB + orthopnea (6 weeks) & weight loss BP 100/55, HR 95, SpO2 . PE (&): Mitral systolic murmur. Mobile echo dense mass on anterior MV + Severo regurgitation. : WBC CRP BCs, ATBs, formal echo & transfer to CVS.",
-    diagnosis: "Mitral Valve Endocarditis",
-    summary: "Mitral Valve Endocarditis.",
     media: {
       kind: "video",
       src: "/api/media/1665371447315820545.mp4",
@@ -1126,10 +1012,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-10",
-    findings:
+    description:
       "59PMH: >30y ago Iodine-131. No f/u. No Monthsedema + SOB. 155/100, HR 80. Hypothyroidism physical profile. TSH > 40, T4L <0.08 ng/lt. Ascites, RT PE, LV & RV disfx, 3 Tx: Diuretics, LT4, HF VExUS 1/5.",
-    diagnosis: "Hypothyroid Miocardiopathy !?",
-    summary: "Hypothyroid Miocardiopathy !?.",
     media: {
       kind: "image",
       src: "/api/media/1436467412740841528.jpg",
@@ -1147,10 +1031,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-03",
-    findings:
-      "Insuficiencia cardíaca left posterior mid-level Derrame pleural !? Nope, this’s the Descending Aorta.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Insuficiencia cardíaca left posterior mid-level Derrame pleural !? Nope, this’s the Descending Aorta.",
     media: {
       kind: "gif",
@@ -1169,9 +1050,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-03-28",
-    findings: "Síncope HR ~ 100. BP 150/100. SPO2 95% Mild SOB < 1 week BNP 400.",
-    diagnosis: "Popliteal DVT + Tromboembolismo pulmonar",
-    summary: "Popliteal DVT + Tromboembolismo pulmonar.",
+    description: "Síncope HR ~ 100. BP 150/100. SPO2 95% Mild SOB < 1 week BNP 400.",
     media: {
       kind: "image",
       src: "/api/media/1640841777027379200.jpg",
@@ -1189,9 +1068,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-14",
-    findings: "Small Neumotórax.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Small Neumotórax.",
+    description: "Small Neumotórax.",
     media: {
       kind: "gif",
       src: "/api/media/1349733118857539586.mp4",
@@ -1209,9 +1086,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-18",
-    findings: "Dolor abdominal & vómitos Obstrucción intestinal.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Dolor abdominal & vómitos Obstrucción intestinal.",
+    description: "Dolor abdominal & vómitos Obstrucción intestinal.",
     media: {
       kind: "gif",
       src: "/api/media/1472257769528909825.mp4",
@@ -1229,10 +1104,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-11",
-    findings:
+    description:
       "PMH Left TKR(> 5y) + left DVT. Recent x infected venous ulcer right leg. Evaluated by otherin : Asymmetric leftedema, D Dimer 5000 consult No signs of left DVT *Right* femoral DVT Tx: NOAC ¡Always exam both! Femoral DVT.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "PMH Left TKR(> 5y) + left DVT.",
     media: {
       kind: "gif",
       src: "/api/media/1469521784508723200.mp4",
@@ -1250,9 +1123,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-08",
-    findings: "Normal Venous Doppler tracing.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Normal Venous Doppler tracing.",
+    description: "Normal Venous Doppler tracing.",
     media: {
       kind: "image",
       src: "/api/media/1368959356465713153.jpg",
@@ -1270,9 +1141,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-28",
-    findings: "Rheumatic Severo Mitral Stenosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Rheumatic Severo Mitral Stenosis.",
+    description: "Rheumatic Severo Mitral Stenosis.",
     media: {
       kind: "gif",
       src: "/api/media/1453855715173576707.mp4",
@@ -1290,10 +1159,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-30",
-    findings:
+    description:
       "Autism & Deaf. Intermittent self-injury behavior Mother says he doesn’t see con one of his since 4-6 months ago.",
-    diagnosis: "Desprendimiento de retina",
-    summary: "Desprendimiento de retina.",
     media: {
       kind: "gif",
       src: "/api/media/1476693102794522625.mp4",
@@ -1311,9 +1178,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-31",
-    findings: "Fluid above dAo Fluid below dAo.",
-    diagnosis: "Derrame pericárdico v/s Derrame pleural in PLAX view",
-    summary: "Derrame pericárdico v/s Derrame pleural in PLAX view.",
+    description: "Fluid above dAo Fluid below dAo.",
     media: {
       kind: "gif",
       src: "/api/media/1553752247468625921.mp4",
@@ -1331,10 +1196,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-12",
-    findings:
+    description:
       "Right Dolor abdominal + fiebre. Mild intermittent cough Shred Sign, Focal Líneas B & laminar Derrame pleural in right base Evaluated by . Didn’t trusted POCUS. Order a CT scan: normal appendix & Neumonía Bacterial Pneumonia.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Right Dolor abdominal + fiebre.",
     media: {
       kind: "gif",
       src: "/api/media/1425882263825301504.mp4",
@@ -1352,10 +1215,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-10-21",
-    findings:
+    description:
       "IM Residency Round Insuficiencia cardíaca + Anasarca Nurse: UO < 100 ml/8h No foley obstruction. Signs of CKD. Bilateral Derrame pleural. VCI > 2 cm. 3 Severo Mitral regurgitation No to high dose furo Prognosis.",
-    diagnosis: "Cardiorenal Syndrome",
-    summary: "Cardiorenal Syndrome.",
     media: {
       kind: "gif",
       src: "/api/media/1583567971988873216.mp4",
@@ -1373,9 +1234,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-29",
-    findings: "Atrial Flutter.",
-    diagnosis: "Atrial Flutter",
-    summary: "Atrial Flutter.",
+    description: "Atrial Flutter.",
     media: {
       kind: "gif",
       src: "/api/media/1443055239368781830.mp4",
@@ -1393,9 +1252,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-15",
-    findings: "LV apical thrombus after Agudo MI.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "LV apical thrombus after Agudo MI.",
+    description: "LV apical thrombus after Agudo MI.",
     media: {
       kind: "gif",
       src: "/api/media/1470938021713395714.mp4",
@@ -1413,9 +1270,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-05",
-    findings: ">6m w/ low urinary symptoms & intermittent hematuria.",
-    diagnosis: "Bladder Stones",
-    summary: "Bladder Stones.",
+    description: ">6m w/ low urinary symptoms & intermittent hematuria.",
     media: {
       kind: "gif",
       src: "/api/media/1434576971036569603.mp4",
@@ -1433,10 +1288,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-23",
-    findings:
+    description:
       "55 y . ASD(). NL echo 2019. 2M ago submassive PE. On VKA Ascitis + NYHA III No edema Biauricular & VD dilat. Severo TR. Mild-mod LV dysfunction. PE & ascitis. 3 Tx: Furosemide + Spiro 0, - 11 kg, Creat 1.9 > 1, BT 1.8 > 1.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "55 y .",
     media: {
       kind: "image",
       src: "/api/media/1385408397487579143.jpg",
@@ -1454,9 +1307,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-04-13",
-    findings: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural +….",
-    diagnosis: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural + apical LV thrombus",
-    summary: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural + apical LV thrombus.",
+    description: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural +….",
     media: {
       kind: "video",
       src: "/api/media/1646519699507904516.mp4",
@@ -1474,11 +1325,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-02-02",
-    findings:
+    description:
       "Emergency Ultrasound made -wrong “Euvolemic” CVP 10-15 CVP it’s not accurate parameter of volume status neither fluid responsiveness!",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Emergency Ultrasound made -wrong “Euvolemic” CVP 10-15 CVP it’s not accurate parameter of volume status neither fluid responsiveness!.",
     media: {
       kind: "image",
       src: "/api/media/1488919254720290817.jpg",
@@ -1496,9 +1344,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-12",
-    findings: "Jugular CVC > 10 days. Retirement due dysfunction.",
-    diagnosis: "Lnternal jugular vein thrombosis",
-    summary: "Lnternal jugular vein thrombosis.",
+    description: "Jugular CVC > 10 days. Retirement due dysfunction.",
     media: {
       kind: "gif",
       src: "/api/media/1437111670447484931.mp4",
@@ -1516,9 +1362,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-25",
-    findings: "vómitos + Dolor abdominal Obstrucción intestinal.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "vómitos + Dolor abdominal Obstrucción intestinal.",
+    description: "vómitos + Dolor abdominal Obstrucción intestinal.",
     media: {
       kind: "gif",
       src: "/api/media/1430554358798761987.mp4",
@@ -1536,9 +1380,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-24",
-    findings: "Beauty of Enhanced Physical Exam.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Beauty of Enhanced Physical Exam.",
+    description: "Beauty of Enhanced Physical Exam.",
     media: {
       kind: "gif",
       src: "/api/media/1429970265644146690.mp4",
@@ -1556,10 +1398,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-11",
-    findings:
+    description:
       "Fell RUQ Dolor abdominal. Normal vital signs FAST CT contrasted scan Hepatic Laceration 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Fell RUQ Dolor abdominal.",
     media: {
       kind: "gif",
       src: "/api/media/1414353184806539264.mp4",
@@ -1577,10 +1417,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-10-30",
-    findings:
+    description:
       "Delirium. 118/76, HR 95, RR 27, SPO2 92%, CRT ok X-Ray “Cardiomegaly”. BNP 107 pg/ml Large PE w/ exudative features, RA colapse (systole?), small LV/RV, Plethoric IVC, Bilateral pleural E, mild ascitis.: Mediastinic LADs 30 mm.",
-    diagnosis: "Incipient Tamponade",
-    summary: "Incipient Tamponade.",
     media: {
       kind: "video",
       src: "/api/media/1586733338362101761.mp4",
@@ -1598,11 +1436,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-15",
-    findings:
+    description:
       "Weight loss + new tos seca CT scan: Left mass w/ lymphangitic carcinomatosis, multiple bilat lung nodules & left adrenal mass Advanced Lung Cancer correlation L. Carcinomatosis = Focal Líneas B Left lung mass = Hypoechoic mass 1/2.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Weight loss + new tos seca CT scan: Left mass w/ lymphangitic carcinomatosis, multiple bilat lung nodules & left adrenal mass Advanced Lung…",
     media: {
       kind: "gif",
       src: "/api/media/1393385914504818693.mp4",
@@ -1620,11 +1455,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2024-02-13",
-    findings:
+    description:
       "Insuficiencia cardíaca - IHD @ButterflyNetInc Severo LV dysfunction Dilated IVC Derrame pleural Pulsatile portal doppler HV: S < D Cheyne Stokes breathing pattern.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Insuficiencia cardíaca - IHD @ButterflyNetInc Severo LV dysfunction Dilated IVC Derrame pleural Pulsatile portal doppler HV: S < D Cheyne…",
     media: {
       kind: "video",
       src: "/api/media/1757517909146956030.mp4",
@@ -1642,9 +1474,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-07-11",
-    findings: "Pulmonary Infarction due to PE.",
-    diagnosis: "Pulmonary Infarction due to PE",
-    summary: "Pulmonary Infarction due to PE.",
+    description: "Pulmonary Infarction due to PE.",
     media: {
       kind: "video",
       src: "/api/media/1678887384006393856.mp4",
@@ -1662,10 +1492,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-10-27",
-    findings:
+    description:
       "Months of cough, weight loss & fiebre PH 7, LDH 3000 GeneXpert (+) pleural fluid & sputum.",
-    diagnosis: "Tuberculous Empyema",
-    summary: "Tuberculous Empyema.",
     media: {
       kind: "gif",
       src: "/api/media/1585718001877147648.mp4",
@@ -1683,11 +1511,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-24",
-    findings:
+    description:
       ". Gout. Recent Knee monoarthritis 5d SOB, cough, pleuritic CP. HR 110. SpO2 90%. 110/70 Rconsolidation (infarction) RV strain comp L popliteal vein Trop . AngioCT Agudo PE Tx: LMWH. TL. Evolution 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". Gout. Recent Knee monoarthritis 5d SOB, cough, pleuritic CP. HR 110. SpO2 90%. 110/70 Rconsolidation (infarction) RV strain comp L…",
     media: {
       kind: "gif",
       src: "/api/media/1353395686306426880.mp4",
@@ -1705,9 +1530,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-03-30",
-    findings: "Knee Septic Arthritis.",
-    diagnosis: "Knee Septic Arthritis",
-    summary: "Knee Septic Arthritis.",
+    description: "Knee Septic Arthritis.",
     media: {
       kind: "gif",
       src: "/api/media/1509228040529842183.mp4",
@@ -1725,10 +1548,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-15",
-    findings:
-      ". COPD gold D. O2 user. Dementia. Dependency. Cachexia New for Neumonía. Bad evolution Empiema pleural 1/2).",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". COPD gold D. O2 user. Dementia. Dependency. Cachexia New for Neumonía. Bad evolution Empiema pleural 1/2).",
     media: {
       kind: "gif",
@@ -1747,10 +1567,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-09",
-    findings:
+    description:
       "50 SOB + ortopnea ~ 3 weeks 72h ago echo: LVEF ~30% HR 120-130(ST), BP 90/67 (74), CRT >6/ cold & altered . Sp02 94% NC 3l LVEF < 30%. Mild B profile. IVC > 2 cm. HV & PV Tx: Inotropic support CC unit. Etiology (?).",
-    diagnosis: "Cardiogenic Shock",
-    summary: "Cardiogenic Shock.",
     media: {
       kind: "gif",
       src: "/api/media/1545900322064850945.mp4",
@@ -1768,9 +1586,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-30",
-    findings: "█▓▒░░ ░░▒▓█ Air Bronchograms Aerobilia.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "█▓▒░░ ░░▒▓█ Air Bronchograms Aerobilia.",
+    description: "█▓▒░░ ░░▒▓█ Air Bronchograms Aerobilia.",
     media: {
       kind: "gif",
       src: "/api/media/1399126784759771152.mp4",
@@ -1788,9 +1604,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-29",
-    findings: "Severo Neumonía Translobar consolidation con dynamic air bronchogram.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Severo Neumonía Translobar consolidation con dynamic air bronchogram.",
+    description: "Severo Neumonía Translobar consolidation con dynamic air bronchogram.",
     media: {
       kind: "gif",
       src: "/api/media/1387572077411061762.mp4",
@@ -1808,9 +1622,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-03",
-    findings: "Lung Ca.",
-    diagnosis: "PSAX view: Pulmonary Artery",
-    summary: "PSAX view: Pulmonary Artery.",
+    description: "Lung Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1478117038283395072.mp4",
@@ -1828,10 +1640,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-22",
-    findings:
+    description:
       "24 h w/ Dolor abdominal after eating . Muscular resistance. Abdominal distension Abdominal Líquido libre Small Bowel wall edema at umbilical level CT scan Superior Mesenteric Vein Thrombosis Tx: LP: Isquemic SB segment/ ATB / Anticoagulation.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "24 h w/ Dolor abdominal after eating .",
     media: {
       kind: "gif",
       src: "/api/media/1418276711402192902.mp4",
@@ -1849,9 +1659,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-01-07",
-    findings: "Right Popliteal DVT.",
-    diagnosis: "Right Popliteal DVT",
-    summary: "Right Popliteal DVT.",
+    description: "Right Popliteal DVT.",
     media: {
       kind: "gif",
       src: "/api/media/1611766429371580418.mp4",
@@ -1869,10 +1677,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-04-10",
-    findings:
+    description:
       "AF on VKA (INR 2,5) Several days con intense cough Dolor abdominal in tenderness area.",
-    diagnosis: "Rectus sheath hematoma",
-    summary: "Rectus sheath hematoma.",
     media: {
       kind: "gif",
       src: "/api/media/1513249368194924552.mp4",
@@ -1890,11 +1696,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-22",
-    findings:
+    description:
       "Post (5d) LP cholecystectomy Dolor abdominal + distension Perihepatic, periesplenic & pelvic Líquido libre Biliperitoneum 2° to Cystic duct leak Biliperitoneum.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Post (5d) LP cholecystectomy Dolor abdominal + distension Perihepatic, periesplenic & pelvic Líquido libre Biliperitoneum 2° to Cystic duct…",
     media: {
       kind: "gif",
       src: "/api/media/1462927255806660615.mp4",
@@ -1912,11 +1715,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-27",
-    findings:
+    description:
       "Increased response to warfarin in decompensated Insuficiencia cardíaca Hepatic congestion Hepatic dysfunction Synthesis of VKCF Warfarin metabolism cP450 I’ve seen this scenario not infrequently! Dilated IVC +reverse PV flow has been the repeated pattern.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Increased response to warfarin in decompensated Insuficiencia cardíaca Hepatic congestion Hepatic dysfunction Synthesis of VKCF Warfarin…",
     media: {
       kind: "gif",
       src: "/api/media/1453359769327226888.mp4",
@@ -1934,11 +1734,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-17",
-    findings:
+    description:
       ". 1 week w/ cough 48h before ” Bronchitis” consult SpO2 96% RR 17 Right ant “Bronchial Breath” Large alveolar consolidation + air bronchogram When I feedback the other “Oh, he became over-infected” Bacterial Neumonía.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". 1 week w/ cough 48h before ” Bronchitis” consult SpO2 96% RR 17 Right ant “Bronchial Breath” Large alveolar consolidation + air…",
     media: {
       kind: "gif",
       src: "/api/media/1383533619424030720.mp4",
@@ -1956,10 +1753,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2020-12-27",
-    findings:
+    description:
       "Hide & Seek caso . Early consult in ER for palpitations < 10 min. Several years con similars episodes and normal ECGs Dx: WPW syndrome Note continuous pattern in I, intermittent in II and normal ECG in III. ECGs taken 15 min apart.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Hide & Seek caso .",
     media: {
       kind: "image",
       src: "/api/media/1343288142435143681.jpg",
@@ -1977,9 +1772,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-10-08",
-    findings: "Insuficiencia cardíaca caso.",
-    diagnosis: "Insuficiencia cardíaca caso",
-    summary: "Insuficiencia cardíaca caso.",
+    description: "Insuficiencia cardíaca caso.",
     media: {
       kind: "image",
       src: "/api/media/1578884878523068416.jpg",
@@ -1997,9 +1790,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-10",
-    findings: "Thigh pain Rectus Femoris muscle tear Contralateral Injured.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Thigh pain Rectus Femoris muscle tear Contralateral Injured.",
+    description: "Thigh pain Rectus Femoris muscle tear Contralateral Injured.",
     media: {
       kind: "gif",
       src: "/api/media/1413705689122357248.mp4",
@@ -2017,10 +1808,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-04-18",
-    findings:
+    description:
       "Agudo dyspnea (5 days) Nopain or edema. SpO2 & BP Right ventricular dilatation + McConnell's sign. Non compresible right popliteal vein.",
-    diagnosis: "Tromboembolismo pulmonar + Popliteal DVT",
-    summary: "Tromboembolismo pulmonar + Popliteal DVT.",
     media: {
       kind: "video",
       src: "/api/media/1648424081010876417.mp4",
@@ -2038,9 +1827,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-26",
-    findings: "Years w/ progressive SOB Anasarca. BNP 2600. Waiting for.",
-    diagnosis: "Severo Mitral Stenosis w/ severe Congestión venosa",
-    summary: "Severo Mitral Stenosis w/ severe Congestión venosa.",
+    description: "Years w/ progressive SOB Anasarca. BNP 2600. Waiting for.",
     media: {
       kind: "gif",
       src: "/api/media/1607373641528012801.mp4",
@@ -2058,9 +1845,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-03-07",
-    findings: "Crónico RUQ pain + fiebre.",
-    diagnosis: "Hepatic Abscesses",
-    summary: "Hepatic Abscesses.",
+    description: "Crónico RUQ pain + fiebre.",
     media: {
       kind: "gif",
       src: "/api/media/1500941693138444295.mp4",
@@ -2078,9 +1863,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-18",
-    findings: "HTN. CKD IV Asymptomatic Systolic Murmur (@Eko_Health ) Aortic Stenosis 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "HTN.",
+    description: "HTN. CKD IV Asymptomatic Systolic Murmur (@Eko_Health ) Aortic Stenosis 1/2].",
     media: {
       kind: "video",
       src: "/api/media/1383894120335241216.mp4",
@@ -2098,9 +1881,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-09",
-    findings: "in Anterior STEMI caso RWMA in LAD territory.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "in Anterior STEMI caso RWMA in LAD territory.",
+    description: "in Anterior STEMI caso RWMA in LAD territory.",
     media: {
       kind: "gif",
       src: "/api/media/1468761407336374275.mp4",
@@ -2118,10 +1899,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-11",
-    findings:
+    description:
       "3 days w/ hipogastric & LIF pain WBC & CRP at site of max tenderness Thickened bowel wall > 5 mm Echogenic foci (R clip) Echogenic surrounding fat CT scan [2/2] confirmed uncomplicated sigmoid.",
-    diagnosis: "Diverticulitis",
-    summary: "Diverticulitis.",
     media: {
       kind: "gif",
       src: "/api/media/1480735912812290048.mp4",
@@ -2139,9 +1918,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-19",
-    findings: "Metastasic Anaplastic Carcinoma Note nodular metastasic lesion in lung.",
-    diagnosis: "Malignant Hemothorax",
-    summary: "Malignant Hemothorax.",
+    description: "Metastasic Anaplastic Carcinoma Note nodular metastasic lesion in lung.",
     media: {
       kind: "gif",
       src: "/api/media/1428503701979869190.mp4",
@@ -2159,10 +1936,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-18",
-    findings:
-      "Porcelain Vesícula Hyperechoic semilunar structure con complete posterior acoustic shadowing.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Porcelain Vesícula Hyperechoic semilunar structure con complete posterior acoustic shadowing.",
     media: {
       kind: "gif",
@@ -2181,11 +1955,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-04",
-    findings:
+    description:
       ". 40 PY / 10 kg, cough + behavioral change CXR + R perihilar mass CT Mediastinic & hilar ipsilat LAD CT R cerebellar contrast enhanced lesion, suspected MET Broncogenic carcinoma Palliative care 1/3 ].",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". 40 PY / 10 kg, cough + behavioral change CXR + R perihilar mass CT Mediastinic & hilar ipsilat LAD CT R cerebellar contrast enhanced…",
     media: {
       kind: "gif",
       src: "/api/media/1357421576271130630.mp4",
@@ -2203,11 +1974,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-16",
-    findings:
+    description:
       ". Agudo right renal colic. 1st episode RK Mild/Moderate HUN Perinephric fluid Concordants findings + Right ureterovesical calculi Tx: NSAID + opioids + Mg Expulsion in ED Happy ending 1/2).",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". Agudo right renal colic. 1st episode RK Mild/Moderate HUN Perinephric fluid Concordants findings + Right ureterovesical calculi Tx: NSAID…",
     media: {
       kind: "gif",
       src: "/api/media/1350569230828236801.mp4",
@@ -2225,9 +1993,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-01",
-    findings: "2019: Nodule 8 mm in RLL 2021: Nodule 24 mm correlation High Risk Pulmonary Nodule.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "2019: Nodule 8 mm in RLL 2021: Nodule 24 mm correlation High Risk Pulmonary Nodule.",
+    description:
+      "2019: Nodule 8 mm in RLL 2021: Nodule 24 mm correlation High Risk Pulmonary Nodule.",
     media: {
       kind: "gif",
       src: "/api/media/1410455595552018432.mp4",
@@ -2245,11 +2012,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-17",
-    findings:
+    description:
       "> 6M con xerophtalmia, xerostomia, dry skin + bilateral parotid swelling & fatigue Signs of bilateral Crónico parotiditis Sjögren Syndrome Normal Gland SS.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "> 6M con xerophtalmia, xerostomia, dry skin + bilateral parotid swelling & fatigue Signs of bilateral Crónico parotiditis Sjögren Syndrome…",
     media: {
       kind: "gif",
       src: "/api/media/1416214482997633024.mp4",
@@ -2267,10 +2031,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2020-12-26",
-    findings:
+    description:
       ".COPD. 1h CP 2 min prior cardiac arrest CP + (1) FV ROSC Killip II. Neuro Ok Post ROC / post TL con TNK @EM_RESUS @smithECGBlog @TheEKGGuy @MUE_14 @PendellM.",
-    diagnosis: "Hallazgo POCUS",
-    summary: ".COPD.",
     media: {
       kind: "image",
       src: "/api/media/1342683711540703232.jpg",
@@ -2288,10 +2050,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-04-16",
-    findings:
+    description:
       "Biventricular systolic dysfunction. Severo TR. High grade Congestión venosa , Derrame pleural & ascitis.",
-    diagnosis: "Advanced Insuficiencia cardíaca",
-    summary: "Advanced Insuficiencia cardíaca.",
     media: {
       kind: "video",
       src: "/api/media/1647394189620006912.mp4",
@@ -2309,9 +2069,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-04-30",
-    findings: "new toy is coming.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "new toy is coming.",
+    description: "new toy is coming.",
     media: {
       kind: "image",
       src: "/api/media/1520430260625428480.jpg",
@@ -2329,10 +2087,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-26",
-    findings:
+    description:
       "Biventricular HF. OSA. Permanent AF. BMI > 45. Recent BB Dyspnea. Near Síncope. HR 37-40. BP 110/70 IVC > 2 cm. A profile, no PE. PV doppler w/ reversal flow Tx: GTT dopamine (No diuretic initially) HR 60-70 w/ significant improvement in PV.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Biventricular HF.",
     media: {
       kind: "image",
       src: "/api/media/1442172266595422210.jpg",
@@ -2350,11 +2106,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-02-16",
-    findings:
+    description:
       "HFrEF post MI (ADA ) < 12 months ago Suspended 3 weeks ago Worsening dyspnea Yugular ingurgitation. No edema Bilateral Líneas B. No effusion Congestión venosa & Sent to ED!",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "HFrEF post MI (ADA ) < 12 months ago Suspended 3 weeks ago Worsening dyspnea Yugular ingurgitation.",
     media: {
       kind: "image",
       src: "/api/media/1626286642838355970.jpg",
@@ -2372,11 +2125,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-24",
-    findings:
+    description:
       "Leg pain Small superficial hypoechoic collection Echogenicity of SC tissue Thickened wall of adjacent vein (flebitis) Drainage was performed carefully without injuring vein! Skin Abscess 1/2.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Leg pain Small superficial hypoechoic collection Echogenicity of SC tissue Thickened wall of adjacent vein (flebitis) Drainage was…",
     media: {
       kind: "gif",
       src: "/api/media/1474170396651843594.mp4",
@@ -2394,10 +2144,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-24",
-    findings:
+    description:
       "Rural . No medical controls 1M con SOB after Agudo episode of dyspnea acute dyspnea (40’). No CP. Came to ER . Arrived asymptomatic. Normal VS. ECG Septal & apical RMWA, LAD LV Apex Thrombus LV Thrombus after MI 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Rural .",
     media: {
       kind: "gif",
       src: "/api/media/1386075563077611523.mp4",
@@ -2415,10 +2163,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-31",
-    findings:
+    description:
       "no olvidar initiate your scan con appropriate deep In the 1⃣ image: one can easily miss the acoustic shadow artifact (& miss the ) In the 2⃣ image: artifact is clearly recognizable !",
-    diagnosis: "Renal Pelvic Stone",
-    summary: "Renal Pelvic Stone.",
     media: {
       kind: "image",
       src: "/api/media/1477027291242795009.jpg",
@@ -2436,10 +2182,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-23",
-    findings:
-      "2 ambulatory patients con Insuficiencia cardíaca evaluated the same day 1⃣: Continuous portal flow 2⃣: Pulsatile portal flow 1/2.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "2 ambulatory patients con Insuficiencia cardíaca evaluated the same day 1⃣: Continuous portal flow 2⃣: Pulsatile portal flow 1/2.",
     media: {
       kind: "gif",
@@ -2458,9 +2201,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-30",
-    findings: "Metastasic Lung Cancer 1/2.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Metastasic Lung Cancer 1/2.",
+    description: "Metastasic Lung Cancer 1/2.",
     media: {
       kind: "gif",
       src: "/api/media/1454548775918256145.mp4",
@@ -2478,9 +2219,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-20",
-    findings: "Young3T Right colic pain + vómitos Right uretero-vesical Twinkling artifact.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Young3T Right colic pain + vómitos Right uretero-vesical Twinkling artifact.",
+    description: "Young3T Right colic pain + vómitos Right uretero-vesical Twinkling artifact.",
     media: {
       kind: "gif",
       src: "/api/media/1363196588093558787.mp4",
@@ -2498,10 +2237,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-23",
-    findings:
+    description:
       "Cystostomy user Urinary sepsis + AKI Partially distended bladder. Bilat HUN (RK shown) CT: No apparent obstructive factor. +++ rectal fecaloma Tx: urinary catheter + disimpaction ReScan-48h (2/2): colapsed bladder. No HUN.",
-    diagnosis: "Obstructive Uropathy",
-    summary: "Obstructive Uropathy.",
     media: {
       kind: "gif",
       src: "/api/media/1485084828966006789.mp4",
@@ -2519,10 +2256,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-07",
-    findings:
+    description:
       "point of transition between a Neumotórax and normal lung. junction point between sliding lung and absent sliding. S= ~60-70% E= near 100%. Location of LP correlated w/ size of pneumo (More lat ~ bigger).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "point of transition between a Neumotórax and normal lung.",
     media: {
       kind: "gif",
       src: "/api/media/1468281395609018373.mp4",
@@ -2540,9 +2275,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-15",
-    findings: ". fiebre + cough Right alveolar consolidation + Air Bronchogram Bacterial Neumonía.",
-    diagnosis: "Hallazgo POCUS",
-    summary: ". fiebre + cough Right alveolar consolidation + Air Bronchogram Bacterial Neumonía.",
+    description:
+      ". fiebre + cough Right alveolar consolidation + Air Bronchogram Bacterial Neumonía.",
     media: {
       kind: "gif",
       src: "/api/media/1371269969665650691.mp4",
@@ -2560,10 +2294,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-29",
-    findings:
-      ". 2 weeks right testicular pain. No inflammatory signs Testicular tumor Urgent referral to urology.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". 2 weeks right testicular pain. No inflammatory signs Testicular tumor Urgent referral to urology.",
     media: {
       kind: "gif",
@@ -2582,9 +2313,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-01-28",
-    findings: "Aortic Stenosis.",
-    diagnosis: "Severo Aortic Stenosis",
-    summary: "Severo Aortic Stenosis.",
+    description: "Aortic Stenosis.",
     media: {
       kind: "video",
       src: "/api/media/1619326286610206724.mp4",
@@ -2602,9 +2331,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-11",
-    findings: "Cholelithiasis 3 different cases, recently Dx.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Cholelithiasis 3 different cases, recently Dx.",
+    description: "Cholelithiasis 3 different cases, recently Dx.",
     media: {
       kind: "image",
       src: "/api/media/1403185524903493635.jpg",
@@ -2622,9 +2349,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-16",
-    findings: "Severo Neumonía Translobar consolidation + air bronchogram 1/2.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Severo Neumonía Translobar consolidation + air bronchogram 1/2.",
+    description: "Severo Neumonía Translobar consolidation + air bronchogram 1/2.",
     media: {
       kind: "gif",
       src: "/api/media/1393724110358917125.mp4",
@@ -2642,10 +2367,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-22",
-    findings:
+    description:
       "T2D. 3 days w/ right Dolor abdominal + nauseas & fiebre. PAM 55-60. CRT >3 Abnormal echogenicity of bilateral renal parenchyma Normal biliar US Inflammatorysediment Tx: Fluids ( PAM, CRT). ATB. CT scan - rule out Cx Agudo Bilateral Pyelonephritis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "T2D.",
     media: {
       kind: "gif",
       src: "/api/media/1429497404236214280.mp4",
@@ -2663,11 +2386,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-12",
-    findings:
+    description:
       ". fiebre < 24 h. Mild tos seca. normal Right: anterior alveolar consolidation con air bronchograms Left: Líneas A pattern Dx: Bacterial Neumonía F/U in 72h next tweet.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". fiebre < 24 h. Mild tos seca. normal Right: anterior alveolar consolidation con air bronchograms Left: Líneas A pattern Dx: Bacterial…",
     media: {
       kind: "gif",
       src: "/api/media/1349038446627717120.mp4",
@@ -2685,9 +2405,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-14",
-    findings: "Kaposi's sarcoma.",
-    diagnosis: "Hemothorax",
-    summary: "Hemothorax.",
+    description: "Kaposi's sarcoma.",
     media: {
       kind: "gif",
       src: "/api/media/1603174594965217280.mp4",
@@ -2705,9 +2423,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-30",
-    findings: "Right femoral DVT.",
-    diagnosis: "Right femoral DVT",
-    summary: "Right femoral DVT.",
+    description: "Right femoral DVT.",
     media: {
       kind: "gif",
       src: "/api/media/1598069548938186753.mp4",
@@ -2725,9 +2441,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-17",
-    findings: "Group IV PH caso con Severo Congestión venosa.",
-    diagnosis: "Group IV PH caso con Severo Congestión venosa",
-    summary: "Group IV PH caso con Severo Congestión venosa.",
+    description: "Group IV PH caso con Severo Congestión venosa.",
     media: {
       kind: "video",
       src: "/api/media/1593315901738168320.mp4",
@@ -2745,10 +2459,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-21",
-    findings:
+    description:
       "Febrile neutropenia associated con recent QMT for solid cancer. No respiratory symptoms. Physical exam: Right basal crackles & Focal Líneas B.",
-    diagnosis: "Neumonía",
-    summary: "Neumonía.",
     media: {
       kind: "gif",
       src: "/api/media/1594715644301258752.mp4",
@@ -2766,9 +2478,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-10",
-    findings: "Cholangiocarcinoma in palliative care.",
-    diagnosis: "Malignant Biliary Obstruction",
-    summary: "Malignant Biliary Obstruction.",
+    description: "Cholangiocarcinoma in palliative care.",
     media: {
       kind: "gif",
       src: "/api/media/1436136575310737412.mp4",
@@ -2786,9 +2496,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-03-31",
-    findings: "Polycystic kidney disease.",
-    diagnosis: "Polycystic kidney disease",
-    summary: "Polycystic kidney disease.",
+    description: "Polycystic kidney disease.",
     media: {
       kind: "video",
       src: "/api/media/1641819855140601862.mp4",
@@ -2806,9 +2514,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-06",
-    findings: "4⃣ examples.",
-    diagnosis: "Empyema",
-    summary: "Empyema.",
+    description: "4⃣ examples.",
     media: {
       kind: "gif",
       src: "/api/media/1589348159289163777.mp4",
@@ -2826,10 +2532,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-13",
-    findings:
+    description:
       "Fish hook partial self-extraction. Punctiform wound. No visible & X ray confirmed foreign body Retired under local anesthesia.",
-    diagnosis: "Finger Foreign Body",
-    summary: "Finger Foreign Body.",
     media: {
       kind: "gif",
       src: "/api/media/1437489275084361734.mp4",
@@ -2847,11 +2551,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-04",
-    findings:
+    description:
       "dynamic tool to guide decongestive therapy Portal vein doppler evolution following combined diuretic therapy in decompensated Insuficiencia cardíaca secondary to Severo mitral stenosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "dynamic tool to guide decongestive therapy Portal vein doppler evolution following combined diuretic therapy in decompensated Insuficiencia…",
     media: {
       kind: "image",
       src: "/api/media/1456114185226575872.jpg",
@@ -2869,10 +2570,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-07",
-    findings:
-      "Insuficiencia cardíaca 3⃣ IVC > 2 cm Reverse portal flow =Normal, =) Reverse femoral flow (~ HV).",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Insuficiencia cardíaca 3⃣ IVC > 2 cm Reverse portal flow =Normal, =) Reverse femoral flow (~ HV).",
     media: {
       kind: "gif",
@@ -2891,9 +2589,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-05",
-    findings: "Multiple bilateral hyperechoic liver lesions.",
-    diagnosis: "Multifocal Hepatic Steatosis",
-    summary: "Multifocal Hepatic Steatosis.",
+    description: "Multiple bilateral hyperechoic liver lesions.",
     media: {
       kind: "gif",
       src: "/api/media/1445446365178318861.mp4",
@@ -2911,9 +2607,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-12",
-    findings: "in Easter Island con @ButterflyNetInc.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "in Easter Island con @ButterflyNetInc.",
+    description: "in Easter Island con @ButterflyNetInc.",
     media: {
       kind: "image",
       src: "/api/media/1360269321700794368.jpg",
@@ -2931,9 +2625,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-03-12",
-    findings: "Empiema pleural.",
-    diagnosis: "Empiema pleural",
-    summary: "Empiema pleural.",
+    description: "Empiema pleural.",
     media: {
       kind: "gif",
       src: "/api/media/1502721769232379906.mp4",
@@ -2951,10 +2643,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-18",
-    findings:
-      "Advanced Esophagus Ca in PC Cough + fiebre + oxygen requirement Bibasal alveolar consolidation + dynamic air bronchograms Neumonía.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Advanced Esophagus Ca in PC Cough + fiebre + oxygen requirement Bibasal alveolar consolidation + dynamic air bronchograms Neumonía.",
     media: {
       kind: "gif",
@@ -2973,9 +2662,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-06",
-    findings: "Screening in overweight Vesícula Polyps.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Screening in overweight Vesícula Polyps.",
+    description: "Screening in overweight Vesícula Polyps.",
     media: {
       kind: "gif",
       src: "/api/media/1412273653711003648.mp4",
@@ -2993,10 +2680,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-19",
-    findings:
-      "COPD Screening during exacerbation (Trans & Long) Dilated infrarenal aorta + intraluminal thrombus Aortic Abdominal Aneurisma.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "COPD Screening during exacerbation (Trans & Long) Dilated infrarenal aorta + intraluminal thrombus Aortic Abdominal Aneurisma.",
     media: {
       kind: "gif",
@@ -3015,9 +2699,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-01",
-    findings: "In a tachypneic patient due Neumonía. Incidental finding.",
-    diagnosis: "Coraliform Lithiasis",
-    summary: "Coraliform Lithiasis.",
+    description: "In a tachypneic patient due Neumonía. Incidental finding.",
     media: {
       kind: "video",
       src: "/api/media/1664258467484319744.mp4",
@@ -3035,9 +2717,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-22",
-    findings: "Merry Christmas Community!",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Merry Christmas Community!.",
+    description: "Merry Christmas Community!",
     media: {
       kind: "gif",
       src: "/api/media/1473680131877224462.mp4",
@@ -3055,10 +2735,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-19",
-    findings:
+    description:
       "Middle age < CP. Came to ER in Killip I Treat as ACS & early thrombolysis Reperfusion criteria Transfered to PCI center (3800 km away).",
-    diagnosis: "Agudo Myocardial Infarction",
-    summary: "Agudo Myocardial Infarction.",
     media: {
       kind: "image",
       src: "/api/media/1439651696871936002.jpg",
@@ -3076,9 +2754,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-10-27",
-    findings: "BPH. Recent urinary instrumentation Suprapubic pain Septic shock.",
-    diagnosis: "Emphysematous cystitis",
-    summary: "Emphysematous cystitis.",
+    description: "BPH. Recent urinary instrumentation Suprapubic pain Septic shock.",
     media: {
       kind: "video",
       src: "/api/media/1717950529744130457.mp4",
@@ -3096,10 +2772,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-15",
-    findings:
-      "Goalkeeper Received a tackle while playing Left toracoabdominal skin hematoma A pattern FAST Rib cortical disruption Rib fracture.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Goalkeeper Received a tackle while playing Left toracoabdominal skin hematoma A pattern FAST Rib cortical disruption Rib fracture.",
     media: {
       kind: "gif",
@@ -3118,9 +2791,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-25",
-    findings: "Ankle Septic Arthritis.",
-    diagnosis: "Ankle Septic Arthritis",
-    summary: "Ankle Septic Arthritis.",
+    description: "Ankle Septic Arthritis.",
     media: {
       kind: "video",
       src: "/api/media/1596200914855297024.mp4",
@@ -3138,9 +2809,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-15",
-    findings: "joy for any user Improvement of portal doppler following decongestive therapy ).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "joy for any user Improvement of portal doppler following decongestive therapy ).",
+    description: "joy for any user Improvement of portal doppler following decongestive therapy ).",
     media: {
       kind: "image",
       src: "/api/media/1415736059707764736.jpg",
@@ -3158,10 +2827,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-13",
-    findings:
-      ". > 12 month abdominal distention, early satiety Though she was overweigth Dx: Giant Ovarian Cyst.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". > 12 month abdominal distention, early satiety Though she was overweigth Dx: Giant Ovarian Cyst.",
     media: {
       kind: "gif",
@@ -3180,10 +2846,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2024-03-15",
-    findings:
+    description:
       "> 1 month w/ fiebre + weight loss + dyspnea Diastolic aortic murmur S. Mitis x 2 Splenomegaly.",
-    diagnosis: "Aortic Valve Endocarditis",
-    summary: "Aortic Valve Endocarditis.",
     media: {
       kind: "video",
       src: "/api/media/1768651410332069915.mp4",
@@ -3201,10 +2865,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-11-19",
-    findings:
+    description:
       "Humerus Osteomyelitis, SAMR & Respiratory failure Lung embolic lesions + bilateral Derrame pleural.",
-    diagnosis: "Empyema",
-    summary: "Empyema.",
     media: {
       kind: "image",
       src: "/api/media/1726264493666406756.jpg",
@@ -3222,10 +2884,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-10",
-    findings:
+    description:
       "Middle age , T2D 3 days w/ RH pain + fiebre +) Murphy GB wall thickening Tx: ATB + Early . Helped in Sx. No were found. of GB in.",
-    diagnosis: "Colecistitis aguda alitiásica",
-    summary: "Colecistitis aguda alitiásica.",
     media: {
       kind: "gif",
       src: "/api/media/1447335878251122690.mp4",
@@ -3243,10 +2903,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-22",
-    findings:
-      ". CHF. Asthma 1 week Dyspnea. Wheezing ADHF or Asthma!? Portal Vein) at the beginning and discharge @askpocus.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". CHF. Asthma 1 week Dyspnea. Wheezing ADHF or Asthma!? Portal Vein) at the beginning and discharge @askpocus.",
     media: {
       kind: "gif",
@@ -3265,9 +2922,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-20",
-    findings: "Agudo periumbilical pain Pre & post reduction maneuver Abdominal wall Hernia.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Agudo periumbilical pain Pre & post reduction maneuver Abdominal wall Hernia.",
+    description: "Agudo periumbilical pain Pre & post reduction maneuver Abdominal wall Hernia.",
     media: {
       kind: "gif",
       src: "/api/media/1461848236105338882.mp4",
@@ -3285,10 +2940,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-04-27",
-    findings:
+    description:
       "Right testicular trauma 1M ago Fluctuant mass above RT w/ spontaneous drainage of pus Superior pole + adjacent collection Tx: + ATB.",
-    diagnosis: "Testicular fracture + Abscess",
-    summary: "Testicular fracture + Abscess.",
     media: {
       kind: "gif",
       src: "/api/media/1519438992134967296.mp4",
@@ -3306,10 +2959,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-01",
-    findings:
-      ". Normal BMI RUQ pain + nauseas Mobile echogenic lesion con posterior acoustic shadowing within Vesícula lumen Cholelithiasis in children.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". Normal BMI RUQ pain + nauseas Mobile echogenic lesion con posterior acoustic shadowing within Vesícula lumen Cholelithiasis in children.",
     media: {
       kind: "gif",
@@ -3328,10 +2978,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-08-12",
-    findings:
+    description:
       "Dementia Stroke (multiple ischemic lesions) SOB 1 month. No CP Blue toe syndrome persistent STE V2-V4.",
-    diagnosis: "LV apical Aneurisma + thrombus",
-    summary: "LV apical Aneurisma + thrombus.",
     media: {
       kind: "gif",
       src: "/api/media/1558120189668888576.mp4",
@@ -3349,9 +2997,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-15",
-    findings: "Highly specific US sign of Neumotórax.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Highly specific US sign of Neumotórax.",
+    description: "Highly specific US sign of Neumotórax.",
     media: {
       kind: "gif",
       src: "/api/media/1415466832279003138.mp4",
@@ -3369,9 +3015,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-29",
-    findings: "Good Physical Exam includes.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Good Physical Exam includes.",
+    description: "Good Physical Exam includes.",
     media: {
       kind: "image",
       src: "/api/media/1597701872848359425.jpg",
@@ -3389,9 +3033,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-08-04",
-    findings: "Adrenal metastasis due Breast Ca.",
-    diagnosis: "Adrenal metastasis due Breast Ca",
-    summary: "Adrenal metastasis due Breast Ca.",
+    description: "Adrenal metastasis due Breast Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1555190132655144960.mp4",
@@ -3409,10 +3051,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-02-11",
-    findings:
+    description:
       "RLQ pain + diarrhea WBC + eosinofilia (>20%) Recent intake of raw Focal bowel wall tickening F/U w/ resolution of symptoms.",
-    diagnosis: "Ileitis ¿Anisakiasis?",
-    summary: "Ileitis ¿Anisakiasis?.",
     media: {
       kind: "gif",
       src: "/api/media/1492196870587830274.mp4",
@@ -3430,9 +3070,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-03",
-    findings: "new brother in the familily.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "new brother in the familily.",
+    description: "new brother in the familily.",
     media: {
       kind: "image",
       src: "/api/media/1411164486162071552.jpg",
@@ -3450,10 +3088,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-23",
-    findings:
-      "Young Metastasic Anaplastic Ca (, ,) 1 o Agudo chest pain + SOB Hg Malignant right Hemothorax 1/3].",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Young Metastasic Anaplastic Ca (, ,) 1 o Agudo chest pain + SOB Hg Malignant right Hemothorax 1/3].",
     media: {
       kind: "gif",
@@ -3472,10 +3107,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-08",
-    findings:
+    description:
       "Severo enteritis of presumable bacterial origin. Ceftriaxone 3rd day reevaluate for persistent mild Dolor abdominal. Soft abdomen incidental GB . Murphy (-) POCUS 2 months later Pseudolithiasis induced by Ceftriaxone.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Severo enteritis of presumable bacterial origin.",
     media: {
       kind: "gif",
       src: "/api/media/1358581694203387904.mp4",
@@ -3493,9 +3126,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-12-18",
-    findings: "Non resolving AKI in (+ delirium) con (+) diuresis in diapers.",
-    diagnosis: "Obstructive Uropathy due urinary retention",
-    summary: "Obstructive Uropathy due urinary retention.",
+    description: "Non resolving AKI in (+ delirium) con (+) diuresis in diapers.",
     media: {
       kind: "image",
       src: "/api/media/1736780738526089235.jpg",
@@ -3513,10 +3144,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-06-04",
-    findings:
+    description:
       "50s CKD-HD. PH: Tricuspid IE & Septic PE associated yugular CVC thromboflebitis (1 y/ ago). Completed 6M of VKA 3 w/ ago: yugular left septic thromboflebits treated w/ ATB + new right CVC Now x CD No symptoms. curiosity: R & L yug clots Would you AC?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "50s CKD-HD.",
     media: {
       kind: "gif",
       src: "/api/media/1533234632212238337.mp4",
@@ -3534,9 +3163,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-05",
-    findings: "Recurrent hematuria + low urinary symptoms Bladder Stones.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Recurrent hematuria + low urinary symptoms Bladder Stones.",
+    description: "Recurrent hematuria + low urinary symptoms Bladder Stones.",
     media: {
       kind: "gif",
       src: "/api/media/1456647193679515650.mp4",
@@ -3554,10 +3181,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-30",
-    findings:
+    description:
       "Young . Crónico Pelvic Pain + Bloating Diagnosis & Tx by GYN curiosity Ovarian Serous Cystadenoma.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Young .",
     media: {
       kind: "gif",
       src: "/api/media/1376718759667376130.mp4",
@@ -3575,9 +3200,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-05-26",
-    findings: "Kidney Cyst.",
-    diagnosis: "Kidney Cyst",
-    summary: "Kidney Cyst.",
+    description: "Kidney Cyst.",
     media: {
       kind: "gif",
       src: "/api/media/1529814079459602434.mp4",
@@ -3595,10 +3218,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-05",
-    findings:
+    description:
       "60s, BMI 30 Strong family Hx of DVT (3⃣1st degree relative) edema. No SOB/ CP HR 70. BP 110/60 EKG: SR, RBBB Troponin Popliteal venous thrombus con femoral extension LV > RV. Normal TAPSE Proximal DVT Pool in next tweet.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "60s, BMI 30 Strong family Hx of DVT (3⃣1st degree relative) edema.",
     media: {
       kind: "gif",
       src: "/api/media/1423371592076349451.mp4",
@@ -3616,11 +3237,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-01",
-    findings:
+    description:
       ". Dolor abdominal, vómitos, diarrhea & fiebre. Soft abdomen. Normal urine sediment summary Absence of right kidney Left kidney Incidental pelvic kidney I informed the condition “Oh that was Dx when i was” Pelvic Kidney.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". Dolor abdominal, vómitos, diarrhea & fiebre. Soft abdomen. Normal urine sediment summary Absence of right kidney Left kidney Incidental…",
     media: {
       kind: "gif",
       src: "/api/media/1399799987945545728.mp4",
@@ -3638,9 +3256,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-31",
-    findings: "caso: Pre-Covid. . Agudo symptoms. Bilat diffuse lung img. RUQ img.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "caso: Pre-Covid.",
+    description: "caso: Pre-Covid. . Agudo symptoms. Bilat diffuse lung img. RUQ img.",
     media: {
       kind: "gif",
       src: "/api/media/1355919818566852610.mp4",
@@ -3658,10 +3274,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-05",
-    findings:
+    description:
       "Middle age . During : Síncope Normal VS. Feeling . Want to leave ER attached (use ) EKG in next tweet What do you think? @EM_RESUS @MUE_14 @AndreMansoor @TheEKGGuy @smithECGBlog @ECGfan @grepmeded @nfpineda @adribaran @ecgrhythms @eabramsMD.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Middle age .",
     media: {
       kind: "video",
       src: "/api/media/1346500193555017728.mp4",
@@ -3679,11 +3293,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-07-10",
-    findings:
+    description:
       ", Cutaneous Lupus 1 hour of typical angina First ECG at arrival Second ECG 1 hour later Third ECG 48 hours later (no intervention other than aspirin, clopidogrel, Enoxaparin) Troponin (+++) shown What findings would you expect in Coro Diagnosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ", Cutaneous Lupus 1 hour of typical angina First ECG at arrival Second ECG 1 hour later Third ECG 48 hours later (no intervention other…",
     media: {
       kind: "image",
       src: "/api/media/1678465706772377600.jpg",
@@ -3701,9 +3312,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-11",
-    findings: "Group 3: Hipertensión pulmonar.",
-    diagnosis: "Group 3: Hipertensión pulmonar",
-    summary: "Group 3: Hipertensión pulmonar.",
+    description: "Group 3: Hipertensión pulmonar.",
     media: {
       kind: "gif",
       src: "/api/media/1591131508773097474.mp4",
@@ -3721,10 +3330,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-28",
-    findings:
+    description:
       "POCUS Curiosity Young . Recurrent AVNRT. Waiting for ablation. New episode. No warning signs during arrhythmia and post verapamil.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "POCUS Curiosity Young .",
     media: {
       kind: "gif",
       src: "/api/media/1354915589790314500.mp4",
@@ -3742,10 +3349,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-27",
-    findings:
-      "Bilateral Derrame pleural in CXR Left pleural effusion in PLAX “Generous”crystalloid infusion for several days.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Bilateral Derrame pleural in CXR Left pleural effusion in PLAX “Generous”crystalloid infusion for several days.",
     media: {
       kind: "gif",
@@ -3764,10 +3368,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-17",
-    findings:
+    description:
       "80 . T2D. HTN. CHF- CAD. Multiple . Difficult equilibrium: Anasarca Prerrenal AKI Domiciliary: 1W dyspnea, orthopnea and leg edema Plethoric IVC Bilateral small PE, R >L Porta doppler IP Ascites Dx: Descompensated HF Tx 1/.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "80 .",
     media: {
       kind: "gif",
       src: "/api/media/1350820659874705408.mp4",
@@ -3785,9 +3387,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-02-09",
-    findings: "ESRD on hemodyalisis. MSSA Bacteremia transpleural effusion view.",
-    diagnosis: "Aortic Valve Endocarditis",
-    summary: "Aortic Valve Endocarditis.",
+    description: "ESRD on hemodyalisis. MSSA Bacteremia transpleural effusion view.",
     media: {
       kind: "video",
       src: "/api/media/1623784710265503744.mp4",
@@ -3805,9 +3405,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-01-17",
-    findings: "Hemodialysis catheter-related central Trombosis venosa.",
-    diagnosis: "Hemodialysis catheter-related central Trombosis venosa",
-    summary: "Hemodialysis catheter-related central Trombosis venosa.",
+    description: "Hemodialysis catheter-related central Trombosis venosa.",
     media: {
       kind: "gif",
       src: "/api/media/1615434430880833544.mp4",
@@ -3825,9 +3423,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-27",
-    findings: "Lung Ca con liver mtt & Abdominal aorta Aneurisma w/ mural thrombus.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Lung Ca con liver mtt & Abdominal aorta Aneurisma w/ mural thrombus.",
+    description: "Lung Ca con liver mtt & Abdominal aorta Aneurisma w/ mural thrombus.",
     media: {
       kind: "gif",
       src: "/api/media/1596892026511187968.mp4",
@@ -3845,9 +3441,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-25",
-    findings: "Subcapsular Hepatic Hematoma after laparoscopic surgery.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Subcapsular Hepatic Hematoma after laparoscopic surgery.",
+    description: "Subcapsular Hepatic Hematoma after laparoscopic surgery.",
     media: {
       kind: "gif",
       src: "/api/media/1408228066812366849.mp4",
@@ -3865,11 +3459,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-02",
-    findings:
+    description:
       ". CAD + DAPT Working on 1 week of calf swelling Search for assistance in con suspected DVT No DVT signs Intramuscular hematoma In this caso empiric AC + differed would be Always for other causes of calf pain!",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". CAD + DAPT Working on 1 week of calf swelling Search for assistance in con suspected DVT No DVT signs Intramuscular hematoma In this caso…",
     media: {
       kind: "gif",
       src: "/api/media/1356706105116794884.mp4",
@@ -3887,9 +3478,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-02-25",
-    findings: "OMI or not?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "OMI or not?.",
+    description: "OMI or not?",
     media: {
       kind: "image",
       src: "/api/media/1497147699522646041.jpg",
@@ -3907,10 +3496,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-11",
-    findings:
-      "Oropharyngeal Ca in PC Cough + SOB Left lower consolidation w/ air bronchogram Neumonía.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Oropharyngeal Ca in PC Cough + SOB Left lower consolidation w/ air bronchogram Neumonía.",
     media: {
       kind: "gif",
@@ -3929,9 +3515,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-15",
-    findings: "eye of the Dragon.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "eye of the Dragon.",
+    description: "eye of the Dragon.",
     media: {
       kind: "gif",
       src: "/api/media/1449080904828211204.mp4",
@@ -3949,9 +3533,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-25",
-    findings: "Femoral Vein Thrombosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Femoral Vein Thrombosis.",
+    description: "Femoral Vein Thrombosis.",
     media: {
       kind: "gif",
       src: "/api/media/1419383521756565507.mp4",
@@ -3969,10 +3551,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-07",
-    findings:
+    description:
       "QUIZ *omited reason* A: POCUS during hospitalization B: POCUS 2 month later 1. What’s the diagnosis? 2. What could have been administered to explain the sequence of images shown?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "QUIZ *omited reason* A: POCUS during hospitalization B: POCUS 2 month later 1.",
     media: {
       kind: "gif",
       src: "/api/media/1358468252322721793.mp4",
@@ -3990,9 +3570,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-01-29",
-    findings: "Intermittent haematuria.",
-    diagnosis: "Renal cell carcinoma",
-    summary: "Renal cell carcinoma.",
+    description: "Intermittent haematuria.",
     media: {
       kind: "gif",
       src: "/api/media/1619754291769802753.mp4",
@@ -4010,11 +3588,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-02",
-    findings:
+    description:
       "Prior abdominal Dolor abdominal + vómitos Dilated stomach Dilated small bowel > 2,5 cm Líquido libre Innefective peristalsis (not shown) Obstrucción intestinal Tx: Adhesions.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Prior abdominal Dolor abdominal + vómitos Dilated stomach Dilated small bowel > 2,5 cm Líquido libre Innefective peristalsis (not shown)…",
     media: {
       kind: "gif",
       src: "/api/media/1388961966719385602.mp4",
@@ -4032,9 +3607,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-26",
-    findings: "POCUS.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "POCUS.",
+    description: "POCUS.",
     media: {
       kind: "gif",
       src: "/api/media/1430949035624521732.mp4",
@@ -4052,11 +3625,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-13",
-    findings:
+    description:
       "Thrombolyzed Agudo Stroke 24 hour later Hematocrit Pericholecystic fluid () CT: plus bilateral retroperitoneal hematoma Repeat POCUS 2 weeks later: normal GB.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Thrombolyzed Agudo Stroke 24 hour later Hematocrit Pericholecystic fluid () CT: plus bilateral retroperitoneal hematoma Repeat POCUS 2…",
     media: {
       kind: "gif",
       src: "/api/media/1381802460138901504.mp4",
@@ -4074,9 +3644,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-03",
-    findings: "Sci-hub in Telegram bot. & Agudo Care Med.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Sci-hub in Telegram bot.",
+    description: "Sci-hub in Telegram bot. & Agudo Care Med.",
     media: {
       kind: "image",
       src: "/api/media/1378371828956155906.jpg",
@@ -4094,11 +3662,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-19",
-    findings:
+    description:
       "Young During a race: Fell off ABC Focal right basal Líneas B Clear Líneas A / B-lines interface Subpleural consolidation + B-lines Lung contusion.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Young During a race: Fell off ABC Focal right basal Líneas B Clear Líneas A / B-lines interface Subpleural consolidation + B-lines Lung…",
     media: {
       kind: "image",
       src: "/api/media/1362842724769148932.jpg",
@@ -4116,9 +3681,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-11",
-    findings: ". Obstructive Jaudince (BT 40!!). Advanced Vesícula Ca.",
-    diagnosis: "Hallazgo POCUS",
-    summary: ". Obstructive Jaudince (BT 40!!). Advanced Vesícula Ca.",
+    description: ". Obstructive Jaudince (BT 40!!). Advanced Vesícula Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1348695091381219329.mp4",
@@ -4136,9 +3699,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-09",
-    findings: "55y. Crónico OH RUQ pain + fiebre Dx: Hepatic Abscesses.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "55y.",
+    description: "55y. Crónico OH RUQ pain + fiebre Dx: Hepatic Abscesses.",
     media: {
       kind: "video",
       src: "/api/media/1347729571332952066.mp4",
@@ -4156,11 +3717,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-07",
-    findings:
+    description:
       "Heart rate in Afib con PLAX M mode through anterior mitral leaflet Measure maximum N of cicles ___ “LPM” N of cicles = Heart Rate In this example 27 4 = 108 LPM Useful technique in absence of cardiac monitor, SPO2 or difficult.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Heart rate in Afib con PLAX M mode through anterior mitral leaflet Measure maximum N of cicles ___ “LPM” N of cicles = Heart Rate In this…",
     media: {
       kind: "image",
       src: "/api/media/1457391879822065670.jpg",
@@ -4178,9 +3736,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-04",
-    findings: "Colecistitis.",
-    diagnosis: "Agudo Colecistitis",
-    summary: "Agudo Colecistitis.",
+    description: "Colecistitis.",
     media: {
       kind: "gif",
       src: "/api/media/1434284074525396997.mp4",
@@ -4198,9 +3754,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-06",
-    findings: "Calf pain + edema Popliteal DVT.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Calf pain + edema Popliteal DVT.",
+    description: "Calf pain + edema Popliteal DVT.",
     media: {
       kind: "gif",
       src: "/api/media/1401608480344186882.mp4",
@@ -4218,11 +3772,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-02",
-    findings:
+    description:
       "Young Severo diarrhea + vómitos Dry mucous membranes, CRT Flat IVC Tx: 30 cc/kg RL + Sx CRT Agudo Gastroenteritis + DH IVC is not a good predictor of volemia & FR. At extremes could be more helpful Always integrate con clinical findings.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Young Severo diarrhea + vómitos Dry mucous membranes, CRT Flat IVC Tx: 30 cc/kg RL + Sx CRT Agudo Gastroenteritis + DH IVC is not a good…",
     media: {
       kind: "gif",
       src: "/api/media/1366541169946202113.mp4",
@@ -4240,9 +3791,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-09-06",
-    findings: "Guess who’s back in town ?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Guess who’s back in town ?.",
+    description: "Guess who’s back in town ?",
     media: {
       kind: "gif",
       src: "/api/media/1566972923520458758.mp4",
@@ -4260,11 +3809,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-23",
-    findings:
+    description:
       ". PMH: Left renal atrophy + Staghorn stone Right lumbar pain + fiebre. Complicated UTI. AKIN II Right moderate HUN + proximal ureteral stone Left shadowing mass + RA Tx: Panculture. ATB. Urgent referral to urology.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". PMH: Left renal atrophy + Staghorn stone Right lumbar pain + fiebre. Complicated UTI. AKIN II Right moderate HUN + proximal ureteral…",
     media: {
       kind: "gif",
       src: "/api/media/1353067258495418372.mp4",
@@ -4282,10 +3828,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-11-26",
-    findings:
+    description:
       "AF on VKA Agudo Dolor abdominal Hemorrhagic shock INR 9 & CT correlation + Líquido libre.",
-    diagnosis: "Massive preperitoneal hematoma",
-    summary: "Massive preperitoneal hematoma.",
     media: {
       kind: "image",
       src: "/api/media/1728801617447641558.jpg",
@@ -4303,9 +3847,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-14",
-    findings: "Ovary Teratoma.",
-    diagnosis: "Ovary Teratoma",
-    summary: "Ovary Teratoma.",
+    description: "Ovary Teratoma.",
     media: {
       kind: "gif",
       src: "/api/media/1481986196351901698.mp4",
@@ -4323,9 +3865,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-09",
-    findings: "Tragedy.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Tragedy.",
+    description: "Tragedy.",
     media: {
       kind: "gif",
       src: "/api/media/1446970169008476162.mp4",
@@ -4343,9 +3883,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-15",
-    findings: "A-L-A Sign Líneas A - Liver- A line Sign, Just invented ).",
-    diagnosis: "Pneumoperitoneum",
-    summary: "Pneumoperitoneum.",
+    description: "A-L-A Sign Líneas A - Liver- A line Sign, Just invented ).",
     media: {
       kind: "gif",
       src: "/api/media/1438251531535634435.mp4",
@@ -4363,10 +3901,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-14",
-    findings:
+    description:
       "PMH: Insuficiencia cardíaca Palpitations. HD stable. Received amiodarone IV con no response, thenCV ECG pre & post ¿What do you think about initial rythm?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "PMH: Insuficiencia cardíaca Palpitations.",
     media: {
       kind: "image",
       src: "/api/media/1404526990653366283.jpg",
@@ -4384,9 +3920,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-07",
-    findings: "Abdominal Aneurisma aórtico.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Abdominal Aneurisma aórtico.",
+    description: "Abdominal Aneurisma aórtico.",
     media: {
       kind: "gif",
       src: "/api/media/1401992547040366594.mp4",
@@ -4404,11 +3938,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-05",
-    findings:
+    description:
       "Bilateral Staghorn renal stones ED : New left colic pain Bilateral renal pelvis con calcified masses & posterior acoustic shadowing Left hydroureteronephrosis CT scan 1 month before Tx: Analgesia. Pending ambulatory urology referral.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Bilateral Staghorn renal stones ED : New left colic pain Bilateral renal pelvis con calcified masses & posterior acoustic shadowing Left…",
     media: {
       kind: "gif",
       src: "/api/media/1389767040907481090.mp4",
@@ -4426,10 +3957,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-23",
-    findings:
+    description:
       "Recurrent Dolor abdominal + vómitos & weight loss RLQ palpable mass Focal Bowel wall thickening & intestinal stasis CT scan: jejunum focal wall tickening + locoregional LAD.",
-    diagnosis: "Intestinal subocclusion due small bowel tumor",
-    summary: "Intestinal subocclusion due small bowel tumor.",
     media: {
       kind: "gif",
       src: "/api/media/1485329161057144836.mp4",
@@ -4447,9 +3976,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-29",
-    findings: "RUQ pain +) Murphy Agudo Colecistitis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "RUQ pain +) Murphy Agudo Colecistitis.",
+    description: "RUQ pain +) Murphy Agudo Colecistitis.",
     media: {
       kind: "gif",
       src: "/api/media/1410013975253864450.mp4",
@@ -4467,11 +3994,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-28",
-    findings:
+    description:
       "CAD, HTN, DM CP + ARF < 1h 180/120, HR 120, RR > 40, Sp02 80% (FIO2 ~80) CRT >5 Bilat Líneas B ST aVR V1, Hyperacute T waves V2-3 & diffuse ST Tx: High , NIV, , TNK Pain, MAP 75, HR 80, FIO2 30%, SpO2 93%,Tn OMI.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "CAD, HTN, DM CP + ARF < 1h 180/120, HR 120, RR > 40, Sp02 80% (FIO2 ~80) CRT >5 Bilat Líneas B ST aVR V1, Hyperacute T waves V2-3 & diffuse…",
     media: {
       kind: "image",
       src: "/api/media/1398381319479083021.jpg",
@@ -4489,11 +4013,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-17",
-    findings:
+    description:
       "2 weeks of cough Pleuritic chest pain Alveolar consolidation + inner Líneas A CT Lung Abscess Tx: Amox/Clav + F/U con . Benign course.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "2 weeks of cough Pleuritic chest pain Alveolar consolidation + inner Líneas A CT Lung Abscess Tx: Amox/Clav + F/U con .",
     media: {
       kind: "image",
       src: "/api/media/1362124746767368199.jpg",
@@ -4511,10 +4032,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-12-09",
-    findings:
+    description:
       "post renal Tx (6d). Anuria. high renal RI & Angio CT w/ no contrasted parenchyma.RT edema (++) US: Non compresible femoral & popliteal Heparin GTT Severo Shock CT Hematoma Tx kidney. : No vital injert, thrombosed RV, 600 ml , Nephrectomy.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "post renal Tx (6d).",
     media: {
       kind: "image",
       src: "/api/media/1733509772773576740.jpg",
@@ -4532,10 +4051,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-10-06",
-    findings:
+    description:
       "ESRD/ HD. fiebre + LOC + Refractory septic shock murmur. Wide pulse pressure & prominent carotid pulse.",
-    diagnosis: "Aortic & tricuspid valve infective endocarditis",
-    summary: "Aortic & tricuspid valve infective endocarditis.",
     media: {
       kind: "video",
       src: "/api/media/1710296182042267823.mp4",
@@ -4553,11 +4070,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-07",
-    findings:
+    description:
       "48h w/ intermittent CP worst CP of 3h & sweating () No RF for Next cath center > 24h away sorry for V1-V3 calibration) Would you thrombolize?",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "48h w/ intermittent CP worst CP of 3h & sweating () No RF for Next cath center > 24h away sorry for V1-V3 calibration) Would you…",
     media: {
       kind: "image",
       src: "/api/media/1468178824588189697.jpg",
@@ -4575,9 +4089,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-02",
-    findings: "HTN nephrosclerosis-cardiopathy or Infiltrative.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "HTN nephrosclerosis-cardiopathy or Infiltrative.",
+    description: "HTN nephrosclerosis-cardiopathy or Infiltrative.",
     media: {
       kind: "gif",
       src: "/api/media/1433437685721481226.mp4",
@@ -4595,9 +4107,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-13",
-    findings: "Trans-axilar tumoral aortic view.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Trans-axilar tumoral aortic view.",
+    description: "Trans-axilar tumoral aortic view.",
     media: {
       kind: "gif",
       src: "/api/media/1426019797737910273.mp4",
@@ -4615,9 +4125,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-26",
-    findings: "Fatty Liver.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Fatty Liver.",
+    description: "Fatty Liver.",
     media: {
       kind: "gif",
       src: "/api/media/1419742810039853062.mp4",
@@ -4635,10 +4143,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-07-07",
-    findings:
+    description:
       "Non compaction cardiomyopathy, Severo biventricular dysfunction. PM user ADHF Right atrial thrombus !?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Non compaction cardiomyopathy, Severo biventricular dysfunction.",
     media: {
       kind: "gif",
       src: "/api/media/1412921572902555648.mp4",
@@ -4656,9 +4162,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-21",
-    findings: "Arm Intramuscular Hematoma in heparin site.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Arm Intramuscular Hematoma in heparin site.",
+    description: "Arm Intramuscular Hematoma in heparin site.",
     media: {
       kind: "gif",
       src: "/api/media/1373721547802824709.mp4",
@@ -4676,10 +4180,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-04-23",
-    findings:
+    description:
       "Hospitalized for X cause. Uncontrasted chest CT was performed. The report didn’t mention a large lesion in left kidney. Asymptomatic shows a heterogeneous lesion Contrasted CT scan: mass highly suggestive of renal cell carcinoma. Prompt referral to urology.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Hospitalized for X cause.",
     media: {
       kind: "video",
       src: "/api/media/1650176051199242244.mp4",
@@ -4697,9 +4199,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-04-23",
-    findings: "Hepatic Cysts.",
-    diagnosis: "Hepatic Cysts",
-    summary: "Hepatic Cysts.",
+    description: "Hepatic Cysts.",
     media: {
       kind: "gif",
       src: "/api/media/1517885602468823040.mp4",
@@ -4717,10 +4217,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-29",
-    findings:
+    description:
       "Severo mitral stenosis. Afib. Declined SOB. LUS Predominant A pattern. No PE. 3. PV w/ reversal flow. PAPS 60. PA 6 cm. TAPSE 15. LV syst dysfunction.edema (++) Apart from optimizing diuretic/ HF , would you try Sildenafil to R congestion?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Severo mitral stenosis.",
     media: {
       kind: "image",
       src: "/api/media/1454149069333540876.jpg",
@@ -4738,9 +4236,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-07",
-    findings: "Before a paracentesis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Before a paracentesis.",
+    description: "Before a paracentesis.",
     media: {
       kind: "gif",
       src: "/api/media/1600512394383740929.mp4",
@@ -4758,9 +4254,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-03",
-    findings: "Giant incisional hernia con gastric obstruction.",
-    diagnosis: "Giant incisional hernia con gastric obstruction",
-    summary: "Giant incisional hernia con gastric obstruction.",
+    description: "Giant incisional hernia con gastric obstruction.",
     media: {
       kind: "gif",
       src: "/api/media/1587957754756362240.mp4",
@@ -4778,10 +4272,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-24",
-    findings:
+    description:
       "10h con ongoing CP. Killip I STE V4-V6, DII, DIII & AVF (2nd tweet) Tx: TNK, Antiplatelets, HBPM 0⃣ CP, STE post TL Infero-lateral STEMI Aeroambulance to Cath (3800 km away) 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "10h con ongoing CP.",
     media: {
       kind: "gif",
       src: "/api/media/1385767831543992321.mp4",
@@ -4799,10 +4291,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-03",
-    findings:
+    description:
       "left lower quadrant pain. Tenderness to palpation CT scan reveal multiple lymphadenopathy (LAD) from celiac to left inguinal area. Conglomerate of LAD at left pelvic level correlation Presumptive Dx 1/4.",
-    diagnosis: "Lymphoma",
-    summary: "Lymphoma.",
     media: {
       kind: "gif",
       src: "/api/media/1433611913288687623.mp4",
@@ -4820,10 +4310,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-01",
-    findings:
+    description:
       "> 30y ago Iodine-131. No follow up Months con bilateral leg edema + exertional dyspnea. Hypothyroidism physical profile. TSH > 40.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "> 30y ago Iodine-131.",
     media: {
       kind: "image",
       src: "/api/media/1433145312789549060.jpg",
@@ -4841,10 +4329,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-17",
-    findings:
+    description:
       "Pain Tx: NSAID + Antispasmodics + Fentanyl up to 2.5 mcg/kg response. Try NTG . Ketamine.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Pain Tx: NSAID + Antispasmodics + Fentanyl up to 2.5 mcg/kg response.",
     media: {
       kind: "image",
       src: "/api/media/1361862336328437760.jpg",
@@ -4862,9 +4348,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-06",
-    findings: "Bilateral Severo Hydroureteronephrosis due Gynecologic Ca.",
-    diagnosis: "Bilateral Severo Hydroureteronephrosis due Gynecologic Ca",
-    summary: "Bilateral Severo Hydroureteronephrosis due Gynecologic Ca.",
+    description: "Bilateral Severo Hydroureteronephrosis due Gynecologic Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1600147085533188097.mp4",
@@ -4882,10 +4366,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-12",
-    findings:
+    description:
       "> 12M lumbar pain & weight loss New paraparesia PSA > 100 CT scan: Prostate, pelvic & retroperitoneal LAD, Extensive spine mtt lesions. No obstructive uropathy correlation (1/3).",
-    diagnosis: "Advanced Prostate Ca",
-    summary: "Advanced Prostate Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1481265283583074307.mp4",
@@ -4903,9 +4385,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-12-14",
-    findings: "Torus Fracture.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Torus Fracture.",
+    description: "Torus Fracture.",
     media: {
       kind: "gif",
       src: "/api/media/1470545001977462785.mp4",
@@ -4923,9 +4403,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-27",
-    findings: "POCUS.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "POCUS.",
+    description: "POCUS.",
     media: {
       kind: "image",
       src: "/api/media/1431349065623683075.jpg",
@@ -4943,9 +4421,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-09",
-    findings: "Insuficiencia cardíaca caso Furosemide 4kg Admision 72h.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Insuficiencia cardíaca caso Furosemide 4kg Admision 72h.",
+    description: "Insuficiencia cardíaca caso Furosemide 4kg Admision 72h.",
     media: {
       kind: "gif",
       src: "/api/media/1380316156075126789.mp4",
@@ -4963,10 +4439,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-06-15",
-    findings:
-      "I think I will start printing a QR code in the medical records when I something interesting.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "I think I will start printing a QR code in the medical records when I something interesting.",
     media: {
       kind: "image",
@@ -4985,10 +4458,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-01-07",
-    findings:
+    description:
       "Dx w/ AAA ~ 7,5 cm few months ago. Urgent referral to Vascular Sx. Successful endovascular repair was performed!",
-    diagnosis: "Repaired Abdominal Aorta Aneurisma",
-    summary: "Repaired Abdominal Aorta Aneurisma.",
     media: {
       kind: "gif",
       src: "/api/media/1479513230829670404.mp4",
@@ -5006,10 +4477,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-23",
-    findings:
+    description:
       "Rural. HF. AF Multiple x anasarca Adherence 1st only accept 1⃣ (furosemide), then 2⃣, now 3⃣ (FRS, BB, ARBs). But only OD!! Visit () Still severly but feeling a little better. No new . Trying to introduce Spiro . No for iSGLT.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Rural.",
     media: {
       kind: "gif",
       src: "/api/media/1396537595329396736.mp4",
@@ -5027,9 +4496,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-15",
-    findings: "Intravesical Ureteral Jet.",
-    diagnosis: "Intravesical Ureteral Jet",
-    summary: "Intravesical Ureteral Jet.",
+    description: "Intravesical Ureteral Jet.",
     media: {
       kind: "gif",
       src: "/api/media/1438150505474232324.mp4",
@@ -5047,9 +4514,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-18",
-    findings: "PV: High pulsatility. HV: Blue-Red ∞ pattern.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "PV: High pulsatility.",
+    description: "PV: High pulsatility. HV: Blue-Red ∞ pattern.",
     media: {
       kind: "gif",
       src: "/api/media/1362199599834931207.mp4",
@@ -5067,10 +4532,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-16",
-    findings:
-      ". Left Agudo renal colic. 1st episode Left ureterovesical calculi Twinkling artifact.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". Left Agudo renal colic. 1st episode Left ureterovesical calculi Twinkling artifact.",
     media: {
       kind: "gif",
@@ -5089,11 +4551,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-10",
-    findings:
+    description:
       ". Frailty. CLD CHILD B. New decompensated cirrhosis (worsening HE, new ascitis). Domiciliary visit Dx: Lesion compatible con HCC Discussed with family. . Palliative care. Clinical course compatible.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". Frailty. CLD CHILD B. New decompensated cirrhosis (worsening HE, new ascitis). Domiciliary visit Dx: Lesion compatible con HCC Discussed…",
     media: {
       kind: "gif",
       src: "/api/media/1348270354557530113.mp4",
@@ -5111,9 +4570,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-08",
-    findings: "Cortical disruption w/ small perifracture hematoma.",
-    diagnosis: "Rib Fracture",
-    summary: "Rib Fracture.",
+    description: "Cortical disruption w/ small perifracture hematoma.",
     media: {
       kind: "gif",
       src: "/api/media/1446549944773533699.mp4",
@@ -5131,9 +4588,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-20",
-    findings: "Splenic vascular calcifications in ESRD/ PD.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Splenic vascular calcifications in ESRD/ PD.",
+    description: "Splenic vascular calcifications in ESRD/ PD.",
     media: {
       kind: "gif",
       src: "/api/media/1428868394888089615.mp4",
@@ -5151,11 +4606,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-12",
-    findings:
+    description:
       "Congestion Hepática Pasiva: Alteración patrón doppler VH y VP Ecografía - Middleton 2005 Se que existe data desde los 90s pero me pareció interesante leerlo en un ¡Impresionante retraso en la integración clínica, y eso que aún estamos empezando..!",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Congestion Hepática Pasiva: Alteración patrón doppler VH y VP Ecografía - Middleton 2005 Se que existe data desde los 90s pero me pareció…",
     media: {
       kind: "image",
       src: "/api/media/1403746101425999873.jpg",
@@ -5173,10 +4625,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-08-13",
-    findings:
+    description:
       "Dementia Massive Stroke Physical exam () Pelvic heterogeneous mass of aspect + LAD CT scan was ordered. GYN evaluación: probably a uterine sarcoma transition to PC.",
-    diagnosis: "Uterine Cancer",
-    summary: "Uterine Cancer.",
     media: {
       kind: "gif",
       src: "/api/media/1558518037753475072.mp4",
@@ -5194,9 +4644,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-22",
-    findings: "Game Omitted clinical data Diagnosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Game Omitted clinical data Diagnosis.",
+    description: "Game Omitted clinical data Diagnosis.",
     media: {
       kind: "gif",
       src: "/api/media/1407368938623750145.mp4",
@@ -5214,11 +4662,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-12",
-    findings:
+    description:
       "Right testicular trauma 1M ago Fluctuant mass above RT w/ spontaneous drainage of pus Hematoma peri, Hypoechoic lesion in superior pole, Disrupted tunica + hypoechoic walled collection Tx: Orchiectomy + ATB Testicular necrosis of superior pole + Abscess.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Right testicular trauma 1M ago Fluctuant mass above RT w/ spontaneous drainage of pus Hematoma peri, Hypoechoic lesion in superior pole,…",
     media: {
       kind: "image",
       src: "/api/media/1392572365612199936.jpg",
@@ -5236,10 +4681,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-04-14",
-    findings:
+    description:
       "Dementia. Severo Dependency Cutaneuos Sepsis - Sacral PU grade IV. + ATB. Good local response but persisting fiebre Multiple hyperechoic liver lesions CT scan: Hepatic mtt & focal cecal wall tickenning concerning of CRCa Hepatic Metastases.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Dementia.",
     media: {
       kind: "image",
       src: "/api/media/1382417279875436554.jpg",
@@ -5257,9 +4700,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-19",
-    findings: "of the incoming !",
-    diagnosis: "Hallazgo POCUS",
-    summary: "of the incoming !.",
+    description: "of the incoming !",
     media: {
       kind: "gif",
       src: "/api/media/1372762943238983681.mp4",
@@ -5277,9 +4718,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-09",
-    findings: "Big renal cyst.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Big renal cyst.",
+    description: "Big renal cyst.",
     media: {
       kind: "gif",
       src: "/api/media/1359235031487696902.mp4",
@@ -5297,9 +4736,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-24",
-    findings: "Staghorn calculi.",
-    diagnosis: "Staghorn calculi",
-    summary: "Staghorn calculi.",
+    description: "Staghorn calculi.",
     media: {
       kind: "gif",
       src: "/api/media/1606772937884827650.mp4",
@@ -5317,9 +4754,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-25",
-    findings: "Peritonsillar Abscess.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Peritonsillar Abscess.",
+    description: "Peritonsillar Abscess.",
     media: {
       kind: "image",
       src: "/api/media/1463911160491692032.jpg",
@@ -5337,9 +4772,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-21",
-    findings: ". T2D Agudo monocular vision loss @askpocus Diagnosis?",
-    diagnosis: "Hallazgo POCUS",
-    summary: ". T2D Agudo monocular vision loss @askpocus Diagnosis?.",
+    description: ". T2D Agudo monocular vision loss @askpocus Diagnosis?",
     media: {
       kind: "gif",
       src: "/api/media/1352401390933577744.mp4",
@@ -5357,9 +4790,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2019-08-10",
-    findings: "¡Got my @ButterflyNetInc! @MUE_14 @UrgenciaUC.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "¡Got my @ButterflyNetInc! @MUE_14 @UrgenciaUC.",
+    description: "¡Got my @ButterflyNetInc! @MUE_14 @UrgenciaUC.",
     media: {
       kind: "image",
       src: "/api/media/1160256047522541568.jpg",
@@ -5377,10 +4808,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2018-08-23",
-    findings:
+    description:
       "30 y. Men. HBP. Smoker. IMC > 40. Chest pain (10/10) < 1 h, neuroveg symp, Killip II. Tenecteplase 50 mg. Post TL: less pain (3/10), no dysnea. Next PCI center in 4000 km (Easter Island > Chile). 2nd ECG post TL 120 min.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "30 y.",
     media: {
       kind: "image",
       src: "/api/media/1032689443499651073.jpg",
@@ -5398,10 +4827,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-07-21",
-    findings:
+    description:
       "months w/ lumbar pain Creat 7. HiperCa BMB: MM. : IgG / Lambda Hyperechogenic parenchyma (non specific) Normal or kidney size.",
-    diagnosis: "Myeloma Kidney",
-    summary: "Myeloma Kidney.",
     media: {
       kind: "gif",
       src: "/api/media/1550219809027084288.mp4",
@@ -5419,10 +4846,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-27",
-    findings:
+    description:
       "Left Infraclavicular left lesion > 9M No pain. No inflamatory signs. No breast lesions performed Neck & Chest CT scan normal Excisional BP by surgery Diagnosis !?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Left Infraclavicular left lesion > 9M No pain.",
     media: {
       kind: "gif",
       src: "/api/media/1375940215978725377.mp4",
@@ -5440,10 +4865,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-28",
-    findings:
+    description:
       "Left neck swelling (1 week). Mild pain & erythema Depth to SCM, tick-walled mass con hypoechoic center Note “Pulsatil pus” Etiology: LAP v/s Parotid tumor abscessed CT in next tweet Deep Neck Abscess ATB + Tertiary w/ H&N Sx.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Left neck swelling (1 week).",
     media: {
       kind: "gif",
       src: "/api/media/1366110406142525442.mp4",
@@ -5461,10 +4884,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-09-12",
-    findings:
+    description:
       "While reading about mercurial diuretics Renosarca already recognized (1938 article).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "While reading about mercurial diuretics Renosarca already recognized (1938 article).",
     media: {
       kind: "image",
       src: "/api/media/1569115933846773760.jpg",
@@ -5482,9 +4903,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-08-08",
-    findings: "1: No pulse 2: Post Diagnosis?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "1: No pulse 2: Post Diagnosis?.",
+    description: "1: No pulse 2: Post Diagnosis?",
     media: {
       kind: "image",
       src: "/api/media/1556671471358840832.jpg",
@@ -5502,10 +4921,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-30",
-    findings:
+    description:
       "Insuficiencia cardíaca. Also refers a past episode of hematuria. Normal urine at admission & CT scan Focal thickening of left posterior bladder wall Pending cystoscopy Focal bladder wall tickening.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Insuficiencia cardíaca.",
     media: {
       kind: "image",
       src: "/api/media/1465517778102894593.jpg",
@@ -5523,9 +4940,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-10",
-    findings: "Conclusion.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Conclusion.",
+    description: "Conclusion.",
     media: {
       kind: "image",
       src: "/api/media/1369443202609086472.jpg",
@@ -5543,9 +4958,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-21",
-    findings: "Advanced Prostate Ca.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Advanced Prostate Ca.",
+    description: "Advanced Prostate Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1363536919402053635.mp4",
@@ -5563,9 +4976,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-02",
-    findings: "Splenomegaly.",
-    diagnosis: "Splenomegaly",
-    summary: "Splenomegaly.",
+    description: "Splenomegaly.",
     media: {
       kind: "video",
       src: "/api/media/1664641826223976452.mp4",
@@ -5583,9 +4994,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-12-03",
-    findings: "Insuficiencia cardíaca secondary to CHD.",
-    diagnosis: "Insuficiencia cardíaca secondary to CHD",
-    summary: "Insuficiencia cardíaca secondary to CHD.",
+    description: "Insuficiencia cardíaca secondary to CHD.",
     media: {
       kind: "gif",
       src: "/api/media/1599152046569316354.mp4",
@@ -5603,10 +5012,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-15",
-    findings:
+    description:
       "Stroke, thrombolized pericholecystic hemorrhage (> 12 months ago). x Neumonía During physical exam () find this Any idea!?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Stroke, thrombolized pericholecystic hemorrhage (> 12 months ago).",
     media: {
       kind: "gif",
       src: "/api/media/1449161898243526661.mp4",
@@ -5624,9 +5031,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-09-18",
-    findings: "Longstanding umbilical lesion.",
-    diagnosis: "Umbilical Cystic Lesion",
-    summary: "Umbilical Cystic Lesion.",
+    description: "Longstanding umbilical lesion.",
     media: {
       kind: "gif",
       src: "/api/media/1439043567247372292.mp4",
@@ -5644,11 +5049,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-29",
-    findings:
+    description:
       "Incidental CT finding in patient scanned for trauma: Right small Neumonía anterior to the heart Focused Focal Líneas B Patient recognized being coughing for 3 days! Pneumonia.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Incidental CT finding in patient scanned for trauma: Right small Neumonía anterior to the heart Focused Focal Líneas B Patient recognized…",
     media: {
       kind: "gif",
       src: "/api/media/1409708708154679303.mp4",
@@ -5666,9 +5068,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-12",
-    findings: "Pre & post treatment.",
-    diagnosis: "Pyonephrosis",
-    summary: "Pyonephrosis.",
+    description: "Pre & post treatment.",
     media: {
       kind: "gif",
       src: "/api/media/1591455742988587010.mp4",
@@ -5686,10 +5086,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-14",
-    findings:
+    description:
       "new invent! Before evaluating a ER neuro caso I looked up for . Only found the head. The rest is history.",
-    diagnosis: "BIC Reflex Hammer",
-    summary: "BIC Reflex Hammer.",
     media: {
       kind: "image",
       src: "/api/media/1459705563588304896.jpg",
@@ -5707,9 +5105,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-19",
-    findings: "w/ Lymphoblastic Lymphoma.",
-    diagnosis: "RV thrombus",
-    summary: "RV thrombus.",
+    description: "w/ Lymphoblastic Lymphoma.",
     media: {
       kind: "gif",
       src: "/api/media/1594033978536734720.mp4",
@@ -5727,9 +5123,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-09-18",
-    findings: "Coworker con recurrent Dolor abdominal. Ask for him.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Coworker con recurrent Dolor abdominal.",
+    description: "Coworker con recurrent Dolor abdominal. Ask for him.",
     media: {
       kind: "image",
       src: "/api/media/1571290952773369856.jpg",
@@ -5747,10 +5141,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-10",
-    findings:
-      "While hit himself con his other foot on the heel Inmediate pain & difficulty walking Thompson [+] Achilles Tendon Rupture.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "While hit himself con his other foot on the heel Inmediate pain & difficulty walking Thompson [+] Achilles Tendon Rupture.",
     media: {
       kind: "image",
@@ -5769,9 +5160,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-02-12",
-    findings: "Anteroseptal Myocardial Infarction.",
-    diagnosis: "Anteroseptal Myocardial Infarction",
-    summary: "Anteroseptal Myocardial Infarction.",
+    description: "Anteroseptal Myocardial Infarction.",
     media: {
       kind: "gif",
       src: "/api/media/1492541891036041221.mp4",
@@ -5789,9 +5178,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-11",
-    findings: "Bladder Stones.",
-    diagnosis: "Bladder Stones",
-    summary: "Bladder Stones.",
+    description: "Bladder Stones.",
     media: {
       kind: "gif",
       src: "/api/media/1447632112673243136.mp4",
@@ -5809,11 +5196,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-08-26",
-    findings:
+    description:
       "Color Doppler of Splenic Vein Pulsatile flow High RAP* *In the right clinical context. This caso: PH-LHD).",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Color Doppler of Splenic Vein Pulsatile flow High RAP* *In the right clinical context.",
     media: {
       kind: "gif",
       src: "/api/media/1430687610272423939.mp4",
@@ -5831,10 +5215,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-29",
-    findings:
+    description:
       "Hx of biliary digestive anastomosis post complicated cholecistectomy (> 15y ago). Multiple episodes of cholangitis New episode of mild cholangitis Aerobilia Splenomegaly + vein collaterals Reversed portal flow Cirrhosis + Aerobilia 1/2.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Hx of biliary digestive anastomosis post complicated cholecistectomy (> 15y ago).",
     media: {
       kind: "gif",
       src: "/api/media/1398741286975385600.mp4",
@@ -5852,10 +5234,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-11",
-    findings:
+    description:
       "4 weeks of right knee pain A cutaneous cord is palpated at suprarotullian level. No inflammatory signs Echogenic linear material surrounded by hypoechoic halo Foreign Body Granuloma Sea Urchin Spine).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "4 weeks of right knee pain A cutaneous cord is palpated at suprarotullian level.",
     media: {
       kind: "gif",
       src: "/api/media/1391925320484278274.mp4",
@@ -5873,10 +5253,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-16",
-    findings:
+    description:
       "Young Myalgias, fiebre, vómitos + diarrhea. NSAIDs BP 95/70, HR 115, CRT >3, dry mucosa PLT 100.000. AKI II. Mild hepatic injury. PCR (+) Dengue Severo Dengue Renal cortex echogenicity Probably mixed etiology of AKI (HD, ATN, ?).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Young Myalgias, fiebre, vómitos + diarrhea.",
     media: {
       kind: "gif",
       src: "/api/media/1371661329963089923.mp4",
@@ -5894,10 +5272,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-22",
-    findings:
-      "Healthy young To drain or not? 2⃣ Polls below 1: con just inspection 2: With @askpocus 1/4].",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Healthy young To drain or not? 2⃣ Polls below 1: con just inspection 2: With @askpocus 1/4].",
     media: {
       kind: "image",
@@ -5916,9 +5291,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-02-22",
-    findings: "Free abdominal fluid in PD user.",
-    diagnosis: "Free abdominal fluid in PD user",
-    summary: "Free abdominal fluid in PD user.",
+    description: "Free abdominal fluid in PD user.",
     media: {
       kind: "gif",
       src: "/api/media/1496151647831134208.mp4",
@@ -5936,11 +5309,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-22",
-    findings:
+    description:
       "Fell on a bush con thorns Linear hyperchoic material (2) Hand Foreign Bodies Tx: Profilactic ATB. Next day by surgery under eco guiadance.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Fell on a bush con thorns Linear hyperchoic material (2) Hand Foreign Bodies Tx: Profilactic ATB.",
     media: {
       kind: "gif",
       src: "/api/media/1396216546305921026.mp4",
@@ -5958,9 +5328,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-27",
-    findings: "Severo hepatic steatosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Severo hepatic steatosis.",
+    description: "Severo hepatic steatosis.",
     media: {
       kind: "gif",
       src: "/api/media/1354540067281317888.mp4",
@@ -5978,9 +5346,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-11-10",
-    findings: "Complicated Agudo Colecistitis.",
-    diagnosis: "Complicated Agudo Colecistitis",
-    summary: "Complicated Agudo Colecistitis.",
+    description: "Complicated Agudo Colecistitis.",
     media: {
       kind: "gif",
       src: "/api/media/1590827044023439360.mp4",
@@ -5998,9 +5364,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-04",
-    findings: "Inter-atrial septal Aneurisma.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Inter-atrial septal Aneurisma.",
+    description: "Inter-atrial septal Aneurisma.",
     media: {
       kind: "gif",
       src: "/api/media/1389377453181788167.mp4",
@@ -6018,11 +5382,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-16",
-    findings:
+    description:
       ". No relevant PMH done in the ER, ultimately diagnosed con Severo dengue What do you think of that PM ?",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      ". No relevant PMH done in the ER, ultimately diagnosed con Severo dengue What do you think of that PM ?.",
     media: {
       kind: "gif",
       src: "/api/media/1371973165363105797.mp4",
@@ -6040,9 +5401,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-21",
-    findings: "Painful non-reducible inguinal mass Omentum Inguinal Hernia.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Painful non-reducible inguinal mass Omentum Inguinal Hernia.",
+    description: "Painful non-reducible inguinal mass Omentum Inguinal Hernia.",
     media: {
       kind: "gif",
       src: "/api/media/1462450387831689236.mp4",
@@ -6060,9 +5419,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-26",
-    findings: "Advanced Gastric Ca in palliative care & CT correlation.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Advanced Gastric Ca in palliative care & CT correlation.",
+    description: "Advanced Gastric Ca in palliative care & CT correlation.",
     media: {
       kind: "gif",
       src: "/api/media/1408886638034489352.mp4",
@@ -6080,10 +5437,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-11-15",
-    findings:
-      "I was doing a visit Forgot the gel So I had to improvised Corporal cream of honey & coco! Nice images by the way).",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "I was doing a visit Forgot the gel So I had to improvised Corporal cream of honey & coco! Nice images by the way).",
     media: {
       kind: "image",
@@ -6102,9 +5456,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-20",
-    findings: "50s. HTN Agudo Palpitations. 140 LPM 1 Post EV Betablocker 2 Normal Rythm?",
-    diagnosis: "Hallazgo POCUS",
-    summary: "50s.",
+    description: "50s. HTN Agudo Palpitations. 140 LPM 1 Post EV Betablocker 2 Normal Rythm?",
     media: {
       kind: "image",
       src: "/api/media/1406661256191299585.jpg",
@@ -6122,10 +5474,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-18",
-    findings:
-      ". T2D. Permanent AF on VKA Agudo left arm pain & swelling after lifting a weigh . INR 2,5 Intramuscular Hematoma F/U in 1 week.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       ". T2D. Permanent AF on VKA Agudo left arm pain & swelling after lifting a weigh . INR 2,5 Intramuscular Hematoma F/U in 1 week.",
     media: {
       kind: "image",
@@ -6144,9 +5493,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-19",
-    findings: "Agudo Colecistitis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Agudo Colecistitis.",
+    description: "Agudo Colecistitis.",
     media: {
       kind: "gif",
       src: "/api/media/1351651839851302915.mp4",
@@ -6164,9 +5511,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-27",
-    findings: "Cirrhosis con hepatofugal portal venous flow & perisplenic collaterals.",
-    diagnosis: "Cirrhosis con hepatofugal portal venous flow & perisplenic collaterals",
-    summary: "Cirrhosis con hepatofugal portal venous flow & perisplenic collaterals.",
+    description: "Cirrhosis con hepatofugal portal venous flow & perisplenic collaterals.",
     media: {
       kind: "image",
       src: "/api/media/1673807899284451329.jpg",
@@ -6184,10 +5529,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-28",
-    findings:
+    description:
       "Left Infraclavicular nodular lesion > 9M. No inflamatory signs. No breast lesions performed Excisional BP. AP report Eccrine Spiroadenoma 1/2].",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Left Infraclavicular nodular lesion > 9M.",
     media: {
       kind: "gif",
       src: "/api/media/1376250460697399303.mp4",
@@ -6205,9 +5548,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-11",
-    findings: "magic of life.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "magic of life.",
+    description: "magic of life.",
     media: {
       kind: "gif",
       src: "/api/media/1359901231465062402.mp4",
@@ -6225,11 +5566,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-30",
-    findings:
+    description:
       "Dx: Metastasic prostate cancer DRAW results @ZarrarRJ (RT) @manuelfconcha56 () @pocusologist (any answer) @areinamo21 (more ) DM pls) In the main tweet are attached the complete series Coming soon another contest!",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "Dx: Metastasic prostate cancer DRAW results @ZarrarRJ (RT) @manuelfconcha56 () @pocusologist (any answer) @areinamo21 (more ) DM pls) In…",
     media: {
       kind: "video",
       src: "/api/media/1355610803882389506.mp4",
@@ -6247,10 +5585,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-03-15",
-    findings:
+    description:
       "Advanced Gastric Ca Fell days ago. Minor forearm wound that mantains mild bleeding. Normal X Ray Pulsatil vessel Pericubital Hematoma Tx: Local pressure + IV Tranexamic Acid (off label). F/U in 24 hours.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Advanced Gastric Ca Fell days ago.",
     media: {
       kind: "gif",
       src: "/api/media/1371599215948877826.mp4",
@@ -6268,10 +5604,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2020-07-29",
-    findings:
-      "Cualitative con @ButterflyNetInc in a ambulatory CHF patient @ThinkingCC @ArgaizR @FH_Verbrugge @NephroP @POCUSAcademy @paomorejon.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "Cualitative con @ButterflyNetInc in a ambulatory CHF patient @ThinkingCC @ArgaizR @FH_Verbrugge @NephroP @POCUSAcademy @paomorejon.",
     media: {
       kind: "video",
@@ -6290,9 +5623,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2018-08-25",
-    findings: ". Women. Healthy. Pregnant 20 weeks. Síncope w/o other symp. No prev episodes.",
-    diagnosis: "Hallazgo POCUS",
-    summary: ". Women. Healthy. Pregnant 20 weeks. Síncope w/o other symp. No prev episodes.",
+    description: ". Women. Healthy. Pregnant 20 weeks. Síncope w/o other symp. No prev episodes.",
     media: {
       kind: "image",
       src: "/api/media/1033455344696139777.jpg",
@@ -6310,10 +5641,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-08",
-    findings:
-      "1ary care consult 2 days ago fall jumping on a trampoline Pain & mild forearm swelling X-ray & cast Cubital fracture.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "1ary care consult 2 days ago fall jumping on a trampoline Pain & mild forearm swelling X-ray & cast Cubital fracture.",
     media: {
       kind: "image",
@@ -6332,9 +5660,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-01-20",
-    findings: "Bacterial Neumonía.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Bacterial Neumonía.",
+    description: "Bacterial Neumonía.",
     media: {
       kind: "gif",
       src: "/api/media/1351909069074923525.mp4",
@@ -6352,11 +5678,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-13",
-    findings:
+    description:
       "PMH: Cervix Ca + RT Pelvic pain + hematuria Dysfunction of 3-lumen catheter catheter Distended bladder + big clot Líneas A artifact ( in bladder post 1st cath) Normal contrasted CT scan. (-) UC. Probable Dx Actinic Cystitis.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
-      "PMH: Cervix Ca + RT Pelvic pain + hematuria Dysfunction of 3-lumen catheter catheter Distended bladder + big clot Líneas A artifact ( in…",
     media: {
       kind: "gif",
       src: "/api/media/1403884255487401986.mp4",
@@ -6374,9 +5697,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-05",
-    findings: "Advanced Prostate Ca.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Advanced Prostate Ca.",
+    description: "Advanced Prostate Ca.",
     media: {
       kind: "gif",
       src: "/api/media/1389832486448992258.mp4",
@@ -6394,10 +5715,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-08",
-    findings:
-      "In patient con RHF don’t be surprised when you find diffuse wall tickenning Vesícula.",
-    diagnosis: "Hallazgo POCUS",
-    summary:
+    description:
       "In patient con RHF don’t be surprised when you find diffuse wall tickenning Vesícula.",
     media: {
       kind: "gif",
@@ -6416,10 +5734,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-05",
-    findings:
+    description:
       "My infant (< 2 months) had an ugly cough & nasal congestion. Tested positive for RSV Physical exam & was reassuring. = A profile ¡He’s doing fine now!",
-    diagnosis: "Hallazgo POCUS",
-    summary: "My infant (< 2 months) had an ugly cough & nasal congestion.",
     media: {
       kind: "video",
       src: "/api/media/1665817400569217025.mp4",
@@ -6437,10 +5753,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-24",
-    findings:
+    description:
       "Yesterday I made this mango marmalade gift from a patient) Man doesn’t live only by.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Yesterday I made this mango marmalade gift from a patient) Man doesn’t live only by.",
     media: {
       kind: "image",
       src: "/api/media/1452329040883458055.jpg",
@@ -6458,9 +5772,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-10",
-    findings: "Normal.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Normal.",
+    description: "Normal.",
     media: {
       kind: "gif",
       src: "/api/media/1402802195771367431.mp4",
@@ -6478,9 +5790,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-05",
-    findings: "I don't know if it's a bird.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "I don't know if it's a bird.",
+    description: "I don't know if it's a bird.",
     media: {
       kind: "gif",
       src: "/api/media/1357822442119573507.mp4",
@@ -6498,9 +5808,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-01",
-    findings: "Dino - Abscess.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Dino - Abscess.",
+    description: "Dino - Abscess.",
     media: {
       kind: "image",
       src: "/api/media/1388556063956418562.jpg",
@@ -6518,9 +5826,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-06-24",
-    findings: "HV: Police sign (~ Severo TR). PV: High pulsatility.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "HV: Police sign (~ Severo TR).",
+    description: "HV: Police sign (~ Severo TR). PV: High pulsatility.",
     media: {
       kind: "gif",
       src: "/api/media/1407889584617295874.mp4",
@@ -6538,9 +5844,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-22",
-    findings: "1. Dilated Cardiomyopathy.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "1.",
+    description: "1. Dilated Cardiomyopathy.",
     media: {
       kind: "gif",
       src: "/api/media/1363920067667329029.mp4",
@@ -6558,9 +5862,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2022-02-22",
-    findings: "Last week of work in Hanga Roa from.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Last week of work in Hanga Roa from.",
+    description: "Last week of work in Hanga Roa from.",
     media: {
       kind: "image",
       src: "/api/media/1496221694356340741.jpg",
@@ -6578,9 +5880,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-11",
-    findings: "Aquí otra Estenosis Aórtica detectada con @ButterflyNetInc.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Aquí otra Estenosis Aórtica detectada con @ButterflyNetInc.",
+    description: "Aquí otra Estenosis Aórtica detectada con @ButterflyNetInc.",
     media: {
       kind: "gif",
       src: "/api/media/1359974484715991047.mp4",
@@ -6598,10 +5898,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-08",
-    findings:
+    description:
       "Rib Fracture Playing football he was elbowed in the side. persistent pain Transducer in the most painful area Cortical disruption.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Rib Fracture Playing football he was elbowed in the side.",
     media: {
       kind: "gif",
       src: "/api/media/1391092353885216773.mp4",
@@ -6619,9 +5917,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-05-28",
-    findings: "Full stomach in SBO caso.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Full stomach in SBO caso.",
+    description: "Full stomach in SBO caso.",
     media: {
       kind: "gif",
       src: "/api/media/1398399817257304070.mp4",
@@ -6639,10 +5935,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2020-08-22",
-    findings:
+    description:
       "Not all HUN is 2⃣ urolithiasis Qx: Endometrial Ca. left flank pain Para-aortic mass suggestive of metastasis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Not all HUN is 2⃣ urolithiasis Qx: Endometrial Ca.",
     media: {
       kind: "video",
       src: "/api/media/1297271280312475648.mp4",
@@ -6660,9 +5954,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-10-20",
-    findings: "Sometimes you got just 1 shot PV & systolic peak of HA).",
-    diagnosis: "Hallazgo POCUS",
-    summary: "Sometimes you got just 1 shot PV & systolic peak of HA).",
+    description: "Sometimes you got just 1 shot PV & systolic peak of HA).",
     media: {
       kind: "image",
       src: "/api/media/1450689933962850304.jpg",
@@ -6680,9 +5972,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2020-04-20",
-    findings: ". Advanced prostate cancer. PSA > 100. Creat 15.",
-    diagnosis: "Hallazgo POCUS",
-    summary: ". Advanced prostate cancer. PSA > 100. Creat 15.",
+    description: ". Advanced prostate cancer. PSA > 100. Creat 15.",
     media: {
       kind: "video",
       src: "/api/media/1252063545010905094.mp4",
@@ -6700,10 +5990,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-06-05",
-    findings:
+    description:
       "My infant (< 2 months) had an ugly cough & nasal congestion. Tested positive for RSV Physical exam & was . = A profile ¡He’s doing fine now!",
-    diagnosis: "Hallazgo POCUS",
-    summary: "My infant (< 2 months) had an ugly cough & nasal congestion.",
     media: {
       kind: "video",
       src: "/api/media/1665817126018469894.mp4",
@@ -6721,9 +6009,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2023-04-13",
-    findings: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural +….",
-    diagnosis: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural + apical LV thrombus",
-    summary: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural + apical LV thrombus.",
+    description: "Advanced Insuficiencia cardíaca con ascitis + Derrame pleural +….",
     media: {
       kind: "video",
       src: "/api/media/1646519339640827905.mp4",
@@ -6741,9 +6027,7 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2021-02-22",
-    findings: "2. Aortic Stenosis.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "2.",
+    description: "2. Aortic Stenosis.",
     media: {
       kind: "gif",
       src: "/api/media/1363921155644674054.mp4",
@@ -6761,10 +6045,8 @@ export const IMPORTED_CASES: CaseRecord[] = [
     author: "@TaotePOCUS",
     role: "Médico",
     date: "2019-04-05",
-    findings:
+    description:
       "82 y . Diab. Hypertension. CKD stage IV. CHF NYHA III- IV. PM user. for congestive Insuficiencia cardíaca. Devoloped urinary sepsis begin con this recurrent wide tachycardia, brief episodes, autolimited. Amiodarone infusion . ¿What do you think about rythm?. EKG base & TQ.",
-    diagnosis: "Hallazgo POCUS",
-    summary: "82 y .",
     media: {
       kind: "image",
       src: "/api/media/1113978113803849728.jpg",

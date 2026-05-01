@@ -14,9 +14,7 @@ const mkCase = (overrides: Partial<CaseRecord> = {}): CaseRecord => ({
   author: "Tester",
   role: "QA",
   date: "2026-04-26",
-  findings: "f",
-  diagnosis: "d",
-  summary: "s",
+  description: "Test description.",
   ...overrides,
 });
 

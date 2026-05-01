@@ -108,7 +108,7 @@ describe("mergeWithOverrides", () => {
       title: "T",
       category: "lung",
       tags: ["A"],
-      diagnosis: "Original dx",
+      description: "Original description.",
     });
     const result = mergeWithOverrides([original], {
       c1: { title: "Nuevo" },

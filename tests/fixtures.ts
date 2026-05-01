@@ -39,9 +39,10 @@ export function caseFactory(overrides: Partial<CaseRecord> = {}): CaseRecord {
     author: "Dr. Test Author",
     role: "Residente UCI",
     date: "2026-04-15",
-    findings: "Patrón B confluente bilateral, líneas pleurales engrosadas.",
-    diagnosis: "Edema pulmonar agudo cardiogénico.",
-    summary: "Paciente con disnea súbita; eco rápido confirma sobrecarga de volumen.",
+    description:
+      "Paciente con disnea súbita; eco rápido confirma sobrecarga de volumen. " +
+      "Patrón B confluente bilateral, líneas pleurales engrosadas. " +
+      "Edema pulmonar agudo cardiogénico.",
     featured: false,
     difficulty: "intermediate",
     ...overrides,
