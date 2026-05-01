@@ -225,28 +225,34 @@
 /* The atlas is the largest, most browse-oriented section. With ~330
    cases the goal is to fit as many on screen as possible without
    cards becoming postage stamps. Five columns at the page max
-   (1480px) gives ~210px thumb width — still legible, twice the
-   density of the previous 3-col global. Steps down through 4 → 3
-   → 2 cols on narrower viewports so phones don't end up with
-   200×200 thumbs. Per-section gap tightened to match the denser
-   rhythm. */
+   (1480px) with the sidebar expanded gives ~190px thumb width —
+   still legible, the existing `@container card (max-width: 240px)`
+   rule already hides the byline and shrinks the title for cards
+   this small.
+   Steps down through 4 → 3 → 2 cols on narrower viewports so
+   phones don't end up with postage-stamp thumbs. Per-section gap
+   tightened to match the denser rhythm.
+   `minmax(0, 1fr)` (instead of plain `1fr`) lets columns shrink
+   below the card's intrinsic min-content width — without it the
+   grid would overflow the main column whenever a card had a long
+   un-breakable token in the title or byline. */
 .layout[data-section="atlas"] .case-grid {
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-5) var(--space-4);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-3);
 }
-@media (max-width: 1280px) {
+@media (max-width: 1380px) {
   .layout[data-section="atlas"] .case-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 @media (max-width: 1024px) {
   .layout[data-section="atlas"] .case-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 720px) {
   .layout[data-section="atlas"] .case-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
