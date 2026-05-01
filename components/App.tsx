@@ -12,6 +12,7 @@ import { CaseModal, AuthModal } from "./modals";
 import { derivePageHead } from "@/lib/headers";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
+import { usePersistedFilters } from "@/hooks/usePersistedFilters";
 import { useToast } from "@/hooks/useToast";
 import { useSession } from "@/hooks/useSession";
 import { useFavs } from "@/hooks/useFavs";
@@ -84,6 +85,13 @@ function AppInner() {
   // j/k, g+letter and `?`. The `/` shortcut for the search box lives
   // in the Header, co-located with the input it focuses.
   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
+
+  // Filter persistence between sessions. When the URL comes back
+  // clean (no cat / tags / query / sort) and storage has filters
+  // for the current section, the hook re-applies them silently via
+  // replacePatch. Per-section storage so a "Cardíaco" filter from
+  // Atlas doesn't cross-contaminate ECG.
+  usePersistedFilters({ view, cat, tags, query, sort, replacePatch });
 
   // The DB-mirror failure toast (`useMirrorFailureToast`) was
   // removed in ADR-0011. The previous fire-and-forget write path
