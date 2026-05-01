@@ -265,36 +265,34 @@
   aspect-ratio: 16/10;
 }
 
-/* ====== Infografías: 2-col, poster-like (taller) ====== */
+/* ====== Infografías: 3-col grid, poster-like (taller).
+   Was 2-col through May-2026; widened to 3 per user feedback so the
+   landing page surfaces more posters above the fold without forcing
+   another scroll. The 4/5 aspect on the thumb is preserved so each
+   card still reads as a poster, just slightly narrower. ====== */
 .layout[data-section="info"] .case-grid {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 36px 28px;
 }
 .layout[data-section="info"] .case-thumb {
   aspect-ratio: 4/5;
 }
+@media (max-width: 900px) {
+  .layout[data-section="info"] .case-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
-/* ====== Casos clínicos: editorial list (1-col, container handles
-   the horizontal layout because each card is now ~880px wide). ====== */
+/* ====== Casos clínicos: 3-col grid (May-2026 onward).
+   Originally a 1-col editorial list with a container-query flip into a
+   horizontal long-read layout. The user asked for the same uniform
+   thumbnail rhythm as the rest of the app — three cards per row, no
+   editorial chrome — so the divider, the max-width, and the per-card
+   padding are gone. The card itself reverts to the default vertical
+   layout because the container is narrower than the 720px flip
+   threshold; no extra rules needed. ====== */
 .layout[data-section="cases"] .case-grid {
-  grid-template-columns: 1fr;
-  gap: 0;
-  max-width: 880px;
-}
-.layout[data-section="cases"] .case-card {
-  /* Horizontal flip happens via container query @ 540px below; here
-     we only add the section-specific divider + hover color. The card
-     still picks its own layout based on its own width, which means
-     the same component works in any container. */
-  padding: 24px 0;
-  border-bottom: 1px solid var(--hairline);
-  transform: none;
-}
-.layout[data-section="cases"] .case-card:hover {
-  transform: none;
-}
-.layout[data-section="cases"] .case-card:hover .case-title {
-  color: var(--section-accent-ink);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .case-card {
@@ -569,24 +567,13 @@
   height: 16px;
 }
 
-.case-thumb-crit {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: oklch(1 0 0);
-  background: var(--crit);
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  text-transform: uppercase;
-  z-index: 2;
-  /* One slow pulse every ~4 s. The keyframes target box-shadow only
-     so layout doesn't shift. Disabled under reduced motion. */
-  animation: crit-pulse 4s var(--ease-emphasized) infinite;
-}
+/* The `.case-thumb-crit` red badge ("Crítico") was removed in May-2026
+   per editorial decision — the tag was overused on the imported corpus
+   and the pulsing badge on every other thumbnail read as noisy. The
+   tag is also gone from `COMMON_TAGS` and the imported seed cases.
+   The CSS class and the `crit-pulse` keyframes are deleted along with
+   the renderer. Search hits for "Crítico" inside any user-edited case
+   tag still work, the chip just renders like any other `.case-tag-mini`. */
 
 /* Editorial review marker. Sits at the bottom-right of the thumb,
    opposite the favorite button at top-right so the two never collide.
@@ -875,22 +862,6 @@
   padding: 4px 6px 6px;
   gap: 10px;
 }
-@keyframes crit-pulse {
-  0%,
-  70%,
-  100% {
-    box-shadow: 0 0 0 0 oklch(0 0 0 / 0);
-  }
-  85% {
-    box-shadow: 0 0 0 4px oklch(from var(--crit) l c h / 0.35);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .case-thumb-crit {
-    animation: none;
-  }
-}
-
 .case-meta {
   display: flex;
   flex-direction: column;

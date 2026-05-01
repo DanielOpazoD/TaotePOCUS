@@ -31,17 +31,19 @@ describe("CaseCard", () => {
     expect(screen.getByText("Pulmonar")).toBeTruthy(); // category label
     expect(screen.getByText(baseCase.author)).toBeTruthy();
     expect(screen.getByText("B-líneas")).toBeTruthy();
-    // "Crítico" appears twice on purpose (badge + chip) — the next test
-    // pins that. Here we just confirm at least one rendering exists.
-    expect(screen.getAllByText("Crítico").length).toBeGreaterThan(0);
+    // "Crítico" was demoted in May-2026 — the red pulsing badge was
+    // removed (see cards.css), and the tag is no longer in COMMON_TAGS.
+    // It still renders as a regular chip if it lives in `caso.tags`.
+    expect(screen.getAllByText("Crítico").length).toBe(1);
   });
 
-  it("shows the Crítico badge when the tag is present", () => {
-    render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={vi.fn()} />);
-    // The chip label and the badge both read "Crítico" — make sure
-    // both are present (chip from .case-tag-mini, badge from .case-thumb-crit).
-    const crits = screen.getAllByText(/Crítico/);
-    expect(crits.length).toBeGreaterThanOrEqual(2);
+  it("does NOT render the legacy 'Crítico' red badge anymore", () => {
+    const { container } = render(
+      <CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={vi.fn()} />,
+    );
+    // The chip survives (it's a regular .case-tag-mini); the badge
+    // class doesn't.
+    expect(container.querySelector(".case-thumb-crit")).toBeNull();
   });
 
   it("invokes onOpen when the card is clicked", () => {

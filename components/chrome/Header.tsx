@@ -5,7 +5,7 @@ import TransitionLink from "./TransitionLink";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { viewToPath } from "@/lib/url";
-import type { User, View } from "@/lib/types";
+import type { Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
 
 /**
@@ -31,6 +31,14 @@ interface Props {
   favCount: number;
   onNewCase: () => void;
   onOpenDrawer: () => void;
+  /**
+   * Sections to render in the top nav. Defaults to the full `SECTIONS`
+   * catalog when omitted — App.tsx forwards the visibility-filtered
+   * list (`useHiddenSections().visibleSections`) so admin-hidden
+   * sections drop from the rail. Omitting the prop keeps older
+   * callers / focused tests rendering the catalog as-is.
+   */
+  sections?: Section[];
 }
 
 export default function Header({
@@ -43,6 +51,7 @@ export default function Header({
   favCount,
   onNewCase,
   onOpenDrawer,
+  sections = SECTIONS,
 }: Props) {
   const isAdmin = user?.role === "admin";
   const isActive = (target: View) => {
@@ -133,7 +142,7 @@ export default function Header({
           <span className="brand-tag">ES</span>
         </TransitionLink>
         <nav className="nav" aria-label="Secciones">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
               <TransitionLink

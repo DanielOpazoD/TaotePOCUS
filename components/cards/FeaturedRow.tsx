@@ -27,7 +27,8 @@ function FeaturedCard({
   onFav: () => void;
 }) {
   const cat = CATEGORIES.find((c) => c.id === caso.category);
-  const isCrit = caso.tags.includes("Crítico");
+  // The "Crítico" red badge was removed in May-2026 — see CaseCard.tsx
+  // for the rationale.
   return (
     <div
       className={`featured-card featured-${variant}`}
@@ -50,7 +51,6 @@ function FeaturedCard({
           media={caso.media}
         />
         <div className="case-thumb-overlay"></div>
-        {isCrit && <span className="case-thumb-crit">Crítico</span>}
         <button
           className={`case-thumb-fav ${isFav ? "active" : ""}`}
           onClick={(e) => {

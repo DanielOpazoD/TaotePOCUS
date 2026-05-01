@@ -22,6 +22,7 @@ import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useCaseOverrides } from "@/hooks/useCaseOverrides";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { useHiddenSections } from "@/hooks/useHiddenSections";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
 
@@ -121,6 +122,20 @@ function AppInner() {
     setHidden: setCategoryHidden,
   } = useCustomCategories();
 
+  // Section visibility — admin toggle that filters the top nav and
+  // the mobile drawer. The four sections are atlas / ecg / cases /
+  // info. Defaults to `["cases"]` hidden on first visit per the
+  // May-2026 product decision; the admin un-hides via Administrar →
+  // Secciones and the choice is persisted in localStorage.
+  //
+  // Hidden sections still resolve via direct URL — only the nav
+  // chrome filters them — so deep links keep working.
+  const {
+    visibleSections,
+    isHidden: isSectionHidden,
+    setHidden: setSectionHidden,
+  } = useHiddenSections();
+
   // Wrap the three category mutations with undo-toast surfacing.
   // The hook itself stays free of toast concerns (so non-admin
   // contexts that consume it never accidentally show a toast); the
@@ -193,6 +208,19 @@ function AppInner() {
     [rawSectionCategories, isCategoryHidden],
   );
 
+  // Case-count-per-section, surfaced in the admin Secciones editor as
+  // a "N casos" hint so the admin can see what they're hiding before
+  // clicking. Soft-deleted cases are excluded — they're already
+  // invisible to the public view.
+  const sectionCaseCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const c of allCases) {
+      if (c.deletedAt) continue;
+      counts[c.section] = (counts[c.section] ?? 0) + 1;
+    }
+    return counts;
+  }, [allCases]);
+
   const openCase = useMemo<CaseRecord | null>(
     () => (openCaseId ? (allCases.find((c) => c.id === openCaseId) ?? null) : null),
     [allCases, openCaseId],
@@ -264,6 +292,7 @@ function AppInner() {
         favCount={favs.length}
         onNewCase={onNewCase}
         onOpenDrawer={() => setDrawerOpen(true)}
+        sections={visibleSections}
       />
       <MobileDrawer
         open={drawerOpen}
@@ -274,6 +303,7 @@ function AppInner() {
         onLogout={logout}
         favCount={favs.length}
         onNewCase={onNewCase}
+        sections={visibleSections}
       />
 
       <div className="layout" data-section={view.kind === "section" ? view.section : view.kind}>
@@ -355,6 +385,9 @@ function AppInner() {
               isCustomCategory={isCustomCategory}
               isCategoryHidden={isCategoryHidden}
               onSetCategoryHidden={setCategoryHidden}
+              isSectionHidden={isSectionHidden}
+              onSetSectionHidden={setSectionHidden}
+              sectionCaseCounts={sectionCaseCounts}
               currentEmail={user?.email ?? null}
               notify={showToast}
               favs={favs}

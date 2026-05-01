@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { CaseCard } from "./cards";
 import EmptyState from "./EmptyState";
-import type { CaseRecord, Category, View } from "@/lib/types";
+import type { CaseRecord, Category, SectionId, View } from "@/lib/types";
 
 // AdminPanel is admin-only chrome; lazy-load so its tree stays out of
 // the public-route bundles.
@@ -62,6 +62,13 @@ interface Props {
    *  public sidebar. Built-ins and custom alike can be hidden. */
   isCategoryHidden?: (id: string) => boolean;
   onSetCategoryHidden?: (id: string, hidden: boolean) => void;
+  /** Predicate / setter for section visibility in the top nav and
+   *  mobile drawer. Forwarded to the AdminPanel "Secciones" tab. */
+  isSectionHidden?: (id: SectionId) => boolean;
+  onSetSectionHidden?: (id: SectionId, hidden: boolean) => void;
+  /** Cases-per-section counter, indexed by section id. Powers the
+   *  "N casos" hint in the Secciones editor. */
+  sectionCaseCounts?: Record<string, number>;
   /** Email of the current admin (used to tag backup envelopes). */
   currentEmail?: string | null;
   /** Toast surface — forwarded to AdminPanel's BackupPanel for
@@ -132,6 +139,9 @@ export default function MainGrid({
   isCustomCategory,
   isCategoryHidden,
   onSetCategoryHidden,
+  isSectionHidden,
+  onSetSectionHidden,
+  sectionCaseCounts,
   currentEmail,
   notify,
   favs,
@@ -161,6 +171,9 @@ export default function MainGrid({
         isCustomCategory={isCustomCategory}
         isCategoryHidden={isCategoryHidden}
         onSetCategoryHidden={onSetCategoryHidden}
+        isSectionHidden={isSectionHidden}
+        onSetSectionHidden={onSetSectionHidden}
+        sectionCaseCounts={sectionCaseCounts}
         currentEmail={currentEmail}
         notify={notify}
         onEdit={onEdit}

@@ -4,9 +4,10 @@ import { useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import type { CaseRecord, Category } from "@/lib/types";
+import type { CaseRecord, Category, SectionId } from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
 import CategoriesEditor from "./CategoriesEditor";
+import SectionsEditor from "./SectionsEditor";
 import BackupPanel from "./BackupPanel";
 
 interface Props {
@@ -53,13 +54,21 @@ interface Props {
   isCustomCategory?: (id: string) => boolean;
   isCategoryHidden?: (id: string) => boolean;
   onSetCategoryHidden?: (id: string, hidden: boolean) => void;
+  /** Predicate / setter for section visibility on the public nav.
+   *  Drives the new "Secciones" tab. Optional — when omitted, the
+   *  tab simply doesn't render (keeps focused tests minimal). */
+  isSectionHidden?: (id: SectionId) => boolean;
+  onSetSectionHidden?: (id: SectionId, hidden: boolean) => void;
+  /** Cases-per-section counter, used by the Secciones editor's
+   *  "N casos" hint. Optional; missing entries render as 0. */
+  sectionCaseCounts?: Record<string, number>;
   /** Email of the current admin — tagged inside backup envelopes. */
   currentEmail?: string | null;
   /** Toast surface for backup feedback ("Exportado · 47 cambios"). */
   notify?: (msg: string) => void;
 }
 
-type Tab = "mine" | "classify" | "categories" | "backup";
+type Tab = "mine" | "classify" | "categories" | "sections" | "backup";
 
 function formatDateTime(iso?: string) {
   if (!iso) return "";
@@ -99,6 +108,9 @@ export default function AdminPanel({
   isCustomCategory,
   isCategoryHidden,
   onSetCategoryHidden,
+  isSectionHidden,
+  onSetSectionHidden,
+  sectionCaseCounts,
   currentEmail,
   notify,
 }: Props) {
@@ -109,6 +121,7 @@ export default function AdminPanel({
   const canEditCategories = Boolean(
     onAddCategory && onRenameCategory && onRemoveCategory && isCustomCategory,
   );
+  const canEditSections = Boolean(isSectionHidden && onSetSectionHidden);
   // Tab state: defaults to "Mis casos" so the existing flow is the
   // landing page; the classifier is one click away. State is local —
   // this isn't worth pushing into the URL.
@@ -151,6 +164,16 @@ export default function AdminPanel({
             <span className="admin-tab-count">{resolvedCategories.length}</span>
           </button>
         )}
+        {canEditSections && (
+          <button
+            role="tab"
+            aria-selected={tab === "sections"}
+            className={`admin-tab${tab === "sections" ? " is-active" : ""}`}
+            onClick={() => setTab("sections")}
+          >
+            Secciones
+          </button>
+        )}
         <button
           role="tab"
           aria-selected={tab === "backup"}
@@ -182,6 +205,12 @@ export default function AdminPanel({
           isHidden={isCategoryHidden ?? (() => false)}
           setHidden={onSetCategoryHidden ?? (() => undefined)}
           caseCounts={categoryCaseCounts ?? {}}
+        />
+      ) : tab === "sections" && canEditSections ? (
+        <SectionsEditor
+          isHidden={isSectionHidden!}
+          setHidden={onSetSectionHidden!}
+          caseCounts={sectionCaseCounts ?? {}}
         />
       ) : tab === "backup" ? (
         <BackupPanel currentEmail={currentEmail ?? null} notify={notify ?? (() => {})} />

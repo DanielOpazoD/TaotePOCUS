@@ -10,7 +10,7 @@ import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { viewToPath } from "@/lib/url";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import type { User, View } from "@/lib/types";
+import type { Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
 
 interface Props {
@@ -22,6 +22,11 @@ interface Props {
   onLogout: () => void;
   favCount: number;
   onNewCase: () => void;
+  /**
+   * Sections to render in the drawer nav. See Header.tsx for the
+   * visibility-filter rationale; both surfaces share one source list.
+   */
+  sections?: Section[];
 }
 
 export default function MobileDrawer({
@@ -33,6 +38,7 @@ export default function MobileDrawer({
   onLogout,
   favCount,
   onNewCase,
+  sections = SECTIONS,
 }: Props) {
   const trapRef = useFocusTrap<HTMLDivElement>(open);
   const isAdmin = user?.role === "admin";
@@ -106,7 +112,7 @@ export default function MobileDrawer({
         </div>
 
         <nav className="drawer-nav" aria-label="Secciones">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
               <TransitionLink

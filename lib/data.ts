@@ -50,7 +50,11 @@ export const COMMON_TAGS = [
   "Normal",
   "Patológico",
   "Pediátrico",
-  "Crítico",
+  // "Crítico" was removed from the suggested-tags vocabulary in
+  // May-2026. It was over-applied on the imported corpus and the red
+  // pulsing thumb badge that paired with it (`.case-thumb-crit`) was
+  // dropped at the same time. The tag isn't reserved — admins can
+  // still type it — it just isn't surfaced as a suggestion.
 ];
 
 // SEED_CASES used to live here as a synchronous re-export of

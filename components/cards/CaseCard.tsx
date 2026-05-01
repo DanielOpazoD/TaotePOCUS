@@ -49,7 +49,10 @@ export default function CaseCard({
   );
   const effectiveFocus = draftFocus ?? caso.focus;
   const cat = CATEGORIES.find((c) => c.id === caso.category);
-  const isCrit = caso.tags.includes("Crítico");
+  // The "Crítico" red pulsing badge was removed in May-2026 — see the
+  // file header for the rationale and the CSS comment in cards.css
+  // where `.case-thumb-crit` used to live. The tag string itself can
+  // still appear in `caso.tags` and renders like any other chip.
   const [bursting, setBursting] = useState(false);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Relative date as the visible label, absolute date as the tooltip
@@ -111,7 +114,6 @@ export default function CaseCard({
               cases keep their hover preview. */}
           <p>{firstSentence(getDescription(caso))}</p>
         </div>
-        {isCrit && <span className="case-thumb-crit">Crítico</span>}
         {/* Admin-only review badge — appears top-right under the fav
             button when the editorial review has been confirmed. The
             `data-reviewed` attribute lets CSS hide it for non-admin
