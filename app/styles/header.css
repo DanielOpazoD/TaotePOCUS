@@ -228,8 +228,8 @@
   color: var(--ink);
   outline: none;
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 .header-search input:focus {
   border-color: var(--ink-mute);
@@ -286,7 +286,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  transition: all 0.12s;
+  transition: all var(--duration-fast);
 }
 .btn-ghost:hover {
   background: var(--surface-2);
@@ -300,10 +300,12 @@
   background: var(--ink-hover);
 }
 
-/* Icon-only variant. Square hit-target with the icon centered; the
-   accessible name comes from aria-label, the visible cue from the
-   icon plus a tooltip. Used for the user/login affordance in chrome
-   contexts where horizontal space is precious. */
+/* Icon-only variant. Circular hit-target with the icon centered;
+   the accessible name comes from aria-label, the visible cue from
+   the icon plus a tooltip. Used for the user/login + new-case
+   affordances in chrome contexts where horizontal space is precious.
+   The `--radius-pill` round shape distinguishes single-action
+   triggers from labeled buttons (which keep `--radius-lg`). */
 .btn-icon-only {
   width: 36px;
   height: 36px;
@@ -311,6 +313,7 @@
   display: inline-grid;
   place-items: center;
   gap: 0;
+  border-radius: var(--radius-pill);
 }
 .btn-icon-only svg {
   width: 16px;

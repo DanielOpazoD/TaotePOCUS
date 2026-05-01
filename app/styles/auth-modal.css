@@ -108,7 +108,7 @@
   align-items: center;
   gap: var(--space-2);
   cursor: pointer;
-  transition: filter 0.12s;
+  transition: filter var(--duration-fast);
 }
 .btn-danger:hover {
   filter: brightness(1.08);

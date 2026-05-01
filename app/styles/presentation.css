@@ -50,7 +50,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--duration-fast);
 }
 .presentation-exit:hover {
   background: oklch(1 0 0 / 0.12);
@@ -84,7 +84,7 @@
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--duration-fast);
 }
 .presentation-nav:hover {
   background: oklch(1 0 0 / 0.14);
@@ -154,7 +154,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--duration-fast);
   font-family: inherit;
 }
 .presentation-reveal:hover {

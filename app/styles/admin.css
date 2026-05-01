@@ -93,7 +93,10 @@
 }
 .admin-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  /* Consistent focus halo across the app — see `--focus-ring` in
+     tokens.css. The accent border still gives the form a
+     section-color cue; the soft halo is the universal one. */
+  box-shadow: var(--focus-ring);
 }
 textarea.admin-input {
   resize: vertical;
@@ -122,7 +125,7 @@ textarea.admin-input {
   cursor: pointer;
   background: var(--surface-2);
   overflow: hidden;
-  transition: all 0.15s;
+  transition: all var(--duration-fast);
 }
 .admin-uploader:hover {
   border-color: var(--accent);
@@ -486,7 +489,7 @@ textarea.admin-input {
   place-items: center;
   margin-left: 4px;
   color: var(--ink-soft);
-  transition: all 0.12s;
+  transition: all var(--duration-fast);
 }
 .icon-btn svg {
   width: 14px;
