@@ -107,19 +107,34 @@ export const localCases = {
   },
   async setOverride(id: string, patch: Partial<CaseRecord>): Promise<WriteResult> {
     const all = Store.getCaseOverrides();
-    // Drop fields that are explicitly set to undefined — caller's
-    // signal for "use the source value", not "set this to undefined".
-    const cleaned: Partial<CaseRecord> = {};
+    // Merge the inbound patch INTO the existing override rather than
+    // replacing the whole entry. This is what the public docs always
+    // promised ("partial override") and what every consumer
+    // (reclassify, focus editor, soft-delete, restore) implicitly
+    // assumed — but the prior body did a wholesale replace, silently
+    // dropping any fields the caller didn't repeat. Reclassifying a
+    // case that already had a focus tweak used to wipe the focus.
+    //
+    // Semantics inside the merged object:
+    //   - `value: <something>` → set / update that key on the override.
+    //   - `value: undefined`   → REMOVE that key from the override.
+    //     This is how callers signal "fall back to the source value
+    //     for this field" (used by `restoreImport` to clear
+    //     `deletedAt`/`deletedBy`).
+    //   - empty merged result  → drop the entry entirely so the case
+    //     reads as un-overridden again.
+    const existing = all[id] ?? {};
+    const merged: Record<string, unknown> = { ...existing };
     for (const [k, v] of Object.entries(patch)) {
-      if (v !== undefined) (cleaned as Record<string, unknown>)[k] = v;
+      if (v === undefined) delete merged[k];
+      else merged[k] = v;
     }
-    if (Object.keys(cleaned).length === 0) {
-      // Empty patch → drop the entry entirely.
+    if (Object.keys(merged).length === 0) {
       delete all[id];
     } else {
-      all[id] = cleaned;
+      all[id] = merged as Partial<CaseRecord>;
     }
-    log.info("Case override saved", { area: "cases", id, fields: Object.keys(cleaned) });
+    log.info("Case override saved", { area: "cases", id, fields: Object.keys(patch) });
     return Store.setCaseOverrides(all);
   },
   async clearOverride(id: string): Promise<WriteResult> {

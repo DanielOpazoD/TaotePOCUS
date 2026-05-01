@@ -3,18 +3,26 @@
 import { useState } from "react";
 import { repo } from "@/lib/repo";
 import { mediaKeyFromSrc } from "@/lib/media-url";
+import type { ShowToast } from "./useToast";
 import type { CaseRecord, User } from "@/lib/types";
 
 interface UserCasesShape {
   live: CaseRecord[];
   remove: (c: CaseRecord) => Promise<boolean>;
+  /** Inverse of `remove`. Used by the undo path on a soft-delete
+   *  toast — calling it within the toast window restores the case
+   *  with `deletedAt` cleared. */
+  restore: (c: CaseRecord) => Promise<boolean>;
 }
 
 interface Args {
   user: User | null;
   userCases: UserCasesShape;
   setOverride: (id: string, patch: Partial<CaseRecord>) => Promise<boolean>;
-  showToast: (msg: string) => void;
+  /** Toast channel. Accepts the full `ShowToast` shape (with
+   *  optional undo) so the destructive flows can offer "Deshacer"
+   *  on every soft action. */
+  showToast: ShowToast;
   /** True when the case modal is open and shows the case being purged
    *  — the pipeline closes the modal first so the toast is visible. */
   openCaseId: string | null;
@@ -79,15 +87,33 @@ export function useAdminPipeline({
   const cancelDelete = () => setPendingDelete(null);
   const confirmDelete = async () => {
     if (!pendingDelete) return;
-    const isUserOwned = userCases.live.some((c) => c.id === pendingDelete.id);
+    const target = pendingDelete;
+    const isUserOwned = userCases.live.some((c) => c.id === target.id);
     if (isUserOwned) {
-      await userCases.remove(pendingDelete);
+      const ok = await userCases.remove(target);
+      if (ok) {
+        showToast(`"${target.title}" movido a papelera`, {
+          undo: () => userCases.restore(target),
+        });
+      }
     } else {
-      const ok = await setOverride(pendingDelete.id, {
+      const ok = await setOverride(target.id, {
         deletedAt: new Date().toISOString(),
         deletedBy: user?.email,
       });
-      if (ok) showToast("Caso movido a papelera · puedes restaurarlo desde admin");
+      if (ok) {
+        // Undo for a seed case: clear the deletedAt/deletedBy
+        // override fields. Other override fields (category, focus,
+        // reviewed) survive — the undo only reverses what this call
+        // set.
+        showToast(`"${target.title}" movido a papelera`, {
+          undo: () =>
+            setOverride(target.id, {
+              deletedAt: undefined,
+              deletedBy: undefined,
+            }),
+        });
+      }
     }
     setPendingDelete(null);
   };

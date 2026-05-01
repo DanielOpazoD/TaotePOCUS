@@ -165,11 +165,34 @@ export async function dbSetOverride(
   void updatedBy; // accepted for signature parity; ignored for authz.
   try {
     const db = getDatabase();
-    // Upsert via ON CONFLICT. The cast `::jsonb` is explicit so the
-    // driver doesn't have to infer column type from the parameter.
+    // Merge the inbound patch INTO the existing override row rather
+    // than overwriting it. Mirrors the local backend's contract
+    // (`lib/repo/local-cases.ts > setOverride`) where:
+    //   - `key: value`   → set/update that key.
+    //   - `key: undefined` (which serializes to JSON null when the
+    //     client sends it) → remove that key from the override.
+    //   - empty merged result → delete the row entirely.
+    //
+    // We do the merge in JS rather than SQL because the "remove
+    // when null" rule is awkward in jsonb — we'd need to enumerate
+    // every null-valued key to strip. Reading + computing + writing
+    // is cleaner; the row volume is small (≤ catalog size).
+    const rows = await db.sql<{ patch: Partial<CaseRecord> }>`
+      SELECT patch FROM case_overrides WHERE id = ${id} LIMIT 1
+    `;
+    const existing: Partial<CaseRecord> = rows[0]?.patch ?? {};
+    const merged: Record<string, unknown> = { ...existing };
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === undefined || v === null) delete merged[k];
+      else merged[k] = v;
+    }
+    if (Object.keys(merged).length === 0) {
+      await db.sql`DELETE FROM case_overrides WHERE id = ${id}`;
+      return { ok: true };
+    }
     await db.sql`
       INSERT INTO case_overrides (id, patch, updated_by)
-      VALUES (${id}, ${JSON.stringify(patch)}::jsonb, ${audit})
+      VALUES (${id}, ${JSON.stringify(merged)}::jsonb, ${audit})
       ON CONFLICT (id) DO UPDATE SET
         patch = EXCLUDED.patch,
         updated_at = now(),

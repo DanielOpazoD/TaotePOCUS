@@ -317,11 +317,36 @@ function AppInner() {
               onPatch={
                 isAdmin
                   ? async (id, patch) => {
+                      // Capture the case's current value for every key
+                      // the patch is touching BEFORE applying. The undo
+                      // toast restores those values via a new patch; if
+                      // the case isn't in the merged catalog (rare —
+                      // deep link to a soft-deleted case) we skip the
+                      // undo affordance rather than offer an inverse
+                      // we can't compute.
+                      const before = allCases.find((c) => c.id === id);
+                      const inverse: Partial<CaseRecord> | null = before
+                        ? Object.fromEntries(
+                            Object.keys(patch).map((k) => [k, before[k as keyof CaseRecord]]),
+                          )
+                        : null;
                       const ok = await setOverride(id, patch);
-                      if (ok && patch.section) showToast("Sección actualizada");
-                      else if (ok && patch.category) showToast("Categoría actualizada");
-                      else if (ok && "reviewed" in patch)
-                        showToast(patch.reviewed ? "Marcado revisado" : "Sin marca de revisado");
+                      if (!ok) return;
+                      // Pick the most specific message — the order
+                      // matches what an admin clicked. `focus` and
+                      // `reviewed` get their own copy so the undo
+                      // affordance lands next to a clear nominal cue.
+                      let message: string;
+                      if (patch.section) message = "Sección actualizada";
+                      else if (patch.category) message = "Categoría actualizada";
+                      else if ("reviewed" in patch)
+                        message = patch.reviewed ? "Marcado revisado" : "Sin marca de revisado";
+                      else if ("focus" in patch) message = "Encuadre actualizado";
+                      else message = "Caso actualizado";
+                      showToast(
+                        message,
+                        inverse ? { undo: () => setOverride(id, inverse) } : undefined,
+                      );
                     }
                   : undefined
               }
@@ -334,11 +359,23 @@ function AppInner() {
 
       {/* Toast lives here twice on purpose: the visible chip is the
           chrome animation; the sr-only mirror is announced by screen
-          readers via aria-live. They share the same string. */}
+          readers via aria-live. They share the same message. The
+          undo button (if present) is a visual + interactive affordance
+          only — screen readers get the announcement on the message
+          itself; the inverse action is reachable via Tab. */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-        {toast || ""}
+        {toast?.message ?? ""}
       </div>
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div className="toast">
+          <span className="toast-message">{toast.message}</span>
+          {toast.undo && (
+            <button type="button" className="toast-undo" onClick={toast.undo}>
+              {toast.undoLabel}
+            </button>
+          )}
+        </div>
+      )}
 
       {openCase &&
         (() => {

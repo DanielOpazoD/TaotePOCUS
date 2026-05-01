@@ -43,9 +43,15 @@ function setup({ openCaseId = null as string | null } = {}) {
   setOverride.mockResolvedValue(true);
   const remove = vi.fn<(c: CaseRecord) => Promise<boolean>>();
   remove.mockResolvedValue(true);
-  const showToast = vi.fn<(msg: string) => void>();
+  const restore = vi.fn<(c: CaseRecord) => Promise<boolean>>();
+  restore.mockResolvedValue(true);
+  // `showToast` mirrors the full ShowToast shape: message + optional
+  // options carrying an `undo` callback. The undo flows assert on
+  // `mock.calls[0][1]?.undo` to verify the inverse action wires up.
+  const showToast =
+    vi.fn<(msg: string, opts?: { undo?: () => unknown; undoLabel?: string }) => void>();
   const closeOpenCase = vi.fn<() => void>();
-  const userCases = { live: [userOwned], remove };
+  const userCases = { live: [userOwned], remove, restore };
   const user = adminFactory();
 
   const { result } = renderHook(() =>
@@ -59,7 +65,7 @@ function setup({ openCaseId = null as string | null } = {}) {
     }),
   );
 
-  return { result, setOverride, remove, showToast, closeOpenCase };
+  return { result, setOverride, remove, restore, showToast, closeOpenCase };
 }
 
 beforeEach(() => {
@@ -106,7 +112,10 @@ describe("useAdminPipeline · soft-delete", () => {
     expect(id).toBe("tw-seed");
     expect(patch).toMatchObject({ deletedBy: "admin@taote.pocus" });
     expect(typeof patch.deletedAt).toBe("string");
-    expect(showToast).toHaveBeenCalledWith(expect.stringContaining("papelera"));
+    expect(showToast).toHaveBeenCalledWith(
+      expect.stringContaining("papelera"),
+      expect.objectContaining({ undo: expect.any(Function) }),
+    );
   });
 
   it("confirmDelete is a no-op when nothing is pending", async () => {
@@ -116,6 +125,45 @@ describe("useAdminPipeline · soft-delete", () => {
     });
     expect(remove).not.toHaveBeenCalled();
     expect(setOverride).not.toHaveBeenCalled();
+  });
+
+  it("undo toast on a seed soft-delete clears deletedAt + deletedBy", async () => {
+    const { result, setOverride, showToast } = setup();
+    act(() => result.current.requestDelete(seedCase));
+    await act(async () => {
+      await result.current.confirmDelete();
+    });
+    // The soft-delete write happened; now invoke the undo callback
+    // the toast carried and verify it issues the inverse patch.
+    const toastCall = showToast.mock.calls[0];
+    if (!toastCall) throw new Error("showToast was never called");
+    const [, opts] = toastCall;
+    expect(opts?.undo).toBeTypeOf("function");
+    setOverride.mockClear();
+    await act(async () => {
+      await opts?.undo?.();
+    });
+    expect(setOverride).toHaveBeenCalledWith("tw-seed", {
+      deletedAt: undefined,
+      deletedBy: undefined,
+    });
+  });
+
+  it("undo toast on a user-owned soft-delete calls userCases.restore", async () => {
+    const { result, restore, showToast } = setup();
+    act(() => result.current.requestDelete(userOwned));
+    await act(async () => {
+      await result.current.confirmDelete();
+    });
+    const toastCall = showToast.mock.calls[0];
+    if (!toastCall) throw new Error("showToast was never called");
+    const [, opts] = toastCall;
+    expect(opts?.undo).toBeTypeOf("function");
+    restore.mockClear();
+    await act(async () => {
+      await opts?.undo?.();
+    });
+    expect(restore).toHaveBeenCalledWith(userOwned);
   });
 });
 
