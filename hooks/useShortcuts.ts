@@ -35,17 +35,25 @@ interface Options {
 /**
  * Global keyboard shortcuts. Idiomatic Gmail / GitHub:
  *
- *   ?       — open the shortcuts help modal
- *   j / k   — focus next / previous case card
- *   ← / →   — same as j / k (arrow alternative)
- *   g a     — go to Atlas POCUS
- *   g e/c/i — ECG / Cases / Info
- *   g f     — Favoritos
+ *   ?         — open the shortcuts help modal
+ *   j / →     — focus next case card (linear, 1 step)
+ *   k / ←     — focus previous case card (linear, 1 step)
+ *   ↓         — focus card directly below (jumps a row in the grid)
+ *   ↑         — focus card directly above (jumps a row in the grid)
+ *   Home      — focus the first card
+ *   End       — focus the last card
+ *   g a       — go to Atlas POCUS
+ *   g e/c/i   — ECG / Cases / Info
+ *   g f       — Favoritos
+ *
+ * The arrow split: ←/→ stay linear so power-users can scan a row
+ * one step at a time, ↑/↓ jump full rows so the cursor stays in
+ * the same visual column on a 2D catalog grid. Linear's pattern.
  *
  * The "/" shortcut for the search box is owned by the Header itself —
  * keeping it co-located with the input it focuses keeps the dependency
- * narrow. Modal-scoped shortcuts (←/→ for prev/next case, F/S/P for
- * the action buttons, Esc) live in CaseModal for the same reason.
+ * narrow. Modal-scoped shortcuts (F/S/P for the action buttons, Esc)
+ * live in CaseModal for the same reason.
  *
  * Every shortcut bails when the user is typing in a form field or
  * contenteditable — typing "g" in a comment doesn't trigger nav.
@@ -89,19 +97,33 @@ export function useShortcuts({ onHelp }: Options) {
           break;
         }
         case "j":
-        case "ArrowDown":
         case "ArrowRight": {
           if (e.key === "ArrowRight" && e.shiftKey) return;
-          focusSibling(1);
-          if (document.activeElement?.classList.contains("case-card")) e.preventDefault();
+          if (focusGrid("next")) e.preventDefault();
           break;
         }
         case "k":
-        case "ArrowUp":
         case "ArrowLeft": {
           if (e.key === "ArrowLeft" && e.shiftKey) return;
-          focusSibling(-1);
-          if (document.activeElement?.classList.contains("case-card")) e.preventDefault();
+          if (focusGrid("prev")) e.preventDefault();
+          break;
+        }
+        case "ArrowDown": {
+          if (e.shiftKey) return;
+          if (focusGrid("down")) e.preventDefault();
+          break;
+        }
+        case "ArrowUp": {
+          if (e.shiftKey) return;
+          if (focusGrid("up")) e.preventDefault();
+          break;
+        }
+        case "Home": {
+          if (focusGrid("first")) e.preventDefault();
+          break;
+        }
+        case "End": {
+          if (focusGrid("last")) e.preventDefault();
           break;
         }
       }
@@ -111,23 +133,93 @@ export function useShortcuts({ onHelp }: Options) {
   }, [router, onHelp]);
 }
 
-function focusSibling(direction: 1 | -1) {
+type GridDirection = "next" | "prev" | "down" | "up" | "first" | "last";
+
+/**
+ * Move keyboard focus across the case grid. Returns `true` when a
+ * card was focused (so the caller knows to `preventDefault` the
+ * event); `false` when there's nothing to focus or the user's
+ * focus is already elsewhere and the move would be intrusive.
+ *
+ * Column count is computed by counting cards that share the first
+ * card's `top` coordinate — robust across the responsive grid (5
+ * cols on Atlas wide / 4 / 3 / 2 narrow). Cheaper than reading the
+ * grid container's computed `grid-template-columns` and works
+ * identically across grid implementations.
+ */
+function focusGrid(direction: GridDirection): boolean {
   const cards = Array.from(document.querySelectorAll<HTMLElement>(".case-card"));
-  if (cards.length === 0) return;
+  if (cards.length === 0) return false;
+
   const active = document.activeElement;
   const currentIndex = active instanceof HTMLElement ? cards.indexOf(active) : -1;
-  let next = currentIndex + direction;
-  if (currentIndex === -1) next = direction === 1 ? 0 : cards.length - 1;
-  next = Math.max(0, Math.min(cards.length - 1, next));
-  cards[next]?.focus();
+
+  // Direct-jump endpoints don't need column math.
+  if (direction === "first") {
+    cards[0]?.focus();
+    return true;
+  }
+  if (direction === "last") {
+    cards[cards.length - 1]?.focus();
+    return true;
+  }
+
+  // No card focused yet: linear directions seed the first/last;
+  // row directions also seed the first card (sensible default —
+  // the user is asking "give me focus on the grid"). Either way
+  // the move is intrusive only when the user explicitly pressed a
+  // navigation key, which they did here.
+  if (currentIndex === -1) {
+    const seed = direction === "prev" || direction === "up" ? cards.length - 1 : 0;
+    cards[seed]?.focus();
+    return true;
+  }
+
+  // Linear neighbors.
+  if (direction === "next") {
+    cards[Math.min(currentIndex + 1, cards.length - 1)]?.focus();
+    return true;
+  }
+  if (direction === "prev") {
+    cards[Math.max(currentIndex - 1, 0)]?.focus();
+    return true;
+  }
+
+  // Row jumps. Detect the column count from the cards themselves —
+  // the grid is responsive, so reading the DOM is the only honest
+  // source. Cards with the same vertical offset as the first card
+  // are in the first row; that count is the column count.
+  const firstCard = cards[0];
+  if (!firstCard) return false;
+  const firstTop = firstCard.getBoundingClientRect().top;
+  let cols = 0;
+  for (const c of cards) {
+    if (Math.abs(c.getBoundingClientRect().top - firstTop) < 1) cols += 1;
+    else break;
+  }
+  if (cols === 0) cols = 1;
+
+  if (direction === "down") {
+    const next = Math.min(currentIndex + cols, cards.length - 1);
+    cards[next]?.focus();
+    return true;
+  }
+  // direction === "up"
+  const prev = Math.max(currentIndex - cols, 0);
+  cards[prev]?.focus();
+  return true;
 }
 
 /** Public: list of shortcuts to render in the help modal. */
 export const SHORTCUTS: { keys: string[]; label: string }[] = [
   { keys: ["/"], label: "Buscar" },
   { keys: ["?"], label: "Mostrar atajos" },
-  { keys: ["j", "↓"], label: "Caso siguiente" },
-  { keys: ["k", "↑"], label: "Caso anterior" },
+  { keys: ["j", "→"], label: "Caso siguiente" },
+  { keys: ["k", "←"], label: "Caso anterior" },
+  { keys: ["↓"], label: "Caso debajo (salta una fila del grid)" },
+  { keys: ["↑"], label: "Caso encima (salta una fila del grid)" },
+  { keys: ["Home"], label: "Primer caso" },
+  { keys: ["End"], label: "Último caso" },
   { keys: ["g", "a"], label: "Ir a Atlas POCUS" },
   { keys: ["g", "e"], label: "Ir a ECG" },
   { keys: ["g", "c"], label: "Ir a Casos clínicos" },
