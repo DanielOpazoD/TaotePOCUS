@@ -1,18 +1,20 @@
-// Server-side session: signed, httpOnly cookie that the Server Actions
-// in `app/actions/db.ts` consult to authorize each request.
+// Server-side session resolution for Server Actions in
+// `app/actions/db.ts`. Two backends, picked at module load by
+// `IS_CLERK_ENABLED`:
 //
-// Why a custom token instead of NextAuth or a third-party SDK:
+//   - Clerk (production with the Netlify Clerk extension): reads
+//     `userId` and primary email from `auth()` / `currentUser()`. The
+//     admin role comes from `publicMetadata.role === "admin"` OR
+//     from the `ADMIN_EMAILS` env-var allowlist (bootstrap path).
+//   - Legacy (no Clerk env): reads a signed httpOnly cookie minted by
+//     `app/actions/session.ts`. HMAC-SHA256 over `{email, role, exp,
+//     iat}` using `AUTH_SECRET`. Kept as a fallback so dev / CI / any
+//     deploy without Clerk keeps working unchanged.
 //
-//   - The app already has a localStorage-based identity (see `lib/repo.ts`
-//     > `localAuth`). We don't need account creation, password resets,
-//     OAuth, or session DB tables — we just need the server to *know*
-//     who's calling so admin actions can refuse non-admins.
-//   - The token is symmetric-signed (HMAC-SHA256) with a single
-//     secret. No public-key crypto, no rotation story (yet) — when we
-//     migrate to Firebase Auth or a real provider, this whole module
-//     gets replaced wholesale, so over-engineering would be wasted.
+// Server Actions don't see the branch — they call `requireAuth` /
+// `requireAdmin` / `isOwner` and get a `SessionPayload` regardless.
 //
-// Token shape (joined by `.`):
+// Legacy cookie shape (when used):
 //
 //   payload = base64url(JSON({ email, role, exp, iat }))
 //   sig     = base64url(HMAC-SHA256(payload, secret))
@@ -20,17 +22,11 @@
 // Both halves are needed; tampering with either invalidates the
 // signature and `verifySessionToken` returns null. `timingSafeEqual`
 // prevents the trivial timing attack on signature comparison.
-//
-// Cookie attributes:
-//
-//   - httpOnly so a stored XSS can't read the token from `document.cookie`.
-//   - sameSite=lax so a cross-origin POST can't ride the cookie.
-//   - secure in production so the cookie is never sent over plain http.
 
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-import { IS_PRODUCTION } from "../env";
+import { IS_PRODUCTION, IS_CLERK_ENABLED, isAdminEmail } from "../env";
 
 export const SESSION_COOKIE = "pocus_session";
 
@@ -161,16 +157,73 @@ export function verifySessionToken(token: string | undefined | null): SessionPay
 }
 
 /**
- * Read the session from the request cookie. Returns null when there
- * is no cookie, the token is invalid, or the token has expired.
- *
- * Server Actions and Route Handlers can both call this — `cookies()`
- * works in either context.
+ * Read the session from the request cookie (legacy backend). Returns
+ * null when there is no cookie, the token is invalid, or the token
+ * has expired. Server Actions and Route Handlers can both call this —
+ * `cookies()` works in either context.
  */
-export async function getSession(): Promise<SessionPayload | null> {
+async function getCookieSession(): Promise<SessionPayload | null> {
   const jar = await cookies();
   const raw = jar.get(SESSION_COOKIE)?.value;
   return verifySessionToken(raw);
+}
+
+/**
+ * Read the session from Clerk's server helpers. Returns null when no
+ * user is signed in. Maps the Clerk user to our `SessionPayload`
+ * shape so the rest of the Server Action surface doesn't need to
+ * know which backend answered.
+ *
+ * Lazy-imports `@clerk/nextjs/server` so the legacy build path
+ * (without Clerk env vars) doesn't pull the SDK into the server
+ * bundle. The import is awaited only when the flag says so.
+ */
+async function getClerkSession(): Promise<SessionPayload | null> {
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const u = await currentUser();
+  if (!u) return null;
+  // Resolve the primary email — same logic as `lib/clerk-auth.ts >
+  // getPrimaryEmail`, inlined here to avoid client/server module
+  // crossover.
+  const primaryId = u.primaryEmailAddressId;
+  let email: string | null = null;
+  if (primaryId && Array.isArray(u.emailAddresses)) {
+    const match = u.emailAddresses.find((e) => e.id === primaryId);
+    if (match) email = match.emailAddress.toLowerCase();
+  }
+  if (!email && Array.isArray(u.emailAddresses) && u.emailAddresses.length > 0) {
+    email = (u.emailAddresses[0]?.emailAddress ?? "").toLowerCase() || null;
+  }
+  if (!email) return null;
+  // Admin: metadata wins, then env allowlist.
+  const metaRole = (u.publicMetadata as { role?: unknown } | null | undefined)?.role;
+  const isAdmin =
+    (typeof metaRole === "string" && metaRole.toLowerCase() === "admin") || isAdminEmail(email);
+  // Clerk's `currentUser().createdAt` is a number (epoch ms). Older
+  // SDK versions exposed a Date — accept either, fall back to now.
+  const createdAtRaw: unknown = (u as { createdAt?: unknown }).createdAt;
+  const issued =
+    typeof createdAtRaw === "number"
+      ? createdAtRaw
+      : createdAtRaw instanceof Date
+        ? createdAtRaw.getTime()
+        : Date.now();
+  return {
+    email,
+    role: isAdmin ? "admin" : "user",
+    iat: issued,
+    // Clerk owns the real session lifetime; we set a far-future `exp`
+    // so the legacy expiry check at the bottom of `verifySessionToken`
+    // (which also gates `requireAuth`) doesn't false-negative.
+    exp: issued + 10 * 365 * 24 * 60 * 60 * 1000,
+  };
+}
+
+/** Backend-agnostic session read. Picks Clerk when configured, the
+ *  signed cookie otherwise. */
+export async function getSession(): Promise<SessionPayload | null> {
+  if (IS_CLERK_ENABLED) return getClerkSession();
+  return getCookieSession();
 }
 
 /**

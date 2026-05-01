@@ -149,3 +149,67 @@ export const SENTRY_ENVIRONMENT = readString(
   IS_PRODUCTION ? "production" : "development",
 );
 export const IS_SENTRY_ENABLED = SENTRY_DSN !== "";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Clerk (auth)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// When `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set the app routes
+// authentication through Clerk:
+//
+//   - `<ClerkProvider>` wraps the layout (see `app/layout.tsx`).
+//   - `useSession` reads from `useUser()` instead of `repo.auth`.
+//   - `AuthModal` renders Clerk's `<SignIn />` instead of the demo
+//     email+password form.
+//   - Server Actions in `app/actions/db.ts` authorize via `auth()`
+//     from `@clerk/nextjs/server` instead of the HMAC cookie.
+//
+// When the key is empty (CI, local dev without `.env.local`, or any
+// deployment that hasn't installed the Netlify Clerk extension), every
+// surface above falls back to the previous behaviour — localStorage
+// auth + the HMAC cookie. The dev bypass (`IS_ADMIN_BYPASS_ENABLED`)
+// also keeps working in either mode.
+//
+// Direct dot-access for the same reason as `IS_NETLIFY_DB_ENABLED`:
+// Turbopack only inlines `process.env.X` for `NEXT_PUBLIC_*` keys when
+// referenced literally at the call site. Bracket-access via
+// `readString` defeats the substitution.
+
+export const CLERK_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
+export const IS_CLERK_ENABLED = CLERK_PUBLISHABLE_KEY !== "";
+
+/**
+ * Comma-separated allowlist of admin emails. Provides the "first
+ * admin" path before any user can be promoted via Clerk's public
+ * metadata: any authenticated user whose primary email matches an
+ * entry in this list is treated as `role: "admin"`, even if their
+ * Clerk profile has no `publicMetadata.role` set.
+ *
+ * Why both: in the bootstrap flow there are no admins yet, so the
+ * admin can't promote themselves through Clerk's dashboard until
+ * they've at least logged in once. The env var lets the very first
+ * sign-in already land as admin. Once the admin is in, they can
+ * manage roles via Clerk metadata and remove themselves from the env
+ * list (or keep it as a safety net).
+ *
+ * Comparison is case-insensitive. Empty string disables the fallback.
+ */
+function parseAdminEmails(raw: string): readonly string[] {
+  return raw
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.length > 0);
+}
+export const ADMIN_EMAILS: readonly string[] = parseAdminEmails(
+  // Server-only env — not bundled. The list is consulted only inside
+  // server-side helpers (`lib/server/session.ts`) and inside
+  // client-side `useSession` via the user's email (which comes from
+  // Clerk and is safe to compare client-side).
+  process.env.ADMIN_EMAILS ?? readString("NEXT_PUBLIC_ADMIN_EMAILS", ""),
+);
+
+/** True iff `email` should be treated as admin via the env allowlist. */
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}

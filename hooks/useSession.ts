@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { repo } from "@/lib/repo";
 import { isAuthError } from "@/lib/errors";
-import { IS_ADMIN_BYPASS_ENABLED, ADMIN_CREDENTIALS } from "@/lib/env";
+import { IS_ADMIN_BYPASS_ENABLED, ADMIN_CREDENTIALS, IS_CLERK_ENABLED } from "@/lib/env";
+import { mapClerkUserToAppUser } from "@/lib/clerk-auth";
 import type { AuthErrorCode } from "@/lib/errors";
 import type { User } from "@/lib/types";
 
@@ -43,31 +45,41 @@ interface Options {
 
 /**
  * Owns the authentication session: hydration on mount, focus-based
- * re-validation, login + logout. The repo-side logic stays in `lib/repo.ts`;
- * this hook is the React adapter.
+ * re-validation, login + logout.
  *
- * Hydration: on mount, reads the persisted session (if any). `hydrated`
- * flips true once the initial read resolves so consumers can defer
- * any UI that depends on the session.
+ * Two backends, picked at module load by `IS_CLERK_ENABLED`:
  *
- * Re-validation: when the tab regains focus we re-read the session.
- * If it expired in the background, the user is logged out cleanly with
- * a toast instead of being allowed to perform actions on a dead token.
+ *   - Clerk (`useSessionClerk`) — reads from `useUser()`, signs out
+ *     via Clerk's SDK. The legacy `login` callback becomes a no-op
+ *     because `<SignIn />` (rendered inside `AuthModal`) handles its
+ *     own form submission.
+ *   - Legacy (`useSessionLegacy`) — the original repo.auth path,
+ *     used in tests and in any deploy without Clerk env vars.
+ *
+ * The exported value is a single function so React's rules of hooks
+ * see one hook function per call site. The branch happens once at
+ * module load (the env var is build-time constant), not per render.
+ *
+ * Hydration: on mount, reads the persisted session (if any).
+ * `hydrated` flips true once the initial read resolves so consumers
+ * can defer any UI that depends on the session.
  *
  * @param options - Optional `notify` channel for toast-shaped status
  *   updates (login welcome, expiry, errors).
  * @returns The session shape:
  *   - `user`: the current user, or `null` when anonymous / not yet hydrated.
  *   - `isAdmin`: convenience derived from `user.role`.
- *   - `hydrated`: false during the initial repo read; true after.
+ *   - `hydrated`: false during the initial read; true after.
  *   - `login(input)`: promise-resolving to `{ok: true}` or a typed failure.
+ *     A no-op stub in the Clerk path — kept for contract compatibility.
  *   - `logout()`: clears the session and notifies.
  *
  * @example
  *   const { user, isAdmin, hydrated, login, logout } = useSession({ notify });
  *   if (!hydrated) return <Skeleton />;
  */
-export function useSession({ notify }: Options = {}) {
+
+function useSessionLegacy({ notify }: Options = {}) {
   const [user, setUser] = useState<User | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -139,3 +151,79 @@ export function useSession({ notify }: Options = {}) {
     logout,
   };
 }
+
+function useSessionClerk({ notify }: Options = {}) {
+  // Dev bypass takes precedence over Clerk so an unconfigured local
+  // dev session still gets admin access without a Clerk account.
+  // `useUser` / `useClerk` are still called below (rules of hooks)
+  // but their results are ignored on the bypass path.
+  const { user: clerkUser, isLoaded } = useUser();
+  const clerk = useClerk();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const [welcomedFor, setWelcomedFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (IS_ADMIN_BYPASS_ENABLED) {
+      setUser(bypassAdmin());
+      setHydrated(true);
+      return;
+    }
+    if (!isLoaded) return;
+    const mapped = mapClerkUserToAppUser(clerkUser);
+    setUser(mapped);
+    setHydrated(true);
+    // Welcome toast on the transition from "no user" to "user". Tracks
+    // the welcomed email so a Clerk session refresh (which re-fires
+    // this effect with the same user) doesn't re-toast.
+    if (mapped && welcomedFor !== mapped.email) {
+      setWelcomedFor(mapped.email);
+      notify?.(`Hola, ${mapped.name.split(" ")[0]} 👋`);
+    } else if (!mapped && welcomedFor) {
+      // External logout (e.g., another tab signed out) — clear the
+      // tracker so a re-login fires the welcome again.
+      setWelcomedFor(null);
+    }
+  }, [isLoaded, clerkUser, notify, welcomedFor]);
+
+  // No-op `login` — kept so the existing AuthModal contract type-checks.
+  // The Clerk branch of `AuthModal` renders `<SignIn />`, which owns
+  // its own submit handler; this callback never fires in that path.
+  const login = useCallback(async (_input: LoginInput): Promise<LoginResult> => {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Iniciá sesión usando el formulario de Clerk.",
+    };
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await clerk.signOut();
+    } catch {
+      // Network failures during signOut still locally clear the state
+      // — the next focus event will pick up the missing session.
+    }
+    setUser(null);
+    setWelcomedFor(null);
+    notify?.("Sesión cerrada");
+  }, [clerk, notify]);
+
+  return {
+    user,
+    isAdmin: user?.role === "admin",
+    hydrated,
+    login,
+    logout,
+  };
+}
+
+/**
+ * Public hook. Picks the implementation once at module load — the
+ * branch is on a build-time env var so React always sees the same
+ * underlying function across renders.
+ */
+export const useSession: typeof useSessionLegacy = IS_CLERK_ENABLED
+  ? useSessionClerk
+  : useSessionLegacy;

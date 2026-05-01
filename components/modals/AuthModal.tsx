@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SignIn } from "@clerk/nextjs";
 import { Icon } from "@/lib/icons";
-import { ADMIN_CREDENTIALS } from "@/lib/env";
+import { ADMIN_CREDENTIALS, IS_CLERK_ENABLED } from "@/lib/env";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { AuthErrorCode } from "@/lib/errors";
 
@@ -15,7 +16,93 @@ interface Props {
   }) => Promise<{ ok: true } | { ok: false; code: AuthErrorCode | "unknown"; message: string }>;
 }
 
-export default function AuthModal({ onClose, onLogin }: Props) {
+/**
+ * Authentication modal. Two render paths:
+ *
+ *   - Clerk enabled → `<ClerkSignInModal>` mounts Clerk's `<SignIn />`
+ *     inside our existing dialog shell. The `onLogin` prop is unused
+ *     in this path because Clerk owns the form submission; the parent
+ *     still passes it so the contract stays type-stable.
+ *   - Legacy → the original email+password form below. Used by tests
+ *     and by deployments without Clerk env vars.
+ *
+ * Branch happens once at module load (`IS_CLERK_ENABLED` is a
+ * build-time constant), so React only ever calls one of the two
+ * inner components per session — no rules-of-hooks risk.
+ */
+export default function AuthModal(props: Props) {
+  if (IS_CLERK_ENABLED) {
+    return <ClerkSignInModal onClose={props.onClose} />;
+  }
+  return <LegacyAuthModal {...props} />;
+}
+
+function ClerkSignInModal({ onClose }: { onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, []);
+
+  // Backdrop click closes (matches the legacy modal's behaviour).
+  const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="auth-modal-host"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={onClickDialog}
+      aria-label="Iniciar sesión"
+    >
+      <div className="auth-modal auth-modal--clerk">
+        <button
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+          style={{ top: 16, right: 16 }}
+          aria-label="Cerrar"
+        >
+          {Icon.close()}
+        </button>
+        {/* `routing="hash"` keeps Clerk's multi-step flow inside the
+            same modal — it uses the URL fragment (#) for internal
+            transitions instead of pushing real navigations. The
+            sibling `<SignUp />` route is left unset so Clerk decides;
+            the fragment scheme avoids hijacking the browser history.
+            `appearance.elements` overrides Clerk's default chrome
+            with inline neutral styling so the component matches our
+            minimalist surface. */}
+        <SignIn
+          routing="hash"
+          appearance={{
+            elements: {
+              rootBox: { width: "100%" },
+              card: {
+                boxShadow: "none",
+                border: "none",
+                background: "transparent",
+                padding: 0,
+              },
+            },
+          }}
+        />
+      </div>
+    </dialog>
+  );
+}
+
+function LegacyAuthModal({ onClose, onLogin }: Props) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

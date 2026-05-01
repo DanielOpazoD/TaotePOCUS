@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { esES } from "@clerk/localizations";
 import "./globals.css";
+import { IS_CLERK_ENABLED } from "@/lib/env";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -66,6 +69,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       } catch (e) {}
     })();
   `;
+  // ClerkProvider lives INSIDE <body> per Clerk's Next.js Quickstart
+  // (the older "wrap <html>" pattern was deprecated in Clerk v6). It
+  // wraps only when the publishable key is set so that unconfigured
+  // environments (CI builds, fresh clones without `.env.local`) don't
+  // crash on missing-key — they fall through to the legacy
+  // localStorage auth path. Spanish localization is wired here so
+  // every Clerk surface (`<SignIn />`, `<UserProfile />`) ships in es
+  // by default.
+  const body = IS_CLERK_ENABLED ? (
+    <ClerkProvider localization={esES}>{children}</ClerkProvider>
+  ) : (
+    children
+  );
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
@@ -75,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>{body}</body>
     </html>
   );
 }
