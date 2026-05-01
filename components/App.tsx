@@ -628,6 +628,13 @@ function AppInner() {
           initial={editingCase}
           currentUser={user}
           categories={categories}
+          // Catalog-wide tag vocabulary for the autocomplete in the
+          // tags input. Pulled from every case (live + soft-deleted)
+          // so re-using a freshly-deprecated tag still suggests it
+          // until the admin actually purges. The form unions this
+          // with `COMMON_TAGS` and dedupes; we keep that logic
+          // co-located there.
+          tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags)))}
           onCancel={() => {
             setFormOpen(false);
             setEditingCase(null);

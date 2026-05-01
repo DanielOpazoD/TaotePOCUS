@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
-import { CATEGORIES } from "@/lib/data";
+import { CATEGORIES, COMMON_TAGS } from "@/lib/data";
 import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Category, Media, MediaKind, User, LoopKind } from "@/lib/types";
 
@@ -34,6 +34,14 @@ interface Props {
    *  `CATEGORIES` so the form keeps working when rendered standalone
    *  (tests, future flows) without the admin context. */
   categories?: Category[];
+  /** Vocabulary for the tag autocomplete: every tag currently in
+   *  use across the catalog (deduped). The form unions this with
+   *  `COMMON_TAGS` and exposes the full set via a native
+   *  `<datalist>` so the admin sees existing tags as suggestions —
+   *  prevents typo divergence ("B-líneas" vs "B lineas" vs
+   *  "Blineas"). Optional; falls back to `COMMON_TAGS` when the
+   *  admin context can't supply the in-use list. */
+  tagSuggestions?: string[];
   onSave: (c: CaseRecord) => void;
   onCancel: () => void;
 }
@@ -42,6 +50,7 @@ export default function CaseForm({
   initial,
   currentUser,
   categories = CATEGORIES,
+  tagSuggestions,
   onSave,
   onCancel,
 }: Props) {
@@ -64,6 +73,23 @@ export default function CaseForm({
   const [tagInput, setTagInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Autocomplete vocabulary: union of `COMMON_TAGS` (the curated
+  // editorial list) + every tag in use across the catalog (passed
+  // in by the admin context), minus tags already attached to the
+  // case being edited. Sorted alphabetically — datalist renders
+  // them in the order we hand them over and most browsers also
+  // apply a prefix filter on top, so order is the only knob we
+  // have on what surfaces first. Memoized so the dropdown doesn't
+  // re-allocate on every keystroke.
+  const tagOptions = useMemo<string[]>(() => {
+    const inUse = new Set(form.tags);
+    const universe = new Set<string>([...COMMON_TAGS, ...(tagSuggestions ?? [])]);
+    inUse.forEach((t) => universe.delete(t));
+    return Array.from(universe)
+      .filter((t) => t.length > 0)
+      .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+  }, [form.tags, tagSuggestions]);
   const fileRef = useRef<HTMLInputElement | null>(null);
   // Secondary uploader: appends to `mediaExtra` so the same case can
   // host a sequence of images (e.g. parasternal + apical + subcostal
@@ -369,8 +395,11 @@ export default function CaseForm({
             </div>
 
             <div className="admin-form-fields">
-              <label className="admin-label">Título</label>
+              <label className="admin-label" htmlFor="case-form-title">
+                Título
+              </label>
               <input
+                id="case-form-title"
                 className="admin-input"
                 value={form.title}
                 onChange={(e) => update({ title: e.target.value })}
@@ -436,8 +465,11 @@ export default function CaseForm({
                   here (Apr-2026 simplification + May-2026 backfill,
                   ADR-0010). Reads and writes the canonical
                   `description` field directly. */}
-              <label className="admin-label">Descripción</label>
+              <label className="admin-label" htmlFor="case-form-description">
+                Descripción
+              </label>
               <textarea
+                id="case-form-description"
                 className="admin-input"
                 rows={6}
                 value={description}
@@ -446,17 +478,24 @@ export default function CaseForm({
                 required
               />
 
-              <label className="admin-label">Etiquetas</label>
+              <label className="admin-label" htmlFor="case-form-tag-input">
+                Etiquetas
+              </label>
               <div className="admin-tags-input">
                 {form.tags.map((t) => (
                   <span key={t} className="tag-chip active">
                     {t}{" "}
-                    <button type="button" onClick={() => removeTag(t)}>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(t)}
+                      aria-label={`Quitar etiqueta ${t}`}
+                    >
                       ×
                     </button>
                   </span>
                 ))}
                 <input
+                  id="case-form-tag-input"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -465,9 +504,22 @@ export default function CaseForm({
                       addTag();
                     }
                   }}
+                  // Native datalist autocomplete (see `<datalist>`
+                  // below). Browser handles the prefix filter and the
+                  // dropdown rendering; we just supply the vocabulary.
+                  list="case-form-tag-suggestions"
+                  autoComplete="off"
                   placeholder="Agregar etiqueta + Enter"
                   className="admin-tag-input"
                 />
+                {/* Vocabulary for the input above. Suggestions exclude
+                    tags already attached to this case, so the dropdown
+                    surfaces meaningful candidates. */}
+                <datalist id="case-form-tag-suggestions">
+                  {tagOptions.map((t) => (
+                    <option key={t} value={t} />
+                  ))}
+                </datalist>
               </div>
 
               <label className="admin-checkbox">
