@@ -350,6 +350,109 @@ function AppInner() {
                     }
                   : undefined
               }
+              onBulkPatch={
+                isAdmin
+                  ? async (ids, patch) => {
+                      // Capture the previous values per id BEFORE
+                      // applying so the unified undo can restore each
+                      // card's pre-bulk state. Cards that aren't in
+                      // the merged catalog (deep-linked soft-deleted
+                      // entries) are skipped from the inverse map —
+                      // their forward patch still lands.
+                      const inverses: Array<{ id: string; patch: Partial<CaseRecord> }> = [];
+                      for (const id of ids) {
+                        const before = allCases.find((c) => c.id === id);
+                        if (!before) continue;
+                        inverses.push({
+                          id,
+                          patch: Object.fromEntries(
+                            Object.keys(patch).map((k) => [k, before[k as keyof CaseRecord]]),
+                          ),
+                        });
+                      }
+                      // Fire the forward patches in parallel — they
+                      // all hit local state + the same DB row family
+                      // and the dual-write mirror tolerates the
+                      // out-of-order arrivals at scale.
+                      const results = await Promise.all(ids.map((id) => setOverride(id, patch)));
+                      const okCount = results.filter(Boolean).length;
+                      if (okCount === 0) {
+                        showToast("No se pudo aplicar el cambio");
+                        return;
+                      }
+                      let label: string;
+                      if (patch.section) label = "Sección";
+                      else if (patch.category) label = "Categoría";
+                      else if ("reviewed" in patch)
+                        label = patch.reviewed ? "Revisado" : "Sin revisar";
+                      else label = "Cambio";
+                      showToast(
+                        `${label}: ${okCount} caso${okCount === 1 ? "" : "s"} actualizado${okCount === 1 ? "" : "s"}`,
+                        inverses.length > 0
+                          ? {
+                              undo: () =>
+                                Promise.all(
+                                  inverses.map(({ id, patch: inv }) => setOverride(id, inv)),
+                                ),
+                            }
+                          : undefined,
+                      );
+                    }
+                  : undefined
+              }
+              onBulkSoftDelete={
+                isAdmin
+                  ? async (ids) => {
+                      // Bulk soft-delete: route each id by ownership.
+                      // User-owned cases go through `userCases.remove`
+                      // (real CRUD) so the trash view picks them up;
+                      // seed cases get an override-based deletedAt
+                      // tombstone. The undo loops the inverse for each.
+                      const userOwned = new Set(userCases.live.map((c) => c.id));
+                      const stamp = new Date().toISOString();
+                      const targets: Array<{ id: string; kind: "owned" | "seed" }> = ids.map(
+                        (id) => ({ id, kind: userOwned.has(id) ? "owned" : "seed" }),
+                      );
+                      const results = await Promise.all(
+                        targets.map(async (t) => {
+                          if (t.kind === "owned") {
+                            const c = userCases.live.find((x) => x.id === t.id);
+                            if (!c) return false;
+                            return userCases.remove(c);
+                          }
+                          return setOverride(t.id, {
+                            deletedAt: stamp,
+                            deletedBy: user?.email,
+                          });
+                        }),
+                      );
+                      const okCount = results.filter(Boolean).length;
+                      if (okCount === 0) {
+                        showToast("No se pudo mover a papelera");
+                        return;
+                      }
+                      showToast(
+                        `${okCount} caso${okCount === 1 ? "" : "s"} movido${okCount === 1 ? "" : "s"} a papelera`,
+                        {
+                          undo: () =>
+                            Promise.all(
+                              targets.map((t) => {
+                                if (t.kind === "owned") {
+                                  const c = userCases.trashed.find((x) => x.id === t.id);
+                                  if (!c) return Promise.resolve(false);
+                                  return userCases.restore(c);
+                                }
+                                return setOverride(t.id, {
+                                  deletedAt: undefined,
+                                  deletedBy: undefined,
+                                });
+                              }),
+                            ),
+                        },
+                      );
+                    }
+                  : undefined
+              }
             />
           </ErrorBoundary>
         </main>

@@ -36,6 +36,11 @@ interface Props {
    * through the full edit form.
    */
   onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
+  /** Apply the same patch to many cases at once. Used by the
+   *  classifier's multi-select bulk action bar. */
+  onBulkPatch?: (ids: string[], patch: Partial<CaseRecord>) => void;
+  /** Soft-delete every selected case at once. */
+  onBulkSoftDelete?: (ids: string[]) => void;
   /** Categories list (built-in + custom). Optional — when omitted we
    *  fall back to the built-in `CATEGORIES` so `AdminPanel` still
    *  renders sensibly under tests / older callers. */
@@ -84,6 +89,8 @@ export default function AdminPanel({
   onPurgeImport,
   onNew,
   onPatch,
+  onBulkPatch,
+  onBulkSoftDelete,
   categories,
   categoryCaseCounts,
   onAddCategory,
@@ -159,6 +166,8 @@ export default function AdminPanel({
           cases={allCases}
           categories={resolvedCategories}
           onPatch={onPatch}
+          onBulkPatch={onBulkPatch}
+          onBulkSoftDelete={onBulkSoftDelete}
           onOpenEdit={onEdit}
           onDelete={onDelete}
           onPurge={onPurgeImport}

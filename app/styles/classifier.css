@@ -391,3 +391,200 @@ select.classifier-aux-input {
  * `app/styles/cards.css > .admin-thumb-menu-*`. Their styles live
  * there now and are shared between CaseCard and ClassifierBoard so
  * the admin chrome looks identical across both grids. */
+
+/* =================== MULTI-SELECT =================== */
+/*
+ * The classifier supports bulk reclassify / mark-reviewed / soft-
+ * delete via a per-card checkbox + a bottom-fixed action bar.
+ *
+ * Selection visual rhythm:
+ *   - Resting card has a subtle box on the top-left, low opacity.
+ *   - On hover the box brightens (the affordance announces itself).
+ *   - On `.is-selected` the card grows a 2px accent ring + a faint
+ *     section-accent tint and the box fills.
+ */
+.classifier-card-select {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  z-index: 3;
+  opacity: 0.45;
+  transition: opacity var(--duration-fast) ease;
+}
+.classifier-card:hover .classifier-card-select,
+.classifier-card.is-selected .classifier-card-select {
+  opacity: 1;
+}
+.classifier-card-select-box {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ink-mute);
+  background: oklch(1 0 0 / 0.85);
+  display: grid;
+  place-items: center;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.classifier-card-select:hover .classifier-card-select-box {
+  border-color: var(--ink);
+}
+.classifier-card.is-selected .classifier-card-select-box {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.classifier-card.is-selected .classifier-card-select-box::after {
+  content: "✓";
+  color: var(--bg);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+}
+.classifier-card.is-selected {
+  border-color: var(--accent-ink);
+  box-shadow:
+    var(--shadow-1),
+    0 0 0 2px var(--accent-ink);
+  background: color-mix(in oklch, var(--accent) 4%, var(--surface));
+}
+
+/* =================== BULK ACTION BAR =================== */
+/*
+ * Floats at the bottom-center of the viewport while the selection
+ * set is non-empty. Sits above the page noise + the section-accent
+ * scrollbars, below modals and toasts (so an undo toast lands on
+ * top after a bulk apply). The pill carries:
+ *   - counter on the left
+ *   - action cluster in the middle (review / move / soft-delete)
+ *   - "Limpiar" on the right
+ */
+.classifier-bulk {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-sticky);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-2);
+  font-family: var(--sans);
+  font-size: 13px;
+  animation: toastIn var(--duration-slow) var(--ease-emphasized);
+  max-width: calc(100vw - 32px);
+}
+.classifier-bulk-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+}
+.classifier-bulk-count strong {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0;
+  font-weight: 600;
+  margin-right: 4px;
+}
+.classifier-bulk-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-left: 1px solid color-mix(in oklch, var(--bg) 20%, transparent);
+  padding-left: var(--space-3);
+}
+.classifier-bulk-btn {
+  background: transparent;
+  border: 1px solid color-mix(in oklch, var(--bg) 30%, transparent);
+  color: var(--bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.classifier-bulk-btn:hover {
+  background: color-mix(in oklch, var(--bg) 14%, transparent);
+  border-color: color-mix(in oklch, var(--bg) 60%, transparent);
+}
+.classifier-bulk-btn--danger:hover {
+  background: color-mix(in oklch, var(--crit) 70%, transparent);
+  border-color: var(--crit);
+}
+.classifier-bulk-select select {
+  background: transparent;
+  border: 1px solid color-mix(in oklch, var(--bg) 30%, transparent);
+  color: var(--bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  /* Tiny chevron baked into the right side. Saves the dropdown
+     from feeling like an unstyled native control inside the dark
+     pill. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 9px) 50%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 26px;
+}
+.classifier-bulk-select select:hover {
+  background-color: color-mix(in oklch, var(--bg) 14%, transparent);
+}
+.classifier-bulk-select select option {
+  /* Native option list in the OS color scheme — let the browser
+     decide. Forcing dark on options breaks Windows / Linux. */
+  color: var(--ink);
+  background: var(--surface);
+}
+.classifier-bulk-clear {
+  background: transparent;
+  border: none;
+  color: color-mix(in oklch, var(--bg) 75%, transparent);
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-left: 1px solid color-mix(in oklch, var(--bg) 20%, transparent);
+  padding-left: var(--space-3);
+  transition: color var(--duration-fast) ease;
+}
+.classifier-bulk-clear:hover {
+  color: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classifier-bulk {
+    animation: none;
+  }
+}

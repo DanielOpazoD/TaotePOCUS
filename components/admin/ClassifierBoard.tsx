@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
@@ -42,6 +42,16 @@ interface Props {
    *  confirm dialog at the App level. Distinct from `onDelete`:
    *  this removes metadata + the blob, the case never reappears. */
   onPurge?: (caso: CaseRecord) => void;
+  /** Apply the same patch to many cases at once. Skips the
+   *  per-card confirm; the parent shows a single undo toast that
+   *  reverses every change as a unit. Optional — when absent, the
+   *  multi-select bar hides reclassify / review affordances. */
+  onBulkPatch?: (ids: string[], patch: Partial<CaseRecord>) => void;
+  /** Soft-delete every selected case at once. Skips the per-card
+   *  confirm dialog (the bulk gesture itself + the undo toast are
+   *  the safety net). Optional — when absent, "Mover a papelera"
+   *  hides from the bulk bar. */
+  onBulkSoftDelete?: (ids: string[]) => void;
 }
 
 type Filter = "all" | "unclassified" | "unreviewed";
@@ -69,6 +79,8 @@ export default function ClassifierBoard({
   onOpenEdit,
   onDelete,
   onPurge,
+  onBulkPatch,
+  onBulkSoftDelete,
 }: Props) {
   const [filter, setFilter] = useState<Filter>("unclassified");
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +88,12 @@ export default function ClassifierBoard({
   const [categoryFilter, setCategoryFilter] = useState<string>(ANY);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [hoverTarget, setHoverTarget] = useState<string | null>(null);
+  // Multi-select state. The classifier shows ~330 cards; bulk
+  // reclassify is the actual workflow when the import lands. We
+  // track selected ids in a Set; the active row index lets
+  // shift+click extend a range from the last toggled card.
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [lastToggledId, setLastToggledId] = useState<string | null>(null);
 
   // Compose all four filters with AND. The classification-state pill
   // (Sin clasificar / Sin revisar / Todos) is the coarsest cut; the
@@ -129,6 +147,79 @@ export default function ClassifierBoard({
     setSectionFilter(ANY);
     setCategoryFilter(ANY);
   };
+
+  // ─── Multi-select helpers ──────────────────────────────────────
+  // `toggleSelected` is the single seam — checkbox click and
+  // ⌘/Ctrl+click on the card both go through it. Shift+click
+  // extends a range from the last toggled id over the current
+  // visible queue (the in-DOM order, which matches the user's
+  // mental model after filters and sorts apply).
+  const clearSelection = () => {
+    setSelected(new Set());
+    setLastToggledId(null);
+  };
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setLastToggledId(id);
+  };
+  const extendSelectionTo = (id: string) => {
+    if (!lastToggledId || lastToggledId === id) {
+      toggleSelected(id);
+      return;
+    }
+    const startIdx = visible.findIndex((c) => c.id === lastToggledId);
+    const endIdx = visible.findIndex((c) => c.id === id);
+    if (startIdx === -1 || endIdx === -1) {
+      toggleSelected(id);
+      return;
+    }
+    const [from, to] = startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (let i = from; i <= to; i++) {
+        const c = visible[i];
+        if (c) next.add(c.id);
+      }
+      return next;
+    });
+    setLastToggledId(id);
+  };
+
+  // Esc clears selection. Bound at the document level rather than
+  // on the grid so the shortcut works regardless of where focus
+  // lives — typical admin flow is "click a checkbox, ⇧-click another,
+  // Esc to bail" without ever giving the grid focus.
+  useEffect(() => {
+    if (selected.size === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        clearSelection();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected.size]);
+
+  // Drop the selection whenever the visible queue's identity set
+  // changes substantially (filter/search change). Otherwise a
+  // selection from "Sin clasificar" survives a switch to "Todos"
+  // and the bulk bar reports counts the user can no longer see.
+  useEffect(() => {
+    if (selected.size === 0) return;
+    const visibleIds = new Set(visible.map((c) => c.id));
+    const stillVisible = Array.from(selected).filter((id) => visibleIds.has(id));
+    if (stillVisible.length !== selected.size) {
+      setSelected(new Set(stillVisible));
+      if (lastToggledId && !visibleIds.has(lastToggledId)) setLastToggledId(null);
+    }
+    // The selection set is the dependency we care about; `visible`
+    // identity changing is the trigger for filtering it.
+  }, [visible, selected, lastToggledId]);
 
   const handleDrop = (kind: "section" | "category", id: string) => {
     if (!draggedId) return;
@@ -284,7 +375,7 @@ export default function ClassifierBoard({
               key={c.id}
               className={`classifier-card${draggedId === c.id ? " is-dragging" : ""}${
                 c.reviewed ? " is-reviewed" : ""
-              }`}
+              }${selected.has(c.id) ? " is-selected" : ""}`}
               draggable
               onDragStart={(e) => {
                 setDraggedId(c.id);
@@ -303,11 +394,43 @@ export default function ClassifierBoard({
                 setHoverTarget(null);
               }}
             >
+              {/* Selection checkbox. Always rendered (low opacity at
+                  rest, full opacity when selected or on card hover via
+                  CSS). Clicking it toggles inclusion in the multi-
+                  select set; ⇧ extends a range from the last toggled
+                  card. The button stops propagation so the click
+                  doesn't bubble to the card body. */}
+              <button
+                type="button"
+                className="classifier-card-select"
+                role="checkbox"
+                aria-checked={selected.has(c.id)}
+                aria-label={`Seleccionar ${c.title}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (e.shiftKey) extendSelectionTo(c.id);
+                  else toggleSelected(c.id);
+                }}
+              >
+                <span className="classifier-card-select-box" aria-hidden="true" />
+              </button>
               <button
                 type="button"
                 className="classifier-thumb"
-                onClick={() => onOpenEdit(c)}
-                title="Click para editar en detalle"
+                onClick={(e) => {
+                  // ⌘/Ctrl-click anywhere on the thumb toggles
+                  // selection instead of opening the editor — gives
+                  // the admin a fast keyboard-augmented multi-select
+                  // without having to chase the small corner checkbox.
+                  if (e.metaKey || e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.shiftKey) extendSelectionTo(c.id);
+                    else toggleSelected(c.id);
+                    return;
+                  }
+                  onOpenEdit(c);
+                }}
+                title="Click para editar · ⌘/Ctrl+click para seleccionar"
                 aria-label={`Editar ${c.title}`}
               >
                 <CineLoop
@@ -357,6 +480,18 @@ export default function ClassifierBoard({
         </div>
       )}
 
+      {selected.size > 0 && (
+        <BulkActionBar
+          count={selected.size}
+          ids={Array.from(selected)}
+          categories={categories}
+          onClear={clearSelection}
+          onBulkPatch={onBulkPatch}
+          onBulkSoftDelete={onBulkSoftDelete}
+          afterAction={clearSelection}
+        />
+      )}
+
       {draggedId &&
         (() => {
           // Compose the floating hint shown at the bottom of the
@@ -391,6 +526,146 @@ export default function ClassifierBoard({
             </div>
           );
         })()}
+    </div>
+  );
+}
+
+// ─── Bulk action bar ─────────────────────────────────────────────
+// Bottom-fixed pill that surfaces when the multi-select set is
+// non-empty. Lives in this file because it's tightly coupled to
+// the classifier's selection state — the bar is the only consumer
+// of `onBulkPatch` / `onBulkSoftDelete`. Pulling it into its own
+// file would invert the dependency direction without simplifying
+// either side.
+//
+// Affordances (left → right):
+//   - Counter ("12 seleccionados")
+//   - "Marcar revisado" / "Quitar revisado" (depending on whether
+//     all selected are already reviewed)
+//   - Section dropdown (apply to all)
+//   - Category dropdown (apply to all)
+//   - Soft-delete (single click — the bulk gesture + the undo
+//     toast are the safety net, no per-card confirm dialog)
+//   - "Limpiar"
+//
+// Bulk PURGE is intentionally absent — irreversible by design,
+// the per-card confirm dialog stays the only path. Bulk-purging 50
+// cases by mistake is the kind of slip we don't want to make easy.
+function BulkActionBar({
+  count,
+  ids,
+  categories,
+  onClear,
+  onBulkPatch,
+  onBulkSoftDelete,
+  afterAction,
+}: {
+  count: number;
+  ids: string[];
+  categories: Category[];
+  onClear: () => void;
+  onBulkPatch?: (ids: string[], patch: Partial<CaseRecord>) => void;
+  onBulkSoftDelete?: (ids: string[]) => void;
+  /** Called after any successful bulk operation. Used by the parent
+   *  to reset the selection set so the bar collapses cleanly. */
+  afterAction: () => void;
+}) {
+  const ANY_TARGET = "__pick__";
+  const [sectionTarget, setSectionTarget] = useState<string>(ANY_TARGET);
+  const [categoryTarget, setCategoryTarget] = useState<string>(ANY_TARGET);
+
+  const apply = (patch: Partial<CaseRecord>) => {
+    if (!onBulkPatch) return;
+    onBulkPatch(ids, patch);
+    afterAction();
+  };
+
+  return (
+    <div className="classifier-bulk" role="region" aria-label="Acciones en lote">
+      <div className="classifier-bulk-count">
+        <strong>{count}</strong> seleccionado{count === 1 ? "" : "s"}
+      </div>
+      <div className="classifier-bulk-actions">
+        {onBulkPatch && (
+          <>
+            <button
+              type="button"
+              className="classifier-bulk-btn"
+              onClick={() => apply({ reviewed: true })}
+              title="Marcar todos como revisados"
+            >
+              ✓ Marcar revisado
+            </button>
+            <button
+              type="button"
+              className="classifier-bulk-btn"
+              onClick={() => apply({ reviewed: false })}
+              title="Quitar marca de revisado a todos"
+            >
+              Quitar revisado
+            </button>
+            <label className="classifier-bulk-select">
+              <span className="sr-only">Mover sección a</span>
+              <select
+                value={sectionTarget}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === ANY_TARGET) return;
+                  apply({ section: v as SectionId });
+                  setSectionTarget(ANY_TARGET);
+                }}
+              >
+                <option value={ANY_TARGET}>Mover sección…</option>
+                {SECTIONS.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="classifier-bulk-select">
+              <span className="sr-only">Mover categoría a</span>
+              <select
+                value={categoryTarget}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === ANY_TARGET) return;
+                  apply({ category: v });
+                  setCategoryTarget(ANY_TARGET);
+                }}
+              >
+                <option value={ANY_TARGET}>Mover categoría…</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+        {onBulkSoftDelete && (
+          <button
+            type="button"
+            className="classifier-bulk-btn classifier-bulk-btn--danger"
+            onClick={() => {
+              onBulkSoftDelete(ids);
+              afterAction();
+            }}
+            title="Mover los seleccionados a la papelera"
+          >
+            🗑 Mover a papelera
+          </button>
+        )}
+      </div>
+      <button
+        type="button"
+        className="classifier-bulk-clear"
+        onClick={onClear}
+        title="Limpiar selección · Esc"
+      >
+        Limpiar
+      </button>
     </div>
   );
 }

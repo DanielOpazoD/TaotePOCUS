@@ -82,6 +82,14 @@ interface Props {
   /** Apply a partial override to a case — used by the AdminPanel's
    *  bulk classifier (drag a thumbnail onto a section/category). */
   onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
+  /** Apply the same patch to many cases at once. Used by the
+   *  classifier's multi-select bulk bar; the parent shows a single
+   *  undo toast that reverses every change as a unit. */
+  onBulkPatch?: (ids: string[], patch: Partial<CaseRecord>) => void;
+  /** Soft-delete every selected case at once. Used by the
+   *  classifier's bulk bar. Skips the per-card confirm; the parent
+   *  shows a unified undo toast. */
+  onBulkSoftDelete?: (ids: string[]) => void;
 }
 
 /**
@@ -135,6 +143,8 @@ export default function MainGrid({
   onClearFilters,
   onExploreAtlas,
   onPatch,
+  onBulkPatch,
+  onBulkSoftDelete,
 }: Props) {
   if (view.kind === "admin" && isAdmin) {
     return (
@@ -161,6 +171,8 @@ export default function MainGrid({
         onPurgeImport={onPurgeImport}
         onNew={onNew}
         onPatch={onPatch}
+        onBulkPatch={onBulkPatch}
+        onBulkSoftDelete={onBulkSoftDelete}
       />
     );
   }

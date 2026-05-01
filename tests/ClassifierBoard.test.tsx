@@ -154,3 +154,117 @@ describe("ClassifierBoard drop handling", () => {
     expect(patch.tags).not.toContain("Sin clasificar");
   });
 });
+
+describe("ClassifierBoard multi-select + bulk", () => {
+  // Toggle helper: click the per-card checkbox by its accessible name.
+  function clickCheckbox(title: string, options?: { shiftKey?: boolean }) {
+    const cb = screen.getByLabelText(`Seleccionar ${title}`);
+    fireEvent.click(cb, { shiftKey: options?.shiftKey ?? false });
+  }
+
+  it("clicking a card checkbox surfaces the bulk action bar with a counter", () => {
+    const cases = [
+      caseFactory({ id: "c1", title: "Uno", tags: ["Sin clasificar"] }),
+      caseFactory({ id: "c2", title: "Dos", tags: ["Sin clasificar"] }),
+      caseFactory({ id: "c3", title: "Tres", tags: ["Sin clasificar"] }),
+    ];
+    render(
+      <ClassifierBoard
+        cases={cases}
+        onPatch={vi.fn()}
+        onOpenEdit={vi.fn()}
+        onBulkPatch={vi.fn()}
+        onBulkSoftDelete={vi.fn()}
+      />,
+    );
+    expect(screen.queryByRole("region", { name: /Acciones en lote/ })).toBeNull();
+    clickCheckbox("Uno");
+    clickCheckbox("Dos");
+    const bar = screen.getByRole("region", { name: /Acciones en lote/ });
+    expect(bar).toBeTruthy();
+    expect(bar.textContent).toMatch(/2/);
+    expect(bar.textContent).toMatch(/seleccionados/);
+  });
+
+  it("the section dropdown applies a bulk patch and clears the selection", () => {
+    const onBulkPatch = vi.fn();
+    const cases = [
+      caseFactory({ id: "c1", title: "Uno", tags: ["Sin clasificar"] }),
+      caseFactory({ id: "c2", title: "Dos", tags: ["Sin clasificar"] }),
+    ];
+    render(
+      <ClassifierBoard
+        cases={cases}
+        onPatch={vi.fn()}
+        onOpenEdit={vi.fn()}
+        onBulkPatch={onBulkPatch}
+      />,
+    );
+    clickCheckbox("Uno");
+    clickCheckbox("Dos");
+    const sectionPicker = screen.getByLabelText(/Mover sección a/) as HTMLSelectElement;
+    fireEvent.change(sectionPicker, { target: { value: "ecg" } });
+    expect(onBulkPatch).toHaveBeenCalledTimes(1);
+    const [ids, patch] = onBulkPatch.mock.calls[0]!;
+    expect(new Set(ids)).toEqual(new Set(["c1", "c2"]));
+    expect(patch).toEqual({ section: "ecg" });
+    // Selection clears after a bulk apply, so the bar collapses.
+    expect(screen.queryByRole("region", { name: /Acciones en lote/ })).toBeNull();
+  });
+
+  it("the 'Mover a papelera' button calls onBulkSoftDelete with all selected ids", () => {
+    const onBulkSoftDelete = vi.fn();
+    const cases = [
+      caseFactory({ id: "c1", title: "Uno", tags: ["Sin clasificar"] }),
+      caseFactory({ id: "c2", title: "Dos", tags: ["Sin clasificar"] }),
+    ];
+    render(
+      <ClassifierBoard
+        cases={cases}
+        onPatch={vi.fn()}
+        onOpenEdit={vi.fn()}
+        onBulkSoftDelete={onBulkSoftDelete}
+      />,
+    );
+    clickCheckbox("Uno");
+    clickCheckbox("Dos");
+    fireEvent.click(screen.getByRole("button", { name: /Mover a papelera/ }));
+    expect(onBulkSoftDelete).toHaveBeenCalledTimes(1);
+    expect(new Set(onBulkSoftDelete.mock.calls[0]?.[0])).toEqual(new Set(["c1", "c2"]));
+  });
+
+  it("'Limpiar' empties the selection and hides the bar", () => {
+    const cases = [caseFactory({ id: "c1", title: "Uno", tags: ["Sin clasificar"] })];
+    render(
+      <ClassifierBoard
+        cases={cases}
+        onPatch={vi.fn()}
+        onOpenEdit={vi.fn()}
+        onBulkPatch={vi.fn()}
+      />,
+    );
+    clickCheckbox("Uno");
+    expect(screen.queryByRole("region", { name: /Acciones en lote/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /^Limpiar$/ }));
+    expect(screen.queryByRole("region", { name: /Acciones en lote/ })).toBeNull();
+  });
+
+  it("hides the reclassify affordances when onBulkPatch is omitted", () => {
+    // Only soft-delete is wired → the section/category dropdowns and
+    // review buttons should not render. Keeps the bar honest about
+    // what's actually possible.
+    const cases = [caseFactory({ id: "c1", title: "Uno", tags: ["Sin clasificar"] })];
+    render(
+      <ClassifierBoard
+        cases={cases}
+        onPatch={vi.fn()}
+        onOpenEdit={vi.fn()}
+        onBulkSoftDelete={vi.fn()}
+      />,
+    );
+    clickCheckbox("Uno");
+    expect(screen.queryByLabelText(/Mover sección a/)).toBeNull();
+    expect(screen.queryByLabelText(/Mover categoría a/)).toBeNull();
+    expect(screen.getByRole("button", { name: /Mover a papelera/ })).toBeTruthy();
+  });
+});
