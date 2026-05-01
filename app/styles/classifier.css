@@ -304,8 +304,10 @@ select.classifier-aux-input {
 }
 .classifier-card:hover {
   border-color: var(--ink-mute);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-2);
+  transform: translateY(var(--hover-lift));
+  /* Soft single shadow on hover (was a 3-layer stack). The card
+     still cues "I'm interactive" without the Material drop. */
+  box-shadow: var(--shadow-1);
 }
 .classifier-card.is-dragging {
   opacity: 0.45;

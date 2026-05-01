@@ -42,10 +42,10 @@
   padding: 0;
   text-align: left;
   font-family: inherit;
-  transition: transform 0.18s ease;
+  transition: transform var(--duration-base) var(--ease-standard);
 }
 .featured-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(var(--hover-lift));
 }
 .featured-card:focus-visible {
   outline: 2px solid var(--accent);
@@ -267,12 +267,14 @@
   flex-direction: column;
   gap: var(--space-3);
   cursor: pointer;
-  /* Spring overshoot on the lift — the card "rebotes" subtly at the
-     top of its travel, the way Apple cards do. The shadow transition
-     stays on a calm cubic ease so the depth doesn't bounce too. */
+  /* Hover treatment is intentionally quiet — a 1px lift on a calm
+     cubic ease, no spring overshoot. The previous design used the
+     spring on every card, which read as fussy at scale (~330 cards
+     per page). The "alive" moment is reserved for the heart burst
+     in `.case-thumb-fav.is-bursting`. */
   transition:
-    transform 0.4s var(--ease-spring),
-    box-shadow 0.18s ease;
+    transform var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) ease;
   background: transparent;
   border: none;
   padding: 0;
@@ -383,7 +385,7 @@
   }
 }
 .case-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(var(--hover-lift));
 }
 @media (prefers-reduced-motion: reduce) {
   .case-card {
@@ -394,9 +396,10 @@
   }
 }
 .case-card:hover .case-thumb {
-  /* Card lift: layered shadow simulating natural light falloff,
-     not a single drop. Each layer adds a different distance. */
-  box-shadow: var(--shadow-2);
+  /* Single soft shadow on hover — was a 3-layer stack. The added
+     light gives a subtle lift cue against the page; we don't need
+     to simulate physical light falloff at this scale. */
+  box-shadow: var(--shadow-1);
 }
 .case-card:hover .case-thumb-overlay {
   opacity: 1;
@@ -411,17 +414,20 @@
   background: oklch(0.05 0 0);
   border-radius: var(--radius-sm);
   overflow: hidden;
-  /* Resting state: hairline contact shadow so even un-hovered cards
-     feel like they sit on the page rather than being printed on it.
-     Hover swaps to --shadow-2 above for the lift. */
-  box-shadow: var(--shadow-1);
+  /* Resting state: NO shadow. The thumbnail's dark fill against
+     the page already reads as content; an extra contact shadow
+     was Material-era ornament. The hairline page rhythm carries
+     the structure, the hover state adds the lift cue. */
   transition: box-shadow var(--duration-base);
 }
 .case-thumb-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 50%, var(--overlay-soft) 100%);
-  opacity: 0.85;
+  /* Lighter gradient — was 0.85 opacity at the bottom, now 0.6
+     via `--overlay-soft`. The thumbnails read more as photographic
+     content and less as "card-with-vignette". */
+  background: linear-gradient(180deg, transparent 60%, var(--overlay-soft) 100%);
+  opacity: 0.6;
   pointer-events: none;
   transition: opacity var(--duration-base);
 }

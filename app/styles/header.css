@@ -19,15 +19,17 @@
     box-shadow var(--duration-base) ease;
 }
 
-/* Scrolled state: frosted glass. The page content shows through with
-   a 12px gaussian blur and a slight saturation bump so colors stay
-   alive. A hairline separator + a 1-layer soft drop shadow give the
-   bar physical weight ("hovering above the page"). This is the
-   moment that reads as "app de 2024". */
+/* Scrolled state: frosted glass. Page content shows through with
+   a soft blur. The previous `saturate(1.4)` pumped the colors
+   underneath into "Instagram filter" territory; current minimalist
+   chrome (Apple, Linear, Vercel) lands closer to 1.05–1.10 — just
+   enough to keep colors alive without making them shout. Blur
+   stays at 12px, plenty for the frosted feel. A hairline separator
+   gives the bar physical weight without a drop shadow. */
 .app-header.is-scrolled {
   background: var(--bg-translucent);
-  backdrop-filter: saturate(1.4) blur(14px);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.08) blur(12px);
+  -webkit-backdrop-filter: saturate(1.08) blur(12px);
   border-bottom-color: var(--hairline);
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--ink) 4%, transparent);
 }

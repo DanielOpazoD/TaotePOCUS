@@ -63,14 +63,25 @@ dialog.case-modal-host[open] {
   max-width: var(--max-modal);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  /* Float shadow — four-layer natural light. The dialog reads as
-     elevated above the page rather than glued to a single drop. */
-  box-shadow: var(--shadow-3);
+  /* Single sharp contact + a soft float. The previous 4-layer
+     stack was simulating physical light falloff under the dialog —
+     elegant but loud. With the backdrop already darkening behind,
+     two stops are enough to lift the dialog cleanly. */
+  box-shadow:
+    0 1px 2px oklch(0.198 0.005 254 / 0.06),
+    0 24px 48px -12px oklch(0.198 0.005 254 / 0.18);
   /* Scale-in feels more "expand from origin" than the old slide-up,
      and pairs better with the dialog's center-of-viewport position. */
   animation: modal-scale-in var(--duration-slow) var(--ease-standard);
   transform-origin: center center;
   margin: auto 0;
+}
+[data-theme="dark"] .modal {
+  /* Dark-mode equivalent: the contact stop reads as deeper ink
+     since the surface is already dark. */
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 24px 48px -12px oklch(0 0 0 / 0.6);
 }
 @keyframes modal-scale-in {
   from {
