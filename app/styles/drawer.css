@@ -81,8 +81,8 @@
   color: var(--bg);
 }
 .drawer-nav a.active .fav-count {
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
+  background: oklch(1 0 0 / 0.18);
+  color: oklch(1 0 0);
 }
 .drawer-actions {
   border-top: 1px solid var(--hairline);

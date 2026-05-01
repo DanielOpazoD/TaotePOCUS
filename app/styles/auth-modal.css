@@ -98,7 +98,7 @@
 }
 .btn-danger {
   background: var(--crit);
-  color: white;
+  color: oklch(1 0 0);
   border: 1px solid var(--crit);
   border-radius: var(--radius-lg);
   font-size: 14px;

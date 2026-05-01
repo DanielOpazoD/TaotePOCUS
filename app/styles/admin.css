@@ -201,7 +201,7 @@ textarea.admin-input {
   height: 32px;
   object-fit: cover;
   border-radius: var(--radius-sm);
-  background: #000;
+  background: oklch(0 0 0);
   flex: 0 0 auto;
 }
 .admin-media-extra-name {
@@ -427,9 +427,9 @@ textarea.admin-input {
 .admin-thumb {
   width: 56px;
   height: 56px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #000;
+  background: oklch(0 0 0);
 }
 .admin-thumb img,
 .admin-thumb video {

@@ -2,11 +2,11 @@
 .presentation {
   position: fixed;
   inset: 0;
-  background: #000;
+  background: oklch(0 0 0);
   z-index: var(--z-presentation);
   display: grid;
   grid-template-rows: auto 1fr auto auto;
-  color: rgba(255, 255, 255, 0.9);
+  color: oklch(1 0 0 / 0.9);
   font-family: var(--sans);
   animation: fadeIn 0.18s ease;
 }
@@ -20,20 +20,20 @@
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.6);
+  color: oklch(1 0 0 / 0.6);
   display: flex;
   align-items: center;
   gap: 10px;
 }
 .presentation-counter .num {
-  color: white;
+  color: oklch(1 0 0);
   font-weight: 500;
 }
 .presentation-counter .total {
-  color: rgba(255, 255, 255, 0.5);
+  color: oklch(1 0 0 / 0.5);
 }
 .presentation-counter .sep {
-  color: rgba(255, 255, 255, 0.3);
+  color: oklch(1 0 0 / 0.3);
 }
 .presentation-counter .cat {
   text-transform: uppercase;
@@ -42,9 +42,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: white;
+  background: oklch(1 0 0 / 0.06);
+  border: 1px solid oklch(1 0 0 / 0.12);
+  color: oklch(1 0 0);
   padding: 8px 14px;
   border-radius: var(--radius-pill);
   font-size: 13px;
@@ -53,7 +53,7 @@
   transition: all 0.15s;
 }
 .presentation-exit:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: oklch(1 0 0 / 0.12);
 }
 .presentation-exit svg {
   width: 14px;
@@ -72,22 +72,22 @@
   margin: 0 auto;
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 32px 80px -24px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 32px 80px -24px oklch(0 0 0 / 0.7);
 }
 .presentation-nav {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: white;
+  background: oklch(1 0 0 / 0.06);
+  border: 1px solid oklch(1 0 0 / 0.12);
+  color: oklch(1 0 0);
   display: grid;
   place-items: center;
   cursor: pointer;
   transition: all 0.15s;
 }
 .presentation-nav:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: oklch(1 0 0 / 0.14);
   transform: scale(1.05);
 }
 .presentation-nav svg {
@@ -108,11 +108,11 @@
   letter-spacing: -0.02em;
   line-height: 1.15;
   margin: 0 0 12px;
-  color: white;
+  color: oklch(1 0 0);
 }
 .presentation-findings {
   margin: 0 0 16px;
-  color: rgba(255, 255, 255, 0.72);
+  color: oklch(1 0 0 / 0.72);
   font-size: 15px;
   line-height: 1.55;
   max-width: 720px;
@@ -124,7 +124,7 @@
   padding: 14px 20px;
   background: rgba(120, 200, 255, 0.08);
   border-left: 2px solid rgba(120, 200, 255, 0.6);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -142,14 +142,14 @@
   font-family: var(--serif);
   font-size: 18px;
   font-weight: 500;
-  color: white;
+  color: oklch(1 0 0);
 }
 .presentation-reveal {
   margin-top: var(--space-2);
   padding: 10px 18px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid oklch(1 0 0 / 0.25);
+  color: oklch(1 0 0 / 0.85);
   border-radius: var(--radius-pill);
   font-size: 13px;
   font-weight: 500;
@@ -158,28 +158,28 @@
   font-family: inherit;
 }
 .presentation-reveal:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: white;
+  background: oklch(1 0 0 / 0.1);
+  border-color: oklch(1 0 0 / 0.5);
+  color: oklch(1 0 0);
 }
 
 .presentation-help {
   text-align: center;
   padding: 18px 32px 22px;
-  color: rgba(255, 255, 255, 0.45);
+  color: oklch(1 0 0 / 0.45);
   font-size: 11.5px;
   font-family: var(--mono);
   letter-spacing: 0.04em;
 }
 .presentation-help kbd {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: oklch(1 0 0 / 0.08);
+  border: 1px solid oklch(1 0 0 / 0.16);
   border-radius: var(--radius-sm);
   padding: 1px 6px;
   font-size: 11px;
   margin: 0 2px;
-  color: rgba(255, 255, 255, 0.85);
+  color: oklch(1 0 0 / 0.85);
 }
 
 @media (max-width: 880px) {

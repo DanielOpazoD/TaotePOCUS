@@ -41,12 +41,12 @@
   }
 }
 .header-inner {
-  max-width: 1480px;
+  max-width: var(--max-page);
   margin: 0 auto;
-  padding: 16px 32px;
+  padding: var(--space-4) var(--space-8);
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: var(--space-6);
 }
 .brand {
   display: flex;
@@ -285,7 +285,7 @@
 }
 .header-search input:focus {
   border-color: var(--ink-mute);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--focus-ring);
 }
 .header-search svg {
   position: absolute;
@@ -371,10 +371,10 @@
 
 .fav-count {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-small);
   background: var(--accent-soft);
   color: var(--accent-ink);
   padding: 2px 6px;
-  border-radius: 10px;
+  border-radius: var(--radius-pill);
   font-weight: 500;
 }

@@ -110,11 +110,36 @@
   --duration-slow: 0.25s;
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.4, 0, 0.2, 1);
-  /* Spring (overshoot). Used for hover lifts and the magnetic nav
-     indicator — gives a subtle Apple-style rebound at the end of the
-     motion. Don't use for everything; reserve for moments that should
-     feel "alive". */
+  /* Spring (overshoot). Reserved for "alive" moments — the heart
+     burst on favoriting, primarily. Hover lifts use the standard
+     ease since May-2026 (the spring across every card hover read as
+     fussy at scale). Pick spring deliberately, not by default. */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ─── Interaction tokens ─────────────────────────────────────
+   *
+   * Two cross-cutting concerns that recur across components.
+   * Tokenizing them means a future tweak ("focus rings should be
+   * a touch tighter") is one edit, not a grep.
+   *
+   * `--focus-ring` is the box-shadow applied to focus-visible on
+   * inputs, buttons, and any custom interactive surface. 8% ink
+   * mixed in OKLCH stays perceptually flat in dark mode where a
+   * raw rgba would gray-out.
+   *
+   * `--hover-lift` is the translateY value for card / chip hover.
+   * Single source so the whole UI lifts the same amount — used to
+   * be -1/-2/-3px scattered. */
+  --focus-ring: 0 0 0 3px color-mix(in oklch, var(--ink) 8%, transparent);
+  --hover-lift: -1px;
+
+  /* ─── Translucent overlays ───────────────────────────────────
+   *
+   * The thumb hover gradient and the modal backdrop both need a
+   * dark, semi-transparent veil. Tokenize so dark mode doesn't
+   * have to override two raw rgba() values per surface. */
+  --overlay-soft: oklch(0.15 0.005 254 / 0.6); /* thumb gradient bottom */
+  --overlay-strong: oklch(0.15 0.005 254 / 0.55); /* modal backdrop */
 
   /* Z-index scale. Avoid raw numbers; pick from this scale. */
   --z-sticky: 50;
@@ -161,6 +186,12 @@
     oklch(0.27 0.006 254) 50%,
     oklch(0.22 0.006 254) 100%
   );
+
+  /* In dark mode the backdrop sits over already-dark surfaces, so
+     it needs to push *darker* than the page (true black-ish) to
+     read as a veil. Keeping the same 0.55–0.6 alphas as light. */
+  --overlay-soft: oklch(0 0 0 / 0.6);
+  --overlay-strong: oklch(0 0 0 / 0.55);
 }
 
 /* Single source of truth for the dark theme is [data-theme="dark"] above.

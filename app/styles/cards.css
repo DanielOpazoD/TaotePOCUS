@@ -53,7 +53,7 @@
 }
 .featured-thumb {
   position: relative;
-  background: #0a0a0a;
+  background: oklch(0.05 0 0);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition:
@@ -404,34 +404,38 @@
 .case-thumb {
   position: relative;
   aspect-ratio: 1/1;
-  background: #0a0a0a;
-  border-radius: 4px;
+  /* Cine media (canvas / video / img) renders against deep ink.
+     Tokenized as the deepest dark-mode value so the thumb works
+     identically in both themes (the media doesn't care about the
+     surrounding theme). */
+  background: oklch(0.05 0 0);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   /* Resting state: hairline contact shadow so even un-hovered cards
      feel like they sit on the page rather than being printed on it.
      Hover swaps to --shadow-2 above for the lift. */
   box-shadow: var(--shadow-1);
-  transition: box-shadow 0.18s;
+  transition: box-shadow var(--duration-base);
 }
 .case-thumb-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.6) 100%);
+  background: linear-gradient(180deg, transparent 50%, var(--overlay-soft) 100%);
   opacity: 0.85;
   pointer-events: none;
-  transition: opacity 0.18s;
+  transition: opacity var(--duration-base);
 }
 .case-thumb-preview {
   position: absolute;
   inset: auto 0 0 0;
-  padding: 14px 14px 14px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 60%);
-  color: rgba(255, 255, 255, 0.95);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: linear-gradient(180deg, transparent 0%, oklch(0.05 0 0 / 0.85) 60%);
+  color: oklch(1 0 0 / 0.95);
   opacity: 0;
   transform: translateY(8px);
   transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
+    opacity var(--duration-base) ease,
+    transform var(--duration-base) ease;
   pointer-events: none;
   z-index: 2;
 }
@@ -459,24 +463,24 @@
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.85);
+  color: oklch(1 0 0 / 0.85);
   text-transform: uppercase;
 }
 .case-thumb-fav {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: var(--space-2);
+  right: var(--space-2);
   /* 44×44 keeps Apple's recommended touch target on mobile while we
      visually still see a 32px circle (the icon stays smaller). */
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.92);
+  background: oklch(1 0 0 / 0.92);
   border: none;
   border-radius: 50%;
   display: grid;
   place-items: center;
   z-index: 3;
-  transition: all 0.15s;
+  transition: all var(--duration-fast);
   color: var(--ink-soft);
 }
 @media (min-width: 880px) {
@@ -488,12 +492,12 @@
   }
 }
 .case-thumb-fav:hover {
-  background: white;
+  background: oklch(1 0 0);
   transform: scale(1.06);
 }
 .case-thumb-fav.active {
   color: var(--crit);
-  background: white;
+  background: oklch(1 0 0);
 }
 .case-thumb-fav.is-bursting svg {
   animation: heart-bounce 600ms var(--ease-emphasized);
@@ -550,7 +554,7 @@
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.08em;
-  color: white;
+  color: oklch(1 0 0);
   background: var(--crit);
   padding: 3px 8px;
   border-radius: var(--radius-sm);
@@ -702,13 +706,13 @@
   place-items: center;
   border-radius: 50%;
   border: 1px solid var(--hairline-strong);
-  background: rgba(255, 255, 255, 0.95);
+  background: oklch(1 0 0 / 0.95);
   color: var(--ink);
   cursor: pointer;
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 6px oklch(0 0 0 / 0.18);
   transition:
     transform var(--duration-fast) ease,
     border-color var(--duration-fast) ease,
@@ -852,7 +856,7 @@
   0%,
   70%,
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    box-shadow: 0 0 0 0 oklch(0 0 0 / 0);
   }
   85% {
     box-shadow: 0 0 0 4px oklch(from var(--crit) l c h / 0.35);
