@@ -8,12 +8,15 @@ interface Props {
   /** Built-in + custom categories, in display order. */
   categories: Category[];
   /** Add a custom category. Returns the created entry or null on
-   *  empty / duplicate label. */
-  onAdd: (label: string) => Category | null;
-  /** Rename a custom category (built-ins are read-only). */
-  onRename: (id: string, label: string) => boolean;
-  /** Remove a custom category. */
-  onRemove: (id: string) => boolean;
+   *  empty / duplicate label / DB rejection. Async (DB-first per
+   *  ADR-0011 follow-up). */
+  onAdd: (label: string) => Promise<Category | null>;
+  /** Rename a custom category (built-ins are read-only). Returns
+   *  true on success; false on validation failure or DB rejection. */
+  onRename: (id: string, label: string) => Promise<boolean>;
+  /** Remove a custom category. Returns true on success; false on
+   *  validation failure or DB rejection. */
+  onRemove: (id: string) => Promise<boolean>;
   /** Predicate — is this id a runtime-defined custom category? */
   isCustom: (id: string) => boolean;
   /** Predicate — is this category hidden from the public Atlas view? */
@@ -47,12 +50,15 @@ export default function CategoriesEditor({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState("");
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const created = onAdd(draft);
+    const created = await onAdd(draft);
     if (!created) {
-      setError("Esa categoría ya existe o el nombre está vacío");
+      // Either validation rejected (duplicate / empty) or the DB
+      // wrote back not-ok. The toast layer surfaces the DB reason
+      // separately; the inline error covers the validation case.
+      setError("No se pudo crear la categoría (¿ya existe?)");
       return;
     }
     setDraft("");
@@ -63,9 +69,9 @@ export default function CategoriesEditor({
     setEditingLabel(c.label);
   };
 
-  const commitEdit = () => {
+  const commitEdit = async () => {
     if (editingId == null) return;
-    if (editingLabel.trim()) onRename(editingId, editingLabel);
+    if (editingLabel.trim()) await onRename(editingId, editingLabel);
     setEditingId(null);
     setEditingLabel("");
   };
@@ -229,7 +235,10 @@ export default function CategoriesEditor({
                             )
                           )
                             return;
-                          onRemove(c.id);
+                          // Fire the async remove. The undo toast
+                          // (set up in App.tsx wrapper) lets the admin
+                          // walk back if the click was a slip.
+                          void onRemove(c.id);
                         }}
                         aria-label={`Eliminar ${c.label}`}
                         title="Eliminar categoría"

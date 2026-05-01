@@ -53,9 +53,9 @@ interface Props {
    *  categories editor's "in use" hint. */
   categoryCaseCounts?: Record<string, number>;
   /** Categories CRUD callbacks. Wired to `useCustomCategories`. */
-  onAddCategory?: (label: string) => Category | null;
-  onRenameCategory?: (id: string, label: string) => boolean;
-  onRemoveCategory?: (id: string) => boolean;
+  onAddCategory?: (label: string) => Promise<Category | null>;
+  onRenameCategory?: (id: string, label: string) => Promise<boolean>;
+  onRemoveCategory?: (id: string) => Promise<boolean>;
   /** Predicate — is this id a runtime-defined custom category? */
   isCustomCategory?: (id: string) => boolean;
   /** Predicate / setter for the visibility of a category in the

@@ -47,9 +47,9 @@ interface Props {
   categories?: Category[];
   /** Cases-per-category counter for the editor's "in use" badge. */
   categoryCaseCounts?: Record<string, number>;
-  onAddCategory?: (label: string) => Category | null;
-  onRenameCategory?: (id: string, label: string) => boolean;
-  onRemoveCategory?: (id: string) => boolean;
+  onAddCategory?: (label: string) => Promise<Category | null>;
+  onRenameCategory?: (id: string, label: string) => Promise<boolean>;
+  onRemoveCategory?: (id: string) => Promise<boolean>;
   isCustomCategory?: (id: string) => boolean;
   isCategoryHidden?: (id: string) => boolean;
   onSetCategoryHidden?: (id: string, hidden: boolean) => void;

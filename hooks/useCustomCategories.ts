@@ -16,37 +16,28 @@ import type { Category } from "@/lib/types";
 const STORAGE_KEY = "customCategories";
 const HIDDEN_KEY = "hiddenCategoryIds";
 
+type ActionResult = { ok: true } | { ok: false; reason: "unknown" | "auth_required" | "forbidden" };
+
 /**
- * Fire-and-forget DB mirror.
- *
- * ADR-0011 made every other write path DB-authoritative (the DB
- * write blocks; failure surfaces synchronously to the UI; local
- * cache only updates after success). Categories deliberately
- * stay on the prior local-first model because:
- *
- *   1. The mutation API (`addCategory`, `renameCategory`,
- *      `removeCategory`) is synchronous — flipping it to async
- *      would refactor ~5 call sites for a low-stakes seam.
- *   2. Categories are admin-only and tiny (a label + an id).
- *   3. The Backup → "Subir a base de datos" flow can reconcile
- *      drift any time, so a failed mirror isn't user-blocking.
- *
- * The previous `notifyMirrorFailure` toast plumbing is gone (also
- * per ADR-0011); failures are logged, not surfaced. If the
- * categories editor ever grows real-time multi-device sync needs,
- * promote this to the DB-first contract too.
+ * Run a DB Server Action and wait for the result. Returns `true`
+ * on success or when the flag is off (no DB to talk to). Returns
+ * `false` on any failure — the caller leaves the local state
+ * untouched. The previous "fire-and-forget mirror" pattern is gone
+ * (per ADR-0011 follow-up): the categories carve-out is closed.
  */
-function mirrorDb(area: string, p: Promise<unknown>): void {
-  if (!IS_NETLIFY_DB_ENABLED) return;
-  void p
-    .then((r) => {
-      if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
-        log.warn(`DB mirror returned not-ok`, { area });
-      }
-    })
-    .catch((err) => {
-      log.warn(`DB mirror failed`, { area }, err);
-    });
+async function awaitDb(area: string, run: () => Promise<ActionResult>): Promise<boolean> {
+  if (!IS_NETLIFY_DB_ENABLED) return true;
+  try {
+    const r = await run();
+    if (!r.ok) {
+      log.warn(`DB write returned not-ok`, { area, reason: r.reason });
+      return false;
+    }
+    return true;
+  } catch (err) {
+    log.warn(`DB write threw`, { area }, err);
+    return false;
+  }
 }
 
 /**
@@ -193,8 +184,16 @@ export function useCustomCategories() {
     };
   }, [setCustoms]);
 
+  // ─── Mutations: DB-first, async ────────────────────────────────
+  // Per ADR-0011's follow-up: the categories carve-out is closed.
+  // Every mutation now awaits the DB Server Action; on failure the
+  // local cache stays unchanged so it doesn't drift from Postgres.
+  // This is the same shape as the cases path (`dbThenLocal` in
+  // `lib/repo/dual-write.ts`); inlined here because the categories
+  // hook owns its own local state directly via `usePersistedState`.
+
   const addCategory = useCallback(
-    (label: string) => {
+    async (label: string): Promise<Category | null> => {
       const trimmed = label.trim();
       if (!trimmed) return null;
       // Reject duplicates by label (case-insensitive) — the admin
@@ -211,35 +210,56 @@ export function useCustomCategories() {
         id = `${baseId}-${n++}`;
       }
       const next: Category = { id, label: trimmed };
+      const ok = await awaitDb("categories.add", () => dbAddCategory(id, trimmed, null));
+      if (!ok) return null;
       setCustoms([...customs, next]);
-      // Mirror to Postgres (best-effort) so the category exists in
-      // the DB next time the admin loads from another device.
-      mirrorDb("categories.add", dbAddCategory(id, trimmed, null));
       return next;
     },
     [categories, customs, setCustoms],
   );
 
   const renameCategory = useCallback(
-    (id: string, label: string) => {
+    async (id: string, label: string): Promise<boolean> => {
       if (builtInIds.has(id)) return false; // built-ins are read-only
       const trimmed = label.trim();
       if (!trimmed) return false;
+      const ok = await awaitDb("categories.rename", () => dbRenameCategory(id, trimmed));
+      if (!ok) return false;
       setCustoms(customs.map((c) => (c.id === id ? { ...c, label: trimmed } : c)));
-      mirrorDb("categories.rename", dbRenameCategory(id, trimmed));
       return true;
     },
     [builtInIds, customs, setCustoms],
   );
 
   const removeCategory = useCallback(
-    (id: string) => {
+    async (id: string): Promise<boolean> => {
       if (builtInIds.has(id)) return false; // built-ins can't be deleted
+      const ok = await awaitDb("categories.remove", () => dbRemoveCategory(id));
+      if (!ok) return false;
       setCustoms(customs.filter((c) => c.id !== id));
-      mirrorDb("categories.remove", dbRemoveCategory(id));
       return true;
     },
     [builtInIds, customs, setCustoms],
+  );
+
+  // Re-add a category at its previous id + label. Used by the undo
+  // path on `removeCategory`: capture the deleted entry, click
+  // "Deshacer", and we recreate it with the same id (Postgres
+  // `ON CONFLICT DO NOTHING` makes the DB call idempotent if the
+  // row somehow survived). Distinct from `addCategory`, which
+  // generates a fresh slug from a label.
+  const restoreCategory = useCallback(
+    async (cat: Category): Promise<boolean> => {
+      const ok = await awaitDb("categories.restore", () => dbAddCategory(cat.id, cat.label, null));
+      if (!ok) return false;
+      // Insert back at the end. Order isn't a hard contract — the
+      // admin can rearrange via rename at any time — and re-inserting
+      // at the original index would require capturing it pre-remove
+      // for what's a rare flow.
+      setCustoms((prev) => (prev.some((c) => c.id === cat.id) ? prev : [...prev, cat]));
+      return true;
+    },
+    [setCustoms],
   );
 
   return {
@@ -253,6 +273,9 @@ export function useCustomCategories() {
     addCategory,
     renameCategory,
     removeCategory,
+    /** Inverse of `removeCategory` — recreates a category at its
+     *  previous id + label. Used by the undo toast path. */
+    restoreCategory,
     isCustom,
     /** Predicate: is this category currently hidden from the public
      *  Atlas POCUS view? */

@@ -107,10 +107,51 @@ function AppInner() {
     addCategory,
     renameCategory,
     removeCategory,
+    restoreCategory,
     isCustom: isCustomCategory,
     isHidden: isCategoryHidden,
     setHidden: setCategoryHidden,
   } = useCustomCategories();
+
+  // Wrap the three category mutations with undo-toast surfacing.
+  // The hook itself stays free of toast concerns (so non-admin
+  // contexts that consume it never accidentally show a toast); the
+  // app composes the affordances here.
+  //
+  //   - addCategory: success → "Categoría agregada" toast (no
+  //     undo — `removeCategory` IS the inverse and is one click
+  //     away in the editor row that just appeared).
+  //   - renameCategory: success → toast with undo to the previous
+  //     label.
+  //   - removeCategory: success → toast with undo via
+  //     `restoreCategory`. Failure → "no se pudo eliminar" toast.
+  const onAddCategory = async (label: string) => {
+    const created = await addCategory(label);
+    if (created) showToast(`Categoría "${created.label}" agregada`);
+    return created;
+  };
+  const onRenameCategory = async (id: string, label: string) => {
+    const before = categories.find((c) => c.id === id);
+    const ok = await renameCategory(id, label);
+    if (ok && before && before.label !== label) {
+      showToast("Categoría renombrada", {
+        undo: () => renameCategory(id, before.label),
+      });
+    }
+    return ok;
+  };
+  const onRemoveCategory = async (id: string) => {
+    const before = categories.find((c) => c.id === id);
+    const ok = await removeCategory(id);
+    if (ok && before) {
+      showToast(`"${before.label}" eliminada`, {
+        undo: () => restoreCategory(before),
+      });
+    } else if (!ok) {
+      showToast("No se pudo eliminar la categoría");
+    }
+    return ok;
+  };
 
   // Catalog derivation (allCases / trashedImports / categoryCaseCounts).
   // Lives in `useMergedCatalog` so the merge + filter rules have one
@@ -300,9 +341,9 @@ function AppInner() {
               onPurgeImport={isAdmin ? adminPipeline.requestPurge : undefined}
               categories={categories}
               categoryCaseCounts={categoryCaseCounts}
-              onAddCategory={addCategory}
-              onRenameCategory={renameCategory}
-              onRemoveCategory={removeCategory}
+              onAddCategory={onAddCategory}
+              onRenameCategory={onRenameCategory}
+              onRemoveCategory={onRemoveCategory}
               isCustomCategory={isCustomCategory}
               isCategoryHidden={isCategoryHidden}
               onSetCategoryHidden={setCategoryHidden}

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import CategoriesEditor from "@/components/admin/CategoriesEditor";
 import type { Category } from "@/lib/types";
 
@@ -24,9 +24,15 @@ function renderEditor(
     caseCounts?: Record<string, number>;
   } = {},
 ) {
-  const onAdd = overrides.onAdd ?? vi.fn().mockReturnValue({ id: "c:new", label: "New" });
-  const onRename = overrides.onRename ?? vi.fn().mockReturnValue(true);
-  const onRemove = overrides.onRemove ?? vi.fn().mockReturnValue(true);
+  // Mocks resolve their canned values asynchronously to match the
+  // post-ADR-0011 contract (the editor's mutation props are now
+  // `Promise<…>`). Tests that wait on the next tick (`findByText`,
+  // `waitFor`) work transparently; the few that asserted on
+  // synchronous side-effects after a fire-and-forget call now use
+  // `await act(...)` instead.
+  const onAdd = overrides.onAdd ?? vi.fn().mockResolvedValue({ id: "c:new", label: "New" });
+  const onRename = overrides.onRename ?? vi.fn().mockResolvedValue(true);
+  const onRemove = overrides.onRemove ?? vi.fn().mockResolvedValue(true);
   const isHidden = overrides.isHidden ?? vi.fn().mockReturnValue(false);
   const setHidden = overrides.setHidden ?? vi.fn();
   const caseCounts = overrides.caseCounts ?? { cardiac: 5, "c:peds": 2 };
@@ -37,9 +43,9 @@ function renderEditor(
   render(
     <CategoriesEditor
       categories={[...builtIns, ...customs]}
-      onAdd={onAdd as unknown as (label: string) => Category | null}
-      onRename={onRename as unknown as (id: string, label: string) => boolean}
-      onRemove={onRemove as unknown as (id: string) => boolean}
+      onAdd={onAdd as unknown as (label: string) => Promise<Category | null>}
+      onRename={onRename as unknown as (id: string, label: string) => Promise<boolean>}
+      onRemove={onRemove as unknown as (id: string) => Promise<boolean>}
       isCustom={(id) => id.startsWith("c:")}
       isHidden={isHidden as unknown as (id: string) => boolean}
       setHidden={setHidden as unknown as (id: string, hidden: boolean) => void}
@@ -76,8 +82,11 @@ describe("CategoriesEditor — listing", () => {
 });
 
 describe("CategoriesEditor — add", () => {
-  it("submits the trimmed label to onAdd and clears the input", () => {
-    const onAdd = vi.fn().mockReturnValue({ id: "c:trauma", label: "Trauma" });
+  it("submits the trimmed label to onAdd and clears the input", async () => {
+    // `onAdd` is async post-ADR-0011 follow-up; the component awaits.
+    // The test waits for the input to clear, which only happens after
+    // the resolved Promise lands.
+    const onAdd = vi.fn().mockResolvedValue({ id: "c:trauma", label: "Trauma" });
     renderEditor({ onAdd });
 
     const input = screen.getByPlaceholderText(/Nueva categoría/i) as HTMLInputElement;
@@ -85,11 +94,11 @@ describe("CategoriesEditor — add", () => {
     fireEvent.click(screen.getByRole("button", { name: /Agregar/i }));
 
     expect(onAdd).toHaveBeenCalledWith("  Trauma  "); // component leaves trim to the hook
-    expect(input.value).toBe(""); // input cleared on success
+    await waitFor(() => expect(input.value).toBe("")); // input cleared on success
   });
 
-  it("shows an error when onAdd returns null (duplicate / empty)", () => {
-    const onAdd = vi.fn().mockReturnValue(null);
+  it("shows an error when onAdd resolves null (duplicate / empty / DB rejection)", async () => {
+    const onAdd = vi.fn().mockResolvedValue(null);
     renderEditor({ onAdd });
 
     fireEvent.change(screen.getByPlaceholderText(/Nueva categoría/i), {
@@ -97,7 +106,9 @@ describe("CategoriesEditor — add", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /Agregar/i }));
 
-    expect(screen.getByRole("alert").textContent).toMatch(/ya existe o el nombre está vacío/i);
+    // The error message is set after the awaited onAdd returns null.
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toMatch(/no se pudo crear/i);
   });
 });
 
