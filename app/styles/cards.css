@@ -134,7 +134,7 @@
 .case-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 28px 24px;
+  gap: var(--space-6) var(--space-5);
 }
 
 /* Staggered entrance for the grid. Each child fades in slightly
@@ -219,6 +219,35 @@
    card has room (>=540px container = "wide horizontal" mode). */
 .case-summary {
   display: none;
+}
+
+/* ====== Atlas POCUS: 5-col dense catalog ====== */
+/* The atlas is the largest, most browse-oriented section. With ~330
+   cases the goal is to fit as many on screen as possible without
+   cards becoming postage stamps. Five columns at the page max
+   (1480px) gives ~210px thumb width — still legible, twice the
+   density of the previous 3-col global. Steps down through 4 → 3
+   → 2 cols on narrower viewports so phones don't end up with
+   200×200 thumbs. Per-section gap tightened to match the denser
+   rhythm. */
+.layout[data-section="atlas"] .case-grid {
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-5) var(--space-4);
+}
+@media (max-width: 1280px) {
+  .layout[data-section="atlas"] .case-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 1024px) {
+  .layout[data-section="atlas"] .case-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 720px) {
+  .layout[data-section="atlas"] .case-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ====== ECG: 2-col, wider strip aspect ====== */
