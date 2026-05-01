@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CineLoop } from "../cine";
+import ModalLoopMedia from "./ModalLoopMedia";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
@@ -15,7 +15,7 @@ import {
   wasUpdatedAfterPublication,
 } from "@/lib/case-meta";
 import { getDescription } from "@/lib/case-description";
-import type { CaseRecord, Media } from "@/lib/types";
+import type { CaseRecord } from "@/lib/types";
 
 interface Props {
   caso: CaseRecord;
@@ -413,137 +413,8 @@ export default function CaseModal({
   );
 }
 
-// `pullQuote` was removed alongside the three-section modal body
-// (Apr-2026 UX simplification). The pull-quote aside lived next to
-// the Hallazgos paragraph; with a single Descripción section the
-// marginalia no longer has a clear anchor.
-
-/**
- * Modal media surface. Two render paths:
- *
- *   - 0 or 1 item: a single `<CineLoop>` filling the loop pane, same
- *     as before multi-media support landed. Empty list falls through
- *     to the synthetic cine-loop.
- *   - 2+ items: a horizontal scroll-snap carousel with one CineLoop
- *     per slide, prev/next chevrons, and dot indicators below. The
- *     scroll-snap container does the heavy lifting (touch swipe,
- *     keyboard arrows when focused, mouse drag) — we only add the
- *     button affordances and track the active index for the dots.
- *
- * The carousel intentionally lives inside `.modal-loop` so the
- * surrounding chrome (play/pause/speed controls below) acts on the
- * currently-visible slide via the shared `paused` / `speed` state.
- */
-function ModalLoopMedia({
-  caso,
-  mediaList,
-  speed,
-  paused,
-}: {
-  caso: CaseRecord;
-  mediaList: Media[];
-  speed: number;
-  paused: boolean;
-}) {
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const [active, setActive] = useState(0);
-
-  const isMulti = mediaList.length > 1;
-
-  // Track active slide via scroll position. Cheaper than IntersectionObserver
-  // for a small slide count, and works during smooth-scroll animations
-  // where the IO callback fires only at threshold crossings.
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track || !isMulti) return;
-    const onScroll = () => {
-      const w = track.clientWidth;
-      if (w === 0) return;
-      const i = Math.round(track.scrollLeft / w);
-      setActive(Math.max(0, Math.min(mediaList.length - 1, i)));
-    };
-    track.addEventListener("scroll", onScroll, { passive: true });
-    return () => track.removeEventListener("scroll", onScroll);
-  }, [isMulti, mediaList.length]);
-
-  const goTo = (i: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" });
-  };
-
-  // Single-item path — render exactly what the modal used to render
-  // before multi-media support, so the visual is byte-for-byte
-  // unchanged for the 326 imported cases that have one media or none.
-  if (!isMulti) {
-    return (
-      <CineLoop
-        kind={caso.loop}
-        aspect="1/1"
-        speed={speed}
-        paused={paused}
-        showChrome={true}
-        media={mediaList[0] ?? caso.media}
-        quality="full"
-        preserveNativeAspect={true}
-      />
-    );
-  }
-
-  return (
-    <div className="modal-loop-carousel" role="region" aria-label="Galería del caso">
-      <div className="modal-loop-track" ref={trackRef}>
-        {mediaList.map((m, i) => (
-          <div
-            className="modal-loop-slide"
-            key={`${m.src}-${i}`}
-            aria-roledescription="slide"
-            aria-label={`Imagen ${i + 1} de ${mediaList.length}`}
-          >
-            <CineLoop
-              kind={caso.loop}
-              aspect="1/1"
-              speed={speed}
-              paused={paused || i !== active}
-              showChrome={true}
-              media={m}
-              quality="full"
-              preserveNativeAspect={true}
-            />
-          </div>
-        ))}
-      </div>
-      <button
-        type="button"
-        className="modal-loop-nav modal-loop-nav--prev"
-        onClick={() => goTo(Math.max(0, active - 1))}
-        disabled={active === 0}
-        aria-label="Imagen anterior"
-      >
-        {Icon.arrowLeft()}
-      </button>
-      <button
-        type="button"
-        className="modal-loop-nav modal-loop-nav--next"
-        onClick={() => goTo(Math.min(mediaList.length - 1, active + 1))}
-        disabled={active === mediaList.length - 1}
-        aria-label="Imagen siguiente"
-      >
-        {Icon.arrowRight()}
-      </button>
-      <div className="modal-loop-dots" role="tablist" aria-label="Seleccionar imagen del caso">
-        {mediaList.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            aria-label={`Ir a imagen ${i + 1}`}
-            className={`modal-loop-dot${i === active ? " active" : ""}`}
-            onClick={() => goTo(i)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+// `pullQuote` and the inline `ModalLoopMedia` were removed in the
+// May-2026 cleanup. The carousel lives in `./ModalLoopMedia.tsx` so
+// this file stays focused on layout / shortcuts / actions; the
+// pull-quote aside was tied to the deprecated three-section body
+// and has no anchor in the simplified Descripción flow.
