@@ -5,7 +5,6 @@ import { usePersistedState } from "./usePersistedState";
 import { CATEGORIES } from "@/lib/data";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
 import { log } from "@/lib/log";
-import { notifyMirrorFailure } from "@/lib/db-mirror";
 import {
   dbAddCategory,
   dbListCategories,
@@ -18,10 +17,24 @@ const STORAGE_KEY = "customCategories";
 const HIDDEN_KEY = "hiddenCategoryIds";
 
 /**
- * Fire-and-forget DB mirror. Mirrors the helper in `lib/repo.ts` —
- * the local write is the source of truth; the DB sync is best-effort
- * and never blocks the UI. Logged on failure so we know if drift is
- * happening, but the user's mutation is already saved locally.
+ * Fire-and-forget DB mirror.
+ *
+ * ADR-0011 made every other write path DB-authoritative (the DB
+ * write blocks; failure surfaces synchronously to the UI; local
+ * cache only updates after success). Categories deliberately
+ * stay on the prior local-first model because:
+ *
+ *   1. The mutation API (`addCategory`, `renameCategory`,
+ *      `removeCategory`) is synchronous — flipping it to async
+ *      would refactor ~5 call sites for a low-stakes seam.
+ *   2. Categories are admin-only and tiny (a label + an id).
+ *   3. The Backup → "Subir a base de datos" flow can reconcile
+ *      drift any time, so a failed mirror isn't user-blocking.
+ *
+ * The previous `notifyMirrorFailure` toast plumbing is gone (also
+ * per ADR-0011); failures are logged, not surfaced. If the
+ * categories editor ever grows real-time multi-device sync needs,
+ * promote this to the DB-first contract too.
  */
 function mirrorDb(area: string, p: Promise<unknown>): void {
   if (!IS_NETLIFY_DB_ENABLED) return;
@@ -29,12 +42,10 @@ function mirrorDb(area: string, p: Promise<unknown>): void {
     .then((r) => {
       if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
         log.warn(`DB mirror returned not-ok`, { area });
-        notifyMirrorFailure(area);
       }
     })
     .catch((err) => {
       log.warn(`DB mirror failed`, { area }, err);
-      notifyMirrorFailure(area);
     });
 }
 

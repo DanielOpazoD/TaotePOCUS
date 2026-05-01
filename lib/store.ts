@@ -22,12 +22,29 @@ export const ADMIN_CREDS = ADMIN_CREDENTIALS;
 
 /**
  * Result of a write to the store. Discriminated union so callers can
- * branch without `try/catch`. The `reason` distinguishes between
- * `quota` (user can free space and retry), `unavailable` (storage
- * disabled / private browsing — can't recover client-side), and
- * `unknown` (anything else; treat as transient).
+ * branch without `try/catch`. The `reason` distinguishes between:
+ *
+ *   - `quota` (user can free space and retry).
+ *   - `unavailable` (storage disabled / private browsing — can't
+ *     recover client-side).
+ *   - `auth_required` (the server-side write needed a session and
+ *     the cookie was missing or expired; user can re-login).
+ *   - `forbidden` (server-side authorization rejected the write —
+ *     wrong role, or owner mismatch on a row).
+ *   - `unknown` (anything else; treat as transient).
+ *
+ * `auth_required` and `forbidden` came from the Server Action
+ * surface (see `app/actions/db.ts`) when the dual-write path
+ * started awaiting the DB result instead of fire-and-forgetting
+ * (Stage-4 partial, ADR-0011). They flow through the local-write
+ * shape so consumers branch on a single union.
  */
-export type WriteResult = { ok: true } | { ok: false; reason: "quota" | "unavailable" | "unknown" };
+export type WriteResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "quota" | "unavailable" | "unknown" | "auth_required" | "forbidden";
+    };
 
 function safeRead<T>(key: string, fallback: T): T {
   if (!isBrowser()) return fallback;

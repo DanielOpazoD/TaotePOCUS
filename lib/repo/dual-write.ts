@@ -1,19 +1,36 @@
-// Dual-write wrappers that compose around the local backends and
-// mirror every successful mutation to Postgres via the server actions
-// in `app/actions/db.ts`. Reads also flow DB-first with a local cache
-// fallback (Stage 3 of the localStorage→Postgres transition; see
-// `lib/env.ts > IS_NETLIFY_DB_ENABLED` for the full plan).
+// Dual-write wrappers: the DB is now the source of truth on writes
+// (Stage 4 partial — ADR-0011), while reads keep the DB-first +
+// local-fallback contract from Stage 3 so the catalog stays
+// readable when the DB is briefly unreachable.
+//
+// Write contract (post-ADR-0011):
+//
+//   1. Run the Server Action against Postgres FIRST.
+//   2. If the DB write fails, return the failure to the caller.
+//      The local cache is NOT touched — no zombie state in
+//      localStorage that drifts from the source of truth.
+//   3. If the DB write succeeds, mirror the result into the local
+//      cache so subsequent reads hit it without a roundtrip.
+//
+// The previous "local first, fire-and-forget DB mirror" pattern
+// (and the entire `notifyMirrorFailure` plumbing it required) is
+// gone. The DB result is the contract; the only thing the local
+// backend gives us now is read latency on a warm cache and a
+// fallback when the DB is offline.
+//
+// Read contract is unchanged: try DB → on success refresh cache and
+// return DB data; on empty/error fall back to the local cache so
+// the UI keeps working through transient outages.
 //
 // Pulled out of `lib/repo.ts` so:
 //   - The repo facade stays focused on dispatch + public exports.
-//   - The dual-write logic has its own home where the
-//     `local + remote` contract is fully visible.
+//   - The dual-write logic has its own home where the DB-first
+//     write contract is fully visible.
 //   - Future backends (Firebase, etc.) can live in sibling files
 //     without competing for space in the dispatch module.
 
-import { Store } from "../store";
+import { Store, type WriteResult } from "../store";
 import { log } from "../log";
-import { notifyMirrorFailure } from "../db-mirror";
 import type { CaseRecord } from "../types";
 import {
   dbListOverrides,
@@ -32,9 +49,12 @@ import { isDeleted, encodeCursor, decodeCursor, localCases, type CasesRepo } fro
 import { localFavs, type FavsRepo } from "./local-favs";
 
 /**
- * Best-effort identity for the mirror. We don't have user state piped
- * through the repo facade today, so we read from `Store` (the same
- * place `useSession` reads). Returns `null` for guest / unloaded.
+ * Best-effort identity for the audit fields the Server Actions
+ * accept. We don't have user state piped through the repo facade
+ * today, so we read from `Store` (the same place `useSession`
+ * reads). Returns `null` for guest / unloaded — the Server Action
+ * sources the actual audit identity from the session cookie
+ * regardless, this is just back-compat for the call shape.
  */
 function currentMirrorEmail(): string | null {
   try {
@@ -46,48 +66,33 @@ function currentMirrorEmail(): string | null {
 }
 
 /**
- * Fire-and-forget DB mirror. Logs warnings on failure but never throws
- * out of the caller's promise chain. We deliberately don't `await` so
- * the local write returns immediately — the mirror catches up when it
- * can.
- *
- * Stage 4: failures are also pushed through `notifyMirrorFailure` so
- * the UI can surface a toast. The repo doesn't know about React state
- * — the handler registered by `useMirrorFailureToast` does the rate-
- * limiting and the actual toast call.
+ * Adapt a DB Server Action result to the `WriteResult` shape that
+ * UI consumers branch on. Both unions share `ok`; the failure
+ * reasons map 1:1 since `WriteResult` widened to include
+ * `auth_required` / `forbidden` in ADR-0011.
  */
-function mirror<T>(area: string, p: Promise<T>): void {
-  void p
-    .then((r) => {
-      // Detect the WriteResult-shaped failure from our own actions.
-      if (r && typeof r === "object" && "ok" in r && (r as { ok: boolean }).ok === false) {
-        log.warn(`DB mirror returned not-ok`, { area });
-        notifyMirrorFailure(area);
-      }
-    })
-    .catch((err) => {
-      log.warn(`DB mirror failed`, { area }, err);
-      notifyMirrorFailure(area);
-    });
+type ActionResult = { ok: true } | { ok: false; reason: "unknown" | "auth_required" | "forbidden" };
+function fromAction(r: ActionResult): WriteResult {
+  if (r.ok) return { ok: true };
+  return { ok: false, reason: r.reason };
 }
 
 /**
- * DB-first read with local fallback. The contract:
+ * DB-first read with local fallback. Unchanged from Stage 3.
  *
- *   - Try the server action; on success, refresh the local cache so
- *     the next reload sees the same state without a roundtrip and
- *     return the DB data.
- *   - If the DB returns empty, treat that as "DB hasn't been hydrated
- *     yet" and prefer local. Avoids the failure mode where flipping
- *     the flag on a pristine DB nukes a populated localStorage.
+ *   - Try the server action; on success, refresh the local cache
+ *     so the next reload sees the same state without a roundtrip.
+ *   - If the DB returns empty, treat that as "DB hasn't been
+ *     hydrated yet" and prefer local — avoids the failure mode
+ *     where flipping the flag on a pristine DB nukes a populated
+ *     localStorage.
  *   - If the DB read throws (network blip / function cold-start
- *     timeout / 401), log and fall back to local — the UI keeps
- *     working from the cache while the DB is unreachable.
+ *     / 401), log and fall back to local. Reads are still
+ *     graceful under transient DB outages.
  *
- * `isEmpty` is the predicate used to detect "nothing in the DB". For
- * a record map it's `Object.keys(...).length === 0`; for an array
- * it's `length === 0`; etc. Each caller provides the right test for
- * its shape.
+ * `isEmpty` is the "nothing in the DB" predicate. For a record map
+ * it's `Object.keys(...).length === 0`; for an array it's
+ * `length === 0`; etc.
  */
 async function dbFirst<T>(
   area: string,
@@ -109,8 +114,8 @@ async function dbFirst<T>(
 }
 
 // User-cases loader, factored out so the chain of read methods
-// (`listUser`, `listTrashed`, `listAll`, `listAllPaged`) all share the
-// same DB-first pull without duplicating the fallback logic.
+// (`listUser`, `listTrashed`, `listAll`, `listAllPaged`) all share
+// the same DB-first pull without duplicating the fallback logic.
 async function loadUserRaw(): Promise<CaseRecord[]> {
   return dbFirst(
     "cases.listUserRaw",
@@ -119,6 +124,32 @@ async function loadUserRaw(): Promise<CaseRecord[]> {
     (v) => Store.setUserCases(v),
     () => localCases.listUserRaw(),
   );
+}
+
+/**
+ * Run a DB write and, on success, refresh the local cache via
+ * `localOp`. On failure, return the DB error AS-IS — the local
+ * cache stays unchanged so it doesn't drift from the source of
+ * truth. The previous "local first, mirror best-effort" pattern
+ * had the opposite shape and was the source of zombie state.
+ */
+async function dbThenLocal(
+  area: string,
+  dbCall: () => Promise<ActionResult>,
+  localOp: () => Promise<WriteResult>,
+): Promise<WriteResult> {
+  let dbResult: ActionResult;
+  try {
+    dbResult = await dbCall();
+  } catch (err) {
+    log.warn(`DB write threw`, { area }, err);
+    return { ok: false, reason: "unknown" };
+  }
+  if (!dbResult.ok) {
+    log.warn(`DB write returned not-ok`, { area, reason: dbResult.reason });
+    return fromAction(dbResult);
+  }
+  return localOp();
 }
 
 export const dualWriteCases: CasesRepo = {
@@ -143,9 +174,9 @@ export const dualWriteCases: CasesRepo = {
     return [...user, ...seed];
   },
   listAllPaged: async ({ cursor, limit }) => {
-    // Replicate localCases.listAllPaged but starting from our DB-aware
-    // listAll, so the paged listing also reads from the canonical
-    // source.
+    // Replicate localCases.listAllPaged but starting from our
+    // DB-aware listAll, so the paged listing also reads from the
+    // canonical source.
     const seed = await localCases.listSeed();
     const user = (await loadUserRaw()).filter((c) => !isDeleted(c));
     const all = [...user, ...seed];
@@ -159,56 +190,66 @@ export const dualWriteCases: CasesRepo = {
     return { items, nextCursor, total: all.length };
   },
 
-  // ─── Writes (local first, DB mirror) ────────────────────────────
-  // Order stays "local optimistically, DB best-effort" because the
-  // user expects instant UI feedback. If the mirror fails the
-  // notifier surfaces a toast (Stage 4) and the admin can re-sync
-  // via Backup → "Subir a base de datos".
+  // ─── Writes (DB authoritative, local cache follows) ────────────
+  // Each method runs the DB Server Action FIRST. On failure the
+  // local cache stays unchanged; the failure surfaces to the UI
+  // through the WriteResult. On success the local cache is refreshed
+  // so subsequent reads hit it without a roundtrip.
   async save(c, current) {
-    const r = await localCases.save(c, current);
-    if (r.ok) {
-      const isUpdate = current.some((x) => x.id === c.id);
-      mirror("cases.save", dbSaveUserCase(c, currentMirrorEmail(), isUpdate));
-    }
-    return r;
+    const isUpdate = current.some((x) => x.id === c.id);
+    return dbThenLocal(
+      "cases.save",
+      () => dbSaveUserCase(c, currentMirrorEmail(), isUpdate),
+      () => localCases.save(c, current),
+    );
   },
   async remove(id, current, by) {
-    const r = await localCases.remove(id, current, by);
-    if (r.ok) mirror("cases.remove", dbRemoveUserCase(id, by ?? currentMirrorEmail()));
-    return r;
+    return dbThenLocal(
+      "cases.remove",
+      () => dbRemoveUserCase(id, by ?? currentMirrorEmail()),
+      () => localCases.remove(id, current, by),
+    );
   },
   async restore(id, current) {
-    const r = await localCases.restore(id, current);
-    if (r.ok) mirror("cases.restore", dbRestoreUserCase(id));
-    return r;
+    return dbThenLocal(
+      "cases.restore",
+      () => dbRestoreUserCase(id),
+      () => localCases.restore(id, current),
+    );
   },
   async purge(id, current) {
-    const r = await localCases.purge(id, current);
-    if (r.ok) mirror("cases.purge", dbPurgeUserCase(id));
-    return r;
+    return dbThenLocal(
+      "cases.purge",
+      () => dbPurgeUserCase(id),
+      () => localCases.purge(id, current),
+    );
   },
   async setOverride(id, patch) {
-    const r = await localCases.setOverride(id, patch);
-    if (r.ok) mirror("cases.setOverride", dbSetOverride(id, patch, currentMirrorEmail()));
-    return r;
+    return dbThenLocal(
+      "cases.setOverride",
+      () => dbSetOverride(id, patch, currentMirrorEmail()),
+      () => localCases.setOverride(id, patch),
+    );
   },
   async clearOverride(id) {
-    const r = await localCases.clearOverride(id);
-    if (r.ok) mirror("cases.clearOverride", dbClearOverride(id));
-    return r;
+    return dbThenLocal(
+      "cases.clearOverride",
+      () => dbClearOverride(id),
+      () => localCases.clearOverride(id),
+    );
   },
   async purgeImported(id, mediaKey) {
-    // Local first: write the `{ purged: true }` tombstone so the UI
-    // hides the case immediately. Then mirror to the DB (which also
-    // deletes the blob from the media store). A failed blob delete
-    // doesn't reverse the tombstone — the user has already committed
-    // to the destruction and a stranded file is preferable to a
-    // visible-but-marked-purged case.
-    const r = await localCases.purgeImported(id, mediaKey);
-    if (r.ok) {
-      mirror("cases.purgeImported", dbPurgeImported(id, mediaKey, currentMirrorEmail()));
-    }
-    return r;
+    // Permanent destruction of a seed/imported case. The DB action
+    // also deletes the blob from the media store; if the blob delete
+    // fails the override tombstone still lands (per the Server
+    // Action's own error handling). DB-first means a failed
+    // tombstone on the server stops the local write — the case
+    // still appears in the UI until the admin retries.
+    return dbThenLocal(
+      "cases.purgeImported",
+      () => dbPurgeImported(id, mediaKey, currentMirrorEmail()),
+      () => localCases.purgeImported(id, mediaKey),
+    );
   },
 };
 
@@ -223,8 +264,25 @@ export const dualWriteFavs: FavsRepo = {
       () => localFavs.list(email),
     ),
   async toggle(email, id, current) {
-    const out = await localFavs.toggle(email, id, current);
-    if (out.result.ok) mirror("favs.toggle", dbSetFavs(email ?? null, out.next));
-    return out;
+    // The favs toggle returns `{ result, next }` — `next` is the
+    // computed list either way. Compute once locally, send to the
+    // DB; on failure return a not-ok result without touching the
+    // local cache; on success commit the cache.
+    const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+    let dbResult: ActionResult;
+    try {
+      dbResult = await dbSetFavs(email ?? null, next);
+    } catch (err) {
+      log.warn(`DB favs.toggle threw`, { area: "favs.toggle" }, err);
+      return { result: { ok: false, reason: "unknown" }, next: current };
+    }
+    if (!dbResult.ok) {
+      log.warn(`DB favs.toggle returned not-ok`, {
+        area: "favs.toggle",
+        reason: dbResult.reason,
+      });
+      return { result: fromAction(dbResult), next: current };
+    }
+    return localFavs.toggle(email, id, current);
   },
 };

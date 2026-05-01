@@ -75,11 +75,10 @@ type DbQuery = (config: { text: string; values?: unknown[] }) => Promise<unknown
  *                         endpoint, or non-owner mutating someone
  *                         else's row).
  *
- * Existing dual-write consumers branch on `r.ok === false` and don't
- * inspect `reason`, so this widening is non-breaking. The mirror
- * failure toast in `useMirrorFailureToast` fires on any not-ok shape,
- * which gives the user a visible signal that DB writes are being
- * rejected.
+ * Dual-write consumers (`lib/repo/dual-write.ts`) await this
+ * result and surface the failure to the UI synchronously — the
+ * pre-ADR-0011 "fire-and-forget mirror + rate-limited toast"
+ * pattern is gone.
  */
 type ActionResult = { ok: true } | { ok: false; reason: "unknown" | "auth_required" | "forbidden" };
 

@@ -10,10 +10,17 @@ right now?". The full reasoning is in
 
 ```
 NEXT_PUBLIC_USE_DB unset / "0"  → Stage 1: localStorage primary
-NEXT_PUBLIC_USE_DB=1            → Stage 2 + 3: dual-write + DB-first reads
-                                  (current production state)
-Stage 4 (DB-as-truth)           → not yet shipped; see ADR-0006
+NEXT_PUBLIC_USE_DB=1            → Stage 4-partial (current state):
+                                  • reads = DB-first with local fallback
+                                  • writes = DB-authoritative; failures
+                                    surface to UI; local cache only
+                                    updates after DB success
+Full Stage 4 (drop read fallback) → not yet shipped; see ADR-0011
+                                    "Migration to full Stage 4"
 ```
+
+See ADR-0006 for the original four-stage roadmap and ADR-0011 for
+the current write contract.
 
 The four Firebase env vars (`NEXT_PUBLIC_FIREBASE_*`), if all set,
 override everything and switch the repo facade to the Firebase path
@@ -38,11 +45,11 @@ in `lib/repo.ts`:
 
 - **Stage 1** (no flag): straight call into `lib/repo/local-cases.ts`,
   reading `Store.getUserCases()` etc. Synchronous-feeling.
-- **Stage 2/3** (flag on): wrapped in `dbFirst()` from
+- **Stage 4-partial** (flag on): wrapped in `dbFirst()` from
   `lib/repo/dual-write.ts`. Tries the Server Action first; on
   success, refreshes the local cache and returns the DB data; on
-  empty or error, falls back to the local cache. The local cache
-  is therefore eventually consistent with the DB after one read.
+  empty or error, falls back to the local cache. The catalog stays
+  readable through transient outages.
 
 `repo.cases.listSeed()` always loads the imported corpus via the
 dynamic `import("./imported-cases")` from `lib/seed-cases.ts`. The
@@ -53,17 +60,32 @@ of stage.
 
 Stage 1 — write to local. `WriteResult` returned synchronously.
 
-Stage 2/3 — `localCases.{save,remove,...}` first; on `r.ok === true`,
-fire-and-forget `mirror()` to the corresponding `db*` Server Action.
-The mirror failure is logged and surfaced as a toast via
-`useMirrorFailureToast`; the local op is **not** rolled back. This
-is by design — local UI feedback is instant, drift is tolerated and
-healed by the next read.
+Stage 4-partial (current) — DB authoritative. Implemented by
+`dbThenLocal()` in `lib/repo/dual-write.ts`:
 
-Stage 4 (future) — local fallback removed; DB write is the source
-of truth and a failure surfaces synchronously. The form's submit
-flow needs to handle the failure case (show a toast, leave the
-modal open, keep the form state) before this stage can ship.
+1. Run the DB Server Action.
+2. On failure → return the failure (`WriteResult` shape with
+   reason `auth_required` / `forbidden` / `unknown`). The local
+   cache is **not** touched.
+3. On success → write the local cache. Return its result.
+
+UI consumers branch on `result.ok === false` and show a toast /
+keep the form open / etc. The previous fire-and-forget mirror
+pattern (and its `useMirrorFailureToast` plumbing) is gone —
+zombie state in localStorage that drifts from the DB can no
+longer happen.
+
+**Carve-out**: `useCustomCategories` (the categories editor)
+deliberately keeps the prior local-first pattern. The synchronous
+mutation API was easier to leave alone for what's an admin-only,
+reconcilable-via-Backup seam. See the comment on `mirrorDb` in
+that file and ADR-0011 for the rationale.
+
+Full Stage 4 (future) — drop the read fallback too. Reads that
+fail or return empty surface to the UI as an error rather than
+silently falling back to localStorage. Requires a top-level
+"DB unavailable" surface in the layout. See ADR-0011's "Migration
+to full Stage 4" for the checklist.
 
 ## Authorization
 

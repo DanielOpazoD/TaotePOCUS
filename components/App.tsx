@@ -23,7 +23,6 @@ import { useCaseOverrides } from "@/hooks/useCaseOverrides";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
-import { useMirrorFailureToast } from "@/hooks/useMirrorFailureToast";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
@@ -86,9 +85,12 @@ function AppInner() {
   // in the Header, co-located with the input it focuses.
   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
 
-  // DB mirror failures (Stage 4) → rate-limited toast. Lives in a
-  // dedicated hook so App.tsx doesn't host the global handler effect.
-  useMirrorFailureToast(showToast);
+  // The DB-mirror failure toast (`useMirrorFailureToast`) was
+  // removed in ADR-0011. The previous fire-and-forget write path
+  // could land local + miss DB, leaving a "syncing" zombie state
+  // that the toast surfaced. Stage 4-partial makes writes await
+  // the DB and return its failure synchronously, so the zombie
+  // case can no longer happen.
 
   // Per-case overrides — admin-edited fields persisted in localStorage.
   // Merged on top of the source catalog at render time so a future

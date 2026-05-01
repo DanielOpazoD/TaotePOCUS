@@ -10,13 +10,26 @@ interface Options {
   notify?: (message: string) => void;
 }
 
-/** Map a storage failure reason to a user-facing Spanish message. */
-function describeFailure(op: string, reason: "quota" | "unavailable" | "unknown"): string {
+/** Map a storage failure reason to a user-facing Spanish message.
+ *  Branches on the widened `WriteResult.reason` union (ADR-0011): the
+ *  `auth_required` / `forbidden` cases come from the server-side
+ *  authorization layer when the dual-write path awaits the DB
+ *  result; the others come from localStorage limits. */
+function describeFailure(
+  op: string,
+  reason: "quota" | "unavailable" | "unknown" | "auth_required" | "forbidden",
+): string {
   if (reason === "quota") {
     return "Sin espacio. Borra casos antiguos o sube archivos más livianos.";
   }
   if (reason === "unavailable") {
     return "Almacenamiento no disponible. Comprueba modo privado / cuotas.";
+  }
+  if (reason === "auth_required") {
+    return "Sesión expirada. Vuelve a iniciar sesión para guardar.";
+  }
+  if (reason === "forbidden") {
+    return "No tienes permiso para esta acción.";
   }
   // "unknown" — keep the message specific to the operation so the toast
   // is informative without leaking internals.
