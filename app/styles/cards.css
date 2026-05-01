@@ -284,6 +284,36 @@
      responsive logic travels with the card. */
   container-type: inline-size;
   container-name: card;
+  /* ─── Browser-level render-skip for off-screen cards ───────────
+   * `content-visibility: auto` lets the browser skip layout, paint,
+   * and rendering for cards that aren't near the viewport. The
+   * intrinsic size below acts as a placeholder so the document
+   * height stays correct (no scrollbar jank as cards enter/leave
+   * visibility) and the grid's row alignment doesn't reflow.
+   *
+   * Why this and not React virtualization: the grid currently holds
+   * ~330 cases, growing slowly. A fixed-size `react-window` grid
+   * would conflict with the container-query layout flip below
+   * (cases section uses a horizontal long-read layout, ECG uses a
+   * 16:10 strip aspect). `content-visibility` is purely a paint
+   * optimization — it preserves every CSS contract.
+   *
+   * Caveats:
+   *   - Find-in-page (Ctrl+F) still works; the browser un-hides on
+   *     match.
+   *   - Screen readers traverse the full DOM; a11y is preserved.
+   *   - Safari ≥ 18.2, Chrome ≥ 85, Firefox ≥ 125. Older browsers
+   *     ignore the property and pay the full layout cost — no
+   *     regression, just no upside.
+   *
+   * The `auto 380px` is the typical card size at portrait aspect on
+   * a 1-col layout (1:1 thumb ≈ 280px square + ~100px of meta
+   * below). Browsers refine this on the first real layout per
+   * card; the value just bounds the initial scroll height
+   * estimate. See `docs/ARCHITECTURE.md > Performance posture` for
+   * the full scaling story. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 380px;
 }
 
 /* Wide container: horizontal "long-read" layout with image on the left

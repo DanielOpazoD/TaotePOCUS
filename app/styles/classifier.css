@@ -293,6 +293,14 @@ select.classifier-aux-input {
     transform 0.18s var(--ease-spring),
     box-shadow 0.18s ease;
   box-shadow: var(--shadow-1);
+  /* Same browser-level render-skip as the public catalog (see
+     `cards.css > .case-card`). The classifier shows the same
+     ~330 cards as a denser bulk-edit grid; without this the admin
+     pays for laying out the entire queue on every drag. The
+     intrinsic size is smaller because the cells are 160px wide
+     and the meta row underneath is one line. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
 }
 .classifier-card:hover {
   border-color: var(--ink-mute);

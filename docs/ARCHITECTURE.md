@@ -273,6 +273,61 @@ tags. In prod, a no-op until a transport is wired (Sentry / Logtail).
 CI runs typecheck + lint + format:check + unit tests + build + e2e on
 every PR.
 
+## Performance posture
+
+The catalog shape is "lots of small visual cards in a single grid"
+(currently ~330 cases, growing slowly). Two compounding costs:
+
+1. **Layout & paint** — every card has a 1:1 thumbnail wrapper and a
+   meta column underneath. The browser pays for laying out and
+   painting cards even when they're 5 viewports below the fold.
+2. **Animated thumbnails** — the synthetic cine-loops draw to a
+   canvas via RAF, and the real-media cards spin up `<video>`
+   elements that decode in the background.
+
+The mitigations layered into the codebase:
+
+- **`content-visibility: auto`** on `.case-card` and
+  `.classifier-card` (in `app/styles/cards.css` and
+  `app/styles/classifier.css`). Off-screen cards skip layout +
+  paint entirely; the browser uses `contain-intrinsic-size` as a
+  scrollbar-stable placeholder. This is the cheapest fix and
+  catches the largest cost.
+- **IntersectionObserver gating in `<CineLoop>`** (in
+  `components/cine/CineLoop.tsx`). The RAF is paused for any cine
+  whose wrapper isn't intersecting the viewport (with a 200px
+  rootMargin). Off-screen cards therefore mount their canvas /
+  video element but don't burn CPU on it.
+- **`prefers-reduced-motion`** opt-out in CineLoop. Users with the
+  OS setting see one frame and stop — zero ongoing render cost
+  for a percentage of the audience.
+- **Code-split corpus.** `lib/imported-cases.ts` (the 326-case
+  dataset) is loaded via dynamic `import()` in `lib/seed-cases.ts`,
+  so the initial bundle stays small (see ADR-0006 / the size
+  budget script in `scripts/bundle-budget.mjs`).
+
+What this DOES NOT solve, by design:
+
+- **The full React tree still mounts.** `content-visibility` is a
+  paint optimization, not a JS one. If the card count grows past
+  ~1000, mounting cost (per-card `useEffect`s, IO observers,
+  etc.) becomes the next bottleneck. The fix at that scale is
+  proper virtualization (`react-window` or similar). Not done yet
+  because:
+  - The current count + the paint optimization above keep first
+    interactive well under 1.5 s on a mid-tier phone in the
+    Lighthouse runs the team owns.
+  - The grid has container queries that flip the card layout based
+    on its container width (the cases section's long-read flip).
+    A fixed-height row virtualizer would conflict with that;
+    proper measurement-based virtualization is a chunk of work
+    we'd rather spend once we've outgrown the paint optimization.
+- **No request-level pagination on the public grid.** The repo
+  facade exposes `listAllPaged` (used by the imported corpus
+  loader), but the homepage renders `listAll` and lets the browser
+  skip-render. When the catalog grows past a few thousand cases
+  the trade-off flips and pagination becomes mandatory.
+
 ## What this codebase is **not** prepared for
 
 These are deliberate non-goals at this stage. Each one becomes a real
