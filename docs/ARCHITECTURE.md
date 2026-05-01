@@ -301,3 +301,18 @@ concern when we move to a backend, and is tracked in an ADR or in
 | A new persistence backend (Firebase…) | `lib/repo.ts` only. Tests in `tests/repo.test.ts` already pin the contract.                          |
 | A new modal                           | `components/modals/` + add a `useFocusTrap` + open/close via URL or local state                      |
 | A new env var                         | `.env.example` + `lib/env.ts` (validation) + reference in code                                       |
+
+## Companion docs
+
+- [`PERSISTENCE.md`](./PERSISTENCE.md) — where each table / cache
+  lives at runtime, the read/write paths through the repo facade,
+  and the staged migration (Stage 1 → Stage 4) referenced
+  throughout `lib/repo*`. Read this before touching anything in
+  `lib/repo/` or `app/actions/db.ts`.
+- [`DATA-MODEL.md`](./DATA-MODEL.md) — `CaseRecord` shape with the
+  bits the TypeScript types can't fully describe (canonical vs
+  deprecated body fields, override map, lifecycle flags, focus
+  framing). Read this before adding a field to the case shape.
+- [`adr/`](./adr/) — indexed decision log. Read the relevant ADR
+  before changing a behavior the ADR describes — and write a new
+  ADR if the change is non-obvious or hard to bisect later.

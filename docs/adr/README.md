@@ -6,13 +6,17 @@ forward.
 
 ## Index
 
-| #    | Title                                                                                          | Status                                             |
-| ---- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| 0001 | [Mock authentication backed by `localStorage`](./0001-mock-auth-with-localstorage.md)          | Accepted (transitional, partly superseded by 0004) |
-| 0002 | [URL is the source of truth for view state](./0002-url-driven-state.md)                        | Accepted                                           |
-| 0003 | [Repository facade between UI and persistence](./0003-repository-facade.md)                    | Accepted (extended by 0004)                        |
-| 0004 | [Firebase as primary persistence (feature-flagged)](./0004-firebase-as-primary-persistence.md) | Accepted                                           |
-| 0005 | [Observability with Sentry](./0005-observability-with-sentry.md)                               | Accepted                                           |
+| #    | Title                                                                                          | Status                                                 |
+| ---- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| 0001 | [Mock authentication backed by `localStorage`](./0001-mock-auth-with-localstorage.md)          | Accepted (auth surface partly superseded by 0007)      |
+| 0002 | [URL is the source of truth for view state](./0002-url-driven-state.md)                        | Accepted                                               |
+| 0003 | [Repository facade between UI and persistence](./0003-repository-facade.md)                    | Accepted (extended by 0004 and 0006)                   |
+| 0004 | [Firebase as primary persistence (feature-flagged)](./0004-firebase-as-primary-persistence.md) | Accepted (parallel option; production runs Netlify DB) |
+| 0005 | [Observability with Sentry](./0005-observability-with-sentry.md)                               | Accepted                                               |
+| 0006 | [Netlify Database dual-write with staged migration](./0006-netlify-database-dual-write.md)     | Accepted                                               |
+| 0007 | [Server-side session for Server Actions authorization](./0007-server-side-session.md)          | Accepted                                               |
+| 0008 | [Canonical `description` field, deprecate the trio](./0008-canonical-description-field.md)     | Accepted                                               |
+| 0009 | [Uniform catalog UI: single header, single grid](./0009-uniform-catalog-ui.md)                 | Accepted                                               |
 
 ## How to add an ADR
 
