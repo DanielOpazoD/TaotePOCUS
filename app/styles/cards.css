@@ -508,17 +508,10 @@
 .case-thumb-fav.is-bursting svg {
   animation: heart-bounce 600ms var(--ease-emphasized);
 }
-.case-thumb-fav.is-bursting::after {
-  /* Expanding ring that fades — the "particles" effect simplified to
-     a single radial echo so it stays subtle and fast. */
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid var(--crit);
-  animation: heart-ring 600ms var(--ease-emphasized) forwards;
-  pointer-events: none;
-}
+/* The expanding red ring (`heart-ring`) was removed in May-2026 —
+   the heart's own bounce already reads as "saved", and stacking two
+   effects on the same gesture put it in the celebratory-microinteraction
+   territory we're stepping back from. The bounce stays. */
 @keyframes heart-bounce {
   0%,
   100% {
@@ -531,19 +524,8 @@
     transform: scale(0.92);
   }
 }
-@keyframes heart-ring {
-  0% {
-    opacity: 0.85;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.9);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .case-thumb-fav.is-bursting svg,
-  .case-thumb-fav.is-bursting::after {
+  .case-thumb-fav.is-bursting svg {
     animation: none;
   }
 }

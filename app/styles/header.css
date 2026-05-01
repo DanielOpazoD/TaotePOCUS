@@ -79,61 +79,20 @@
   overflow: visible;
 }
 
-/* Wordmark animation. The two strokes inside the brand mark — the
-   outer ultrasound-field ring and the inner sine wave — are drawn
-   from start to end on first paint via stroke-dasharray, so the
-   logo introduces itself when the page loads. On hover, both strokes
-   redraw, which feels like the sound briefly pulsing through the
-   field. The path lengths are over-estimated on purpose — exceeding
-   the actual length just clips the dash to "fully drawn" at the
-   end of the animation, no measurement needed.
-   Skipped under prefers-reduced-motion: the marks render statically. */
-.brand-mark circle,
-.brand-mark path {
-  /* The SVG elements declare `pathLength={100}` directly, which
-     normalizes their geometric length to 100 units — letting both
-     the circle (perimeter ~78) and the wave (length ~30) share one
-     dasharray scale. From offset:100 to offset:0 the stroke draws
-     itself end to end. */
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: brand-trace 1s var(--ease-emphasized) 0.1s forwards;
-}
-.brand-mark path {
-  /* The sine wave starts after the ring is half-drawn — a tiny
-     stagger that reads as "the field opens, then the sound passes". */
-  animation-delay: 0.4s;
-}
-
-.brand:hover .brand-mark circle,
-.brand:hover .brand-mark path {
-  animation: brand-trace 0.7s var(--ease-emphasized) forwards;
-}
-.brand:hover .brand-mark path {
-  animation-delay: 0.15s;
-}
-
-@keyframes brand-trace {
-  from {
-    stroke-dashoffset: 100;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .brand-mark circle,
-  .brand-mark path {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-    animation: none;
-  }
-}
+/* The brand mark used to draw itself in via stroke-dasharray on
+   first load and redraw on every hover. It was a craft moment when
+   the brand was the magazine cover; with the May-2026 unification
+   the logo is back to being a quiet anchor. The animation read as
+   showy at every page load. Marks now render statically.
+   No JS / SVG attribute change needed — `pathLength={100}` on the
+   shapes is harmless without the dasharray rules. */
 .brand-wordmark {
-  /* Editorial wordmark: serif for "Taote", italic serif for "POCUS"
-     to suggest the technique-as-name. Subtle but distinguishes the
-     brand from the surrounding sans-serif chrome. */
+  /* Monolithic wordmark — same serif drawing for both halves, no
+     italic accent on "POCUS". The previous treatment (italic + accent
+     color on the second word) belonged to the magazine-cover phase
+     of the project; with the catalog unified it competed with itself
+     for attention. The serif still distinguishes the brand from
+     the sans-serif chrome around it; no extra styling needed. */
   display: inline-flex;
   align-items: baseline;
   gap: 0.35ch;
@@ -141,10 +100,13 @@
   font-feature-settings: "ss01" 1;
 }
 .brand-wordmark em {
-  font-style: italic;
+  /* `<em>` is kept on the markup for semantic emphasis but visually
+     matches the rest of the wordmark — same weight, same color, no
+     italic. Screen readers still pick up the emphasis. */
+  font-style: normal;
   font-weight: 600;
   letter-spacing: -0.005em;
-  color: var(--accent-ink);
+  color: inherit;
 }
 .brand-tag {
   font-family: var(--sans);
@@ -176,12 +138,16 @@
 .hamburger:hover {
   background: var(--surface-2);
 }
+.nav {
+  display: flex;
+  gap: var(--space-1);
+}
 .nav a {
   position: relative;
   background: transparent;
   border: none;
   padding: 8px 14px;
-  font-size: 14px;
+  font-size: var(--fs-body);
   color: var(--ink-soft);
   border-radius: var(--radius-md);
   font-weight: 500;
@@ -198,53 +164,33 @@
 .nav a.active {
   color: var(--ink);
 }
-.nav {
-  display: flex;
-  gap: var(--space-1);
-  position: relative;
-  /* Hosting context for the magnetic indicator below. */
-}
 
-/* Magnetic underline. A single floating bar that anchors under the
-   active link and slides to whatever link the cursor is over. Spring
-   easing gives it a subtle Apple rebound at the end of each move.
-   Falls back gracefully: when no JS positions are computed yet (SSR,
-   hydration, or no active link), the indicator stays hidden via the
-   .is-visible toggle. */
-.nav-indicator {
+/* Static underline under the active link. A 2px hairline-strong bar
+   inset 14px from each edge so it tracks the visible text rather than
+   the padded hit-target. Replaces the magnetic floating indicator that
+   used to slide between links on hover — that was craft for the
+   magazine-cover phase; for catalog navigation a quiet active marker
+   is the right amount of cue. */
+.nav a.active::after {
+  content: "";
   position: absolute;
-  left: 0;
+  left: 14px;
+  right: 14px;
   bottom: 4px;
   height: 2px;
-  width: var(--ind-w, 0);
-  transform: translate3d(var(--ind-x, 0), 0, 0);
   background: var(--ink);
   border-radius: 2px;
-  opacity: 0;
   pointer-events: none;
-  z-index: 0;
-  transition:
-    transform 0.45s var(--ease-spring),
-    width 0.45s var(--ease-spring),
-    opacity var(--duration-base) ease;
-}
-.nav-indicator.is-visible {
-  opacity: 1;
 }
 
-/* View-transition handoff on route change so the indicator morphs
+/* View-transition handoff on route change so the underline morphs
    between sections rather than fading. The browser uses the same
-   `nav-active` snapshot for the indicator before/after the route
-   swap — supported in Chrome/Safari, no-op in Firefox. */
+   `nav-active` snapshot for the active link's pseudo-element before
+   and after the route swap — supported in Chrome/Safari, no-op in
+   Firefox. */
 @supports (view-transition-name: nav-active) {
-  .nav-indicator {
+  .nav a.active {
     view-transition-name: nav-active;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav-indicator {
-    transition: opacity var(--duration-base) ease;
   }
 }
 .nav button {
