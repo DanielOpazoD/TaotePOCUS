@@ -92,8 +92,37 @@ export interface CaseRecord {
   author: string;
   role: string;
   date: string;
+  /**
+   * Single canonical description body. The May-2026 UX simplification
+   * collapsed the previous trio (`summary` + `findings` + `diagnosis`)
+   * into one field; this is the one to write going forward. Reads
+   * should go through `getDescription()` in `lib/case-description.ts`,
+   * which falls back to the legacy fields below for cases written
+   * before the migration.
+   *
+   * Optional because the 326 imported cases pre-date the field — they
+   * carry their text in `findings`. Once a backfill migration lands
+   * (writes `description = findings || summary || diagnosis` for every
+   * existing row) this can be promoted to `string` and the legacy
+   * fields removed.
+   */
+  description?: string;
+  /**
+   * @deprecated Use `description` (write) and `getDescription(c)` (read).
+   * Kept on the type because the imported corpus and any backups
+   * predating May-2026 store their text here. New code should never
+   * read or write this field directly.
+   */
   findings: string;
+  /**
+   * @deprecated Use `description` (write) and `getDescription(c)` (read).
+   * @see findings
+   */
   diagnosis: string;
+  /**
+   * @deprecated Use `description` (write) and `getDescription(c)` (read).
+   * @see findings
+   */
   summary: string;
   featured?: boolean;
   /**

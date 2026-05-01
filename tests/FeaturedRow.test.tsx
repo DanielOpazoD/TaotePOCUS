@@ -9,13 +9,15 @@ vi.mock("../components/cine", () => ({
 }));
 
 // Tighter than the factory default so the FeaturedRow assertions
-// (titles, summaries) stay deterministic. Use overrides liberally.
+// (titles, summaries) stay deterministic. Writes the abstract via
+// the canonical `description` field so the assertion matches what
+// the post-May-2026 read path resolves. Use overrides liberally.
 const baseCase = (overrides: Partial<Parameters<typeof caseFactory>[0]> = {}) =>
   caseFactory({
     title: "Title",
     category: "cardiac",
     tags: [],
-    summary: "Summary text",
+    description: "Summary text",
     ...overrides,
   });
 

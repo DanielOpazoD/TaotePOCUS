@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CineLoop from "./CineLoop";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -109,17 +110,27 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
 
       <div className="presentation-meta">
         <h1>{caso.title}</h1>
-        <p className="presentation-findings">{caso.findings}</p>
-        {revealed ? (
-          <div className="presentation-diagnosis">
-            <span className="label">Diagnóstico</span>
-            <p>{caso.diagnosis}</p>
-          </div>
-        ) : (
-          <button className="presentation-reveal" onClick={() => setRevealed(true)}>
-            Revelar diagnóstico (R)
-          </button>
-        )}
+        {/* Body uses the canonical description; legacy `findings` is
+            covered by the fallback chain inside `getDescription`. */}
+        <p className="presentation-findings">{getDescription(caso)}</p>
+        {/* The "reveal diagnosis" mechanic only makes sense when the
+            case carries a *separate* diagnosis line distinct from the
+            description body. Cases written through the simplified form
+            (May-2026+) collapse everything into `description`, so they
+            naturally render without a reveal button. Legacy imports
+            with a populated `diagnosis` keep the pedagogical pattern. */}
+        {caso.diagnosis && caso.diagnosis !== getDescription(caso) ? (
+          revealed ? (
+            <div className="presentation-diagnosis">
+              <span className="label">Diagnóstico</span>
+              <p>{caso.diagnosis}</p>
+            </div>
+          ) : (
+            <button className="presentation-reveal" onClick={() => setRevealed(true)}>
+              Revelar diagnóstico (R)
+            </button>
+          )
+        ) : null}
       </div>
 
       <div className="presentation-help">

@@ -6,6 +6,7 @@ import AdminThumbMenu from "./AdminThumbMenu";
 import { Icon, CategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Category } from "@/lib/types";
 
 interface Props {
@@ -105,7 +106,10 @@ export default function CaseCard({
         />
         <div className="case-thumb-overlay"></div>
         <div className="case-thumb-preview">
-          <p>{caso.findings.split(/\.\s+/)[0]}.</p>
+          {/* First sentence of the canonical description. Falls back
+              to the legacy fields via `getDescription` so imported
+              cases keep their hover preview. */}
+          <p>{firstSentence(getDescription(caso))}</p>
         </div>
         {isCrit && <span className="case-thumb-crit">Crítico</span>}
         {/* Admin-only review badge — appears top-right under the fav
@@ -149,7 +153,9 @@ export default function CaseCard({
           <span>{cat?.label}</span>
         </div>
         <h3 className="case-title">{caso.title}</h3>
-        <p className="case-summary">{caso.summary}</p>
+        {/* Short blurb under the title — also pulls from the canonical
+            description rather than the legacy `summary` slot. */}
+        <p className="case-summary">{getDescription(caso)}</p>
         <div className="case-byline">
           <span>{caso.author}</span>
           <span className="dot"></span>
@@ -167,4 +173,14 @@ export default function CaseCard({
       </div>
     </div>
   );
+}
+
+/** First sentence of a body string, with a trailing period. Returns
+ *  an empty string when the input is empty so the hover preview can
+ *  render conditionally. */
+function firstSentence(text: string): string {
+  if (!text) return "";
+  const head = text.split(/\.\s+/)[0]?.trim() ?? "";
+  if (!head) return "";
+  return head.endsWith(".") ? head : `${head}.`;
 }

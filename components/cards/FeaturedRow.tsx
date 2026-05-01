@@ -3,6 +3,7 @@
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -65,7 +66,7 @@ function FeaturedCard({
       <div className="featured-meta">
         <div className="case-cat">{cat?.label}</div>
         <h3 className="featured-title">{caso.title}</h3>
-        {variant === "hero" && <p className="featured-abstract">{caso.summary}</p>}
+        {variant === "hero" && <p className="featured-abstract">{getDescription(caso)}</p>}
         <div className="case-byline">
           <span>{caso.author}</span>
           <span className="dot"></span>

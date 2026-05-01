@@ -14,6 +14,7 @@ import {
   readingTimeFor,
   wasUpdatedAfterPublication,
 } from "@/lib/case-meta";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Media } from "@/lib/types";
 
 interface Props {
@@ -81,13 +82,10 @@ export default function CaseModal({
     return (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
   }, [caso.author]);
   // Single description field. The Apr-2026 UX simplification dropped
-  // the separate Resumen / Hallazgos / Diagnóstico sections; existing
-  // imported cases have their content in `findings`, while legacy
-  // user-edited cases may have any combination, so we fall through.
-  const description = useMemo(
-    () => caso.findings || caso.summary || caso.diagnosis || "",
-    [caso.findings, caso.summary, caso.diagnosis],
-  );
+  // the separate Resumen / Hallazgos / Diagnóstico sections; the
+  // canonical read goes through `getDescription` which falls through
+  // the legacy fields for cases that pre-date the migration.
+  const description = useMemo(() => getDescription(caso), [caso]);
 
   // Unified media list for this case. May be empty (case has only the
   // synthetic cine-loop) or contain one or more uploaded items. The

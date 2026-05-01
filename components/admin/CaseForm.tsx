@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Category, Media, MediaKind, User, LoopKind } from "@/lib/types";
 
 // localStorage caps at ~5 MB across all keys (per origin in most browsers).
@@ -162,14 +163,17 @@ export default function CaseForm({
 
   const removeTag = (t: string) => update({ tags: form.tags.filter((x) => x !== t) });
 
+  // Description is the single body field shown in the form. We read
+  // through `getDescription` so editing a legacy case (with text in
+  // `findings`/`summary`/`diagnosis` but not yet in `description`)
+  // pre-fills correctly; we always write back to `description`, the
+  // canonical field. A future bulk migration can backfill every
+  // legacy row and let us drop the fallback chain entirely.
+  const description = getDescription(form);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Validation tracks the simplified form: title + the single
-    // "Descripción" field (stored as `findings` for back-compat with
-    // the imported corpus). `summary` / `diagnosis` were dropped from
-    // the editing UI per the April-2026 simplification — they remain
-    // on `CaseRecord` for legacy data but are no longer captured here.
-    if (!form.title.trim() || !form.findings.trim()) return;
+    if (!form.title.trim() || !description.trim()) return;
     const id = form.id || `u_${Date.now().toString(36)}`;
     onSave({ ...form, id });
   };
@@ -429,17 +433,20 @@ export default function CaseForm({
                 onChange={(e) => update({ date: e.target.value })}
               />
 
-              {/* Single description field. Replaces the old trio of
-                  Resumen / Hallazgos / Diagnóstico (Apr-2026 UX
-                  simplification). The data is stored in `findings` so
-                  the imported corpus and existing search continue to
-                  resolve without a migration. */}
+              {/* Single description field. Replaces the trio of
+                  Resumen / Hallazgos / Diagnóstico that used to live
+                  here (Apr-2026 simplification). Writes to the
+                  canonical `description` field; reads via
+                  `getDescription` so editing a legacy case pre-fills
+                  from `findings` / `summary` / `diagnosis` instead of
+                  showing an empty box. See `lib/case-description.ts`
+                  for the full migration story. */}
               <label className="admin-label">Descripción</label>
               <textarea
                 className="admin-input"
                 rows={6}
-                value={form.findings}
-                onChange={(e) => update({ findings: e.target.value })}
+                value={description}
+                onChange={(e) => update({ description: e.target.value })}
                 placeholder="Describe el caso: contexto clínico, lo que se ve en la imagen, conclusión…"
                 required
               />

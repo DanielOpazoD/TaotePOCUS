@@ -3,6 +3,7 @@
  * label, last-updated formatting, media list. Pure — testable in isolation.
  */
 
+import { getDescription } from "./case-description";
 import type { CaseRecord, Media } from "./types";
 
 /** Words per minute used for the estimate. Conservative for a Spanish
@@ -21,7 +22,12 @@ const DIFFICULTY_LABEL: Record<NonNullable<CaseRecord["difficulty"]>, string> = 
  * paste into the UI.
  */
 export function readingTimeFor(c: CaseRecord): string {
-  const text = `${c.title} ${c.summary} ${c.findings} ${c.diagnosis} ${c.tags.join(" ")}`;
+  // Single canonical description (with legacy fallback) + title +
+  // tags. Counting `summary` + `findings` + `diagnosis` separately
+  // would triple-count the same content for cases that have it
+  // duplicated, inflating the estimate. The fallback chain inside
+  // `getDescription` already picks one slot per case.
+  const text = `${c.title} ${getDescription(c)} ${c.tags.join(" ")}`;
   const words = text.trim().split(/\s+/).length;
   const minutes = Math.max(1, Math.round(words / WPM));
   return `${minutes} min`;

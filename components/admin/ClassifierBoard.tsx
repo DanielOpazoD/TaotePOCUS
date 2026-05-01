@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
 /**
@@ -100,9 +101,9 @@ export default function ClassifierBoard({
     const q = searchQuery.trim().toLowerCase();
     if (q) {
       pool = pool.filter((c) => {
-        const haystack = [c.title, c.summary, c.findings, c.diagnosis, c.author, ...c.tags]
-          .join(" ")
-          .toLowerCase();
+        // Single canonical description in the haystack — `getDescription`
+        // covers the new field plus the legacy fallback chain in one read.
+        const haystack = [c.title, getDescription(c), c.author, ...c.tags].join(" ").toLowerCase();
         return haystack.includes(q);
       });
     }

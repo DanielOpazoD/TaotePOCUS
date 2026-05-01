@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/data";
+import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, CategoryWithCount, View } from "@/lib/types";
 import type { SortOrder } from "@/lib/url";
 
@@ -89,14 +90,19 @@ export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }:
     if (tags.length) list = list.filter((c) => tags.every((t) => c.tags.includes(t)));
     if (query.trim()) {
       const q = query.toLowerCase();
-      list = list.filter(
-        (c) =>
+      list = list.filter((c) => {
+        // `getDescription` already falls through `description →
+        // findings → summary → diagnosis`, so a single search index
+        // entry covers every legacy slot. New cases written through
+        // the simplified form populate `description`; old imports
+        // keep matching via their `findings`.
+        return (
           c.title.toLowerCase().includes(q) ||
-          c.diagnosis.toLowerCase().includes(q) ||
-          c.findings.toLowerCase().includes(q) ||
+          getDescription(c).toLowerCase().includes(q) ||
           c.tags.join(" ").toLowerCase().includes(q) ||
-          c.author.toLowerCase().includes(q),
-      );
+          c.author.toLowerCase().includes(q)
+        );
+      });
     }
     if (sort === "recent") list.sort((a, b) => b.date.localeCompare(a.date));
     if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title));
