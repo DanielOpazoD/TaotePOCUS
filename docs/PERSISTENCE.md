@@ -62,9 +62,8 @@ healed by the next read.
 
 Stage 4 (future) — local fallback removed; DB write is the source
 of truth and a failure surfaces synchronously. The form's submit
-flow needs to handle the failure case (toast + leave the modal open
-
-- keep form state) before this stage can ship.
+flow needs to handle the failure case (show a toast, leave the
+modal open, keep the form state) before this stage can ship.
 
 ## Authorization
 
