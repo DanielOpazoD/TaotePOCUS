@@ -259,12 +259,20 @@ function AppInner() {
             sort={sort}
             onReplace={replacePatch}
           />
-          {/* FeaturedRow above the grid is shown for non-atlas section
-              landings. Atlas gets the bento layout below, which already
-              promotes the featured case to a 2×2 hero — showing it
-              twice would just be loud. */}
+          {/* FeaturedRow promotes a hero case at the top of certain
+              section landings. Excluded from sections where the
+              uniform catalog grid is the primary mental model:
+                - Atlas: removed in May-2026 (ADR-0009).
+                - Infografías: extended to the same rule per user
+                  feedback — the posters are visually heavy on their
+                  own, a hero on top broke "every poster the same
+                  size" and pushed the grid below the fold.
+              ECG and Casos clínicos still use the row because they
+              read as editorial / catalog hybrids where a curated
+              entry point earns its space. */}
           {view.kind === "section" &&
             view.section !== "atlas" &&
+            view.section !== "info" &&
             !cat &&
             tags.length === 0 &&
             !query.trim() && (
