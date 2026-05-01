@@ -89,26 +89,46 @@ export default function CineLoop({
   const startRef = useRef<number>(typeof performance !== "undefined" ? performance.now() : 0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Track whether the loop is in (or near) the viewport. When off-screen
-  // we stop the RAF entirely — no more 15+ animation frames competing for
-  // the main thread on the home grid (audit §9).
+  // Track whether the loop is in (or near) the viewport. Off-screen
+  // cards pause their work (RAF for synthetic canvas, play() for real
+  // videos). Threshold is tighter for `<video>` (50px) than for the
+  // canvas loop (200px) because every active <video> costs a decoder
+  // slot + bandwidth, while RAF skip is essentially free. Both stay
+  // generous enough that cards "wake up" before they reach the
+  // user's eye on a normal scroll.
   const [visible, setVisible] = useState(true);
   // Respect prefers-reduced-motion: render a single static frame instead
   // of looping. Vestibular accessibility.
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Document-visibility: when the user switches tabs / minimizes the
+  // window, pause everything. Most browsers throttle background tabs
+  // anyway, but explicit pause stops decoders, saves battery, and
+  // makes the return-to-tab feel instant rather than buffered.
+  const [tabVisible, setTabVisible] = useState(true);
 
   useEffect(() => {
     const el = wrapRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
+    // Real video cards trigger this branch via the `media.src` path;
+    // canvas cine-loops use the same observer, just with a wider
+    // margin tuned to anticipate scroll without a decoder cost.
+    const isVideo = !!media;
     const io = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (entry) setVisible(entry.isIntersecting);
       },
-      { rootMargin: "200px" }, // start drawing slightly before scroll-in
+      { rootMargin: isVideo ? "50px" : "200px" },
     );
     io.observe(el);
     return () => io.disconnect();
+  }, [media]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVis = () => setTabVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
   useEffect(() => {
@@ -123,10 +143,10 @@ export default function CineLoop({
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.playbackRate = speed;
-      if (paused || !visible) videoRef.current.pause();
+      if (paused || !visible || !tabVisible) videoRef.current.pause();
       else videoRef.current.play().catch(() => {});
     }
-  }, [paused, speed, media, visible]);
+  }, [paused, speed, media, visible, tabVisible]);
 
   useEffect(() => {
     if (media) return;
@@ -150,7 +170,7 @@ export default function CineLoop({
     let frame = 0;
     function draw(now: number) {
       if (!ctx || !cvs) return;
-      if (paused || !visible) {
+      if (paused || !visible || !tabVisible) {
         rafRef.current = requestAnimationFrame(draw);
         return;
       }
@@ -175,7 +195,7 @@ export default function CineLoop({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       ro.disconnect();
     };
-  }, [kind, speed, paused, showChrome, media, visible, quality, reducedMotion]);
+  }, [kind, speed, paused, showChrome, media, visible, tabVisible, quality, reducedMotion]);
 
   if (media && (media.kind === "video" || media.kind === "image" || media.kind === "gif")) {
     // Pick the right renderer based on the actual file extension, not
@@ -201,12 +221,26 @@ export default function CineLoop({
             loop
             muted
             playsInline
+            // `preload="metadata"` is the single biggest perf win on
+            // the catalog grid. Default `auto` makes the browser
+            // download the full file as soon as the element mounts —
+            // with ~15 visible cards × an N-MB clip each, the network
+            // saturates and playback stutters across the page.
+            // `metadata` fetches just the headers + first frame, so
+            // every card paints a still preview cheaply and the byte
+            // pipeline only opens for the cards that actually start
+            // playing (gated by IntersectionObserver above).
+            preload="metadata"
             className="cine-video"
             style={mediaStyle}
             onLoadedMetadata={(e) => {
               const v = e.currentTarget;
               v.playbackRate = speed;
-              if (paused) v.pause();
+              // Only start playing if the card is in view AND the tab
+              // is visible. Without these guards the metadata-load
+              // event would force a play even on cards 10 rows below
+              // the fold, defeating the point of `preload="metadata"`.
+              if (paused || !visible || !tabVisible) v.pause();
               else v.play().catch(() => {});
               if (preserveNativeAspect && v.videoWidth > 0 && v.videoHeight > 0) {
                 setNativeAspect(`${v.videoWidth} / ${v.videoHeight}`);
