@@ -21,6 +21,15 @@ export default tseslint.config(
       // (validator.ts) include `any`s and `@ts-ignore`s that fight
       // our rules. Not our code, not our concern.
       "clerk-nextjs/**",
+      // Serwist builds the service worker into `public/sw.js` (and
+      // a sibling `swe-worker-*.js` chunk) on every production
+      // build. Generated bundles use Service Worker globals
+      // (`self`, `caches`) that ESLint's browser env doesn't ship
+      // with by default; ignore them outright since they're not
+      // hand-written code.
+      "public/sw.js",
+      "public/sw.js.map",
+      "public/swe-worker-*.js",
     ],
   },
   js.configs.recommended,

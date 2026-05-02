@@ -10,6 +10,7 @@ import ClassifierBoard from "./ClassifierBoard";
 import CategoriesEditor from "./CategoriesEditor";
 import SectionsEditor from "./SectionsEditor";
 import BackupPanel from "./BackupPanel";
+import BulkEditTable, { BulkEditTagSuggestions } from "./BulkEditTable";
 
 interface Props {
   allCases: CaseRecord[];
@@ -69,7 +70,7 @@ interface Props {
   notify?: (msg: string) => void;
 }
 
-type Tab = "mine" | "classify" | "categories" | "sections" | "backup";
+type Tab = "mine" | "classify" | "edit" | "categories" | "sections" | "backup";
 
 function formatDateTime(iso?: string) {
   if (!iso) return "";
@@ -154,6 +155,18 @@ export default function AdminPanel({
             {unclassifiedCount > 0 && <span className="admin-tab-count">{unclassifiedCount}</span>}
           </button>
         )}
+        {onPatch && onBulkPatch && onBulkSoftDelete && (
+          <button
+            role="tab"
+            aria-selected={tab === "edit"}
+            className={`admin-tab${tab === "edit" ? " is-active" : ""}`}
+            onClick={() => setTab("edit")}
+            title="Editar título / descripción / etiquetas en lote"
+          >
+            Edición
+            <span className="admin-tab-count">{allCases.length}</span>
+          </button>
+        )}
         {canEditCategories && (
           <button
             role="tab"
@@ -196,6 +209,17 @@ export default function AdminPanel({
           onDelete={onDelete}
           onPurge={onPurgeImport}
         />
+      ) : tab === "edit" && onPatch && onBulkPatch && onBulkSoftDelete ? (
+        <>
+          <BulkEditTable
+            cases={allCases}
+            categories={resolvedCategories}
+            onPatch={onPatch}
+            onBulkPatch={onBulkPatch}
+            onBulkSoftDelete={onBulkSoftDelete}
+          />
+          <BulkEditTagSuggestions />
+        </>
       ) : tab === "categories" && canEditCategories ? (
         <CategoriesEditor
           categories={resolvedCategories}
