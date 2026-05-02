@@ -1,5 +1,6 @@
 import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
+import withSerwistInit from "@serwist/next";
 
 // Security headers applied to all routes. Tuned for a public, mostly-
 // static educational site — strict CSP, no third-party iframes, deny
@@ -152,10 +153,29 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+// Serwist wraps `app/sw.ts` into a compiled `public/sw.js` with the
+// build-time precache manifest injected. Disabled in dev so HMR
+// doesn't fight the SW intercepting JS chunk requests; production
+// builds and `next start` enable it. See `app/sw.ts` for the
+// caching strategy + ADR-style header.
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  // Cache navigated pages so revisiting an already-seen route is
+  // instant (and works offline).
+  cacheOnNavigation: true,
+  // Auto-reload open tabs when network comes back, so a user that
+  // went offline doesn't get stuck on stale state.
+  reloadOnOnline: true,
+  // Disable in dev — Turbopack/HMR does its own request handling
+  // and the SW caching every JS chunk gets in the way.
+  disable: process.env.NODE_ENV === "development",
+});
+
 // Wrap with Sentry only when a DSN is present. The wrapper is heavier
 // than the plain SDK init (it injects route instrumentation, source-map
 // uploads, etc.) so we skip it entirely on dev / demo paths.
-const baseConfig = withBundleAnalyzer(nextConfig);
+const baseConfig = withSerwist(withBundleAnalyzer(nextConfig));
 
 const sentryEnabled = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN);
 

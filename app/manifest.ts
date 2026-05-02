@@ -1,12 +1,11 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/env";
 
 // PWA manifest. Next.js generates `/manifest.webmanifest` from this
 // at build time and links it in <head> automatically.
 //
-// Keep this minimal — we are not aiming for installability today,
-// only for proper iOS / Android home-screen behavior when a user
-// adds the site as a shortcut.
+// With Serwist (see `app/sw.ts`) the app is now installable as a
+// proper PWA: the catalog shell, the case data, and recently-viewed
+// thumbnails are cached for offline use.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Taote POCUS",
@@ -53,8 +52,11 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/info",
       },
     ],
-    // Reference our deployed URL so embedded clients (e.g. browsers
-    // installing the PWA) know where to fetch updates from.
-    id: SITE_URL,
+    // Stable identity for the installed PWA. Must be the same origin
+    // as the document — using `/` (relative) keeps it portable across
+    // dev (localhost), preview deploys, and production. Putting the
+    // full SITE_URL here triggered the "id should be same origin"
+    // browser warning.
+    id: "/",
   };
 }

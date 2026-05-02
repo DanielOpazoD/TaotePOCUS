@@ -73,3 +73,66 @@
     animation: none;
   }
 }
+
+/* =================== PWA STATUS =================== */
+/*
+ * Two affordances mounted by `<PWAStatus>`. Both are bottom-anchored
+ * pills, vertically stacked above the toast chip so they don't
+ * collide with mid-action toasts like "Caso eliminado · Deshacer".
+ *
+ *   - `.pwa-status--offline` — sits ~80px from the bottom, soft
+ *     yellow bg. Persists for as long as the user is offline.
+ *   - `.pwa-status--update` — bumps another ~52px above. Shows
+ *     until the user clicks "Recargar" or until we reload.
+ *
+ * Same pill geometry as `.toast` for visual cohesion.
+ */
+.pwa-status {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: var(--z-presentation);
+  box-shadow: var(--shadow-2);
+  animation: toastIn var(--duration-slow) var(--ease-emphasized);
+}
+.pwa-status--offline {
+  bottom: 80px;
+  background: oklch(0.94 0.06 90); /* soft amber */
+  color: oklch(0.32 0.06 70);
+  border: 1px solid oklch(0.85 0.09 85);
+}
+.pwa-status--update {
+  bottom: 132px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent-ink);
+}
+.pwa-status-action {
+  background: var(--accent-ink);
+  color: var(--bg);
+  border: none;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter var(--duration-fast) ease;
+}
+.pwa-status-action:hover,
+.pwa-status-action:focus-visible {
+  filter: brightness(1.1);
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pwa-status {
+    animation: none;
+  }
+}

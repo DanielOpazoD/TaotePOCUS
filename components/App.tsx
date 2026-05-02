@@ -36,6 +36,10 @@ const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: fal
 const FeaturedRow = dynamic(() => import("./cards/FeaturedRow"));
 const MobileDrawer = dynamic(() => import("./chrome/MobileDrawer"), { ssr: false });
 const ShortcutsModal = dynamic(() => import("./modals/ShortcutsModal"), { ssr: false });
+// PWA status (offline banner + service worker update toast). Lazy-
+// loaded with `ssr: false` because the hooks behind it touch
+// `navigator` which only exists in the browser.
+const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 
 export default function App() {
   return (
@@ -714,6 +718,7 @@ function AppInner() {
         onCancel={adminPipeline.cancelPurge}
       />
       <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <PWAStatus />
     </>
   );
 }

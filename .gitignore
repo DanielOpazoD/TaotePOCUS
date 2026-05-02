@@ -51,3 +51,12 @@ public/imports/
 
 # Local Netlify folder
 .netlify
+
+# Serwist generates these on every build (see app/sw.ts).
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
+
+# Sample Next.js scaffold from `npx clerk@latest dev` — kept locally
+# for reference but not part of the app tree. ESLint ignores it too.
+clerk-nextjs/
