@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
@@ -272,7 +273,10 @@ export default function AdminPanel({
                           {c.media?.kind === "video" ? (
                             <video src={c.media.src} muted />
                           ) : c.media ? (
-                            <img src={c.media.src} alt="" />
+                            // Fixed 56×56 thumb; explicit dimensions
+                            // let the optimizer pick the right size
+                            // for the srcSet without us measuring.
+                            <Image src={c.media.src} alt="" width={56} height={56} />
                           ) : (
                             <CineLoop kind={c.loop} aspect="1/1" speed={1} showChrome={false} />
                           )}

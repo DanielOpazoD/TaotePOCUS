@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Media } from "@/lib/types";
 import { drawScene, drawChrome } from "./cineScenes";
@@ -253,13 +254,28 @@ export default function CineLoop({
     }
     return (
       <div className="cine-wrap" style={{ aspectRatio: resolvedAspect }} ref={wrapRef}>
-        <img
+        {/* `<Image fill>` paired with the absolute-positioned wrapper
+            lets the optimizer pick a width based on the actual cell
+            size (via the `sizes` hint) without forcing us to pass
+            explicit pixel dimensions. The Netlify Image CDN routes
+            through automatically when this component is used.
+            `unoptimized` for `.gif` because Twitter's animated GIFs
+            ship as actual GIF files and the optimizer would burn
+            cycles converting frames; the file is small enough that
+            shipping it raw is cheaper. */}
+        <Image
           src={media.src}
+          alt=""
+          fill
+          // Catalog max thumb is ~290px on a 5-col atlas at 1480px;
+          // 480px is generous for retina + future widening.
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 480px"
+          quality={quality === "full" ? 90 : 75}
+          unoptimized={/\.gif(\?|$)/i.test(src)}
           className="cine-video"
           style={mediaStyle}
-          alt=""
           onLoad={(e) => {
-            const im = e.currentTarget;
+            const im = e.currentTarget as HTMLImageElement;
             if (preserveNativeAspect && im.naturalWidth > 0 && im.naturalHeight > 0) {
               setNativeAspect(`${im.naturalWidth} / ${im.naturalHeight}`);
             }
