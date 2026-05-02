@@ -28,6 +28,12 @@ const securityHeaders = [
         "https://*.clerk.com",
         "https://*.clerk.accounts.dev",
         "https://*.clerk.dev",
+        // Cloudflare Turnstile is the CAPTCHA Clerk loads on sign-up.
+        // Without this entry the Turnstile script is blocked, the
+        // captcha token never gets minted, and Clerk's `/sign_ups`
+        // endpoint 400s with an empty challenge. See
+        // https://clerk.com/docs/security/clerk-csp.
+        "https://challenges.cloudflare.com",
       ].join(" "),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
@@ -52,6 +58,8 @@ const securityHeaders = [
         "https://*.clerk.dev",
         "https://clerk-telemetry.com",
         "https://*.clerk-telemetry.com",
+        // Turnstile callbacks (CAPTCHA verification round-trip).
+        "https://challenges.cloudflare.com",
       ].join(" "),
       // Clerk renders an iframe for some flows (e.g., the captcha).
       "frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
