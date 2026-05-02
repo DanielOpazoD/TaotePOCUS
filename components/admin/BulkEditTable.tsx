@@ -544,21 +544,7 @@ function Row({
         />
       </td>
       <td className="bulk-edit-td-thumb">
-        {caso.media?.kind === "video" ? (
-          <video src={caso.media.src} muted className="bulk-edit-thumb-media" />
-        ) : caso.media ? (
-          <Image
-            src={caso.media.src}
-            alt=""
-            width={40}
-            height={40}
-            className="bulk-edit-thumb-media"
-          />
-        ) : (
-          <div className="bulk-edit-thumb-placeholder" aria-hidden="true">
-            ◎
-          </div>
-        )}
+        <Thumb caso={caso} onOpen={onOpenEdit ? () => onOpenEdit(caso) : undefined} />
       </td>
       <td>
         <EditableText
@@ -621,6 +607,84 @@ function Row({
         <RowMenu caso={caso} onOpenEdit={onOpenEdit} onDelete={onDelete} />
       </td>
     </tr>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Thumbnail cell — image / video with error fallback + click-to-edit
+// ═══════════════════════════════════════════════════════════════════
+
+interface ThumbProps {
+  caso: CaseRecord;
+  /** When provided, the thumbnail becomes a clickable button that
+   *  opens the full edit flow (CaseForm modal). Without it the
+   *  thumb renders as a static <span>. */
+  onOpen?: () => void;
+}
+
+/**
+ * Per-row media thumbnail. Three states:
+ *
+ *   - Image present + load OK → 40×40 cropped image.
+ *   - Video present + load OK → 40×40 muted video frame.
+ *   - Anything fails (404, blob missing, CORS, network) → ◎ marker.
+ *
+ * The `onError` handlers flip a local state so the broken asset
+ * doesn't keep retrying. Without this fallback `<Image>` and
+ * `<video>` render an empty box on failure — visually invisible
+ * and confusing.
+ *
+ * Click semantics:
+ *   - With `onOpen`: the wrapper is a <button>. Click opens the
+ *     full-edit modal (the same callback the row's ⋮ "Abrir
+ *     modal completo" uses). Hover shows a subtle ring so the
+ *     admin knows it's interactive.
+ *   - Without: static container, no cursor change.
+ */
+function Thumb({ caso, onOpen }: ThumbProps) {
+  const [errored, setErrored] = useState(false);
+
+  const inner = (() => {
+    if (errored || !caso.media) {
+      return (
+        <span className="bulk-edit-thumb-placeholder" aria-hidden="true">
+          ◎
+        </span>
+      );
+    }
+    if (caso.media.kind === "video") {
+      return (
+        <video
+          src={caso.media.src}
+          muted
+          playsInline
+          className="bulk-edit-thumb-media"
+          onError={() => setErrored(true)}
+        />
+      );
+    }
+    return (
+      <Image
+        src={caso.media.src}
+        alt=""
+        width={40}
+        height={40}
+        className="bulk-edit-thumb-media"
+        onError={() => setErrored(true)}
+      />
+    );
+  })();
+
+  if (!onOpen) return inner;
+  return (
+    <button
+      type="button"
+      className="bulk-edit-thumb-btn"
+      onClick={onOpen}
+      aria-label={`Abrir edición completa de ${caso.title}`}
+    >
+      {inner}
+    </button>
   );
 }
 

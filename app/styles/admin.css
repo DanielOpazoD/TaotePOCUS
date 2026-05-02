@@ -1079,6 +1079,34 @@ textarea.admin-input {
   margin: 0 auto;
   font-size: 16px;
 }
+/* Clickable thumb wrapper — when the row has an `onOpenEdit`
+   handler the thumb becomes a button. Visual affordance is
+   minimal: cursor + ring on hover/focus. The image inside keeps
+   its rounded corners, so the ring sits flush. */
+.bulk-edit-thumb-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  line-height: 0;
+  transition:
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+.bulk-edit-thumb-btn:hover {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 2px 6px oklch(0 0 0 / 0.18);
+  transform: scale(1.04);
+}
+.bulk-edit-thumb-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 4px var(--accent-soft);
+}
 
 /* Display state: cell is a quiet button. Becomes more obvious on
    hover so the admin knows it's clickable, but doesn't shout when
