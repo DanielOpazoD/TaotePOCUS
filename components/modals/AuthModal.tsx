@@ -46,6 +46,17 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
     if (!dialog.open) dialog.showModal();
     return () => {
       if (dialog.open) dialog.close();
+      // Strip Clerk's hash-routing artifacts on unmount. <SignIn
+      // routing="hash" /> uses fragments like `#/factor-one`,
+      // `#/sso-callback`, `#/verify-email-address` to navigate
+      // between its internal steps without a full reload. When the
+      // modal closes those fragments stick to the URL until the
+      // next manual refresh — visually noisy. Replace history with
+      // the bare path + search so the URL goes back to clean.
+      if (typeof window !== "undefined" && window.location.hash.startsWith("#/")) {
+        const cleanUrl = window.location.pathname + window.location.search;
+        window.history.replaceState(null, "", cleanUrl);
+      }
     };
   }, []);
 
