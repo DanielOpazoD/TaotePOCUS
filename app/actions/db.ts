@@ -31,10 +31,14 @@
 //
 // Authorization model:
 //
-//   - Reads (`db*List*`) are gated by `requireAuth` and silently
-//     return empty when unauthenticated, so the dual-write adapter
-//     gracefully falls back to local. (The local backend has its own
-//     read path via `dbFirst`.)
+//   - Public catalog reads — `dbListOverrides`, `dbListUserCases`,
+//     `dbListCategories` — are open to anonymous visitors. The
+//     catalog is publicly browsable; gating these on auth made
+//     incognito users see a stripped-down version of the site
+//     (raw seed corpus without admin's edits, without admin-uploaded
+//     cases, without custom categories).
+//   - User-scoped reads (`dbListFavorites`) DO require auth — those
+//     are per-user lists.
 //   - Admin-only writes (overrides, categories, bulk import, blob
 //     deletes) require `requireAdmin`.
 //   - Per-user writes (user_cases, favorites) require `requireAuth`
@@ -137,9 +141,15 @@ async function authorizeUserCase(
 // ─── case_overrides ──────────────────────────────────────────────
 
 export async function dbListOverrides(): Promise<Record<string, Partial<CaseRecord>>> {
-  // Reads return empty when unauthenticated so the dual-write adapter
-  // falls back to local cleanly (see `dbFirst` in `lib/repo/dual-write`).
-  if (!(await requireAuth())) return {};
+  // **Public read.** The catalog is open to anonymous visitors; the
+  // overrides ARE the catalog (admin's recategorizations,
+  // soft-deletes, retitles, etc., applied on top of the seed corpus).
+  // Gating them on `requireAuth` was a paste-and-extend mistake from
+  // the early dual-write commit — it meant every anonymous visitor
+  // saw the raw seed corpus without any of the admin's edits, while
+  // logged-in admins saw the full picture. The bug was invisible
+  // until the first admin-only deploy showed up to incognito users
+  // with the old un-edited content. Writes still require admin role.
   try {
     const db = getDatabase();
     const rows = await db.sql<{ id: string; patch: Partial<CaseRecord> }>`
@@ -294,12 +304,12 @@ export async function dbDeleteMedia(key: string): Promise<ActionResult> {
 // `deleted_at` itself when it wants live-only.
 
 export async function dbListUserCases(): Promise<CaseRecord[]> {
-  // Reads return empty when unauthenticated so the dual-write adapter
-  // can fall back to local. Note: this returns ALL user cases, not
-  // just the caller's — matching the existing app behavior where the
-  // catalog is shared. A finer-grained read (own-only) is a future
-  // refinement when the catalog grows past curated content.
-  if (!(await requireAuth())) return [];
+  // **Public read.** Admin-uploaded cases are part of the catalog
+  // every visitor sees — just like the seed corpus. Gating this on
+  // auth meant anonymous users saw a smaller catalog than logged-in
+  // admins; same root cause as `dbListOverrides` above.
+  // Writes (`dbSaveUserCase` / `dbSoftDeleteUserCase` / etc.) still
+  // require auth + ownership.
   try {
     const db = getDatabase();
     const rows = await db.sql<{
@@ -420,7 +430,9 @@ export async function dbPurgeUserCase(id: string): Promise<ActionResult> {
 // ─── custom_categories ──────────────────────────────────────────
 
 export async function dbListCategories(): Promise<Category[]> {
-  if (!(await requireAuth())) return [];
+  // **Public read.** Custom categories appear in the public sidebar;
+  // they're metadata, not secrets. Same rationale as the other two
+  // public reads above — admin writes still require admin role.
   try {
     const db = getDatabase();
     const rows = await db.sql<{ id: string; label: string }>`
