@@ -61,6 +61,11 @@ interface Props {
    *  tab simply doesn't render (keeps focused tests minimal). */
   isSectionHidden?: (id: SectionId) => boolean;
   onSetSectionHidden?: (id: SectionId, hidden: boolean) => void;
+  /** Resolve the user-facing label for a section (override or
+   *  default). When omitted the editor shows the static defaults. */
+  getSectionLabel?: (id: SectionId, fallback: string) => string;
+  /** Apply a label override. Empty string clears the override. */
+  onSetSectionLabel?: (id: SectionId, label: string) => void;
   /** Cases-per-section counter, used by the Secciones editor's
    *  "N casos" hint. Optional; missing entries render as 0. */
   sectionCaseCounts?: Record<string, number>;
@@ -112,6 +117,8 @@ export default function AdminPanel({
   onSetCategoryHidden,
   isSectionHidden,
   onSetSectionHidden,
+  getSectionLabel,
+  onSetSectionLabel,
   sectionCaseCounts,
   currentEmail,
   notify,
@@ -237,6 +244,8 @@ export default function AdminPanel({
         <SectionsEditor
           isHidden={isSectionHidden!}
           setHidden={onSetSectionHidden!}
+          getLabel={getSectionLabel ?? ((_id, fallback) => fallback)}
+          setLabel={onSetSectionLabel ?? (() => undefined)}
           caseCounts={sectionCaseCounts ?? {}}
         />
       ) : tab === "backup" ? (

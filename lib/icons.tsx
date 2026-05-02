@@ -170,3 +170,16 @@ export const CategoryGlyph: Record<string, ReactElement> = {
     </svg>
   ),
 };
+
+/**
+ * Generic glyph used for custom (`c:*`) categories that don't have
+ * a hand-drawn glyph in `CategoryGlyph`. A small ring + tag motif —
+ * minimal enough to coexist with the medical icons without reading
+ * as "wrong category". Sidebar resolves it via a `??` fallback.
+ */
+export const CustomCategoryGlyph: ReactElement = (
+  <svg viewBox="0 0 24 24" {...stroke}>
+    <path d="M3 12 12 3h7v7l-9 9z" />
+    <circle cx="15.5" cy="8.5" r="1" />
+  </svg>
+);

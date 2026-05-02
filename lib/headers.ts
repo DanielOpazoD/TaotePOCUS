@@ -31,12 +31,22 @@ export interface PageHead {
  *    section as sub.
  * 3. Section views without a category use the section's own label/sub.
  *
- * @param view       The current top-level view (driven by URL).
- * @param activeCat  The active category filter, or `null` if none.
+ * @param view             The current top-level view (driven by URL).
+ * @param activeCat        The active category filter, or `null` if none.
+ * @param sectionLabelOverrides
+ *   Optional admin-set rename map (`{ atlas: "Atlas pediátrico" }`).
+ *   When a key is present its value replaces the default label from
+ *   `SECTIONS`. Empty object / omitted → uses defaults. Driven by
+ *   `useSectionLabels` on the client; tests + server-render call
+ *   without it for default behavior.
  * @returns The page head copy. Always returns valid strings — falls
  *          back to "Taote POCUS" / "Inicio" for an unknown section.
  */
-export function derivePageHead(view: View, activeCat: string | null): PageHead {
+export function derivePageHead(
+  view: View,
+  activeCat: string | null,
+  sectionLabelOverrides: Record<string, string> = {},
+): PageHead {
   if (view.kind === "favs") {
     return {
       title: "Tu colección",
@@ -53,17 +63,18 @@ export function derivePageHead(view: View, activeCat: string | null): PageHead {
   }
   // section view
   const section = SECTIONS.find((s) => s.id === view.section);
+  const sectionLabel = section ? (sectionLabelOverrides[section.id] ?? section.label) : null;
   const cat = activeCat ? CATEGORIES.find((c) => c.id === activeCat) : null;
-  if (cat && section) {
+  if (cat && section && sectionLabel) {
     return {
       title: cat.label,
-      sub: `${section.label} · ${cat.label}`,
-      crumb: `${section.label} · Categoría`,
+      sub: `${sectionLabel} · ${cat.label}`,
+      crumb: `${sectionLabel} · Categoría`,
     };
   }
   return {
-    title: section?.label || "Taote POCUS",
+    title: sectionLabel || "Taote POCUS",
     sub: section?.sub || "Casos clínicos contribuidos por la comunidad.",
-    crumb: section?.label || "Inicio",
+    crumb: sectionLabel || "Inicio",
   };
 }

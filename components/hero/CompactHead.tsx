@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryGlyph } from "@/lib/icons";
+import { CategoryGlyph, CustomCategoryGlyph } from "@/lib/icons";
 import type { PageHead } from "@/lib/headers";
 
 interface Props {
@@ -32,7 +32,7 @@ export default function CompactHead({ head, cat }: Props) {
           <span>{head.crumb}</span>
           {cat && (
             <span className="crumb-glyph" aria-hidden="true">
-              {CategoryGlyph[cat] ?? null}
+              {CategoryGlyph[cat] ?? CustomCategoryGlyph}
             </span>
           )}
         </div>

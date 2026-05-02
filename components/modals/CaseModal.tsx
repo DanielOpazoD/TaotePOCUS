@@ -24,45 +24,17 @@ interface Props {
   onFav: () => void;
   onShare: () => void;
   onPresent: () => void;
-  /** Open the edit form pre-populated with this case. Admin only. */
-  onEdit?: () => void;
-  /** Drop the per-case override (admin), restoring the source values. */
-  onResetOverride?: () => void;
-  /** True when this case has admin overrides applied — controls the
-   *  visibility of the "restore original" affordance. */
-  hasOverride?: boolean;
-  /** Toggle the editorial-review marker. Admin only. */
-  onToggleReviewed?: () => void;
-  /** Soft-delete this case. Admin only. Triggers the parent's confirm
-   *  dialog — the actual deletion happens after the admin confirms. */
-  onDelete?: () => void;
-  /** Permanent-delete this case (irreversible). Admin only. Distinct
-   *  from `onDelete`: this removes the metadata override and the
-   *  blob from the media store; the case never reappears. */
-  onPurge?: () => void;
-  // Inter-case navigation (prev/next position/total) was removed in
-  // Apr-2026 per user feedback: the arrows let the reader leave the
-  // case they just clicked into without an explicit gesture, which
-  // was disorienting on touch. Navigation between cases now happens
-  // only via the grid (close → click another). When a case has
-  // multiple media items, the modal renders an internal carousel —
-  // see `getCaseMedia` and `.modal-loop-carousel` below.
+  // Admin-only chrome (edit / restore / mark reviewed / soft-delete /
+  // permanent-delete) used to live as text buttons in the modal
+  // footer. They were removed in May-2026 because the footer was
+  // overflowing and wrapping awkwardly with too many actions, and
+  // because the bulk-edit table now exposes the same flows in a
+  // denser place. The modal stays read-only public chrome:
+  // favorite, share, presentation. Admin uses the catalog row's ⋮
+  // menu or the "Edición" tab for everything else.
 }
 
-export default function CaseModal({
-  caso,
-  onClose,
-  isFav,
-  onFav,
-  onShare,
-  onPresent,
-  onEdit,
-  onResetOverride,
-  hasOverride,
-  onToggleReviewed,
-  onDelete,
-  onPurge,
-}: Props) {
+export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [readProgress, setReadProgress] = useState(0);
@@ -320,91 +292,39 @@ export default function CaseModal({
                 ))}
               </div>
             </div>
+            {/* Footer actions — icon-only chip cluster. Three universal
+                affordances (favorite, share, presentation); admin
+                actions moved to the catalog's row ⋮ menu and the
+                Edición tab. Smaller, calmer, predictable. */}
             <div className="modal-actions">
               <button
-                className={isFav ? "fav-active" : ""}
+                type="button"
+                className={"modal-action modal-action--fav" + (isFav ? " is-active" : "")}
                 onClick={onFav}
+                aria-label={isFav ? "Quitar de favoritos" : "Guardar en favoritos"}
+                aria-pressed={isFav}
                 title={isFav ? "Quitar de favoritos (F)" : "Guardar en favoritos (F)"}
               >
-                {Icon.heart(isFav)} {isFav ? "Guardado" : "Guardar"}
-                <kbd className="kbd-hint" aria-hidden="true">
-                  F
-                </kbd>
-              </button>
-              <button onClick={onShare} title="Copiar enlace al caso (S)">
-                {Icon.share()} Compartir
-                <kbd className="kbd-hint" aria-hidden="true">
-                  S
-                </kbd>
+                {Icon.heart(isFav)}
               </button>
               <button
+                type="button"
+                className="modal-action"
+                onClick={onShare}
+                aria-label="Compartir enlace al caso"
+                title="Copiar enlace al caso (S)"
+              >
+                {Icon.share()}
+              </button>
+              <button
+                type="button"
+                className="modal-action"
                 onClick={onPresent}
                 aria-label="Modo presentación"
                 title="Modo presentación (P)"
               >
-                {Icon.presentation()} Presentar
-                <kbd className="kbd-hint" aria-hidden="true">
-                  P
-                </kbd>
+                {Icon.presentation()}
               </button>
-              {/* Admin-only chrome cluster. Visible only when the
-                  parent passes the corresponding callbacks (i.e. the
-                  current user is admin). */}
-              {onToggleReviewed && (
-                <button
-                  onClick={onToggleReviewed}
-                  className={`btn-edit${caso.reviewed ? " btn-edit--reviewed" : ""}`}
-                  title={
-                    caso.reviewed
-                      ? "Marcado como revisado · click para revertir"
-                      : "Marcar este caso como revisado / clasificado correctamente"
-                  }
-                  aria-label={caso.reviewed ? "Quitar marca de revisado" : "Marcar como revisado"}
-                  aria-pressed={Boolean(caso.reviewed)}
-                >
-                  {caso.reviewed ? "✓ Revisado" : "Marcar revisado"}
-                </button>
-              )}
-              {onEdit && (
-                <button
-                  onClick={onEdit}
-                  className="btn-edit"
-                  title="Editar este caso (admin)"
-                  aria-label="Editar caso"
-                >
-                  {Icon.edit()} Editar
-                </button>
-              )}
-              {hasOverride && onResetOverride && (
-                <button
-                  onClick={onResetOverride}
-                  className="btn-edit"
-                  title="Descartar ediciones y restaurar el contenido original"
-                  aria-label="Restaurar original"
-                >
-                  Restaurar
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  onClick={onDelete}
-                  className="btn-edit btn-edit--danger"
-                  title="Eliminar este caso (puede restaurarse desde la papelera de admin)"
-                  aria-label="Eliminar caso"
-                >
-                  {Icon.trash()} Eliminar
-                </button>
-              )}
-              {onPurge && (
-                <button
-                  onClick={onPurge}
-                  className="btn-edit btn-edit--danger"
-                  title="Eliminar permanentemente: borra metadata y archivo del blob store. NO se puede deshacer."
-                  aria-label="Eliminar permanentemente"
-                >
-                  {Icon.trash()} Eliminar permanentemente
-                </button>
-              )}
             </div>
           </div>
         </div>

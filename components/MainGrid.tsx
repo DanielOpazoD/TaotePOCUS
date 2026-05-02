@@ -66,6 +66,10 @@ interface Props {
    *  mobile drawer. Forwarded to the AdminPanel "Secciones" tab. */
   isSectionHidden?: (id: SectionId) => boolean;
   onSetSectionHidden?: (id: SectionId, hidden: boolean) => void;
+  /** Resolve / set the user-facing label for a section. Wired in
+   *  App.tsx to `useSectionLabels`. */
+  getSectionLabel?: (id: SectionId, fallback: string) => string;
+  onSetSectionLabel?: (id: SectionId, label: string) => void;
   /** Cases-per-section counter, indexed by section id. Powers the
    *  "N casos" hint in the Secciones editor. */
   sectionCaseCounts?: Record<string, number>;
@@ -141,6 +145,8 @@ export default function MainGrid({
   onSetCategoryHidden,
   isSectionHidden,
   onSetSectionHidden,
+  getSectionLabel,
+  onSetSectionLabel,
   sectionCaseCounts,
   currentEmail,
   notify,
@@ -173,6 +179,8 @@ export default function MainGrid({
         onSetCategoryHidden={onSetCategoryHidden}
         isSectionHidden={isSectionHidden}
         onSetSectionHidden={onSetSectionHidden}
+        getSectionLabel={getSectionLabel}
+        onSetSectionLabel={onSetSectionLabel}
         sectionCaseCounts={sectionCaseCounts}
         currentEmail={currentEmail}
         notify={notify}

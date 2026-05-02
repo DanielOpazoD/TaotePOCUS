@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryGlyph, Icon } from "@/lib/icons";
+import { CategoryGlyph, CustomCategoryGlyph, Icon } from "@/lib/icons";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import type { CategoryWithCount } from "@/lib/types";
 
@@ -84,7 +84,13 @@ export default function Sidebar({
               >
                 <span className="cat-label">
                   <span className="cat-glyph" aria-hidden="true">
-                    {CategoryGlyph[c.id] ?? null}
+                    {/* Built-in categories have hand-drawn glyphs in
+                        `CategoryGlyph`. Custom (`c:*`) categories
+                        created by the admin get the generic
+                        `CustomCategoryGlyph` (a ring + tag) so they
+                        don't render as a blank slot in the sidebar
+                        nav. */}
+                    {CategoryGlyph[c.id] ?? CustomCategoryGlyph}
                   </span>
                   <span className="cat-text">{c.label}</span>
                 </span>

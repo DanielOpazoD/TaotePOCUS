@@ -23,6 +23,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useCaseOverrides } from "@/hooks/useCaseOverrides";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useHiddenSections } from "@/hooks/useHiddenSections";
+import { useSectionLabels } from "@/hooks/useSectionLabels";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
 
@@ -108,7 +109,11 @@ function AppInner() {
   // Per-case overrides — admin-edited fields persisted in localStorage.
   // Merged on top of the source catalog at render time so a future
   // re-import (apply-twitter-import.mjs) doesn't blow away admin edits.
-  const { overrides, setOverride, clearOverride } = useCaseOverrides();
+  // `clearOverride` was consumed by the modal "Restaurar original"
+  // button, removed in May-2026. Kept the hook destructure name as
+  // `_clearOverride` so the linter is happy and we don't lose the
+  // export contract for future use.
+  const { overrides, setOverride } = useCaseOverrides();
 
   // Admin-managed categories. The hook returns the full `categories`
   // list (built-in + custom, including hidden) for the Categories
@@ -139,6 +144,26 @@ function AppInner() {
     isHidden: isSectionHidden,
     setHidden: setSectionHidden,
   } = useHiddenSections();
+
+  // Section label overrides — admin can rename "Casos clínicos" to
+  // anything they want for their own visitors. Pure cosmetic; ids
+  // and URL paths are unchanged. Stored in localStorage; SEO
+  // surfaces (sitemap, OG metadata) keep using the static defaults.
+  const {
+    overrides: sectionLabelOverrides,
+    getLabel: getSectionLabel,
+    setLabel: setSectionLabel,
+    sectionsWithLabels,
+  } = useSectionLabels();
+
+  // Compose: hide-set ∩ label-overrides. Header / MobileDrawer
+  // get the relabeled subset; the SectionsEditor below sees the
+  // raw SECTIONS via its own catalog import.
+  const visibleSectionsWithLabels = useMemo(
+    () => visibleSections.map((s) => ({ ...s, label: sectionLabelOverrides[s.id] ?? s.label })),
+    [visibleSections, sectionLabelOverrides],
+  );
+  void sectionsWithLabels; // sister export, currently unused at this layer (Header reads from `visibleSectionsWithLabels` instead)
 
   // Wrap the three category mutations with undo-toast surfacing.
   // The hook itself stays free of toast concerns (so non-admin
@@ -282,7 +307,7 @@ function AppInner() {
     setFormOpen(true);
   };
 
-  const head = derivePageHead(view, cat);
+  const head = derivePageHead(view, cat, sectionLabelOverrides);
 
   return (
     <>
@@ -296,7 +321,7 @@ function AppInner() {
         favCount={favs.length}
         onNewCase={onNewCase}
         onOpenDrawer={() => setDrawerOpen(true)}
-        sections={visibleSections}
+        sections={visibleSectionsWithLabels}
       />
       <MobileDrawer
         open={drawerOpen}
@@ -307,7 +332,7 @@ function AppInner() {
         onLogout={logout}
         favCount={favs.length}
         onNewCase={onNewCase}
-        sections={visibleSections}
+        sections={visibleSectionsWithLabels}
       />
 
       <div className="layout" data-section={view.kind === "section" ? view.section : view.kind}>
@@ -391,6 +416,8 @@ function AppInner() {
               onSetCategoryHidden={setCategoryHidden}
               isSectionHidden={isSectionHidden}
               onSetSectionHidden={setSectionHidden}
+              getSectionLabel={getSectionLabel}
+              onSetSectionLabel={setSectionLabel}
               sectionCaseCounts={sectionCaseCounts}
               currentEmail={user?.email ?? null}
               notify={showToast}
@@ -605,57 +632,12 @@ function AppInner() {
                 onFav={() => toggleFav(openCase.id)}
                 onShare={() => onShare(openCase)}
                 onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
-                // Admin-only: edit any case (seed / imported / uploaded).
-                // The form is reused; the save path branches on origin.
-                onEdit={
-                  isAdmin
-                    ? () => {
-                        setEditingCase(openCase);
-                        setFormOpen(true);
-                        replacePatch({ caso: null });
-                      }
-                    : undefined
-                }
-                // Reset shows only when an override is applied to this id.
-                hasOverride={Boolean(overrides[openCase.id])}
-                onResetOverride={
-                  isAdmin && overrides[openCase.id]
-                    ? async () => {
-                        const ok = await clearOverride(openCase.id);
-                        if (ok) showToast("Edición descartada · contenido original restaurado");
-                      }
-                    : undefined
-                }
-                // "Marcar revisado" is editorial bookkeeping: the admin
-                // flips it once they've confirmed the case is correctly
-                // classified. Persists as a single-field override.
-                onToggleReviewed={
-                  isAdmin
-                    ? async () => {
-                        const next = !openCase.reviewed;
-                        const ok = await setOverride(openCase.id, { reviewed: next });
-                        if (ok) {
-                          showToast(next ? "Marcado revisado" : "Sin marca de revisado");
-                        }
-                      }
-                    : undefined
-                }
-                // Eliminar — admin only. Funnels through useAdminPipeline
-                // (same confirm dialog as the classifier and trash table).
-                // We close the modal first so the admin sees the
-                // confirm dialog cleanly above the layout.
-                onDelete={
-                  isAdmin
-                    ? () => {
-                        const target = openCase;
-                        replacePatch({ caso: null });
-                        adminPipeline.requestDelete(target);
-                      }
-                    : undefined
-                }
-                // Permanent-delete from the modal. Admin only. The
-                // pipeline closes the modal itself if needed.
-                onPurge={isAdmin ? () => adminPipeline.requestPurge(openCase) : undefined}
+                // Admin-only flows (edit, mark reviewed, restore
+                // override, soft-delete, permanent-delete) used to
+                // mount as text buttons in this modal but they made
+                // the footer overflow and visually collide. They live
+                // now in the bulk-edit row ⋮ menu and the Edición
+                // tab. The modal stays read-only public chrome.
               />
             </ErrorBoundary>
           );

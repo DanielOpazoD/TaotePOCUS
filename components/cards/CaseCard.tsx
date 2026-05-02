@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "./AdminThumbMenu";
-import { Icon, CategoryGlyph } from "@/lib/icons";
+import { Icon, CategoryGlyph, CustomCategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getDescription } from "@/lib/case-description";
@@ -150,7 +150,7 @@ export default function CaseCard({
       <div className="case-meta">
         <div className="case-cat">
           <span className="case-cat-glyph" aria-hidden="true">
-            {CategoryGlyph[caso.category] ?? null}
+            {CategoryGlyph[caso.category] ?? CustomCategoryGlyph}
           </span>
           <span>{cat?.label}</span>
         </div>

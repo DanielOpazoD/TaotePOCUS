@@ -583,6 +583,44 @@ textarea.admin-input {
   font-weight: 500;
   color: var(--ink);
 }
+/* Editable variant — when a row's label is also a click-to-rename
+   button (sections editor). Looks identical at rest, picks up a
+   subtle hover affordance so the admin knows it's interactive. */
+.categories-row-label--editable {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: text;
+  font-family: inherit;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.categories-row-label--editable:hover,
+.categories-row-label--editable:focus-visible {
+  background: var(--surface-2);
+  border-color: var(--hairline);
+  outline: none;
+}
+.categories-row-rename-mark {
+  font-size: 10px;
+  color: var(--accent-ink);
+  font-family: var(--mono);
+}
+.categories-row-reset {
+  font-size: 11px;
+  color: var(--ink-mute) !important;
+  text-decoration: none !important;
+  font-family: var(--mono);
+}
+.categories-row-reset:hover {
+  color: var(--ink) !important;
+}
 .categories-row-input {
   font-size: 14px;
   font-weight: 500;
