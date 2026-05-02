@@ -11,7 +11,17 @@ import globals from "globals";
 
 export default tseslint.config(
   {
-    ignores: [".next/**", "node_modules/**", "coverage/**", "next-env.d.ts"],
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "coverage/**",
+      "next-env.d.ts",
+      // `clerk-nextjs/` is a sample project Clerk's CLI scaffolds
+      // outside our app tree — its own Next.js generated types
+      // (validator.ts) include `any`s and `@ts-ignore`s that fight
+      // our rules. Not our code, not our concern.
+      "clerk-nextjs/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

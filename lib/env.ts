@@ -185,12 +185,19 @@ export const IS_CLERK_ENABLED = CLERK_PUBLISHABLE_KEY !== "";
  * entry in this list is treated as `role: "admin"`, even if their
  * Clerk profile has no `publicMetadata.role` set.
  *
- * Why both: in the bootstrap flow there are no admins yet, so the
- * admin can't promote themselves through Clerk's dashboard until
- * they've at least logged in once. The env var lets the very first
- * sign-in already land as admin. Once the admin is in, they can
- * manage roles via Clerk metadata and remove themselves from the env
- * list (or keep it as a safety net).
+ * Two env vars are read, in priority order:
+ *
+ *   1. `NEXT_PUBLIC_ADMIN_EMAILS` — visible client-side. Direct
+ *      dot-access so Turbopack inlines it at build time. This is
+ *      what makes `useSession().isAdmin === true` reflect on the
+ *      client UI (the header badge, the "+" new-case button, the
+ *      "Administrar" link). Email addresses aren't sensitive — the
+ *      public list is fine.
+ *   2. `ADMIN_EMAILS` — server-only fallback for legacy
+ *      configurations. Only Server Actions see it. If you set this
+ *      WITHOUT also setting `NEXT_PUBLIC_ADMIN_EMAILS`, the server
+ *      will treat the user as admin but the client UI won't show
+ *      admin chrome — confusing. Prefer the public one.
  *
  * Comparison is case-insensitive. Empty string disables the fallback.
  */
@@ -200,12 +207,23 @@ function parseAdminEmails(raw: string): readonly string[] {
     .map((e) => e.trim().toLowerCase())
     .filter((e) => e.length > 0);
 }
+
+// Direct dot-access (see note on IS_NETLIFY_DB_ENABLED above). The
+// public var is the only client-visible source — bracket-access via
+// `readString` is NOT inlined by Turbopack and would silently
+// resolve to undefined in client bundles, leaving the admin badge
+// off even when the env was set.
+const PUBLIC_ADMIN_EMAILS_RAW = process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? "";
+
+// Server-only fallback. Undefined in the client bundle (no
+// NEXT_PUBLIC_ prefix); on the server it kicks in only when the
+// public var isn't set, so deploys that already configured
+// `ADMIN_EMAILS` keep working server-side without migration.
+const SERVER_ADMIN_EMAILS_RAW =
+  typeof process.env.ADMIN_EMAILS === "string" ? process.env.ADMIN_EMAILS : "";
+
 export const ADMIN_EMAILS: readonly string[] = parseAdminEmails(
-  // Server-only env — not bundled. The list is consulted only inside
-  // server-side helpers (`lib/server/session.ts`) and inside
-  // client-side `useSession` via the user's email (which comes from
-  // Clerk and is safe to compare client-side).
-  process.env.ADMIN_EMAILS ?? readString("NEXT_PUBLIC_ADMIN_EMAILS", ""),
+  PUBLIC_ADMIN_EMAILS_RAW || SERVER_ADMIN_EMAILS_RAW,
 );
 
 /** True iff `email` should be treated as admin via the env allowlist. */
