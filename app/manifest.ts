@@ -51,6 +51,10 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Infografías",
         url: "/info",
       },
+      {
+        name: "Rayos",
+        url: "/rayos",
+      },
     ],
     // Stable identity for the installed PWA. Must be the same origin
     // as the document — using `/` (relative) keeps it portable across

@@ -295,6 +295,29 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+/* ====== Rayos: 3-col grid, landscape thumbnail (4/3).
+   X-rays and CT scans are usually wider than tall — chest films,
+   abdominal series, axial CT slices. The 4:3 aspect ratio matches
+   the dominant native shape so the cards aren't cropping the
+   pathology. Drop to 2-col on tablets, 1 on phones. ====== */
+.layout[data-section="rayos"] .case-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px 28px;
+}
+.layout[data-section="rayos"] .case-thumb {
+  aspect-ratio: 4/3;
+}
+@media (max-width: 900px) {
+  .layout[data-section="rayos"] .case-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .layout[data-section="rayos"] .case-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .case-card {
   display: flex;
   flex-direction: column;

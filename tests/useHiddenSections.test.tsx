@@ -30,11 +30,18 @@ describe("useHiddenSections", () => {
     await waitFor(() => {
       expect(result.current.isHidden("cases")).toBe(true);
     });
-    // The other three sections start visible.
+    // Every other section starts visible.
     expect(result.current.isHidden("atlas")).toBe(false);
     expect(result.current.isHidden("ecg")).toBe(false);
     expect(result.current.isHidden("info")).toBe(false);
-    expect(result.current.visibleSections.map((s) => s.id)).toEqual(["atlas", "ecg", "info"]);
+    expect(result.current.isHidden("rayos")).toBe(false);
+    // Visible list matches SECTIONS minus the default-hidden ones
+    // (currently just "cases"). Computed dynamically so adding
+    // sections to the catalog doesn't ripple into a hardcoded list
+    // here.
+    expect(result.current.visibleSections.map((s) => s.id)).toEqual(
+      SECTIONS.filter((s) => s.id !== "cases").map((s) => s.id),
+    );
   });
 
   it("respects a persisted empty list (admin previously un-hid every section)", async () => {
@@ -59,8 +66,10 @@ describe("useHiddenSections", () => {
     await waitFor(() => {
       expect(result.current.isHidden("ecg")).toBe(true);
     });
-    // Visible list dropped ecg.
-    expect(result.current.visibleSections.map((s) => s.id)).toEqual(["atlas", "info"]);
+    // Visible list dropped ecg + the default-hidden cases.
+    expect(result.current.visibleSections.map((s) => s.id)).toEqual(
+      SECTIONS.filter((s) => s.id !== "ecg" && s.id !== "cases").map((s) => s.id),
+    );
     // Storage written in catalog order.
     expect(JSON.parse(localStorage.getItem(KEY) ?? "null")).toEqual(["ecg", "cases"]);
   });

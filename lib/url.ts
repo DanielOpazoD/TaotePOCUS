@@ -26,7 +26,7 @@ export interface ViewState {
   presenting: string | null;
 }
 
-const VALID_SECTIONS: SectionId[] = ["atlas", "ecg", "cases", "info"];
+const VALID_SECTIONS: SectionId[] = ["atlas", "ecg", "cases", "info", "rayos"];
 const VALID_SORT: SortOrder[] = ["recent", "title", "featured"];
 
 /** Map a pathname to a View. Anything unknown falls back to atlas. */

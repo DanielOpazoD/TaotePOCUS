@@ -13,6 +13,7 @@ export const SECTIONS: Section[] = [
   { id: "ecg", label: "ECG", sub: "Electrocardiogramas con interpretación" },
   { id: "cases", label: "Casos clínicos", sub: "Historias completas con razonamiento" },
   { id: "info", label: "Infografías", sub: "Algoritmos, protocolos y referencias visuales" },
+  { id: "rayos", label: "Rayos", sub: "Radiografías, TAC y otros estudios de imagen" },
 ];
 
 export const CATEGORIES: Category[] = [

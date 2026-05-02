@@ -41,6 +41,11 @@
   --section-accent-ink: var(--poster);
   --section-accent-soft: oklch(from var(--poster) l c h / 0.12);
 }
+.layout[data-section="rayos"] {
+  --section-accent: var(--xray);
+  --section-accent-ink: var(--xray);
+  --section-accent-soft: oklch(from var(--xray) l c h / 0.12);
+}
 
 /* Section accents flow into the case-cat label and the diagnosis box */
 .layout .case-cat {

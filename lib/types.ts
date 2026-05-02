@@ -1,4 +1,4 @@
-export type SectionId = "atlas" | "ecg" | "cases" | "info";
+export type SectionId = "atlas" | "ecg" | "cases" | "info" | "rayos";
 
 export interface Section {
   id: SectionId;

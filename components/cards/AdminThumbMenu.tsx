@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/lib/icons";
+import { SECTIONS } from "@/lib/data";
 import type { CaseRecord, Category } from "@/lib/types";
 
 interface Props {
@@ -276,12 +277,12 @@ function ReclassifyInline({
   onPatch: (id: string, patch: Partial<CaseRecord>) => void;
   onBack: () => void;
 }) {
-  const SECTIONS_INLINE: Array<{ id: CaseRecord["section"]; label: string }> = [
-    { id: "atlas", label: "Atlas POCUS" },
-    { id: "ecg", label: "ECG" },
-    { id: "cases", label: "Casos clínicos" },
-    { id: "info", label: "Infografías" },
-  ];
+  // Sourced from the central catalog so adding a new section
+  // (e.g. "rayos") shows up here automatically — was hardcoded
+  // until May-2026 and the rayos addition exposed the drift.
+  const SECTIONS_INLINE: Array<{ id: CaseRecord["section"]; label: string }> = SECTIONS.map(
+    (s) => ({ id: s.id, label: s.label }),
+  );
   const apply = (patch: Partial<CaseRecord>) => {
     // Match drag-drop semantics: any classification decision strips
     // the import-time `Sin clasificar` tag.
