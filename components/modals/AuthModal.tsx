@@ -65,34 +65,50 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
       onClick={onClickDialog}
       aria-label="Iniciar sesión"
     >
-      <div className="auth-modal auth-modal--clerk">
+      {/* Minimal positioning wrapper — no background, no padding, no
+          border. Clerk's <SignIn /> ships its own card chrome (shadow
+          + radius + padding); duplicating ours on top stacks two
+          cards with mismatched paddings. The close button floats
+          over the card top-right corner. */}
+      <div className="auth-modal-clerk-wrap">
         <button
           type="button"
-          className="modal-close"
+          className="modal-close auth-modal-clerk-close"
           onClick={onClose}
-          style={{ top: 16, right: 16 }}
           aria-label="Cerrar"
         >
           {Icon.close()}
         </button>
         {/* `routing="hash"` keeps Clerk's multi-step flow inside the
             same modal — it uses the URL fragment (#) for internal
-            transitions instead of pushing real navigations. The
-            sibling `<SignUp />` route is left unset so Clerk decides;
-            the fragment scheme avoids hijacking the browser history.
-            `appearance.elements` overrides Clerk's default chrome
-            with inline neutral styling so the component matches our
-            minimalist surface. */}
+            transitions instead of pushing real navigations.
+            `appearance.variables` maps the app's design tokens onto
+            Clerk's CSS custom properties so the card inherits our
+            font + colors automatically. `appearance.elements`
+            overrides remaining bits where the variables aren't
+            granular enough (e.g., the "Development mode" footer
+            stripe in test instances). */}
         <SignIn
           routing="hash"
           appearance={{
+            variables: {
+              colorPrimary: "var(--ink)",
+              colorText: "var(--ink)",
+              colorTextSecondary: "var(--ink-soft)",
+              colorBackground: "var(--bg)",
+              colorInputBackground: "var(--input-bg)",
+              colorInputText: "var(--ink)",
+              colorDanger: "var(--crit)",
+              borderRadius: "var(--radius-md)",
+              fontFamily: "var(--sans)",
+              fontFamilyButtons: "var(--sans)",
+            },
             elements: {
               rootBox: { width: "100%" },
               card: {
-                boxShadow: "none",
-                border: "none",
-                background: "transparent",
-                padding: 0,
+                boxShadow: "var(--shadow-3)",
+                border: "1px solid var(--hairline)",
+                borderRadius: "var(--radius-lg)",
               },
             },
           }}

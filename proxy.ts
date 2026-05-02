@@ -1,34 +1,35 @@
 // Next.js 16 edge proxy (was `middleware.ts` before the convention
-// rename). Runs on every request that matches `config.matcher` before
-// any route handler. We use it to plumb Clerk's auth context into
-// Server Actions — without `clerkMiddleware()`, calling `auth()` from
-// `@clerk/nextjs/server` returns an empty session, and every admin
-// Server Action falls through to `auth_required`.
+// rename). Clerk's middleware sets up the auth context for every
+// request — without it, calling `auth()` from `@clerk/nextjs/server`
+// inside Server Actions returns an empty session and admin actions
+// fall through to `auth_required`.
 //
 // Conditional shape: when the publishable key is missing (CI, fresh
 // clone, any deploy that hasn't installed the Clerk Netlify
-// extension), we fall through to a no-op `NextResponse.next()`. This
-// keeps the legacy HMAC-cookie auth path working unchanged. The
-// import of `@clerk/nextjs/server` is unconditional because static
-// analyzers / Next's edge runtime resolve it at build time anyway —
-// the runtime cost is paid only when the wrapper is invoked.
+// extension), the export is a no-op `NextResponse.next()`. The
+// legacy HMAC-cookie auth path stays available because nothing
+// requires the Clerk handler to run — `lib/server/session.ts`
+// branches separately.
+//
+// We export the Clerk middleware DIRECTLY (not wrapped) per Clerk's
+// Next.js quickstart. Wrapping it in another function and forwarding
+// the request manually breaks the `NextFetchEvent` contract Clerk
+// expects in its second argument and the modal SignIn component
+// silently fails to mount.
 
-import { NextResponse, type NextRequest } from "next/server";
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const HAS_CLERK_KEY = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+const noop = (_req: NextRequest) => NextResponse.next();
 
 // We don't `auth.protect()` any route here. The catalog is fully
 // public (the unauth users see grids and modals just fine — the data
 // is read-only). Admin gating happens at the Server Action level
 // (`lib/server/session.ts > requireAdmin`) so the boundary is one
 // thing, in one place. The proxy just makes `auth()` available.
-const clerkHandler = HAS_CLERK_KEY ? clerkMiddleware() : null;
-
-export default function proxy(req: NextRequest) {
-  if (clerkHandler) return clerkHandler(req, {} as never);
-  return NextResponse.next();
-}
+export default HAS_CLERK_KEY ? clerkMiddleware() : noop;
 
 export const config = {
   // Matcher pattern recommended by Clerk's Next.js Quickstart. Runs
