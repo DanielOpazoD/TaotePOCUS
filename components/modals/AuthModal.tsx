@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SignIn } from "@clerk/nextjs";
 import { Icon } from "@/lib/icons";
-import { ADMIN_CREDENTIALS } from "@/lib/env";
+import { ADMIN_CREDENTIALS, IS_CLERK_ENABLED } from "@/lib/env";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { AuthErrorCode } from "@/lib/errors";
 
@@ -15,7 +16,109 @@ interface Props {
   }) => Promise<{ ok: true } | { ok: false; code: AuthErrorCode | "unknown"; message: string }>;
 }
 
-export default function AuthModal({ onClose, onLogin }: Props) {
+/**
+ * Authentication modal. Two render paths:
+ *
+ *   - Clerk enabled → `<ClerkSignInModal>` mounts Clerk's `<SignIn />`
+ *     inside our existing dialog shell. The `onLogin` prop is unused
+ *     in this path because Clerk owns the form submission; the parent
+ *     still passes it so the contract stays type-stable.
+ *   - Legacy → the original email+password form below. Used by tests
+ *     and by deployments without Clerk env vars.
+ *
+ * Branch happens once at module load (`IS_CLERK_ENABLED` is a
+ * build-time constant), so React only ever calls one of the two
+ * inner components per session — no rules-of-hooks risk.
+ */
+export default function AuthModal(props: Props) {
+  if (IS_CLERK_ENABLED) {
+    return <ClerkSignInModal onClose={props.onClose} />;
+  }
+  return <LegacyAuthModal {...props} />;
+}
+
+function ClerkSignInModal({ onClose }: { onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, []);
+
+  // Backdrop click closes (matches the legacy modal's behaviour).
+  const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="auth-modal-host"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={onClickDialog}
+      aria-label="Iniciar sesión"
+    >
+      {/* Minimal positioning wrapper — no background, no padding, no
+          border. Clerk's <SignIn /> ships its own card chrome (shadow
+          + radius + padding); duplicating ours on top stacks two
+          cards with mismatched paddings. The close button floats
+          over the card top-right corner. */}
+      <div className="auth-modal-clerk-wrap">
+        <button
+          type="button"
+          className="modal-close auth-modal-clerk-close"
+          onClick={onClose}
+          aria-label="Cerrar"
+        >
+          {Icon.close()}
+        </button>
+        {/* `routing="hash"` keeps Clerk's multi-step flow inside the
+            same modal — it uses the URL fragment (#) for internal
+            transitions instead of pushing real navigations.
+            `appearance.variables` maps the app's design tokens onto
+            Clerk's CSS custom properties so the card inherits our
+            font + colors automatically. `appearance.elements`
+            overrides remaining bits where the variables aren't
+            granular enough (e.g., the "Development mode" footer
+            stripe in test instances). */}
+        <SignIn
+          routing="hash"
+          appearance={{
+            variables: {
+              colorPrimary: "var(--ink)",
+              colorText: "var(--ink)",
+              colorTextSecondary: "var(--ink-soft)",
+              colorBackground: "var(--bg)",
+              colorInputBackground: "var(--input-bg)",
+              colorInputText: "var(--ink)",
+              colorDanger: "var(--crit)",
+              borderRadius: "var(--radius-md)",
+              fontFamily: "var(--sans)",
+              fontFamilyButtons: "var(--sans)",
+            },
+            elements: {
+              rootBox: { width: "100%" },
+              card: {
+                boxShadow: "var(--shadow-3)",
+                border: "1px solid var(--hairline)",
+                borderRadius: "var(--radius-lg)",
+              },
+            },
+          }}
+        />
+      </div>
+    </dialog>
+  );
+}
+
+function LegacyAuthModal({ onClose, onLogin }: Props) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

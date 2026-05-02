@@ -4,7 +4,15 @@ import { withSentryConfig } from "@sentry/nextjs";
 // Security headers applied to all routes. Tuned for a public, mostly-
 // static educational site — strict CSP, no third-party iframes, deny
 // embedding, no MIME sniffing. Hosts allowed in connect-src cover
-// Firebase Auth + Firestore + Sentry; remove what you don't use.
+// Firebase Auth + Firestore + Sentry + Clerk; remove what you don't
+// use.
+//
+// Clerk hosts are needed because the SDK lazy-loads `clerk.browser.js`
+// from the instance domain (e.g. `civil-slug-18.clerk.accounts.dev`)
+// at first auth interaction, then makes API calls to it for session
+// management. Without these entries the script load is silently
+// blocked by the browser and `<SignIn />` never mounts, surfacing as
+// "Failed to load Clerk JS" in the runtime error overlay.
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
@@ -13,9 +21,17 @@ const securityHeaders = [
       // Next inlines small chunks at build time; we keep 'unsafe-inline' for
       // styles (CSS-in-JS would otherwise need nonces) and for the tiny
       // pre-paint theme script. Replace with nonces if you tighten this.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      [
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        // Clerk JS bundles + per-instance subdomains (dev / staging / prod
+        // all share the same wildcard).
+        "https://*.clerk.com",
+        "https://*.clerk.accounts.dev",
+        "https://*.clerk.dev",
+      ].join(" "),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
+      // Clerk avatar CDN sits at images.clerk.com.
       "img-src 'self' data: blob: https:",
       "media-src 'self' data: blob: https:",
       [
@@ -28,7 +44,19 @@ const securityHeaders = [
         // Sentry
         "https://*.sentry.io",
         "https://*.ingest.sentry.io",
+        // Clerk REST APIs + telemetry. The instance subdomain
+        // (civil-slug-18 in dev, your custom domain in prod) is
+        // covered by the wildcard.
+        "https://*.clerk.com",
+        "https://*.clerk.accounts.dev",
+        "https://*.clerk.dev",
+        "https://clerk-telemetry.com",
+        "https://*.clerk-telemetry.com",
       ].join(" "),
+      // Clerk renders an iframe for some flows (e.g., the captcha).
+      "frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+      // Clerk uses Web Workers for CAPTCHA challenges.
+      "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

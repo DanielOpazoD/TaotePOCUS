@@ -1,4 +1,29 @@
-/* =================== AUTH MODAL =================== */
+/* =================== AUTH MODAL — CLERK PATH ===================
+   When Clerk is enabled, AuthModal renders <SignIn /> inside the
+   `.auth-modal-host` dialog. Clerk ships its own card chrome
+   (shadow + radius + padding), so the wrapper here is just a
+   centering positioning container — no background, no padding —
+   to avoid the "two cards stacked" visual.
+   The close button floats over Clerk's card via `position: absolute`
+   on the wrapper; the wrapper itself is `position: relative` to
+   anchor it.
+*/
+.auth-modal-clerk-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: auto;
+  padding: 0;
+  background: transparent;
+}
+.auth-modal-clerk-wrap .auth-modal-clerk-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+/* =================== AUTH MODAL — LEGACY PATH =================== */
 .auth-modal {
   background: var(--bg);
   max-width: 420px;

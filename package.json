@@ -30,6 +30,8 @@
     ]
   },
   "dependencies": {
+    "@clerk/localizations": "^4.5.8",
+    "@clerk/nextjs": "^7.3.0",
     "@netlify/blobs": "^10.7.4",
     "@netlify/database": "^1.0.0",
     "@sentry/nextjs": "^10.50.0",
