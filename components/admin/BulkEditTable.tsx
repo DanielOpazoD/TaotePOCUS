@@ -652,12 +652,21 @@ function Thumb({ caso, onOpen }: ThumbProps) {
         </span>
       );
     }
-    if (caso.media.kind === "video") {
+    // Renderer dispatch follows the actual file extension, not the
+    // declared `media.kind`. Twitter's "animated_gif" upload type is
+    // shipped as `.mp4` but recorded as `kind: "image"` in the
+    // imported corpus — handing that to `<Image>` makes the
+    // optimizer choke (it can't decode an mp4 as an image) and the
+    // tile renders empty. Same disambiguation as `CineLoop`.
+    const src = caso.media.src;
+    const isVideoFile = caso.media.kind === "video" || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
+    if (isVideoFile) {
       return (
         <video
-          src={caso.media.src}
+          src={src}
           muted
           playsInline
+          preload="metadata"
           className="bulk-edit-thumb-media"
           onError={() => setErrored(true)}
         />
@@ -665,10 +674,15 @@ function Thumb({ caso, onOpen }: ThumbProps) {
     }
     return (
       <Image
-        src={caso.media.src}
+        src={src}
         alt=""
         width={40}
         height={40}
+        // Animated GIFs trip the Next.js optimizer (it produces
+        // single-frame stills + content-type mismatches at tiny
+        // sizes). Bypass for `.gif` matches CineLoop's policy and
+        // makes the chip identical to what Atlas shows.
+        unoptimized={/\.gif(\?|$)/i.test(src)}
         className="bulk-edit-thumb-media"
         onError={() => setErrored(true)}
       />
