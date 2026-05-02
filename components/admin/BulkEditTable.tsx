@@ -37,7 +37,16 @@ interface Props {
   onBulkPatch: (ids: string[], patch: Partial<CaseRecord>) => Promise<void> | void;
   /** Soft-delete every selected case at once. */
   onBulkSoftDelete: (ids: string[]) => Promise<void> | void;
+  /** Open the full CaseForm modal for one case. Used by the
+   *  per-row "Abrir modal" action when the admin wants to edit
+   *  fields the table doesn't expose (media, focus, loop, etc.). */
+  onOpenEdit?: (c: CaseRecord) => void;
+  /** Soft-delete a single case (with confirm + undo). */
+  onDelete?: (c: CaseRecord) => void;
 }
+
+type SortField = "title" | "description" | "category" | "reviewed" | null;
+type SortDir = "asc" | "desc";
 
 const PAGE_SIZE_DEFAULT = 50;
 const PAGE_SIZES = [25, 50, 100, 200];
@@ -48,6 +57,8 @@ export default function BulkEditTable({
   onPatch,
   onBulkPatch,
   onBulkSoftDelete,
+  onOpenEdit,
+  onDelete,
 }: Props) {
   // ─── Filters ───────────────────────────────────────────────────
   const [filterSection, setFilterSection] = useState<SectionId | "">("");
@@ -56,10 +67,37 @@ export default function BulkEditTable({
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_DEFAULT);
   const [page, setPage] = useState(0);
 
+  // ─── Sort ──────────────────────────────────────────────────────
+  // null = natural order (the merged catalog's intrinsic sort).
+  // Click on a sortable header cycles: null → asc → desc → null.
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const cycleSort = (field: NonNullable<SortField>) => {
+    if (sortField !== field) {
+      setSortField(field);
+      setSortDir("asc");
+      return;
+    }
+    if (sortDir === "asc") {
+      setSortDir("desc");
+      return;
+    }
+    setSortField(null);
+    setSortDir("asc");
+  };
+
   // ─── Selection ─────────────────────────────────────────────────
   // Tracked as a Set so add/remove is O(1) and the UI doesn't
   // re-render every row when a single one toggles.
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // ─── Keyboard nav state ───────────────────────────────────────
+  // Index (within the current page) of the row that has visual
+  // "focus" for j/k navigation. -1 means none. Manipulated only
+  // through the keyboard; mouse interactions don't touch it so
+  // clicking around doesn't mess with the keyboard cursor.
+  const [activeRow, setActiveRow] = useState<number>(-1);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Filter pipeline — same vocab as the public catalog. We avoid
   // pulling in `useCaseFilters` because that hook is opinionated
@@ -82,16 +120,51 @@ export default function BulkEditTable({
     });
   }, [cases, filterSection, filterCat, query]);
 
+  // Apply sort over the filtered set. Memoized so unrelated state
+  // changes (e.g., selection toggles) don't re-sort.
+  const sorted = useMemo(() => {
+    if (!sortField) return filtered;
+    const arr = [...filtered];
+    const cmp = (a: CaseRecord, b: CaseRecord): number => {
+      let av: string | number;
+      let bv: string | number;
+      if (sortField === "title") {
+        av = a.title;
+        bv = b.title;
+      } else if (sortField === "description") {
+        av = getDescription(a);
+        bv = getDescription(b);
+      } else if (sortField === "category") {
+        // Show the user-facing label, not the id, so the sort
+        // matches what the column actually displays.
+        av = categories.find((c) => c.id === a.category)?.label ?? a.category;
+        bv = categories.find((c) => c.id === b.category)?.label ?? b.category;
+      } else {
+        // reviewed
+        av = a.reviewed ? 1 : 0;
+        bv = b.reviewed ? 1 : 0;
+      }
+      if (typeof av === "string" && typeof bv === "string") {
+        return av.localeCompare(bv, "es", { sensitivity: "base" });
+      }
+      return (av as number) - (bv as number);
+    };
+    arr.sort(cmp);
+    if (sortDir === "desc") arr.reverse();
+    return arr;
+  }, [filtered, sortField, sortDir, categories]);
+
   // Reset to page 0 when filters change so the user doesn't end up
   // looking at an empty page when the result set shrinks.
-  const filterKey = `${filterSection}|${filterCat}|${query}|${pageSize}`;
+  const filterKey = `${filterSection}|${filterCat}|${query}|${pageSize}|${sortField}|${sortDir}`;
   useEffect(() => {
     setPage(0);
+    setActiveRow(-1);
   }, [filterKey]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const pageStart = page * pageSize;
-  const paged = filtered.slice(pageStart, pageStart + pageSize);
+  const paged = sorted.slice(pageStart, pageStart + pageSize);
 
   // Selection helpers — kept tight so the bulk bar can show
   // counts without re-traversing.
@@ -144,6 +217,66 @@ export default function BulkEditTable({
     await onBulkSoftDelete(ids);
     clearSelection();
   };
+
+  // ─── Keyboard navigation ──────────────────────────────────────
+  // j / k / ↓ / ↑ move the active row cursor.
+  // x toggles selection of the active row.
+  // Enter on the active row opens the full modal (when wired).
+  // Suspended while focus is inside an editable input/textarea so
+  // typing j/k inside a title or tags cell stays as text.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t instanceof HTMLSelectElement ||
+        (t instanceof HTMLElement && t.isContentEditable)
+      ) {
+        return;
+      }
+      // Only intercept when the table is in the DOM and visible.
+      // (The component unmount path tears the listener down, so
+      // this is a belt-and-suspenders no-op when the user is
+      // looking at another admin tab.)
+      if (!tableRef.current?.isConnected) return;
+
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveRow((prev) => {
+          const next = Math.min(paged.length - 1, prev < 0 ? 0 : prev + 1);
+          return next;
+        });
+        return;
+      }
+      if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveRow((prev) => {
+          if (prev <= 0) return 0;
+          return prev - 1;
+        });
+        return;
+      }
+      if (e.key === "x" && activeRow >= 0 && paged[activeRow]) {
+        e.preventDefault();
+        toggleOne(paged[activeRow].id);
+        return;
+      }
+      if (e.key === "Enter" && activeRow >= 0 && paged[activeRow] && onOpenEdit) {
+        e.preventDefault();
+        onOpenEdit(paged[activeRow]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [paged, activeRow, onOpenEdit]);
+
+  // Scroll the active row into view as it changes via keyboard.
+  useEffect(() => {
+    if (activeRow < 0 || !tableRef.current) return;
+    const rows = tableRef.current.querySelectorAll<HTMLTableRowElement>("tbody tr.bulk-edit-row");
+    rows[activeRow]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [activeRow]);
 
   return (
     <div className="bulk-edit">
@@ -206,7 +339,7 @@ export default function BulkEditTable({
 
       {/* ─── Table ──────────────────────────────────────────────── */}
       <div className="bulk-edit-scroll">
-        <table className="bulk-edit-table">
+        <table className="bulk-edit-table" ref={tableRef}>
           <thead>
             <tr>
               <th className="bulk-edit-th-check">
@@ -218,25 +351,57 @@ export default function BulkEditTable({
                 />
               </th>
               <th className="bulk-edit-th-thumb"></th>
-              <th>Título</th>
-              <th>Descripción</th>
-              <th className="bulk-edit-th-cat">Categoría</th>
+              <SortHeader
+                field="title"
+                active={sortField === "title"}
+                dir={sortDir}
+                onClick={cycleSort}
+              >
+                Título
+              </SortHeader>
+              <SortHeader
+                field="description"
+                active={sortField === "description"}
+                dir={sortDir}
+                onClick={cycleSort}
+              >
+                Descripción
+              </SortHeader>
+              <SortHeader
+                field="category"
+                active={sortField === "category"}
+                dir={sortDir}
+                onClick={cycleSort}
+                className="bulk-edit-th-cat"
+              >
+                Categoría
+              </SortHeader>
               <th className="bulk-edit-th-tags">Etiquetas</th>
-              <th className="bulk-edit-th-reviewed" title="Marcado como revisado">
+              <SortHeader
+                field="reviewed"
+                active={sortField === "reviewed"}
+                dir={sortDir}
+                onClick={cycleSort}
+                className="bulk-edit-th-reviewed"
+                title="Marcado como revisado"
+              >
                 ✓
-              </th>
+              </SortHeader>
               <th className="bulk-edit-th-actions"></th>
             </tr>
           </thead>
           <tbody>
-            {paged.map((c) => (
+            {paged.map((c, i) => (
               <Row
                 key={c.id}
                 caso={c}
                 categories={categories}
                 checked={selected.has(c.id)}
+                isActive={i === activeRow}
                 onCheck={() => toggleOne(c.id)}
                 onPatch={onPatch}
+                onOpenEdit={onOpenEdit}
+                onDelete={onDelete}
               />
             ))}
             {paged.length === 0 && (
@@ -347,14 +512,29 @@ interface RowProps {
   caso: CaseRecord;
   categories: Category[];
   checked: boolean;
+  isActive: boolean;
   onCheck: () => void;
   onPatch: (id: string, patch: Partial<CaseRecord>) => Promise<void> | void;
+  onOpenEdit?: (c: CaseRecord) => void;
+  onDelete?: (c: CaseRecord) => void;
 }
 
-function Row({ caso, categories, checked, onCheck, onPatch }: RowProps) {
+function Row({
+  caso,
+  categories,
+  checked,
+  isActive,
+  onCheck,
+  onPatch,
+  onOpenEdit,
+  onDelete,
+}: RowProps) {
   const description = getDescription(caso);
+  const cls = ["bulk-edit-row", checked ? "is-selected" : "", isActive ? "is-active" : ""]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <tr className={checked ? "bulk-edit-row is-selected" : "bulk-edit-row"}>
+    <tr className={cls} data-active={isActive ? "true" : undefined}>
       <td className="bulk-edit-td-check">
         <input
           type="checkbox"
@@ -437,8 +617,123 @@ function Row({ caso, categories, checked, onCheck, onPatch }: RowProps) {
           }}
         />
       </td>
-      <td className="bulk-edit-td-actions" />
+      <td className="bulk-edit-td-actions">
+        <RowMenu caso={caso} onOpenEdit={onOpenEdit} onDelete={onDelete} />
+      </td>
     </tr>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Sortable column header
+// ═══════════════════════════════════════════════════════════════════
+
+interface SortHeaderProps {
+  field: NonNullable<SortField>;
+  active: boolean;
+  dir: SortDir;
+  onClick: (field: NonNullable<SortField>) => void;
+  className?: string;
+  title?: string;
+  children: React.ReactNode;
+}
+
+function SortHeader({ field, active, dir, onClick, className, title, children }: SortHeaderProps) {
+  const arrow = active ? (dir === "asc" ? "↑" : "↓") : "";
+  return (
+    <th className={className} title={title}>
+      <button
+        type="button"
+        className={"bulk-edit-sort-btn" + (active ? " is-active" : "")}
+        onClick={() => onClick(field)}
+        aria-label={`Ordenar por ${field}`}
+        aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
+      >
+        <span>{children}</span>
+        <span className="bulk-edit-sort-arrow" aria-hidden="true">
+          {arrow}
+        </span>
+      </button>
+    </th>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Row action menu (⋮)
+// ═══════════════════════════════════════════════════════════════════
+
+interface RowMenuProps {
+  caso: CaseRecord;
+  onOpenEdit?: (c: CaseRecord) => void;
+  onDelete?: (c: CaseRecord) => void;
+}
+
+function RowMenu({ caso, onOpenEdit, onDelete }: RowMenuProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click. Listener attached only while the menu
+  // is open so passive viewing has no extra cost.
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("mousedown", onClick);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onClick);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  if (!onOpenEdit && !onDelete) return null;
+
+  return (
+    <div className="bulk-edit-rowmenu" ref={ref}>
+      <button
+        type="button"
+        className="bulk-edit-rowmenu-trigger"
+        aria-label="Más acciones"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        ⋮
+      </button>
+      {open && (
+        <div className="bulk-edit-rowmenu-panel" role="menu">
+          {onOpenEdit && (
+            <button
+              type="button"
+              className="bulk-edit-rowmenu-item"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onOpenEdit(caso);
+              }}
+            >
+              Abrir modal completo
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              className="bulk-edit-rowmenu-item bulk-edit-rowmenu-item--danger"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onDelete(caso);
+              }}
+            >
+              Eliminar caso
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

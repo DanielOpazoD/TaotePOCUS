@@ -1297,3 +1297,128 @@ textarea.admin-input {
 .bulk-edit-actionbar-delete:hover {
   filter: brightness(1.1);
 }
+
+/* ─── Sortable column header ──────────────────────────────────────
+   The button stretches to fill the th so the click target matches
+   the column. Arrow indicator on the right; cycle: none → asc →
+   desc → none. */
+.bulk-edit-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) ease;
+}
+.bulk-edit-sort-btn:hover,
+.bulk-edit-sort-btn:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+.bulk-edit-sort-btn.is-active {
+  color: var(--ink);
+}
+.bulk-edit-sort-arrow {
+  font-size: 11px;
+  width: 10px;
+  display: inline-block;
+}
+
+/* ─── Active row (keyboard cursor) ────────────────────────────────
+   When the user navigates with j/k the active row gets a left
+   accent rule so they can see where the cursor is. Selection
+   (checkbox state) is independent — both can be true. */
+.bulk-edit-row.is-active td {
+  box-shadow: inset 3px 0 0 var(--accent);
+  background: color-mix(in oklch, var(--accent-soft) 50%, var(--bg));
+}
+.bulk-edit-row.is-active.is-selected td {
+  background: var(--accent-soft);
+}
+
+/* ─── Row action menu (⋮) ────────────────────────────────────────
+   Single-button trigger with a small popover panel. Mirrors the
+   `.admin-thumb-menu-*` chrome on the catalog cards but smaller
+   since rows are dense. */
+.bulk-edit-rowmenu {
+  position: relative;
+  display: inline-block;
+}
+.bulk-edit-rowmenu-trigger {
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+.bulk-edit-rowmenu-trigger:hover,
+.bulk-edit-rowmenu-trigger[aria-expanded="true"] {
+  background: var(--surface-2);
+  border-color: var(--hairline);
+  color: var(--ink);
+}
+.bulk-edit-rowmenu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 200px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  padding: 4px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: quick-reclassify-pop 0.12s var(--ease-standard);
+}
+.bulk-edit-rowmenu-item {
+  text-align: left;
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.bulk-edit-rowmenu-item:hover,
+.bulk-edit-rowmenu-item:focus-visible {
+  background: var(--surface-2);
+  border-color: var(--hairline);
+  outline: none;
+}
+.bulk-edit-rowmenu-item--danger {
+  color: var(--crit);
+}
+.bulk-edit-rowmenu-item--danger:hover,
+.bulk-edit-rowmenu-item--danger:focus-visible {
+  background: var(--crit-soft);
+  border-color: var(--crit);
+}

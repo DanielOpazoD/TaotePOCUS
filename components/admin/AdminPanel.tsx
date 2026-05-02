@@ -217,6 +217,8 @@ export default function AdminPanel({
             onPatch={onPatch}
             onBulkPatch={onBulkPatch}
             onBulkSoftDelete={onBulkSoftDelete}
+            onOpenEdit={onEdit}
+            onDelete={onDelete}
           />
           <BulkEditTagSuggestions />
         </>
