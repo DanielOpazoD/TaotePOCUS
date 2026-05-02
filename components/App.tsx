@@ -333,6 +333,17 @@ function AppInner() {
         favCount={favs.length}
         onNewCase={onNewCase}
         sections={visibleSectionsWithLabels}
+        // The desktop sidebar is hidden at <960px (see
+        // `app/styles/layout.css`); the drawer mirrors its category
+        // list so mobile users still have filter access.
+        categories={sectionCategories}
+        activeCat={cat}
+        setActiveCat={(c) => {
+          if (view.kind === "favs")
+            replacePatch({ view: { kind: "section", section: "atlas" }, cat: c });
+          else replacePatch({ cat: c });
+        }}
+        totalCount={scopedCases.length}
       />
 
       <div className="layout" data-section={view.kind === "section" ? view.section : view.kind}>

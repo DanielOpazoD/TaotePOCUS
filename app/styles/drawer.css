@@ -109,3 +109,93 @@
   border-top: 1px solid var(--hairline);
   padding-top: 14px;
 }
+
+/* =================== DRAWER FILTERS ===================
+ * Category list inside the drawer, mirroring the desktop sidebar.
+ * Visual rhythm matches `.drawer-nav`: 44px+ tap targets, single
+ * accent rule for active state, no fancy chrome. The list scrolls
+ * within the drawer when there are many custom categories.
+ */
+.drawer-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+.drawer-filters h4 {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.drawer-cat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.drawer-cat-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-align: left;
+  min-height: 44px;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+.drawer-cat-list button:hover,
+.drawer-cat-list button:focus-visible {
+  background: var(--surface-2);
+  color: var(--ink);
+  outline: none;
+}
+.drawer-cat-list button.active {
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: inset 3px 0 0 var(--section-accent, var(--accent));
+}
+.drawer-cat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.drawer-cat-glyph {
+  width: 16px;
+  height: 16px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-soft);
+}
+.drawer-cat-glyph svg {
+  width: 16px;
+  height: 16px;
+}
+.drawer-cat-list button.active .drawer-cat-glyph {
+  color: var(--section-accent-ink, var(--accent-ink));
+}
+.drawer-cat-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}

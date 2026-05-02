@@ -65,3 +65,40 @@
 .layout[data-section="info"] .section-head .crumb {
   color: var(--section-accent-ink);
 }
+
+/* =================== RESPONSIVE BREAKPOINTS ===================
+ *
+ * Three sizes:
+ *   - **Desktop ≥ 960px**: original 240px sidebar + 1fr main grid.
+ *   - **Tablet 640-959px**: sidebar hidden, main full-width.
+ *     Hamburger drawer holds the section nav + filter affordances.
+ *     Header search stays visible (~50% of viewport).
+ *   - **Phone < 640px**: same as tablet but tighter padding,
+ *     header search collapses to icon (expand on tap), hero
+ *     scales down, grids drop to 1-2 cols depending on section.
+ *
+ * The sidebar is HIDDEN on tablet/phone (not stacked above main)
+ * so the case grid is the first thing the user sees; filters are
+ * accessible via the drawer. Stacking the sidebar above the grid
+ * pushes content below the fold and doesn't add value.
+ */
+@media (max-width: 959.98px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding: var(--space-5);
+  }
+  /* Sidebar lives only on desktop. The mobile drawer takes over
+     for nav + filters. Section accents still apply (the layout
+     element keeps `data-section` so `--section-accent` cascades
+     into the hero, case-cat labels, etc.). */
+  .layout > .sidebar {
+    display: none;
+  }
+}
+@media (max-width: 639.98px) {
+  .layout {
+    padding: var(--space-4) var(--space-4);
+    gap: var(--space-5);
+  }
+}

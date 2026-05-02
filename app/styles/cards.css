@@ -294,6 +294,27 @@
 .layout[data-section="cases"] .case-grid {
   grid-template-columns: repeat(3, 1fr);
 }
+@media (max-width: 900px) {
+  .layout[data-section="cases"] .case-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .layout[data-section="cases"] .case-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phone-wide override (<480px): every grid drops to 1-col so the
+   thumbnails read at full thumb-readable width. Atlas's dense
+   layout becomes 2-col at <640 already; this final stop covers
+   the smallest phones where two thumbs would be ~150 px each. */
+@media (max-width: 479.98px) {
+  .case-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-4);
+  }
+}
 
 /* ====== Rayos: 3-col grid, landscape thumbnail (4/3).
    X-rays and CT scans are usually wider than tall — chest films,

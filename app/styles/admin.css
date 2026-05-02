@@ -908,40 +908,10 @@ textarea.admin-input {
   filter: brightness(0.92);
 }
 
-@media (max-width: 880px) {
-  .layout {
-    grid-template-columns: 1fr;
-    padding: var(--space-5);
-    gap: var(--space-6);
-  }
-  .sidebar {
-    position: relative;
-    top: 0;
-  }
-  .case-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
-  }
-  .case-title {
-    font-size: 15px;
-  }
-  .header-search {
-    display: none;
-  }
-  .nav {
-    display: none;
-  }
-  .header-inner {
-    padding: 14px 20px;
-    gap: 14px;
-  }
-  .section-head h1 {
-    font-size: 28px;
-  }
-  .hamburger {
-    display: inline-flex;
-  }
-}
+/* (Mobile / tablet responsive rules used to live here at 880px;
+   moved to `app/styles/layout.css` and `header.css` where the
+   layout + chrome already own their geometry. Three breakpoints
+   now: phone <640, tablet 640-960, desktop ≥960.) */
 
 /* =================== BULK EDIT TABLE =================== */
 /*
@@ -1362,6 +1332,35 @@ textarea.admin-input {
 }
 .bulk-edit-actionbar-delete:hover {
   filter: brightness(1.1);
+}
+
+/* Phone: action bar spans the full width and sits flat at the
+   bottom; floating-pill geometry doesn't make sense at narrow
+   viewports. The horizontal scroll on the table itself keeps the
+   columns readable. */
+@media (max-width: 639.98px) {
+  .bulk-edit-actionbar {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-width: none;
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  .bulk-edit-actionbar-count {
+    width: 100%;
+    text-align: center;
+    margin: 0 0 6px 0;
+  }
+  /* Filter row also wraps tighter at phone size. */
+  .bulk-edit-head {
+    gap: var(--space-2);
+  }
+  .bulk-edit-search {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 /* ─── Sortable column header ──────────────────────────────────────

@@ -229,6 +229,39 @@ button:hover > .kbd-hint {
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 639.98px) {
+  /* Phone: case modal goes full-bleed. Borderless, edge-to-edge,
+     no inner shadow ring — feels like a native page transition
+     rather than a floating sheet. The swipe-to-close gesture
+     (`useSwipeToClose`) and the close button stay above. */
+  .modal {
+    max-width: none;
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+  dialog.case-modal-host[open] {
+    align-items: stretch;
+    padding-top: 0;
+  }
+  .modal-grid {
+    min-height: 0;
+  }
+  .modal-loop {
+    aspect-ratio: 1 / 1;
+  }
+  /* Footer chips bigger on touch (44×44 minimum target). */
+  .modal-action {
+    width: 44px;
+    height: 44px;
+  }
+  .modal-action svg {
+    width: 20px;
+    height: 20px;
+  }
+}
 .modal-loop {
   background: oklch(0 0 0);
   position: relative;

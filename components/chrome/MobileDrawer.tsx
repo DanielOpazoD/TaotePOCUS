@@ -1,16 +1,27 @@
 "use client";
 
-// Mobile-only navigation drawer. The desktop header collapses on small
-// screens (audit §8 noted this had no replacement). The hamburger
-// button in the header toggles this drawer.
+// Mobile-only navigation drawer. On viewports < 960px the desktop
+// chrome (top nav, full search, persistent sidebar) is hidden; the
+// hamburger button in the header toggles this drawer instead. The
+// drawer carries:
+//
+//   - Section nav (mirrors the desktop top nav)
+//   - Category filter list (mirrors the desktop sidebar — was
+//     missing until May-2026, leaving mobile users without
+//     category navigation)
+//   - User actions (login / logout / new case)
+//
+// Keep the drawer self-contained: it's a peer of `<Sidebar>` for
+// mobile and the props are deliberately a superset so the parent
+// (App.tsx) can pass the same handlers to both.
 
 import TransitionLink from "./TransitionLink";
 import { useEffect } from "react";
-import { Icon } from "@/lib/icons";
+import { CategoryGlyph, CustomCategoryGlyph, Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { viewToPath } from "@/lib/url";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import type { Section, User, View } from "@/lib/types";
+import type { CategoryWithCount, Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
 
 interface Props {
@@ -27,6 +38,19 @@ interface Props {
    * visibility-filter rationale; both surfaces share one source list.
    */
   sections?: Section[];
+  /**
+   * Categories visible in the current section, with counts. Mirrors
+   * the desktop sidebar's prop. Optional so older callers / tests
+   * still mount a basic drawer.
+   */
+  categories?: CategoryWithCount[];
+  /** Currently active category id, or null for "Todos". */
+  activeCat?: string | null;
+  /** Set the active category. The drawer auto-closes after a
+   *  selection so the user sees the filtered grid immediately. */
+  setActiveCat?: (id: string | null) => void;
+  /** Total cases in the current section (for the "Todos" row). */
+  totalCount?: number;
 }
 
 export default function MobileDrawer({
@@ -39,6 +63,10 @@ export default function MobileDrawer({
   favCount,
   onNewCase,
   sections = SECTIONS,
+  categories,
+  activeCat = null,
+  setActiveCat,
+  totalCount = 0,
 }: Props) {
   const trapRef = useFocusTrap<HTMLDivElement>(open);
   const isAdmin = user?.role === "admin";
@@ -143,6 +171,56 @@ export default function MobileDrawer({
             </TransitionLink>
           )}
         </nav>
+
+        {/* Category filters — only when the current view shows a
+            section grid. Outside section views (favoritos, admin)
+            categories don't apply, so we hide the section. The
+            "Todos" row matches the desktop sidebar's first item. */}
+        {setActiveCat && categories && view.kind === "section" && (
+          <div className="drawer-filters" aria-label="Filtros por categoría">
+            <h4>Categorías</h4>
+            <ul className="drawer-cat-list">
+              <li>
+                <button
+                  type="button"
+                  className={!activeCat ? "active" : ""}
+                  onClick={() => {
+                    setActiveCat(null);
+                    onClose();
+                  }}
+                >
+                  <span className="drawer-cat-label">
+                    <span className="drawer-cat-glyph" aria-hidden="true">
+                      {Icon.search()}
+                    </span>
+                    Todos
+                  </span>
+                  <span className="drawer-cat-count">{totalCount}</span>
+                </button>
+              </li>
+              {categories.map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    className={activeCat === c.id ? "active" : ""}
+                    onClick={() => {
+                      setActiveCat(c.id);
+                      onClose();
+                    }}
+                  >
+                    <span className="drawer-cat-label">
+                      <span className="drawer-cat-glyph" aria-hidden="true">
+                        {CategoryGlyph[c.id] ?? CustomCategoryGlyph}
+                      </span>
+                      {c.label}
+                    </span>
+                    <span className="drawer-cat-count">{c.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="drawer-actions">
           {isAdmin && (
