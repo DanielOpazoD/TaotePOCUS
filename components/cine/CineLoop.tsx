@@ -84,6 +84,15 @@ export default function CineLoop({
   // the browser decodes the file — until then we render with the
   // caller-provided `aspect` so the wrapper has stable dimensions.
   const [nativeAspect, setNativeAspect] = useState<string | null>(null);
+  // Loading state for the image/video paths. The wrapper carries
+  // `data-loaded="false"` until the asset paints, which CSS uses to
+  // show a shimmer skeleton + fade the asset in. Without this, a
+  // category click switches the DOM instantly but the user sees
+  // empty cells (transparent <Image> / blank <video>) for the
+  // duration of the CDN fetch — reads as "the page is frozen".
+  // Synthetic-canvas loops skip this entirely (RAF paints the first
+  // frame on the next tick, so there's no perceptible blank window).
+  const [loaded, setLoaded] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -131,6 +140,14 @@ export default function CineLoop({
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
+
+  // Reset the load flag whenever the source changes so the skeleton
+  // re-appears for the new asset. Without this, an admin editing a
+  // case's media (rare path) would carry the previous asset's
+  // "loaded" state into the new fetch.
+  useEffect(() => {
+    setLoaded(false);
+  }, [media?.src]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -214,7 +231,12 @@ export default function CineLoop({
     const resolvedAspect = preserveNativeAspect && nativeAspect ? nativeAspect : aspect;
     if (isVideoFile) {
       return (
-        <div className="cine-wrap" style={{ aspectRatio: resolvedAspect }} ref={wrapRef}>
+        <div
+          className="cine-wrap"
+          style={{ aspectRatio: resolvedAspect }}
+          ref={wrapRef}
+          data-loaded={loaded}
+        >
           <video
             ref={videoRef}
             src={media.src}
@@ -247,13 +269,23 @@ export default function CineLoop({
                 setNativeAspect(`${v.videoWidth} / ${v.videoHeight}`);
               }
             }}
+            // First frame painted: hide the skeleton, fade the video
+            // in. `loadeddata` fires earlier than `canplay` and
+            // matches when there's actually a picture to show.
+            onLoadedData={() => setLoaded(true)}
           />
+          {!loaded && <div className="cine-skeleton" aria-hidden="true" />}
           {showChrome && <div className="cine-chrome">POCUS · {media.modality || "REAL"}</div>}
         </div>
       );
     }
     return (
-      <div className="cine-wrap" style={{ aspectRatio: resolvedAspect }} ref={wrapRef}>
+      <div
+        className="cine-wrap"
+        style={{ aspectRatio: resolvedAspect }}
+        ref={wrapRef}
+        data-loaded={loaded}
+      >
         {/* `<Image fill>` paired with the absolute-positioned wrapper
             lets the optimizer pick a width based on the actual cell
             size (via the `sizes` hint) without forcing us to pass
@@ -301,8 +333,20 @@ export default function CineLoop({
             if (preserveNativeAspect && im.naturalWidth > 0 && im.naturalHeight > 0) {
               setNativeAspect(`${im.naturalWidth} / ${im.naturalHeight}`);
             }
+            // Mark the cell as loaded so the skeleton fades out and
+            // the image fades in. `<Image>` fires `onLoad` after the
+            // browser has decoded the resource, which is exactly when
+            // there's something to look at.
+            setLoaded(true);
+          }}
+          onError={() => {
+            // On error, drop the skeleton too so we don't show the
+            // shimmer forever. The Image element renders its broken
+            // state behind the now-revealed wrapper.
+            setLoaded(true);
           }}
         />
+        {!loaded && <div className="cine-skeleton" aria-hidden="true" />}
         {showChrome && <div className="cine-chrome">POCUS · {media.modality || "STILL"}</div>}
       </div>
     );

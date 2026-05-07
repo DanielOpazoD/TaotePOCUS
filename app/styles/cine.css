@@ -69,6 +69,77 @@
   display: block;
   background: #000;
 }
+
+/* ---- Loading skeleton ----------------------------------------
+ * The image / video paths render this element while the asset is
+ * fetching from the CDN. Without it, a category click switches the
+ * DOM instantly but the user sees empty cells (transparent <Image>
+ * / blank <video>) for the duration of the network round-trip and
+ * decode — reads as "the page is frozen". The shimmer turns the
+ * blank window into a visibly-loading state, so the click feels
+ * acknowledged immediately even when the bytes aren't there yet.
+ *
+ * Layered between cine-wrap::before (the dark cinema pulse, z=0)
+ * and cine-video (z=1), so the asset paints over it and the
+ * skeleton is never visible once `loaded=true` removes the node.
+ *
+ * The synthetic-canvas branch never mounts this element — its
+ * first frame paints in a single RAF tick and there's no
+ * perceptible blank window.
+ */
+.cine-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* Base color: dark cinema-style fill so the shimmer reads on
+     both light and dark themes. Slightly lighter than the
+     cine-wrap's #000 so the cell looks intentionally "loading"
+     rather than "broken / black". */
+  background: #1a1d24;
+  overflow: hidden;
+}
+.cine-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: cine-skeleton-shimmer 1.4s linear infinite;
+}
+@keyframes cine-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Fade the asset in over the skeleton-removed transition. The
+ * skeleton node disappears (React unmount) when loaded; the
+ * cine-video does a 200ms opacity transition into place so the
+ * change reads as a cross-fade rather than a flash. */
+.cine-wrap[data-loaded="false"] .cine-video {
+  opacity: 0;
+}
+.cine-wrap[data-loaded="true"] .cine-video {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-skeleton::after {
+    animation: none;
+    opacity: 0.5;
+    transform: none;
+  }
+  .cine-wrap[data-loaded="true"] .cine-video {
+    transition: none;
+  }
+}
 .cine-chrome {
   position: absolute;
   top: 8px;
