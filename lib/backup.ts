@@ -2,6 +2,8 @@
 // admin can save their classification work to a JSON file (and recover
 // it on a fresh browser, after `Clear site data`, or after deploy of
 // a different origin).
+
+import { STORAGE_KEYS, FAVS_KEY_PREFIX, favsKey } from "./storage-keys";
 //
 // The bundle covers everything the admin can produce manually:
 //
@@ -42,8 +44,6 @@ export interface BackupEnvelope {
     userCases: unknown[];
   };
 }
-
-const PFX = "pocus_";
 
 /**
  * Result of importing a bundle. Counts what was restored so the UI
@@ -90,16 +90,16 @@ function writeJson(key: string, value: unknown): boolean {
  * under the synthetic email `"guest"`.
  */
 export function buildBackup(currentEmail: string | null = null): BackupEnvelope {
-  const caseOverrides = readJson<Record<string, unknown>>(`${PFX}case_overrides`, {});
-  const userCases = readJson<unknown[]>(`${PFX}user_cases`, []);
-  const customCategories = readJson<unknown[]>("customCategories", []);
+  const caseOverrides = readJson<Record<string, unknown>>(STORAGE_KEYS.caseOverrides, {});
+  const userCases = readJson<unknown[]>(STORAGE_KEYS.userCases, []);
+  const customCategories = readJson<unknown[]>(STORAGE_KEYS.customCategories, []);
 
   const favsByEmail: Record<string, string[]> = {};
   if (typeof localStorage !== "undefined") {
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (!k || !k.startsWith(`${PFX}favs_`)) continue;
-      const email = k.slice(`${PFX}favs_`.length);
+      if (!k || !k.startsWith(FAVS_KEY_PREFIX)) continue;
+      const email = k.slice(FAVS_KEY_PREFIX.length);
       favsByEmail[email] = readJson<string[]>(k, []);
     }
   }
@@ -161,18 +161,18 @@ export function restoreBackup(env: BackupEnvelope): RestoreResult {
   if (typeof localStorage !== "undefined") {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k && k.startsWith(`${PFX}favs_`)) localStorage.removeItem(k);
+      if (k && k.startsWith(FAVS_KEY_PREFIX)) localStorage.removeItem(k);
     }
   }
 
   const writes: boolean[] = [
-    writeJson(`${PFX}case_overrides`, env.data.caseOverrides),
-    writeJson(`${PFX}user_cases`, env.data.userCases),
-    writeJson("customCategories", env.data.customCategories),
+    writeJson(STORAGE_KEYS.caseOverrides, env.data.caseOverrides),
+    writeJson(STORAGE_KEYS.userCases, env.data.userCases),
+    writeJson(STORAGE_KEYS.customCategories, env.data.customCategories),
   ];
   let favsEmails = 0;
   for (const [email, list] of Object.entries(env.data.favsByEmail)) {
-    writes.push(writeJson(`${PFX}favs_${email}`, list));
+    writes.push(writeJson(favsKey(email), list));
     favsEmails += 1;
   }
 

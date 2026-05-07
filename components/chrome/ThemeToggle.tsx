@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 type Theme = "light" | "dark";
 
@@ -34,7 +35,7 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
-    const stored = (localStorage.getItem("pocus_theme") as Theme | null) || null;
+    const stored = (localStorage.getItem(STORAGE_KEYS.theme) as Theme | null) || null;
     const initial: Theme =
       stored ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     setTheme(initial);
@@ -45,7 +46,7 @@ export default function ThemeToggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("pocus_theme", next);
+    localStorage.setItem(STORAGE_KEYS.theme, next);
   };
 
   if (!theme) return <button className="icon-btn theme-toggle" aria-hidden="true" tabIndex={-1} />;

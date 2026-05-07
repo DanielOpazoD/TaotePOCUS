@@ -3,9 +3,10 @@
 import { useCallback, useMemo } from "react";
 import { usePersistedState } from "./usePersistedState";
 import { SECTIONS } from "@/lib/data";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { Section, SectionId } from "@/lib/types";
 
-const STORAGE_KEY = "hiddenSectionIds";
+const STORAGE_KEY = STORAGE_KEYS.hiddenSectionIds;
 
 /**
  * The set of sections hidden by default for a fresh visitor (i.e. when

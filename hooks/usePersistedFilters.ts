@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { log } from "@/lib/log";
+import { filtersKey } from "@/lib/storage-keys";
 import type { SortOrder } from "@/lib/url";
 import type { View } from "@/lib/types";
 
@@ -42,12 +43,11 @@ interface FilterState {
 // single edit point.
 type PersistedFilters = FilterState;
 
-const STORAGE_PREFIX = "pocus_filters:";
 const VALID_SORT: SortOrder[] = ["recent", "title", "featured"];
 
 function storageKey(view: View): string | null {
   if (view.kind !== "section") return null;
-  return `${STORAGE_PREFIX}${view.section}`;
+  return filtersKey(view.section);
 }
 
 function isClean(state: FilterState): boolean {

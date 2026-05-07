@@ -19,8 +19,9 @@
 
 import { useCallback, useMemo } from "react";
 import { usePersistedState } from "./usePersistedState";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
-const STORAGE_KEY = "hiddenCategoryIds";
+const STORAGE_KEY = STORAGE_KEYS.hiddenCategoryIds;
 
 export interface UseCategoryVisibilityResult {
   /** Predicate — is this id currently hidden? */

@@ -28,6 +28,7 @@ import { useSectionLabels } from "@/hooks/useSectionLabels";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
 import { useAdminActions } from "@/hooks/useAdminActions";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 // Lazy-loaded subtrees: needed only on a specific path. Keeping them out
 // of the initial bundle preserves first-paint on the home grid (audit
@@ -77,10 +78,14 @@ function AppInner() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   // Sidebar collapse — persisted via usePersistedState. Compact "1"/"0"
   // serialization keeps the localStorage value short and grep-friendly.
-  const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState("sidebarCollapsed", false, {
-    serialize: (v) => (v ? "1" : "0"),
-    deserialize: (raw) => (raw === "1" ? true : raw === "0" ? false : undefined),
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState(
+    STORAGE_KEYS.sidebarCollapsed,
+    false,
+    {
+      serialize: (v) => (v ? "1" : "0"),
+      deserialize: (raw) => (raw === "1" ? true : raw === "0" ? false : undefined),
+    },
+  );
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
   // Global keyboard shortcuts. The hook installs window listeners for

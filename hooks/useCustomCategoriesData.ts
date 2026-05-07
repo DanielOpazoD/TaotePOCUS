@@ -19,6 +19,7 @@ import { usePersistedState } from "./usePersistedState";
 import { CATEGORIES } from "@/lib/data";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
 import { log } from "@/lib/log";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import {
   dbAddCategory,
   dbListCategories,
@@ -27,7 +28,7 @@ import {
 } from "@/app/actions/db";
 import type { Category } from "@/lib/types";
 
-const STORAGE_KEY = "customCategories";
+const STORAGE_KEY = STORAGE_KEYS.customCategories;
 
 type ActionResult = { ok: true } | { ok: false; reason: "unknown" | "auth_required" | "forbidden" };
 

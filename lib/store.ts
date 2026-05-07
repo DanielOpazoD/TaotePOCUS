@@ -8,6 +8,7 @@
 import type { CaseRecord, User } from "./types";
 import { ADMIN_CREDENTIALS } from "./env";
 import { log } from "./log";
+import { STORAGE_KEYS, STORAGE_PREFIX, favsKey } from "./storage-keys";
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -106,31 +107,31 @@ function safeRemove(key: string) {
 export const Store = {
   /** Current persisted session (raw JSON). May be expired or malformed. */
   getUser(): User | null {
-    return safeRead<User | null>("pocus_user", null);
+    return safeRead<User | null>(STORAGE_KEYS.user, null);
   },
   /** Persist a session blob. Caller must ensure expiry/role correctness. */
   setUser(u: User): WriteResult {
-    return safeWrite("pocus_user", u);
+    return safeWrite(STORAGE_KEYS.user, u);
   },
   /** Drop the persisted session. No-op if none exists. */
   clearUser() {
-    safeRemove("pocus_user");
+    safeRemove(STORAGE_KEYS.user);
   },
   /** Favorites for a given email. Defaults to `"guest"` for anon users. */
   getFavs(email?: string | null): string[] {
-    return safeRead<string[]>(`pocus_favs_${email || "guest"}`, []);
+    return safeRead<string[]>(favsKey(email), []);
   },
   /** Replace the favorites list for an email. */
   setFavs(email: string | null | undefined, favs: string[]): WriteResult {
-    return safeWrite(`pocus_favs_${email || "guest"}`, favs);
+    return safeWrite(favsKey(email), favs);
   },
   /** Admin-authored case list. Includes soft-deleted entries. */
   getUserCases(): CaseRecord[] {
-    return safeRead<CaseRecord[]>("pocus_user_cases", []);
+    return safeRead<CaseRecord[]>(STORAGE_KEYS.userCases, []);
   },
   /** Replace the admin-authored case list. */
   setUserCases(cs: CaseRecord[]): WriteResult {
-    return safeWrite("pocus_user_cases", cs);
+    return safeWrite(STORAGE_KEYS.userCases, cs);
   },
   /**
    * Per-case override map keyed by case id. Each entry is a
@@ -141,10 +142,10 @@ export const Store = {
    * live in localStorage, not in `lib/imported-cases.ts`.
    */
   getCaseOverrides(): Record<string, Partial<CaseRecord>> {
-    return safeRead<Record<string, Partial<CaseRecord>>>("pocus_case_overrides", {});
+    return safeRead<Record<string, Partial<CaseRecord>>>(STORAGE_KEYS.caseOverrides, {});
   },
   setCaseOverrides(map: Record<string, Partial<CaseRecord>>): WriteResult {
-    return safeWrite("pocus_case_overrides", map);
+    return safeWrite(STORAGE_KEYS.caseOverrides, map);
   },
   /**
    * Approximate bytes used by `pocus_*` keys. Useful for the admin
@@ -157,7 +158,7 @@ export const Store = {
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k || !k.startsWith("pocus_")) continue;
+        if (!k || !k.startsWith(STORAGE_PREFIX)) continue;
         const v = localStorage.getItem(k) ?? "";
         total += k.length + v.length;
       }

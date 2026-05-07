@@ -11,6 +11,7 @@ import {
   type RestoreResult,
 } from "@/lib/backup";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { dbBulkImport } from "@/app/actions/db";
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
   notify: (msg: string) => void;
 }
 
-const LAST_BACKUP_KEY = "pocus_last_backup_at";
+const LAST_BACKUP_KEY = STORAGE_KEYS.lastBackupAt;
 const STALE_DAYS = 7;
 
 function formatRelative(iso: string | null): string {

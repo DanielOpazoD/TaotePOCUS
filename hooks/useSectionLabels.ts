@@ -3,9 +3,10 @@
 import { useCallback, useMemo } from "react";
 import { usePersistedState } from "./usePersistedState";
 import { SECTIONS } from "@/lib/data";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { Section, SectionId } from "@/lib/types";
 
-const STORAGE_KEY = "sectionLabelOverrides";
+const STORAGE_KEY = STORAGE_KEYS.sectionLabelOverrides;
 
 /**
  * Per-section label overrides. The catalog's section ids

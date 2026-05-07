@@ -2,6 +2,7 @@
 
 import { CategoryGlyph, CustomCategoryGlyph, Icon } from "@/lib/icons";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { CategoryWithCount } from "@/lib/types";
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
   onToggleCollapsed: () => void;
 }
 
-const TAGS_OPEN_KEY = "sidebarTagsOpen";
+const TAGS_OPEN_KEY = STORAGE_KEYS.sidebarTagsOpen;
 
 export default function Sidebar({
   activeCat,

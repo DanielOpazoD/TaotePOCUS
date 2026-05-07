@@ -58,7 +58,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Pre-paint theme script — avoids the light→dark flash by setting
-  // data-theme on <html> before React hydrates.
+  // data-theme on <html> before React hydrates. The literal `pocus_theme`
+  // here is canonically `STORAGE_KEYS.theme` from `lib/storage-keys.ts`;
+  // it can't be imported because this script runs in the browser before
+  // any module loads. Keep both spellings aligned if the key is ever
+  // renamed.
   const themeScript = `
     (function () {
       try {
