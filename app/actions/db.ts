@@ -138,6 +138,49 @@ async function authorizeUserCase(
   return { ok: true, ownerEmail: owner };
 }
 
+// ─── audit log helper ───────────────────────────────────────────
+//
+// Append a row to `admin_actions`. Best-effort: a failure to insert
+// the audit row never aborts the parent action — we'd rather lose
+// the audit trail for one event than fail an admin's edit because
+// the audit table is misconfigured. Errors are logged server-side
+// (via `fail`) so the operator can investigate.
+//
+// Schema: see `netlify/database/migrations/0003_admin_actions.sql`.
+//
+// `kind` is a free-form text constrained at the application layer.
+// Adding a new kind = one literal in this union, no schema change.
+type AdminActionKind =
+  | "override_set"
+  | "override_cleared"
+  | "category_added"
+  | "category_renamed"
+  | "category_removed"
+  | "user_case_saved"
+  | "user_case_soft_deleted"
+  | "user_case_restored"
+  | "import_purged"
+  | "bulk_imported";
+
+async function recordAdminAction(
+  kind: AdminActionKind,
+  actorEmail: string,
+  targetId: string | null,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const db = getDatabase();
+    await db.sql`
+      INSERT INTO admin_actions (kind, target_id, actor_email, payload)
+      VALUES (${kind}, ${targetId}, ${actorEmail}, ${JSON.stringify(payload)}::jsonb)
+    `;
+  } catch (err) {
+    // Best-effort: log and move on. Don't propagate; the parent
+    // action's success is not contingent on the audit row.
+    fail(`recordAdminAction:${kind}`, err);
+  }
+}
+
 // ─── case_overrides ──────────────────────────────────────────────
 
 export async function dbListOverrides(): Promise<Record<string, Partial<CaseRecord>>> {
@@ -207,6 +250,9 @@ export async function dbSetOverride(
         updated_at = now(),
         updated_by = EXCLUDED.updated_by
     `;
+    // Audit. Records the patch shape (which keys changed) — full
+    // before/after replay isn't stored, only the inbound payload.
+    await recordAdminAction("override_set", audit, id, { patch });
     return { ok: true };
   } catch (err) {
     return fail("setOverride", err);
@@ -219,6 +265,7 @@ export async function dbClearOverride(id: string): Promise<ActionResult> {
   try {
     const db = getDatabase();
     await db.sql`DELETE FROM case_overrides WHERE id = ${id}`;
+    await recordAdminAction("override_cleared", session.email, id, {});
     return { ok: true };
   } catch (err) {
     return fail("clearOverride", err);
@@ -655,5 +702,133 @@ export async function dbBulkImport(
     }
   } catch (err) {
     return fail("bulkImport", err);
+  }
+}
+
+// ─── health check ────────────────────────────────────────────────
+//
+// One-shot sanity probe of the Netlify migration tracker. Returns
+// the rows of `netlify.migrations` alongside `netlify.migration_checksums`
+// so an admin can spot drift without opening the Neon SQL editor.
+// See `docs/runbooks/migration-tracker-recovery.md` for what to look
+// for and how to fix.
+//
+// Admin-only: the tables live in a system schema and the operator
+// could in principle infer the deployment cadence from them.
+
+export interface MigrationsHealth {
+  ok: true;
+  tracker: Array<{ id: number; version_id: number; is_applied: boolean }>;
+  checksums: Array<{ version: number; name: string; sha256: string }>;
+  drift: Array<{
+    kind: "tracker_without_checksum" | "checksum_without_tracker";
+    version_id: number;
+    name?: string;
+  }>;
+}
+
+export async function dbCheckMigrations(): Promise<
+  MigrationsHealth | { ok: false; reason: "auth_required" | "forbidden" | "unknown" }
+> {
+  const session = await requireAdmin();
+  if (!session) {
+    return (await requireAuth())
+      ? { ok: false, reason: "forbidden" }
+      : { ok: false, reason: "auth_required" };
+  }
+  try {
+    const db = getDatabase();
+    const tracker = await db.sql<{
+      id: number;
+      version_id: number;
+      is_applied: boolean;
+    }>`
+      SELECT id, version_id, is_applied
+      FROM netlify.migrations
+      ORDER BY version_id
+    `;
+    const checksums = await db.sql<{ version: number; name: string; sha256: string }>`
+      SELECT version, name, sha256
+      FROM netlify.migration_checksums
+      ORDER BY version
+    `;
+    // Drift detection: phantom rows are tracker entries WITHOUT a
+    // matching checksum. The inverse (a checksum without a tracker
+    // entry) is also surfaced — that would mean a file recorded as
+    // applied that no longer counts as applied, also worth a look.
+    const checksumVersions = new Set(checksums.map((c) => c.version));
+    const trackerVersions = new Set(
+      tracker.filter((t) => t.version_id > 0).map((t) => t.version_id),
+    );
+    const drift: MigrationsHealth["drift"] = [];
+    for (const t of tracker) {
+      if (t.version_id <= 0) continue; // skip the (-1) init marker
+      if (!checksumVersions.has(t.version_id)) {
+        drift.push({ kind: "tracker_without_checksum", version_id: t.version_id });
+      }
+    }
+    for (const c of checksums) {
+      if (!trackerVersions.has(c.version)) {
+        drift.push({
+          kind: "checksum_without_tracker",
+          version_id: c.version,
+          name: c.name,
+        });
+      }
+    }
+    return { ok: true, tracker, checksums, drift };
+  } catch (err) {
+    fail("checkMigrations", err);
+    return { ok: false, reason: "unknown" };
+  }
+}
+
+// ─── admin actions audit log ────────────────────────────────────
+//
+// Read the most-recent admin actions. Exposed via the admin
+// "Actividad" view. Limit + offset for cheap pagination; the
+// `created_at_desc` index makes both fast.
+
+export interface AdminActionRow {
+  id: number;
+  kind: string;
+  target_id: string | null;
+  actor_email: string;
+  payload: Record<string, unknown>;
+  result: string;
+  created_at: string;
+}
+
+export async function dbListAdminActions(
+  limit = 100,
+  offset = 0,
+): Promise<
+  | { ok: true; rows: AdminActionRow[] }
+  | { ok: false; reason: "auth_required" | "forbidden" | "unknown" }
+> {
+  const session = await requireAdmin();
+  if (!session) {
+    return (await requireAuth())
+      ? { ok: false, reason: "forbidden" }
+      : { ok: false, reason: "auth_required" };
+  }
+  // Clamp the limit so an admin can't accidentally pull every row
+  // and slow the page down.
+  const safeLimit = Math.max(1, Math.min(500, limit));
+  const safeOffset = Math.max(0, offset);
+  try {
+    const db = getDatabase();
+    const rows = await db.sql<AdminActionRow>`
+      SELECT id, kind, target_id, actor_email, payload, result,
+             created_at::text AS created_at
+      FROM admin_actions
+      ORDER BY created_at DESC
+      LIMIT ${safeLimit}
+      OFFSET ${safeOffset}
+    `;
+    return { ok: true, rows };
+  } catch (err) {
+    fail("listAdminActions", err);
+    return { ok: false, reason: "unknown" };
   }
 }

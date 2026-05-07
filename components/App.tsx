@@ -26,6 +26,7 @@ import { useHiddenSections } from "@/hooks/useHiddenSections";
 import { useSectionLabels } from "@/hooks/useSectionLabels";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
+import { useAdminActions } from "@/hooks/useAdminActions";
 
 // Lazy-loaded subtrees: needed only on a specific path or when a modal
 // opens. Keeping them out of the initial bundle preserves first-paint
@@ -286,6 +287,19 @@ function AppInner() {
     setEditingCase(null);
   };
 
+  // Per-case + bulk admin actions (override + undo toast pipelines).
+  // Lifted out of App.tsx in May-2026 — they were 140 LOC of inline
+  // closures inside the JSX, which made admin behavior un-testable
+  // and the file unreadable. The hook is gated by the caller
+  // (`isAdmin ? adminActions.onPatch : undefined`).
+  const adminActions = useAdminActions({
+    allCases,
+    userCases,
+    setOverride,
+    showToast,
+    user,
+  });
+
   // Destructive flows (soft-delete + permanent-delete + restore).
   // The hook owns the pending-state and the side-effect ordering;
   // the parent only renders ConfirmDialogs bound to its pending refs.
@@ -440,145 +454,9 @@ function AppInner() {
               onNew={onNewCase}
               onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
               onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
-              onPatch={
-                isAdmin
-                  ? async (id, patch) => {
-                      // Capture the case's current value for every key
-                      // the patch is touching BEFORE applying. The undo
-                      // toast restores those values via a new patch; if
-                      // the case isn't in the merged catalog (rare —
-                      // deep link to a soft-deleted case) we skip the
-                      // undo affordance rather than offer an inverse
-                      // we can't compute.
-                      const before = allCases.find((c) => c.id === id);
-                      const inverse: Partial<CaseRecord> | null = before
-                        ? Object.fromEntries(
-                            Object.keys(patch).map((k) => [k, before[k as keyof CaseRecord]]),
-                          )
-                        : null;
-                      const ok = await setOverride(id, patch);
-                      if (!ok) return;
-                      // Pick the most specific message — the order
-                      // matches what an admin clicked. `focus` and
-                      // `reviewed` get their own copy so the undo
-                      // affordance lands next to a clear nominal cue.
-                      let message: string;
-                      if (patch.section) message = "Sección actualizada";
-                      else if (patch.category) message = "Categoría actualizada";
-                      else if ("reviewed" in patch)
-                        message = patch.reviewed ? "Marcado revisado" : "Sin marca de revisado";
-                      else if ("focus" in patch) message = "Encuadre actualizado";
-                      else message = "Caso actualizado";
-                      showToast(
-                        message,
-                        inverse ? { undo: () => setOverride(id, inverse) } : undefined,
-                      );
-                    }
-                  : undefined
-              }
-              onBulkPatch={
-                isAdmin
-                  ? async (ids, patch) => {
-                      // Capture the previous values per id BEFORE
-                      // applying so the unified undo can restore each
-                      // card's pre-bulk state. Cards that aren't in
-                      // the merged catalog (deep-linked soft-deleted
-                      // entries) are skipped from the inverse map —
-                      // their forward patch still lands.
-                      const inverses: Array<{ id: string; patch: Partial<CaseRecord> }> = [];
-                      for (const id of ids) {
-                        const before = allCases.find((c) => c.id === id);
-                        if (!before) continue;
-                        inverses.push({
-                          id,
-                          patch: Object.fromEntries(
-                            Object.keys(patch).map((k) => [k, before[k as keyof CaseRecord]]),
-                          ),
-                        });
-                      }
-                      // Fire the forward patches in parallel — they
-                      // all hit local state + the same DB row family
-                      // and the dual-write mirror tolerates the
-                      // out-of-order arrivals at scale.
-                      const results = await Promise.all(ids.map((id) => setOverride(id, patch)));
-                      const okCount = results.filter(Boolean).length;
-                      if (okCount === 0) {
-                        showToast("No se pudo aplicar el cambio");
-                        return;
-                      }
-                      let label: string;
-                      if (patch.section) label = "Sección";
-                      else if (patch.category) label = "Categoría";
-                      else if ("reviewed" in patch)
-                        label = patch.reviewed ? "Revisado" : "Sin revisar";
-                      else label = "Cambio";
-                      showToast(
-                        `${label}: ${okCount} caso${okCount === 1 ? "" : "s"} actualizado${okCount === 1 ? "" : "s"}`,
-                        inverses.length > 0
-                          ? {
-                              undo: () =>
-                                Promise.all(
-                                  inverses.map(({ id, patch: inv }) => setOverride(id, inv)),
-                                ),
-                            }
-                          : undefined,
-                      );
-                    }
-                  : undefined
-              }
-              onBulkSoftDelete={
-                isAdmin
-                  ? async (ids) => {
-                      // Bulk soft-delete: route each id by ownership.
-                      // User-owned cases go through `userCases.remove`
-                      // (real CRUD) so the trash view picks them up;
-                      // seed cases get an override-based deletedAt
-                      // tombstone. The undo loops the inverse for each.
-                      const userOwned = new Set(userCases.live.map((c) => c.id));
-                      const stamp = new Date().toISOString();
-                      const targets: Array<{ id: string; kind: "owned" | "seed" }> = ids.map(
-                        (id) => ({ id, kind: userOwned.has(id) ? "owned" : "seed" }),
-                      );
-                      const results = await Promise.all(
-                        targets.map(async (t) => {
-                          if (t.kind === "owned") {
-                            const c = userCases.live.find((x) => x.id === t.id);
-                            if (!c) return false;
-                            return userCases.remove(c);
-                          }
-                          return setOverride(t.id, {
-                            deletedAt: stamp,
-                            deletedBy: user?.email,
-                          });
-                        }),
-                      );
-                      const okCount = results.filter(Boolean).length;
-                      if (okCount === 0) {
-                        showToast("No se pudo mover a papelera");
-                        return;
-                      }
-                      showToast(
-                        `${okCount} caso${okCount === 1 ? "" : "s"} movido${okCount === 1 ? "" : "s"} a papelera`,
-                        {
-                          undo: () =>
-                            Promise.all(
-                              targets.map((t) => {
-                                if (t.kind === "owned") {
-                                  const c = userCases.trashed.find((x) => x.id === t.id);
-                                  if (!c) return Promise.resolve(false);
-                                  return userCases.restore(c);
-                                }
-                                return setOverride(t.id, {
-                                  deletedAt: undefined,
-                                  deletedBy: undefined,
-                                });
-                              }),
-                            ),
-                        },
-                      );
-                    }
-                  : undefined
-              }
+              onPatch={isAdmin ? adminActions.onPatch : undefined}
+              onBulkPatch={isAdmin ? adminActions.onBulkPatch : undefined}
+              onBulkSoftDelete={isAdmin ? adminActions.onBulkSoftDelete : undefined}
             />
           </ErrorBoundary>
         </main>

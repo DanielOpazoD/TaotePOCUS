@@ -79,7 +79,12 @@ interface Options {
  *   if (!hydrated) return <Skeleton />;
  */
 
-function useSessionLegacy({ notify }: Options = {}) {
+/**
+ * Legacy localStorage-backed session implementation. Exported by
+ * name for tests; consumers should always use the public `useSession`
+ * (it picks the right implementation at module load).
+ */
+export function useSessionLegacy({ notify }: Options = {}) {
   const [user, setUser] = useState<User | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -152,7 +157,11 @@ function useSessionLegacy({ notify }: Options = {}) {
   };
 }
 
-function useSessionClerk({ notify }: Options = {}) {
+/**
+ * Clerk-backed session implementation. Exported by name for tests;
+ * consumers should always use the public `useSession`.
+ */
+export function useSessionClerk({ notify }: Options = {}) {
   // Dev bypass takes precedence over Clerk so an unconfigured local
   // dev session still gets admin access without a Clerk account.
   // `useUser` / `useClerk` are still called below (rules of hooks)

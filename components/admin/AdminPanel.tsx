@@ -11,6 +11,7 @@ import CategoriesEditor from "./CategoriesEditor";
 import SectionsEditor from "./SectionsEditor";
 import BackupPanel from "./BackupPanel";
 import BulkEditTable, { BulkEditTagSuggestions } from "./BulkEditTable";
+import ActivityPanel from "./ActivityPanel";
 
 interface Props {
   allCases: CaseRecord[];
@@ -75,7 +76,7 @@ interface Props {
   notify?: (msg: string) => void;
 }
 
-type Tab = "mine" | "classify" | "edit" | "categories" | "sections" | "backup";
+type Tab = "mine" | "classify" | "edit" | "categories" | "sections" | "activity" | "backup";
 
 function formatDateTime(iso?: string) {
   if (!iso) return "";
@@ -197,6 +198,15 @@ export default function AdminPanel({
         )}
         <button
           role="tab"
+          aria-selected={tab === "activity"}
+          className={`admin-tab${tab === "activity" ? " is-active" : ""}`}
+          onClick={() => setTab("activity")}
+          title="Registro append-only de acciones admin"
+        >
+          Actividad
+        </button>
+        <button
+          role="tab"
           aria-selected={tab === "backup"}
           className={`admin-tab${tab === "backup" ? " is-active" : ""}`}
           onClick={() => setTab("backup")}
@@ -248,6 +258,8 @@ export default function AdminPanel({
           setLabel={onSetSectionLabel ?? (() => undefined)}
           caseCounts={sectionCaseCounts ?? {}}
         />
+      ) : tab === "activity" ? (
+        <ActivityPanel />
       ) : tab === "backup" ? (
         <BackupPanel currentEmail={currentEmail ?? null} notify={notify ?? (() => {})} />
       ) : (
