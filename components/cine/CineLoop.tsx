@@ -267,10 +267,32 @@ export default function CineLoop({
           src={media.src}
           alt=""
           fill
-          // Catalog max thumb is ~290px on a 5-col atlas at 1480px;
-          // 480px is generous for retina + future widening.
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 480px"
-          quality={quality === "full" ? 90 : 75}
+          // `sizes` drives the srcset width the CDN serves. The
+          // previous `480px` desktop hint was 1.5–1.65× oversized for
+          // every grid layout we actually ship — the CDN was sending
+          // larger files than the cells could display, doubling bytes
+          // per card and stretching the user-perceived "loading
+          // thumbnails" window. The new ladder maps to the real grid:
+          //
+          //   - <640px  → 50vw  (Atlas 2-col + .case-grid 2-col)
+          //                     → ~207px on a 414px phone = sharp at DPR 2.
+          //   - <1024px → 33vw  (Atlas 3-col)
+          //                     → ~256px on a 768px tablet.
+          //   - <1380px → 25vw  (Atlas 4-col)
+          //                     → ~320px on a 1280px laptop.
+          //   - else    → 280px (Atlas 5-col at 1480px) — at DPR 2 the
+          //                     CDN serves the next srcset bucket up
+          //                     (~640px), still smaller than the prior
+          //                     fixed 480px served at 2×.
+          //
+          // For the modal/presentation surfaces (`quality === "full"`)
+          // we keep the hint generous because the cell is full-screen.
+          sizes={
+            quality === "full"
+              ? "(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1280px"
+              : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1380px) 25vw, 280px"
+          }
+          quality={quality === "full" ? 90 : 70}
           unoptimized={/\.gif(\?|$)/i.test(src)}
           className="cine-video"
           style={mediaStyle}
