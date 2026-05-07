@@ -137,3 +137,51 @@
   height: 24px;
   width: 50px;
 }
+
+/* ---------- table row ----------
+ * For `BulkEditTable` and `ActivityPanel` while their async data
+ * hydrates. Each row matches the production row's vertical
+ * rhythm (8px padding × 2 + ~26 px content) so the swap from
+ * skeleton to data doesn't reflow the table height. */
+.skeleton-table-row {
+  display: grid;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+.skeleton-table-row .skeleton-line {
+  height: 14px;
+}
+.skeleton-table-row.is-narrow {
+  /* For ActivityPanel: date · pill · target · email columns. */
+  grid-template-columns: 130px 110px 1fr 160px;
+}
+.skeleton-table-row.is-bulk-edit {
+  /* For BulkEditTable: check · thumb · title · description · cat ·
+     tags · reviewed · actions. Approximation — the real table uses
+     `table-layout: fixed`, so widths don't have to match exactly,
+     just rhythm. */
+  grid-template-columns: 24px 48px 1fr 1.2fr 110px 160px 28px 28px;
+}
+.skeleton-thumb-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-thumb-sm::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ink) 4%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.6s linear infinite;
+}

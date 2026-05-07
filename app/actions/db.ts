@@ -321,6 +321,7 @@ export async function dbPurgeImported(
         console.error("[db.purgeImported] media delete failed", mediaErr);
       }
     }
+    await recordAdminAction("import_purged", audit, id, { mediaKey });
     return { ok: true };
   } catch (err) {
     return fail("purgeImported", err);
@@ -412,6 +413,10 @@ export async function dbSaveUserCase(
         VALUES (${c.id}, ${JSON.stringify(c)}::jsonb, ${enforcedOwner})
       `;
     }
+    await recordAdminAction("user_case_saved", session.email, c.id, {
+      isUpdate,
+      title: c.title,
+    });
     return { ok: true };
   } catch (err) {
     return fail("saveUserCase", err);
@@ -434,6 +439,7 @@ export async function dbRemoveUserCase(id: string, byEmail: string | null): Prom
       SET deleted_at = now(), deleted_by = ${audit}
       WHERE id = ${id}
     `;
+    await recordAdminAction("user_case_soft_deleted", audit, id, {});
     return { ok: true };
   } catch (err) {
     return fail("removeUserCase", err);
@@ -452,6 +458,7 @@ export async function dbRestoreUserCase(id: string): Promise<ActionResult> {
       SET deleted_at = NULL, deleted_by = NULL
       WHERE id = ${id}
     `;
+    await recordAdminAction("user_case_restored", session.email, id, {});
     return { ok: true };
   } catch (err) {
     return fail("restoreUserCase", err);
@@ -511,6 +518,7 @@ export async function dbAddCategory(
       VALUES (${id}, ${label}, ${audit})
       ON CONFLICT (id) DO NOTHING
     `;
+    await recordAdminAction("category_added", audit, id, { label });
     return { ok: true };
   } catch (err) {
     return fail("addCategory", err);
@@ -525,6 +533,7 @@ export async function dbRenameCategory(id: string, label: string): Promise<Actio
     await db.sql`
       UPDATE custom_categories SET label = ${label} WHERE id = ${id}
     `;
+    await recordAdminAction("category_renamed", session.email, id, { label });
     return { ok: true };
   } catch (err) {
     return fail("renameCategory", err);
@@ -537,6 +546,7 @@ export async function dbRemoveCategory(id: string): Promise<ActionResult> {
   try {
     const db = getDatabase();
     await db.sql`DELETE FROM custom_categories WHERE id = ${id}`;
+    await recordAdminAction("category_removed", session.email, id, {});
     return { ok: true };
   } catch (err) {
     return fail("removeCategory", err);
@@ -690,10 +700,12 @@ export async function dbBulkImport(
       }
 
       await query({ text: "COMMIT" });
-      return {
-        ok: true,
-        counts: { overrides, categories, userCases, favs },
-      };
+      const counts = { overrides, categories, userCases, favs };
+      // Audit happens AFTER the transaction commits so a rollback
+      // doesn't leave a phantom audit row pointing at data that
+      // never landed.
+      await recordAdminAction("bulk_imported", session.email, null, counts);
+      return { ok: true, counts };
     } catch (err) {
       await query({ text: "ROLLBACK" });
       throw err;
