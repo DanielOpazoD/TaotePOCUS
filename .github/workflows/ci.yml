@@ -40,6 +40,30 @@ jobs:
       - name: Unit tests with coverage
         run: npm run test:coverage
 
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 14
+
+      - name: Coverage summary in job log
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "## Coverage" >> "$GITHUB_STEP_SUMMARY"
+            node -e "
+              const s = require('./coverage/coverage-summary.json').total;
+              const fmt = (k) => \`\${k}: \${s[k].pct.toFixed(2)}% (\${s[k].covered}/\${s[k].total})\`;
+              console.log('| Metric | Value |');
+              console.log('|---|---|');
+              for (const k of ['statements','branches','functions','lines']) {
+                console.log(\`| \${k} | \${s[k].pct.toFixed(2)}% (\${s[k].covered}/\${s[k].total}) |\`);
+              }
+            " >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Build
         run: npm run build
         env:
@@ -86,6 +110,26 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # Aggregate gate. Branch protection rules can require this single
+  # `verify` check instead of having to keep the required-checks list
+  # in sync with every job rename. `verify` succeeds only when every
+  # required upstream job succeeded.
+  verify:
+    name: Verify (PR gate)
+    runs-on: ubuntu-latest
+    needs: [quality, e2e]
+    if: always()
+    steps:
+      - name: All required jobs succeeded
+        run: |
+          if [ "${{ needs.quality.result }}" != "success" ] || [ "${{ needs.e2e.result }}" != "success" ]; then
+            echo "Required jobs did not all succeed:"
+            echo "  quality: ${{ needs.quality.result }}"
+            echo "  e2e:     ${{ needs.e2e.result }}"
+            exit 1
+          fi
+          echo "All required jobs succeeded."
 
   # Lighthouse runs only on pushes to main (after a PR merges) so PR
   # turnaround stays fast. The thresholds in `.lighthouserc.json` are

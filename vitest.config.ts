@@ -8,6 +8,10 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     coverage: {
       provider: "v8",
+      // `json-summary` writes `coverage/coverage-summary.json` which the
+      // CI step parses to surface the totals in the GitHub job summary.
+      // `text` gives the local terminal output; `html` is the local
+      // browseable report developers open from `coverage/index.html`.
       reporter: ["text", "html", "json-summary"],
       include: ["lib/**/*.ts"],
       exclude: [
@@ -21,6 +25,17 @@ export default defineConfig({
         // reflects the code we actually exercise locally.
         "lib/firebase.ts",
         "lib/firebase-*.ts",
+        // Netlify Blobs wrapper requires a real Netlify environment
+        // (`getStore` reads from the request context). The integration
+        // surface is exercised through the `/api/media/[id]` route in
+        // e2e; unit-testing this file would only mock-around the SDK.
+        "lib/blobs.ts",
+        // Lazy-loader for the auto-generated 6055-LOC seed corpus.
+        // Exercised by every app load — not a unit-test target.
+        "lib/seed-cases.ts",
+        // Client-side Clerk helper. The server resolution is covered
+        // in `lib/server/session.ts` tests.
+        "lib/clerk-auth.ts",
       ],
       // Hard floor for `lib/`. CI fails if a PR drops coverage below
       // these without justification — keeps the unit-test contract real.
