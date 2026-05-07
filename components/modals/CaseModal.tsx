@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import ModalLoopMedia from "./ModalLoopMedia";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useSwipeToClose } from "@/hooks/useSwipeToClose";
+import { useNativeDialog } from "@/hooks/useNativeDialog";
+import { useScrollProgress } from "@/hooks/useScrollProgress";
+import { useModalShortcuts } from "@/hooks/useModalShortcuts";
 import {
   difficultyLabel,
   getCaseMedia,
@@ -37,9 +40,8 @@ interface Props {
 export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [readProgress, setReadProgress] = useState(0);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useNativeDialog<HTMLDialogElement>();
+  const { ref: bodyRef, progress: readProgress } = useScrollProgress<HTMLDivElement>();
   const trapRef = useFocusTrap<HTMLDivElement>(true);
   const swipe = useSwipeToClose<HTMLDivElement>({ onClose });
   // Memoize per-caso derivations: each is a small computation, but they
@@ -84,79 +86,11 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
     publisher: { "@type": "Organization", name: "Taote POCUS" },
   };
 
-  // Open the native dialog on mount, close on unmount.
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (!dialog.open) dialog.showModal();
-    return () => {
-      if (dialog.open) dialog.close();
-    };
-  }, []);
-
-  // Read progress for the modal-body scroll. The bar at the top of
-  // the dialog grows from 0 to 1 — fricción cero, satisface.
-  useEffect(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    const update = () => {
-      const max = el.scrollHeight - el.clientHeight;
-      setReadProgress(max > 0 ? Math.min(1, Math.max(0, el.scrollTop / max)) : 0);
-    };
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    return () => el.removeEventListener("scroll", update);
-  }, []);
-
-  // Keyboard shortcuts for the modal:
-  //   - Escape  → close
-  //   - F / S / P → toggle fav / share / present (mirrors the
-  //              kbd hints rendered next to those action buttons)
-  //
-  // ←/→ used to step between cases in the section. They were dropped
-  // in Apr-2026 along with the visible prev/next arrows. The reader
-  // now navigates via the grid; arrow keys inside the modal scroll
-  // the multi-media carousel instead (handled by the carousel's
-  // native scroll-snap, no explicit listener needed).
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      // Ignore shortcuts while typing in a field — the user is
-      // composing text, not driving the modal chrome.
-      const target = e.target as HTMLElement | null;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement ||
-        target?.isContentEditable
-      ) {
-        return;
-      }
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key === "f" || e.key === "F") {
-        e.preventDefault();
-        onFav();
-        return;
-      }
-      if (e.key === "s" || e.key === "S") {
-        e.preventDefault();
-        onShare();
-        return;
-      }
-      if (e.key === "p" || e.key === "P") {
-        e.preventDefault();
-        onPresent();
-        return;
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, onFav, onShare, onPresent]);
+  // Modal keyboard shortcuts (Esc / F / S / P). The hook installs the
+  // listener and ignores text-input targets + chorded modifiers. The
+  // ←/→ stepper between cases was removed in Apr-2026 along with the
+  // visible prev/next arrows — the reader now navigates via the grid.
+  useModalShortcuts({ onClose, onFav, onShare, onPresent });
 
   // Click on the dialog element itself = backdrop click = close.
   const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
