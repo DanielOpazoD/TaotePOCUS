@@ -58,22 +58,61 @@ export function getPrimaryEmail(u: ClerkUserLike): string | null {
 }
 
 /**
- * Decide whether this Clerk user is an admin. Two paths:
+ * Inputs needed to decide a user's role. Pulled out as a typed bag
+ * (rather than the full Clerk user) so the same decision function
+ * can be called from places that only have an email + a metadata
+ * blob without having to reconstruct a `ClerkUserLike`. The server
+ * reads via `currentUser()`; the client reads via `useUser()`; both
+ * synthesize this shape and feed it to `resolveRole`.
+ */
+export interface RoleInputs {
+  /** Already-lowercased primary email. `null` = no email on file. */
+  email: string | null;
+  /** Whatever `publicMetadata.role` was — Clerk types it as `unknown`,
+   *  we accept that shape so callers don't pre-validate. */
+  publicMetadataRole: unknown;
+}
+
+/**
+ * Single source of truth for "is this user an admin?".
  *
- *   1. `publicMetadata.role === "admin"` (set in Clerk dashboard or
- *      via the Clerk API). This is the long-term source of truth.
+ * Two independent paths grant admin. Either alone is sufficient, both
+ * together are fine, neither demotes the other:
+ *
+ *   1. `publicMetadata.role === "admin"` (case-insensitive). Set via
+ *      Clerk dashboard or the Clerk admin API. Long-term source of
+ *      truth — owned by whoever administers the Clerk project.
  *   2. The env-var allowlist `ADMIN_EMAILS`. Used during the bootstrap
  *      flow before anyone has had a chance to promote a user via the
- *      Clerk dashboard. Also a safety net if Clerk is misconfigured.
+ *      Clerk dashboard. Also a safety net if Clerk is misconfigured —
+ *      operator can flip an env var without dashboard access.
  *
- * Either path triggers admin. Both are independent so removing the
- * env entry doesn't demote a user whose metadata says admin, and vice
- * versa.
+ * The function is the only place this rule is encoded. Server-side
+ * (`lib/server/session.ts > getClerkSession`) and client-side
+ * (`isAdminFromClerkUser`) both call this — keeping them aligned by
+ * construction rather than convention. See ADR-0012.
+ */
+export function resolveRole(inputs: RoleInputs): "admin" | "user" {
+  const { publicMetadataRole, email } = inputs;
+  if (typeof publicMetadataRole === "string" && publicMetadataRole.toLowerCase() === "admin") {
+    return "admin";
+  }
+  if (isAdminEmail(email)) return "admin";
+  return "user";
+}
+
+/**
+ * Adapter: decide admin-ness for a full Clerk user object. Convenience
+ * wrapper around `resolveRole` — kept as the public API that existing
+ * client-side callers (the React `useUser()` hook) already use.
  */
 export function isAdminFromClerkUser(u: ClerkUserLike): boolean {
-  const role = u.publicMetadata?.role;
-  if (typeof role === "string" && role.toLowerCase() === "admin") return true;
-  return isAdminEmail(getPrimaryEmail(u));
+  return (
+    resolveRole({
+      email: getPrimaryEmail(u),
+      publicMetadataRole: u.publicMetadata?.role,
+    }) === "admin"
+  );
 }
 
 /** Two-letter initials derived from name or email — same shape used

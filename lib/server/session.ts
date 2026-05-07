@@ -26,7 +26,8 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-import { IS_PRODUCTION, IS_CLERK_ENABLED, isAdminEmail } from "../env";
+import { IS_PRODUCTION, IS_CLERK_ENABLED } from "../env";
+import { resolveRole } from "../clerk-auth";
 
 export const SESSION_COOKIE = "pocus_session";
 
@@ -195,10 +196,14 @@ async function getClerkSession(): Promise<SessionPayload | null> {
     email = (u.emailAddresses[0]?.emailAddress ?? "").toLowerCase() || null;
   }
   if (!email) return null;
-  // Admin: metadata wins, then env allowlist.
-  const metaRole = (u.publicMetadata as { role?: unknown } | null | undefined)?.role;
-  const isAdmin =
-    (typeof metaRole === "string" && metaRole.toLowerCase() === "admin") || isAdminEmail(email);
+  // Role decision goes through the shared `resolveRole` helper so the
+  // server and client paths stay aligned. See ADR-0012 for the rule
+  // (publicMetadata.role beats nothing; ADMIN_EMAILS is the safety
+  // net during bootstrap and when metadata is unset).
+  const role = resolveRole({
+    email,
+    publicMetadataRole: (u.publicMetadata as { role?: unknown } | null | undefined)?.role,
+  });
   // Clerk's `currentUser().createdAt` is a number (epoch ms). Older
   // SDK versions exposed a Date — accept either, fall back to now.
   const createdAtRaw: unknown = (u as { createdAt?: unknown }).createdAt;
@@ -210,7 +215,7 @@ async function getClerkSession(): Promise<SessionPayload | null> {
         : Date.now();
   return {
     email,
-    role: isAdmin ? "admin" : "user",
+    role,
     iat: issued,
     // Clerk owns the real session lifetime; we set a far-future `exp`
     // so the legacy expiry check at the bottom of `verifySessionToken`

@@ -19,6 +19,7 @@ forward.
 | 0009 | [Uniform catalog UI: single header, single grid](./0009-uniform-catalog-ui.md)                 | Accepted                                               |
 | 0010 | [Drop the legacy narrative trio](./0010-drop-legacy-narrative-trio.md)                         | Accepted                                               |
 | 0011 | [Stage 4 partial: DB-authoritative writes](./0011-stage-4-partial-db-authoritative-writes.md)  | Accepted (supersedes write contract of 0006)           |
+| 0012 | [Unified role resolution: `resolveRole()`](./0012-unified-role-resolution.md)                  | Accepted                                               |
 
 ## How to add an ADR
 
