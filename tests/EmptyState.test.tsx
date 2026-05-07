@@ -20,6 +20,21 @@ describe("EmptyState", () => {
     expect(screen.getByRole("heading", { name: /trazado plano/i })).toBeTruthy();
   });
 
+  it("renders the rayos-specific copy on the rayos empty state", () => {
+    render(<EmptyState view={viewFactory.section("rayos")} />);
+    expect(screen.getByRole("heading", { name: /sin estudios/i })).toBeTruthy();
+  });
+
+  it("renders the cases-specific copy on the cases empty state", () => {
+    render(<EmptyState view={viewFactory.section("cases")} />);
+    expect(screen.getByRole("heading", { name: /sin historias/i })).toBeTruthy();
+  });
+
+  it("renders the info-specific copy on the info empty state", () => {
+    render(<EmptyState view={viewFactory.section("info")} />);
+    expect(screen.getByRole("heading", { name: /sin infografías/i })).toBeTruthy();
+  });
+
   it("uses the explicit title and message when provided", () => {
     render(
       <EmptyState

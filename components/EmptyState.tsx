@@ -85,6 +85,13 @@ function pickContent(view: View): {
         defaultTitle: "Sin infografías",
         defaultMessage: "No encontramos piezas visuales con esos criterios.",
       };
+    case "rayos":
+      return {
+        glyph: <RibcageGlyph />,
+        defaultTitle: "Sin estudios",
+        defaultMessage:
+          "Ninguna radiografía o TAC coincide. Quita filtros o busca por otra palabra.",
+      };
     default:
       return {
         glyph: <ProbeGlyph />,
@@ -163,6 +170,33 @@ function PosterGlyph() {
       <path d="M58 32 L70 18 L78 32 Z" />
       <rect x="56" y="42" width="22" height="3" />
       <rect x="56" y="50" width="16" height="3" opacity="0.55" />
+    </svg>
+  );
+}
+
+function RibcageGlyph() {
+  // Stylized chest X-ray — outer torso silhouette, spine column down
+  // the middle, four ribcage curves on each side. The Rayos section
+  // primarily hosts chest plates / CT slices, so a chest is the most
+  // recognizable cue.
+  return (
+    <svg viewBox="0 0 96 72" className="empty-svg">
+      {/* outer film frame */}
+      <rect x="6" y="6" width="84" height="60" rx="3" opacity="0.4" />
+      {/* spine */}
+      <line x1="48" y1="14" x2="48" y2="60" strokeWidth="1.4" />
+      {/* clavicle hint */}
+      <path d="M28 18 Q48 12 68 18" opacity="0.55" />
+      {/* ribs (left side, 4 curves) */}
+      <path d="M48 22 Q28 22 22 32" opacity="0.7" />
+      <path d="M48 30 Q26 30 18 42" opacity="0.7" />
+      <path d="M48 38 Q26 38 20 50" opacity="0.55" />
+      <path d="M48 46 Q30 46 28 56" opacity="0.45" />
+      {/* ribs (right side, mirrored) */}
+      <path d="M48 22 Q68 22 74 32" opacity="0.7" />
+      <path d="M48 30 Q70 30 78 42" opacity="0.7" />
+      <path d="M48 38 Q70 38 76 50" opacity="0.55" />
+      <path d="M48 46 Q66 46 68 56" opacity="0.45" />
     </svg>
   );
 }

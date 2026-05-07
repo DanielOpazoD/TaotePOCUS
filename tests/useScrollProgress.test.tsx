@@ -1,28 +1,30 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { useEffect, useRef } from "react";
 import { act } from "react";
 import { render, cleanup } from "@testing-library/react";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 
-// Helper component that wires the hook's ref to a scrollable div and
-// surfaces the progress value as data-progress for the test to read.
+// happy-dom doesn't compute layout, so we stub the scroll metrics
+// directly. The wrapper attaches a parallel ref so it can patch the
+// element's scrollHeight / clientHeight after mount; the hook reads
+// those via its own ref attached on the same node.
 function Subject({ scrollHeight, clientHeight }: { scrollHeight: number; clientHeight: number }) {
   const { ref, progress } = useScrollProgress<HTMLDivElement>();
+  const stub = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = stub.current;
+    if (!el) return;
+    Object.defineProperty(el, "scrollHeight", { configurable: true, value: scrollHeight });
+    Object.defineProperty(el, "clientHeight", { configurable: true, value: clientHeight });
+    // Re-trigger an initial measurement now that the metrics are stubbed.
+    el.dispatchEvent(new Event("scroll"));
+  }, [scrollHeight, clientHeight]);
   return (
     <div
       ref={(el) => {
-        ref.current = el;
-        if (el) {
-          // happy-dom doesn't compute layout, so we stub the scroll
-          // metrics directly to drive deterministic test scenarios.
-          Object.defineProperty(el, "scrollHeight", {
-            configurable: true,
-            value: scrollHeight,
-          });
-          Object.defineProperty(el, "clientHeight", {
-            configurable: true,
-            value: clientHeight,
-          });
-        }
+        // Fan out the same node into the hook's ref and our local stub.
+        (ref as unknown as { current: HTMLDivElement | null }).current = el;
+        stub.current = el;
       }}
       data-testid="scroll-host"
       data-progress={progress}

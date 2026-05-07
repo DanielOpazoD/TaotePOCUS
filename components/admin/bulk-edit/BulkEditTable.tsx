@@ -98,6 +98,12 @@ export default function BulkEditTable({
   const [activeRow, setActiveRow] = useState<number>(-1);
   const tableRef = useRef<HTMLTableElement>(null);
 
+  // True if any filter narrows the set (even one that yields no
+  // results). Drives the empty-state CTA — when filters are active,
+  // we surface "Limpiar filtros"; when the catalog is genuinely
+  // empty the message stays static (clearing nothing wouldn't help).
+  const hasActiveFilters = filterSection !== "" || filterCat !== "" || query.trim() !== "";
+
   // Filter pipeline — same vocab as the public catalog.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -331,7 +337,24 @@ export default function BulkEditTable({
             {paged.length === 0 && (
               <tr>
                 <td colSpan={8} className="bulk-edit-empty">
-                  No hay casos que coincidan con los filtros.
+                  {hasActiveFilters ? (
+                    <>
+                      <span>No hay casos que coincidan con los filtros.</span>
+                      <button
+                        type="button"
+                        className="bulk-edit-empty-clear"
+                        onClick={() => {
+                          setFilterSection("");
+                          setFilterCat("");
+                          setQuery("");
+                        }}
+                      >
+                        Limpiar filtros
+                      </button>
+                    </>
+                  ) : (
+                    "Aún no hay casos en el catálogo."
+                  )}
                 </td>
               </tr>
             )}

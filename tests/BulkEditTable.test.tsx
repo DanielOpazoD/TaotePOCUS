@@ -127,6 +127,26 @@ describe("BulkEditTable — filters", () => {
     expect(screen.getByText("Caso activo")).toBeTruthy();
     expect(screen.queryByText("Caso eliminado")).toBeNull();
   });
+
+  it("empty state with active filters offers a 'Limpiar filtros' CTA that resets them", () => {
+    renderTable();
+    fireEvent.change(screen.getByLabelText("Buscar en la tabla"), {
+      target: { value: "no-such-term-xyz" },
+    });
+    // No rows match → empty cell with a Limpiar button.
+    expect(screen.getByText("No hay casos que coincidan con los filtros.")).toBeTruthy();
+    const clear = screen.getByRole("button", { name: "Limpiar filtros" });
+    fireEvent.click(clear);
+    // Rows reappear after clearing.
+    expect(screen.getByText("Tamponade pericárdico")).toBeTruthy();
+    expect(screen.queryByText("No hay casos que coincidan con los filtros.")).toBeNull();
+  });
+
+  it("empty state with no cases at all shows the catalog-empty message (no clear CTA)", () => {
+    renderTable({ cases: [] });
+    expect(screen.getByText("Aún no hay casos en el catálogo.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Limpiar filtros" })).toBeNull();
+  });
 });
 
 describe("BulkEditTable — inline edit", () => {
