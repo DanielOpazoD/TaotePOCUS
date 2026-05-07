@@ -56,12 +56,28 @@ interface Result {
  *   return <Grid cases={filtered} />;
  */
 export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }: Args): Result {
+  // Indirection: only use `favs` as a memo dep when the view actually
+  // depends on it. Without this gate, every fav toggle (a hot path —
+  // user clicks a heart in the catalog) invalidates `scopedCases`
+  // even on /atlas, which cascades into `filtered` recompute → grid
+  // re-render → 60+ CaseCards re-render. The gate keeps the favs
+  // toggle's blast radius limited to the favorites view itself.
+  const favSet = useMemo(() => (view.kind === "favs" ? new Set(favs) : null), [view.kind, favs]);
+
   const scopedCases = useMemo(() => {
-    if (view.kind === "favs") return allCases.filter((c) => favs.includes(c.id));
-    if (view.kind === "section")
+    if (view.kind === "favs") {
+      // `favSet` is non-null here by construction. O(1) lookup per case.
+      const set = favSet!;
+      return allCases.filter((c) => set.has(c.id));
+    }
+    if (view.kind === "section") {
       return allCases.filter((c) => (c.section || "atlas") === view.section);
+    }
     return allCases;
-  }, [allCases, view, favs]);
+    // `favSet` is captured to satisfy the lint exhaustive-deps rule;
+    // when view.kind !== "favs" it stays `null` and identity is stable
+    // across favs toggles, so it doesn't trigger spurious recomputes.
+  }, [allCases, view, favSet]);
 
   const sectionCategories = useMemo<CategoryWithCount[]>(() => {
     const counts: Record<string, number> = {};

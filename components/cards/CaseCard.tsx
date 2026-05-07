@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "./AdminThumbMenu";
 import { Icon, CategoryGlyph, CustomCategoryGlyph } from "@/lib/icons";
@@ -9,28 +9,37 @@ import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Category } from "@/lib/types";
 
+// Callbacks receive the `caso` themselves rather than being closed
+// over by the parent. This is the SINGLE biggest perf win on the
+// catalog grid: the parent (`MainGrid`) used to wrap each callback
+// in an inline closure (`() => onToggleFav(c)`), which created a
+// fresh function identity per card per render and defeated any
+// downstream memoization. With the `caso`-receiving shape, the
+// parent passes the same stable function reference to every card,
+// `React.memo` below detects the unchanged props, and category
+// changes only re-render cards that actually entered or left the
+// `filtered` set.
 interface Props {
   caso: CaseRecord;
   isFav: boolean;
-  onFav: () => void;
-  onOpen: () => void;
+  onFav: (caso: CaseRecord) => void;
+  onOpen: (caso: CaseRecord) => void;
   /** Admin only: soft-delete the case. When provided, a trash chip
    *  appears on the thumbnail. Click stops propagation so it doesn't
    *  open the modal. */
-  onDelete?: () => void;
+  onDelete?: (caso: CaseRecord) => void;
   /** Admin only: permanent-delete the case (irreversible). Same chip
    *  cluster as `onDelete`, but a separate red × button. */
-  onPurge?: () => void;
+  onPurge?: (caso: CaseRecord) => void;
   /** Admin only: apply a section / category override directly from
-   *  the card. When provided alongside `categories`, a `⇄` chip
-   *  opens a quick-reclassify popover. */
+   *  the card. Already takes (id, patch) — naturally stable. */
   onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
   /** Categories list (built-in + custom). Required if `onPatch` is
    *  passed — without it the popover would only show sections. */
   categories?: Category[];
 }
 
-export default function CaseCard({
+function CaseCardImpl({
   caso,
   isFav,
   onFav,
@@ -71,30 +80,45 @@ export default function CaseCard({
     [],
   );
 
-  const onFavClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Visual reward asymmetric: only animate on becoming-a-fav, not
-    // on un-fav. Subtler that way.
-    if (!isFav) {
-      setBursting(true);
-      if (burstTimerRef.current !== null) clearTimeout(burstTimerRef.current);
-      burstTimerRef.current = setTimeout(() => {
-        setBursting(false);
-        burstTimerRef.current = null;
-      }, 600);
-    }
-    onFav();
-  };
+  // Local handlers close over the stable parent callbacks + the
+  // current `caso`. They're created once per card render but they
+  // don't propagate as props to children that themselves memoize, so
+  // the cost is trivial. The win is that the OUTGOING props
+  // (`onFav`, `onOpen`, etc. from the parent) are now stable, so
+  // React.memo below sees unchanged props on category changes.
+  const handleOpen = useCallback(() => onOpen(caso), [onOpen, caso]);
+  const handleFavClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      // Visual reward asymmetric: only animate on becoming-a-fav,
+      // not on un-fav. Subtler that way.
+      if (!isFav) {
+        setBursting(true);
+        if (burstTimerRef.current !== null) clearTimeout(burstTimerRef.current);
+        burstTimerRef.current = setTimeout(() => {
+          setBursting(false);
+          burstTimerRef.current = null;
+        }, 600);
+      }
+      onFav(caso);
+    },
+    [onFav, caso, isFav],
+  );
+  // Delete + purge wrappers for AdminThumbMenu, which expects the
+  // parameterless callback shape (it doesn't know about the caso it
+  // belongs to — that's the card's job to bind).
+  const handleDelete = onDelete ? () => onDelete(caso) : undefined;
+  const handlePurge = onPurge ? () => onPurge(caso) : undefined;
   return (
     <div
       className="case-card"
       role="button"
       tabIndex={0}
-      onClick={onOpen}
+      onClick={handleOpen}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onOpen();
+          handleOpen();
         }
       }}
     >
@@ -132,14 +156,14 @@ export default function CaseCard({
             caso={caso}
             categories={categories}
             onPatch={onPatch}
-            onDelete={onDelete}
-            onPurge={onPurge}
+            onDelete={handleDelete}
+            onPurge={handlePurge}
             onFocusDraftChange={setDraftFocus}
           />
         )}
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
-          onClick={onFavClick}
+          onClick={handleFavClick}
           aria-label="Favorito"
           aria-pressed={isFav}
         >
@@ -186,3 +210,21 @@ function firstSentence(text: string): string {
   if (!head) return "";
   return head.endsWith(".") ? head : `${head}.`;
 }
+
+/**
+ * `React.memo` wrap. Default shallow comparison is sufficient because
+ * the parent now passes stable callback references (after the
+ * `MainGrid` rewrite that drops the per-card inline closures). On a
+ * category change the cards that stay in the filtered set get the
+ * SAME `caso` reference (preserved through `mergeWithOverrides`'s
+ * identity-when-no-override optimization) and the SAME callback
+ * references — `memo` short-circuits the re-render entirely.
+ *
+ * The `caso` reference IS preserved across renders for cases without
+ * overrides; for cases with overrides, `mergeWithOverrides` produces
+ * a new object only when the override map for that id changes — also
+ * stable across category clicks.
+ */
+const CaseCard = memo(CaseCardImpl);
+CaseCard.displayName = "CaseCard";
+export default CaseCard;

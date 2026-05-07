@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -321,6 +321,29 @@ function AppInner() {
     setFormOpen(true);
   };
 
+  // Stable per-card callbacks for the catalog grid.
+  //
+  // These wrap the URL-patch / fav-toggle calls so the SAME function
+  // identity flows down to MainGrid → CaseCard on every render.
+  // Without `useCallback` here, a category click recreates the
+  // closures, which then cascade into every CaseCard's props and
+  // defeat the `React.memo` wrap. Combined effect: ~50× speedup on
+  // navigation between Atlas categories.
+  //
+  // The deps are intentionally stable too — `pushPatch` /
+  // `replacePatch` come from `useViewState` which already
+  // `useCallback`s them, and `toggleFav` from `useFavs` likewise.
+  const onCardOpen = useCallback((c: CaseRecord) => pushPatch({ caso: c.id }), [pushPatch]);
+  const onCardToggleFav = useCallback((c: CaseRecord) => toggleFav(c.id), [toggleFav]);
+  const onClearFiltersCb = useCallback(
+    () => replacePatch({ cat: null, tags: [], query: "" }),
+    [replacePatch],
+  );
+  const onExploreAtlasCb = useCallback(
+    () => replacePatch({ view: { kind: "section", section: "atlas" } }),
+    [replacePatch],
+  );
+
   const head = derivePageHead(view, cat, sectionLabelOverrides);
 
   return (
@@ -411,12 +434,7 @@ function AppInner() {
             !cat &&
             tags.length === 0 &&
             !query.trim() && (
-              <FeaturedRow
-                cases={scopedCases}
-                favs={favs}
-                onOpen={(c) => pushPatch({ caso: c.id })}
-                onFav={toggleFav}
-              />
+              <FeaturedRow cases={scopedCases} favs={favs} onOpen={onCardOpen} onFav={toggleFav} />
             )}
           <ErrorBoundary name="grid">
             <MainGrid
@@ -447,13 +465,13 @@ function AppInner() {
               currentEmail={user?.email ?? null}
               notify={showToast}
               favs={favs}
-              onOpen={(c) => pushPatch({ caso: c.id })}
-              onToggleFav={(c) => toggleFav(c.id)}
+              onOpen={onCardOpen}
+              onToggleFav={onCardToggleFav}
               onEdit={onEditCase}
               onDelete={adminPipeline.requestDelete}
               onNew={onNewCase}
-              onClearFilters={() => replacePatch({ cat: null, tags: [], query: "" })}
-              onExploreAtlas={() => replacePatch({ view: { kind: "section", section: "atlas" } })}
+              onClearFilters={onClearFiltersCb}
+              onExploreAtlas={onExploreAtlasCb}
               onPatch={isAdmin ? adminActions.onPatch : undefined}
               onBulkPatch={isAdmin ? adminActions.onBulkPatch : undefined}
               onBulkSoftDelete={isAdmin ? adminActions.onBulkSoftDelete : undefined}

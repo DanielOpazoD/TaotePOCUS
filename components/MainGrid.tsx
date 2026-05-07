@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useMemo } from "react";
 import { CaseCard } from "./cards";
 import EmptyState from "./EmptyState";
 import type { CaseRecord, Category, SectionId, View } from "@/lib/types";
@@ -162,6 +163,17 @@ export default function MainGrid({
   onBulkPatch,
   onBulkSoftDelete,
 }: Props) {
+  // Hooks first — Rules of Hooks. The early returns for the admin /
+  // empty branches don't render the grid below, but `useMemo` still
+  // has to be called every render to keep the hook order stable.
+  //
+  // Set-backed favorites lookup: O(1) per card vs `favs.includes`'s
+  // O(N). With ~300 cases × ~30 favs the array form was ~9k ops per
+  // render; the Set form is ~300. The Set is rebuilt only when the
+  // favs list itself changes identity (toggling a heart), not on
+  // category navigation.
+  const favSet = useMemo(() => new Set(favs), [favs]);
+
   if (view.kind === "admin" && isAdmin) {
     return (
       <AdminPanel
@@ -211,6 +223,16 @@ export default function MainGrid({
     return <EmptyState view={view} action={action} />;
   }
 
+  // Conditionally bind the admin callbacks ONCE per parent render so
+  // every CaseCard receives the same function reference. This is the
+  // companion to the CaseCard.memo wrap: identical refs → memo
+  // short-circuits → only the cards that actually entered/left the
+  // filtered set re-render on a category click.
+  const cardOnDelete = isAdmin ? onDelete : undefined;
+  const cardOnPurge = isAdmin && onPurgeImport ? onPurgeImport : undefined;
+  const cardOnPatch = isAdmin ? onPatch : undefined;
+  const cardCategories = isAdmin ? categories : undefined;
+
   // Atlas landing falls through to the uniform `case-grid` below —
   // the Bento hero was removed in May-2026 (see file header).
   return (
@@ -219,16 +241,13 @@ export default function MainGrid({
         <CaseCard
           key={c.id}
           caso={c}
-          isFav={favs.includes(c.id)}
-          onFav={() => onToggleFav(c)}
-          onOpen={() => onOpen(c)}
-          // Admin-only hover delete chips. Both stop propagation in the
-          // CaseCard so they don't trigger onOpen.
-          onDelete={isAdmin ? () => onDelete(c) : undefined}
-          onPurge={isAdmin && onPurgeImport ? () => onPurgeImport(c) : undefined}
-          // Admin-only quick-reclassify chip + popover.
-          onPatch={isAdmin ? onPatch : undefined}
-          categories={isAdmin ? categories : undefined}
+          isFav={favSet.has(c.id)}
+          onFav={onToggleFav}
+          onOpen={onOpen}
+          onDelete={cardOnDelete}
+          onPurge={cardOnPurge}
+          onPatch={cardOnPatch}
+          categories={cardCategories}
         />
       ))}
     </div>
