@@ -8,7 +8,8 @@ import Toolbar from "./Toolbar";
 import MainGrid from "./MainGrid";
 import ErrorBoundary from "./ErrorBoundary";
 import { Header, Footer } from "./chrome";
-import { CaseModal, AuthModal } from "./modals";
+import ToastHost from "./chrome/ToastHost";
+import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
@@ -28,20 +29,14 @@ import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
 import { useAdminActions } from "@/hooks/useAdminActions";
 
-// Lazy-loaded subtrees: needed only on a specific path or when a modal
-// opens. Keeping them out of the initial bundle preserves first-paint
-// on the home grid (audit §9). AdminPanel is lazy-loaded inside MainGrid
-// so it doesn't appear here.
-const CaseForm = dynamic(() => import("./admin/CaseForm"), { ssr: false });
-const PresentationMode = dynamic(() => import("./cine/PresentationMode"), { ssr: false });
-const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: false });
+// Lazy-loaded subtrees: needed only on a specific path. Keeping them out
+// of the initial bundle preserves first-paint on the home grid (audit
+// §9). AdminPanel is lazy-loaded inside MainGrid so it doesn't appear
+// here. Modal subtrees (CaseForm, PresentationMode, ConfirmDialog,
+// ShortcutsModal, PWAStatus, AuthModal) live inside `<AppModals>` so the
+// orchestrator's import surface stays lean.
 const FeaturedRow = dynamic(() => import("./cards/FeaturedRow"));
 const MobileDrawer = dynamic(() => import("./chrome/MobileDrawer"), { ssr: false });
-const ShortcutsModal = dynamic(() => import("./modals/ShortcutsModal"), { ssr: false });
-// PWA status (offline banner + service worker update toast). Lazy-
-// loaded with `ssr: false` because the hooks behind it touch
-// `navigator` which only exists in the browser.
-const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 
 export default function App() {
   return (
@@ -464,132 +459,45 @@ function AppInner() {
 
       <Footer extraCases={userCases.live.length} />
 
-      {/* Toast lives here twice on purpose: the visible chip is the
-          chrome animation; the sr-only mirror is announced by screen
-          readers via aria-live. They share the same message. The
-          undo button (if present) is a visual + interactive affordance
-          only — screen readers get the announcement on the message
-          itself; the inverse action is reachable via Tab. */}
-      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-        {toast?.message ?? ""}
-      </div>
-      {toast && (
-        <div className="toast">
-          <span className="toast-message">{toast.message}</span>
-          {toast.undo && (
-            <button type="button" className="toast-undo" onClick={toast.undo}>
-              {toast.undoLabel}
-            </button>
-          )}
-        </div>
-      )}
+      <ToastHost toast={toast} />
 
-      {openCase &&
-        (() => {
-          // Inter-case navigation (prev/next) was removed in Apr-2026.
-          // The IIFE wrapper is kept because the JSX inside still
-          // depends on `openCase` being non-null; the body is now
-          // straight render with no extra computation.
-          return (
-            // The modal is the most error-prone subtree (dialog API,
-            // focus trap, swipe gesture, scroll listener, kbd shortcuts,
-            // CineLoop canvas). If it crashes we close it via the URL
-            // patch — better to drop the user back to the grid than
-            // to wedge them inside a broken dialog.
-            <ErrorBoundary
-              name="modal"
-              fallback={(error) => (
-                <div className="boundary-fallback boundary-fallback--floating" role="alertdialog">
-                  <div className="boundary-fallback-inner">
-                    <h3>El caso no pudo abrirse</h3>
-                    <p>Detalles: {error.message}</p>
-                    <button
-                      type="button"
-                      className="boundary-fallback-retry"
-                      onClick={() => replacePatch({ caso: null })}
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-                </div>
-              )}
-            >
-              <CaseModal
-                caso={openCase}
-                onClose={() => replacePatch({ caso: null })}
-                isFav={favs.includes(openCase.id)}
-                onFav={() => toggleFav(openCase.id)}
-                onShare={() => onShare(openCase)}
-                onPresent={() => replacePatch({ caso: null, presenting: openCase.id })}
-                // Admin-only flows (edit, mark reviewed, restore
-                // override, soft-delete, permanent-delete) used to
-                // mount as text buttons in this modal but they made
-                // the footer overflow and visually collide. They live
-                // now in the bulk-edit row ⋮ menu and the Edición
-                // tab. The modal stays read-only public chrome.
-              />
-            </ErrorBoundary>
-          );
-        })()}
-      {presentingCase && (
-        <PresentationMode
-          cases={filtered.length > 0 ? filtered : allCases}
-          startId={presentingCase.id}
-          onClose={() => replacePatch({ presenting: null })}
-        />
-      )}
-      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onLogin={login} />}
-      {formOpen && (
-        <CaseForm
-          initial={editingCase}
-          currentUser={user}
-          categories={categories}
-          // Catalog-wide tag vocabulary for the autocomplete in the
-          // tags input. Pulled from every case (live + soft-deleted)
-          // so re-using a freshly-deprecated tag still suggests it
-          // until the admin actually purges. The form unions this
-          // with `COMMON_TAGS` and dedupes; we keep that logic
-          // co-located there.
-          tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags)))}
-          onCancel={() => {
-            setFormOpen(false);
-            setEditingCase(null);
-          }}
-          onSave={onSaveCase}
-        />
-      )}
-      <ConfirmDialog
-        open={!!adminPipeline.pendingDelete}
-        title={
-          adminPipeline.pendingDelete ? `¿Eliminar "${adminPipeline.pendingDelete.title}"?` : ""
-        }
-        message="El caso se mueve a la Papelera y puedes restaurarlo desde el panel admin."
-        confirmLabel="Eliminar"
-        cancelLabel="Cancelar"
-        destructive
-        onConfirm={adminPipeline.confirmDelete}
-        onCancel={adminPipeline.cancelDelete}
+      <AppModals
+        openCase={openCase}
+        isFav={openCase ? favs.includes(openCase.id) : false}
+        onCloseCase={() => replacePatch({ caso: null })}
+        onFav={() => openCase && toggleFav(openCase.id)}
+        onShare={() => openCase && onShare(openCase)}
+        onPresent={() => openCase && replacePatch({ caso: null, presenting: openCase.id })}
+        presentingCase={presentingCase}
+        // When no filter narrows the catalog we present the full set;
+        // otherwise the cinema is scoped to whatever the user was
+        // looking at when they hit Present. Same rule as before the
+        // modal-mount extraction.
+        presentationCases={filtered.length > 0 ? filtered : allCases}
+        onClosePresentation={() => replacePatch({ presenting: null })}
+        authOpen={authOpen}
+        onCloseAuth={() => setAuthOpen(false)}
+        onLogin={login}
+        formOpen={formOpen}
+        editingCase={editingCase}
+        currentUser={user}
+        categories={categories}
+        // Catalog-wide tag vocabulary for the autocomplete in the
+        // tags input. Pulled from every case (live + soft-deleted)
+        // so re-using a freshly-deprecated tag still suggests it
+        // until the admin actually purges. The form unions this with
+        // `COMMON_TAGS` and dedupes; we keep that logic co-located
+        // there.
+        tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags)))}
+        onCancelForm={() => {
+          setFormOpen(false);
+          setEditingCase(null);
+        }}
+        onSaveCase={onSaveCase}
+        adminPipeline={adminPipeline}
+        shortcutsOpen={shortcutsOpen}
+        onCloseShortcuts={() => setShortcutsOpen(false)}
       />
-      <ConfirmDialog
-        open={!!adminPipeline.pendingPurge}
-        title={
-          adminPipeline.pendingPurge
-            ? `¿Eliminar permanentemente "${adminPipeline.pendingPurge.title}"?`
-            : ""
-        }
-        message={
-          "Esto borra el caso y su archivo de media (imagen / video) de forma definitiva. " +
-          "No aparece en la papelera ni se puede restaurar desde la app — la única forma de " +
-          "recuperarlo sería importar un backup JSON anterior. ¿Continuar?"
-        }
-        confirmLabel="Eliminar para siempre"
-        cancelLabel="Cancelar"
-        destructive
-        onConfirm={adminPipeline.confirmPurge}
-        onCancel={adminPipeline.cancelPurge}
-      />
-      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
-      <PWAStatus />
     </>
   );
 }
