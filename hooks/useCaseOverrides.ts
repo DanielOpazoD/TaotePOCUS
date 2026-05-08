@@ -12,8 +12,8 @@ import type { CaseRecord } from "@/lib/types";
  * position. The catalog merges these on top of the source case at
  * render time, so:
  *
- *   - The Twitter import script can regenerate `lib/imported-cases.ts`
- *     freely without losing edits.
+ *   - The Twitter import script can regenerate the corpus JSON
+ *     (`public/data/imported-cases.json`) freely without losing edits.
  *   - Edits survive page reloads (localStorage).
  *   - Edits are reversible (`clearOverride(id)`).
  *

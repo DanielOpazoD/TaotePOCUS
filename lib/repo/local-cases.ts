@@ -146,7 +146,7 @@ export const localCases = {
   /**
    * Permanent-delete a seed/imported case. Replaces the override with
    * a `{ purged: true }` tombstone so the merge layer keeps filtering
-   * it out forever — even after a re-import of `lib/imported-cases.ts`.
+   * it out forever — even after a regeneration of the corpus JSON.
    *
    * `_mediaKey` is unused in the local backend (the blob store can't
    * be reached from localStorage) but accepted for API parity with

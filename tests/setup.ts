@@ -85,6 +85,34 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+// ─── Corpus fetch shim ───────────────────────────────────────────────────
+// Bloque O moved the imported-cases corpus from a TS array literal to a
+// JSON file under `public/data/`. The runtime loader picks `fetch()` in
+// the browser and `fs.readFile()` on the server. happy-dom defines
+// `window`, so the loader takes the browser path — but there's no
+// server to fetch from in vitest. Shim `fetch` to resolve the JSON
+// directly off disk for the corpus URL only; everything else falls
+// through to whatever the test (or the underlying happy-dom fetch)
+// expects.
+const __originalFetch = globalThis.fetch;
+globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
+  const url = typeof input === "string" ? input : (input as URL | Request).toString();
+  if (url === "/data/imported-cases.json" || url.endsWith("/data/imported-cases.json")) {
+    const { readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const full = join(process.cwd(), "public", "data", "imported-cases.json");
+    const body = await readFile(full, "utf8");
+    return new Response(body, {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (typeof __originalFetch === "function") {
+    return __originalFetch(input as RequestInfo, init);
+  }
+  return new Response("", { status: 404 });
+}) as typeof fetch;
+
 // ─── Per-test isolation ──────────────────────────────────────────────────
 // localStorage leaks across tests in the same file because happy-dom
 // mounts one DOM. Clear after each test so suites stay independent

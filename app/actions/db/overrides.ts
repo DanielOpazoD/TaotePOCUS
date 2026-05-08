@@ -93,9 +93,9 @@ export async function dbClearOverride(id: string): Promise<ActionResult> {
 /**
  * Permanent-delete a seed/imported case. The override is replaced
  * with a tombstone `{ purged: true }` — a small, sticky marker that
- * survives re-imports of `lib/imported-cases.ts` (the merge layer
- * keeps filtering the case out forever) without holding on to all
- * the previous override fields.
+ * survives regenerations of the corpus JSON (the merge layer keeps
+ * filtering the case out forever) without holding on to all the
+ * previous override fields.
  *
  * Optionally also deletes the corresponding blob from the media
  * store. Pass the key extracted from `media.src` (`<id>.<ext>`) when

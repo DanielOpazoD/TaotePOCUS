@@ -139,7 +139,7 @@ export const Store = {
    * (title, classification, tags, position, summary, findings…)
    * without modifying the upstream catalog file. Survives
    * `apply-twitter-import.mjs` regenerations because overrides
-   * live in localStorage, not in `lib/imported-cases.ts`.
+   * live in localStorage, not in the corpus JSON.
    */
   getCaseOverrides(): Record<string, Partial<CaseRecord>> {
     return safeRead<Record<string, Partial<CaseRecord>>>(STORAGE_KEYS.caseOverrides, {});

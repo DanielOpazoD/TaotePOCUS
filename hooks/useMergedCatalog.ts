@@ -37,7 +37,7 @@ interface Result {
  *     the admin Papelera section.
  *   - `purged` set → hard-delete tombstone. Hidden from EVERYWHERE
  *     including the trash. The override stays in storage so future
- *     re-imports of `lib/imported-cases.ts` keep filtering it.
+ *     regenerations of the corpus JSON keep filtering it.
  *
  * The two filters compose: a case must have neither `deletedAt` nor
  * `purged` to appear in `allCases`.
