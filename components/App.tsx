@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -22,12 +22,13 @@ import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useCaseOverrides } from "@/hooks/useCaseOverrides";
-import { useCustomCategories } from "@/hooks/useCustomCategories";
-import { useHiddenSections } from "@/hooks/useHiddenSections";
-import { useSectionLabels } from "@/hooks/useSectionLabels";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
 import { useAdminActions } from "@/hooks/useAdminActions";
+import { useCatalogConfig } from "@/hooks/useCatalogConfig";
+import { useCatalogDerivations } from "@/hooks/useCatalogDerivations";
+import { useCardCallbacks } from "@/hooks/useCardCallbacks";
+import { useCaseSaver } from "@/hooks/useCaseSaver";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 // Lazy-loaded subtrees: needed only on a specific path. Keeping them out
@@ -116,95 +117,13 @@ function AppInner() {
   // export contract for future use.
   const { overrides, setOverride } = useCaseOverrides();
 
-  // Admin-managed categories. The hook returns the full `categories`
-  // list (built-in + custom, including hidden) for the Categories
-  // editor. `isHidden` / `setHidden` drive the visibility toggle that
-  // lets the admin trim the public sidebar nav without deleting
-  // anything from the catalog.
-  const {
-    categories,
-    addCategory,
-    renameCategory,
-    removeCategory,
-    restoreCategory,
-    isCustom: isCustomCategory,
-    isHidden: isCategoryHidden,
-    setHidden: setCategoryHidden,
-  } = useCustomCategories();
-
-  // Section visibility — admin toggle that filters the top nav and
-  // the mobile drawer. The four sections are atlas / ecg / cases /
-  // info. Defaults to `["cases"]` hidden on first visit per the
-  // May-2026 product decision; the admin un-hides via Administrar →
-  // Secciones and the choice is persisted in localStorage.
-  //
-  // Hidden sections still resolve via direct URL — only the nav
-  // chrome filters them — so deep links keep working.
-  const {
-    visibleSections,
-    isHidden: isSectionHidden,
-    setHidden: setSectionHidden,
-  } = useHiddenSections();
-
-  // Section label overrides — admin can rename "Casos clínicos" to
-  // anything they want for their own visitors. Pure cosmetic; ids
-  // and URL paths are unchanged. Stored in localStorage; SEO
-  // surfaces (sitemap, OG metadata) keep using the static defaults.
-  const {
-    overrides: sectionLabelOverrides,
-    getLabel: getSectionLabel,
-    setLabel: setSectionLabel,
-    sectionsWithLabels,
-  } = useSectionLabels();
-
-  // Compose: hide-set ∩ label-overrides. Header / MobileDrawer
-  // get the relabeled subset; the SectionsEditor below sees the
-  // raw SECTIONS via its own catalog import.
-  const visibleSectionsWithLabels = useMemo(
-    () => visibleSections.map((s) => ({ ...s, label: sectionLabelOverrides[s.id] ?? s.label })),
-    [visibleSections, sectionLabelOverrides],
-  );
-  void sectionsWithLabels; // sister export, currently unused at this layer (Header reads from `visibleSectionsWithLabels` instead)
-
-  // Wrap the three category mutations with undo-toast surfacing.
-  // The hook itself stays free of toast concerns (so non-admin
-  // contexts that consume it never accidentally show a toast); the
-  // app composes the affordances here.
-  //
-  //   - addCategory: success → "Categoría agregada" toast (no
-  //     undo — `removeCategory` IS the inverse and is one click
-  //     away in the editor row that just appeared).
-  //   - renameCategory: success → toast with undo to the previous
-  //     label.
-  //   - removeCategory: success → toast with undo via
-  //     `restoreCategory`. Failure → "no se pudo eliminar" toast.
-  const onAddCategory = async (label: string) => {
-    const created = await addCategory(label);
-    if (created) showToast(`Categoría "${created.label}" agregada`);
-    return created;
-  };
-  const onRenameCategory = async (id: string, label: string) => {
-    const before = categories.find((c) => c.id === id);
-    const ok = await renameCategory(id, label);
-    if (ok && before && before.label !== label) {
-      showToast("Categoría renombrada", {
-        undo: () => renameCategory(id, before.label),
-      });
-    }
-    return ok;
-  };
-  const onRemoveCategory = async (id: string) => {
-    const before = categories.find((c) => c.id === id);
-    const ok = await removeCategory(id);
-    if (ok && before) {
-      showToast(`"${before.label}" eliminada`, {
-        undo: () => restoreCategory(before),
-      });
-    } else if (!ok) {
-      showToast("No se pudo eliminar la categoría");
-    }
-    return ok;
-  };
+  // Admin-managed catalog config: custom categories, hidden
+  // sections, section label overrides + the toast-wrapped category
+  // mutations. The composable bundles three underlying hooks
+  // (`useCustomCategories`, `useHiddenSections`, `useSectionLabels`)
+  // and the undo-toast surfacing into a single bag — see
+  // `hooks/useCatalogConfig.ts`.
+  const config = useCatalogConfig({ showToast });
 
   // Catalog derivation (allCases / trashedImports / categoryCaseCounts).
   // Lives in `useMergedCatalog` so the merge + filter rules have one
@@ -229,36 +148,17 @@ function AppInner() {
     sort,
   });
 
-  // Public sidebar / hero exclude any category the admin hid from the
-  // Atlas POCUS view. Cases assigned to a hidden category still
-  // exist (filterable via search / direct URL); they just don't
-  // surface in the nav rail.
-  const sectionCategories = useMemo(
-    () => rawSectionCategories.filter((c) => !isCategoryHidden(c.id)),
-    [rawSectionCategories, isCategoryHidden],
-  );
-
-  // Case-count-per-section, surfaced in the admin Secciones editor as
-  // a "N casos" hint so the admin can see what they're hiding before
-  // clicking. Soft-deleted cases are excluded — they're already
-  // invisible to the public view.
-  const sectionCaseCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const c of allCases) {
-      if (c.deletedAt) continue;
-      counts[c.section] = (counts[c.section] ?? 0) + 1;
-    }
-    return counts;
-  }, [allCases]);
-
-  const openCase = useMemo<CaseRecord | null>(
-    () => (openCaseId ? (allCases.find((c) => c.id === openCaseId) ?? null) : null),
-    [allCases, openCaseId],
-  );
-  const presentingCase = useMemo<CaseRecord | null>(
-    () => (presentingId ? (allCases.find((c) => c.id === presentingId) ?? null) : null),
-    [allCases, presentingId],
-  );
+  // Derived projections off the merged catalog: filter sectionCategories
+  // by visibility, count cases per section, resolve open / presenting
+  // cases by id. Lifted into `useCatalogDerivations` so App.tsx isn't
+  // hosting four side-by-side useMemos.
+  const { sectionCategories, sectionCaseCounts, openCase, presentingCase } = useCatalogDerivations({
+    allCases,
+    rawSectionCategories,
+    isCategoryHidden: config.isCategoryHidden,
+    openCaseId,
+    presentingId,
+  });
 
   const onShare = (c: CaseRecord) => {
     const url = `${location.origin}${location.pathname}?caso=${c.id}`;
@@ -266,31 +166,8 @@ function AppInner() {
     showToast("Enlace copiado");
   };
 
-  const onSaveCase = async (data: CaseRecord) => {
-    // Two save paths share this form:
-    //   1. Admin-uploaded cases (live in `userCases`) → repo.cases CRUD.
-    //   2. Imported / seed cases the admin reclassified → per-case
-    //      override map (admin edit doesn't mutate the upstream file).
-    const isUserOwned = userCases.live.some((c) => c.id === data.id);
-    let ok: boolean;
-    if (isUserOwned || !editingCase) {
-      // New case (no editingCase → fresh upload) or editing an existing
-      // admin-owned case both go through the repo CRUD.
-      ok = await userCases.save(data, { isUpdate: !!editingCase?.id });
-    } else {
-      // Editing a seed/imported case → save as override.
-      ok = await setOverride(data.id, data);
-      if (ok) showToast("Caso editado · puedes descartar desde el modal");
-    }
-    if (!ok) return;
-    setFormOpen(false);
-    setEditingCase(null);
-  };
-
   // Per-case + bulk admin actions (override + undo toast pipelines).
-  // Lifted out of App.tsx in May-2026 — they were 140 LOC of inline
-  // closures inside the JSX, which made admin behavior un-testable
-  // and the file unreadable. The hook is gated by the caller
+  // The hook is gated by the caller
   // (`isAdmin ? adminActions.onPatch : undefined`).
   const adminActions = useAdminActions({
     allCases,
@@ -321,30 +198,31 @@ function AppInner() {
     setFormOpen(true);
   };
 
-  // Stable per-card callbacks for the catalog grid.
-  //
-  // These wrap the URL-patch / fav-toggle calls so the SAME function
-  // identity flows down to MainGrid → CaseCard on every render.
-  // Without `useCallback` here, a category click recreates the
-  // closures, which then cascade into every CaseCard's props and
-  // defeat the `React.memo` wrap. Combined effect: ~50× speedup on
-  // navigation between Atlas categories.
-  //
-  // The deps are intentionally stable too — `pushPatch` /
-  // `replacePatch` come from `useViewState` which already
-  // `useCallback`s them, and `toggleFav` from `useFavs` likewise.
-  const onCardOpen = useCallback((c: CaseRecord) => pushPatch({ caso: c.id }), [pushPatch]);
-  const onCardToggleFav = useCallback((c: CaseRecord) => toggleFav(c.id), [toggleFav]);
-  const onClearFiltersCb = useCallback(
-    () => replacePatch({ cat: null, tags: [], query: "" }),
-    [replacePatch],
-  );
-  const onExploreAtlasCb = useCallback(
-    () => replacePatch({ view: { kind: "section", section: "atlas" } }),
-    [replacePatch],
-  );
+  // Stable per-card callbacks for the catalog grid + FeaturedRow.
+  // SAME function identity per render is the contract that lets
+  // `React.memo` on `<CaseCard>` short-circuit re-renders on
+  // category clicks (commit 44a624b). See `useCardCallbacks`.
+  const { onCardOpen, onCardToggleFav, onClearFiltersCb, onExploreAtlasCb } = useCardCallbacks({
+    pushPatch,
+    replacePatch,
+    toggleFav,
+  });
 
-  const head = derivePageHead(view, cat, sectionLabelOverrides);
+  // Save callback: routes user-uploaded cases to the repo CRUD,
+  // seed/imported cases to the override map. Closes + clears the
+  // edit state on success via `onAfterSave`.
+  const onSaveCase = useCaseSaver({
+    userCases,
+    setOverride,
+    showToast,
+    editingCase,
+    onAfterSave: () => {
+      setFormOpen(false);
+      setEditingCase(null);
+    },
+  });
+
+  const head = derivePageHead(view, cat, config.sectionLabelOverrides);
 
   return (
     <>
@@ -358,7 +236,7 @@ function AppInner() {
         favCount={favs.length}
         onNewCase={onNewCase}
         onOpenDrawer={() => setDrawerOpen(true)}
-        sections={visibleSectionsWithLabels}
+        sections={config.visibleSectionsWithLabels}
       />
       <MobileDrawer
         open={drawerOpen}
@@ -369,7 +247,7 @@ function AppInner() {
         onLogout={logout}
         favCount={favs.length}
         onNewCase={onNewCase}
-        sections={visibleSectionsWithLabels}
+        sections={config.visibleSectionsWithLabels}
         // The desktop sidebar is hidden at <960px (see
         // `app/styles/layout.css`); the drawer mirrors its category
         // list so mobile users still have filter access.
@@ -449,18 +327,18 @@ function AppInner() {
               trashedImports={trashedImports}
               onRestoreImport={adminPipeline.restoreImport}
               onPurgeImport={isAdmin ? adminPipeline.requestPurge : undefined}
-              categories={categories}
+              categories={config.categories}
               categoryCaseCounts={categoryCaseCounts}
-              onAddCategory={onAddCategory}
-              onRenameCategory={onRenameCategory}
-              onRemoveCategory={onRemoveCategory}
-              isCustomCategory={isCustomCategory}
-              isCategoryHidden={isCategoryHidden}
-              onSetCategoryHidden={setCategoryHidden}
-              isSectionHidden={isSectionHidden}
-              onSetSectionHidden={setSectionHidden}
-              getSectionLabel={getSectionLabel}
-              onSetSectionLabel={setSectionLabel}
+              onAddCategory={config.onAddCategory}
+              onRenameCategory={config.onRenameCategory}
+              onRemoveCategory={config.onRemoveCategory}
+              isCustomCategory={config.isCustomCategory}
+              isCategoryHidden={config.isCategoryHidden}
+              onSetCategoryHidden={config.setCategoryHidden}
+              isSectionHidden={config.isSectionHidden}
+              onSetSectionHidden={config.setSectionHidden}
+              getSectionLabel={config.getSectionLabel}
+              onSetSectionLabel={config.setSectionLabel}
               sectionCaseCounts={sectionCaseCounts}
               currentEmail={user?.email ?? null}
               notify={showToast}
@@ -504,7 +382,7 @@ function AppInner() {
         formOpen={formOpen}
         editingCase={editingCase}
         currentUser={user}
-        categories={categories}
+        categories={config.categories}
         // Catalog-wide tag vocabulary for the autocomplete in the
         // tags input. Pulled from every case (live + soft-deleted)
         // so re-using a freshly-deprecated tag still suggests it

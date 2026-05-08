@@ -66,6 +66,74 @@
   }
 }
 
+/* ─── Tab strip for the case-form modal ──────────────────────────
+ * Pre-Bloque-N+ the form was a two-column grid (`admin-form-grid`).
+ * After the split into Metadatos / Media / Avanzado panels, the
+ * surface uses a tab strip — the tab strip sits below the form
+ * header and above the active panel. The panel itself is single-
+ * column at any width (each panel fits ~480px of content). */
+.admin-form-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+}
+.admin-form-tab {
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-mute);
+  cursor: pointer;
+  position: relative;
+  transition: color var(--duration-fast) ease;
+  /* The bottom indicator sits over the strip's border so the
+     active state reads as a tab, not just a colored label. */
+}
+.admin-form-tab:hover {
+  color: var(--ink);
+}
+.admin-form-tab::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  background: transparent;
+  transition: background var(--duration-fast) ease;
+}
+.admin-form-tab.is-active {
+  color: var(--ink);
+}
+.admin-form-tab.is-active::after {
+  background: var(--accent);
+}
+.admin-form-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.admin-form-panel {
+  padding: 24px 32px;
+  /* Min-height so the modal doesn't jump in size when the user
+     switches between a tall panel (Metadatos with ~7 fields) and
+     a short one (Avanzado with ~3). Roughly the height of the
+     longest panel at desktop widths. */
+  min-height: 420px;
+}
+@media (max-width: 880px) {
+  .admin-form-tabs {
+    padding: 0 16px;
+  }
+  .admin-form-panel {
+    padding: 16px;
+  }
+}
+
 .admin-label {
   display: block;
   font-family: var(--mono);

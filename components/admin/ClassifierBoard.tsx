@@ -5,26 +5,10 @@ import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
 import { getDescription } from "@/lib/case-description";
-import type { CaseRecord, Category, SectionId } from "@/lib/types";
-
-/**
- * Suppress the browser's default drag ghost. We render a separate
- * floating hint pill at the bottom of the viewport so the cursor
- * area (which lands on drop-zone labels) stays unobstructed.
- *
- * Implementation: append a 1×1 offscreen div, snapshot it as the
- * drag image, then drop it on the next frame. Browsers cache the
- * snapshot at dragstart, so removing the element afterwards is safe.
- */
-function suppressDragGhost(e: React.DragEvent) {
-  if (typeof document === "undefined") return;
-  const ghost = document.createElement("div");
-  ghost.style.cssText = "position:fixed;top:-1000px;left:-1000px;width:1px;height:1px;";
-  document.body.appendChild(ghost);
-  e.dataTransfer.setDragImage(ghost, 0, 0);
-  // Defer removal until after the snapshot is taken.
-  requestAnimationFrame(() => ghost.remove());
-}
+import type { CaseRecord, Category } from "@/lib/types";
+import { DropZone, useClassifierDrag } from "./classifier/useClassifierDrag";
+import { ClassifierDragHint } from "./classifier/ClassifierDragHint";
+import { BulkActionBar } from "./classifier/BulkActionBar";
 
 interface Props {
   cases: CaseRecord[];
@@ -71,6 +55,11 @@ const ANY = "__any__";
  *
  * The panel is independent of the public catalog routes so the
  * admin can plough through 326 cases without leaving the page.
+ *
+ * Decomposed in May-2026 — the drag pipeline + DropZone moved into
+ * `./classifier/useClassifierDrag.ts`, the floating hint pill into
+ * `./classifier/ClassifierDragHint.tsx`. The board itself stays
+ * focused on layout, filters, and selection.
  */
 export default function ClassifierBoard({
   cases,
@@ -86,14 +75,16 @@ export default function ClassifierBoard({
   const [searchQuery, setSearchQuery] = useState("");
   const [sectionFilter, setSectionFilter] = useState<string>(ANY);
   const [categoryFilter, setCategoryFilter] = useState<string>(ANY);
-  const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [hoverTarget, setHoverTarget] = useState<string | null>(null);
   // Multi-select state. The classifier shows ~330 cards; bulk
   // reclassify is the actual workflow when the import lands. We
   // track selected ids in a Set; the active row index lets
   // shift+click extend a range from the last toggled card.
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [lastToggledId, setLastToggledId] = useState<string | null>(null);
+
+  // Drag pipeline lives in its own hook so the state machine and
+  // the DropZone wiring don't fight for space inside the board.
+  const drag = useClassifierDrag({ cases, onPatch });
 
   // Compose all four filters with AND. The classification-state pill
   // (Sin clasificar / Sin revisar / Todos) is the coarsest cut; the
@@ -221,25 +212,6 @@ export default function ClassifierBoard({
     // identity changing is the trigger for filtering it.
   }, [visible, selected, lastToggledId]);
 
-  const handleDrop = (kind: "section" | "category", id: string) => {
-    if (!draggedId) return;
-    // Either decision — section OR category — counts as "the admin
-    // has classified this case", so we strip the import-time
-    // `Sin clasificar` tag in both branches. Otherwise dropping on a
-    // section silently updated `section` but left the card visible
-    // under the "Sin clasificar" filter, which felt like the drop
-    // had failed (issue surfaced 2026-04).
-    const dragged = cases.find((c) => c.id === draggedId);
-    const tags = (dragged?.tags || []).filter((t) => t !== "Sin clasificar");
-    if (kind === "section") {
-      onPatch(draggedId, { section: id as SectionId, tags });
-    } else {
-      onPatch(draggedId, { category: id, tags });
-    }
-    setDraggedId(null);
-    setHoverTarget(null);
-  };
-
   return (
     <div className="classifier">
       <div className="classifier-head">
@@ -339,10 +311,10 @@ export default function ClassifierBoard({
               id={s.id}
               label={s.label}
               kind="section"
-              isHover={hoverTarget === `s-${s.id}`}
-              onDragEnter={() => setHoverTarget(`s-${s.id}`)}
-              onDragLeave={() => setHoverTarget(null)}
-              onDrop={() => handleDrop("section", s.id)}
+              isHover={drag.hoverTarget === `s-${s.id}`}
+              onDragEnter={() => drag.onZoneEnter(`s-${s.id}`)}
+              onDragLeave={drag.onZoneLeave}
+              onDrop={() => drag.handleDrop("section", s.id)}
             />
           ))}
         </div>
@@ -354,10 +326,10 @@ export default function ClassifierBoard({
               id={c.id}
               label={c.label}
               kind="category"
-              isHover={hoverTarget === `c-${c.id}`}
-              onDragEnter={() => setHoverTarget(`c-${c.id}`)}
-              onDragLeave={() => setHoverTarget(null)}
-              onDrop={() => handleDrop("category", c.id)}
+              isHover={drag.hoverTarget === `c-${c.id}`}
+              onDragEnter={() => drag.onZoneEnter(`c-${c.id}`)}
+              onDragLeave={drag.onZoneLeave}
+              onDrop={() => drag.handleDrop("category", c.id)}
             />
           ))}
         </div>
@@ -373,26 +345,12 @@ export default function ClassifierBoard({
           {visible.map((c) => (
             <article
               key={c.id}
-              className={`classifier-card${draggedId === c.id ? " is-dragging" : ""}${
+              className={`classifier-card${drag.draggedId === c.id ? " is-dragging" : ""}${
                 c.reviewed ? " is-reviewed" : ""
               }${selected.has(c.id) ? " is-selected" : ""}`}
               draggable
-              onDragStart={(e) => {
-                setDraggedId(c.id);
-                // Some browsers require non-empty data — set a no-op string.
-                e.dataTransfer.setData("text/plain", c.id);
-                e.dataTransfer.effectAllowed = "move";
-                // The default ghost (a snapshot of the card) is large
-                // enough to cover the drop-zone labels, hiding which
-                // target the cursor is over. Suppress it; the floating
-                // hint pill at the bottom of the viewport tells the
-                // user what's being dragged and where it'll land.
-                suppressDragGhost(e);
-              }}
-              onDragEnd={() => {
-                setDraggedId(null);
-                setHoverTarget(null);
-              }}
+              onDragStart={(e) => drag.startDrag(c.id, e)}
+              onDragEnd={drag.endDrag}
             >
               {/* Selection checkbox. Always rendered (low opacity at
                   rest, full opacity when selected or on card hover via
@@ -492,223 +450,16 @@ export default function ClassifierBoard({
         />
       )}
 
-      {draggedId &&
-        (() => {
-          // Compose the floating hint shown at the bottom of the
-          // viewport during drag. Tells the user (a) what they're
-          // dragging and (b) what target the cursor is currently
-          // over — the pill is what stands in for the suppressed
-          // browser ghost.
-          const dragged = cases.find((c) => c.id === draggedId);
-          let landing: string | null = null;
-          if (hoverTarget) {
-            const [kind, ...rest] = hoverTarget.split("-");
-            const id = rest.join("-");
-            if (kind === "s") landing = SECTIONS.find((s) => s.id === id)?.label ?? null;
-            else if (kind === "c") landing = categories.find((c) => c.id === id)?.label ?? null;
-          }
-          return (
-            <div className="classifier-drag-hint" role="status" aria-live="polite">
-              <span className="classifier-drag-hint-label">Arrastrando</span>
-              <span className="classifier-drag-hint-title">{dragged?.title ?? "caso"}</span>
-              {landing ? (
-                <>
-                  <span className="classifier-drag-hint-arrow" aria-hidden="true">
-                    →
-                  </span>
-                  <span className="classifier-drag-hint-target">{landing}</span>
-                </>
-              ) : (
-                <span className="classifier-drag-hint-empty">
-                  Suelta sobre una sección o categoría
-                </span>
-              )}
-            </div>
-          );
-        })()}
+      <ClassifierDragHint
+        draggedId={drag.draggedId}
+        hoverTarget={drag.hoverTarget}
+        cases={cases}
+        categories={categories}
+      />
     </div>
   );
 }
 
-// ─── Bulk action bar ─────────────────────────────────────────────
-// Bottom-fixed pill that surfaces when the multi-select set is
-// non-empty. Lives in this file because it's tightly coupled to
-// the classifier's selection state — the bar is the only consumer
-// of `onBulkPatch` / `onBulkSoftDelete`. Pulling it into its own
-// file would invert the dependency direction without simplifying
-// either side.
-//
-// Affordances (left → right):
-//   - Counter ("12 seleccionados")
-//   - "Marcar revisado" / "Quitar revisado" (depending on whether
-//     all selected are already reviewed)
-//   - Section dropdown (apply to all)
-//   - Category dropdown (apply to all)
-//   - Soft-delete (single click — the bulk gesture + the undo
-//     toast are the safety net, no per-card confirm dialog)
-//   - "Limpiar"
-//
-// Bulk PURGE is intentionally absent — irreversible by design,
-// the per-card confirm dialog stays the only path. Bulk-purging 50
-// cases by mistake is the kind of slip we don't want to make easy.
-function BulkActionBar({
-  count,
-  ids,
-  categories,
-  onClear,
-  onBulkPatch,
-  onBulkSoftDelete,
-  afterAction,
-}: {
-  count: number;
-  ids: string[];
-  categories: Category[];
-  onClear: () => void;
-  onBulkPatch?: (ids: string[], patch: Partial<CaseRecord>) => void;
-  onBulkSoftDelete?: (ids: string[]) => void;
-  /** Called after any successful bulk operation. Used by the parent
-   *  to reset the selection set so the bar collapses cleanly. */
-  afterAction: () => void;
-}) {
-  const ANY_TARGET = "__pick__";
-  const [sectionTarget, setSectionTarget] = useState<string>(ANY_TARGET);
-  const [categoryTarget, setCategoryTarget] = useState<string>(ANY_TARGET);
-
-  const apply = (patch: Partial<CaseRecord>) => {
-    if (!onBulkPatch) return;
-    onBulkPatch(ids, patch);
-    afterAction();
-  };
-
-  return (
-    <div className="classifier-bulk" role="region" aria-label="Acciones en lote">
-      <div className="classifier-bulk-count">
-        <strong>{count}</strong> seleccionado{count === 1 ? "" : "s"}
-      </div>
-      <div className="classifier-bulk-actions">
-        {onBulkPatch && (
-          <>
-            <button
-              type="button"
-              className="classifier-bulk-btn"
-              onClick={() => apply({ reviewed: true })}
-              title="Marcar todos como revisados"
-            >
-              ✓ Marcar revisado
-            </button>
-            <button
-              type="button"
-              className="classifier-bulk-btn"
-              onClick={() => apply({ reviewed: false })}
-              title="Quitar marca de revisado a todos"
-            >
-              Quitar revisado
-            </button>
-            <label className="classifier-bulk-select">
-              <span className="sr-only">Mover sección a</span>
-              <select
-                value={sectionTarget}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === ANY_TARGET) return;
-                  apply({ section: v as SectionId });
-                  setSectionTarget(ANY_TARGET);
-                }}
-              >
-                <option value={ANY_TARGET}>Mover sección…</option>
-                {SECTIONS.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="classifier-bulk-select">
-              <span className="sr-only">Mover categoría a</span>
-              <select
-                value={categoryTarget}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === ANY_TARGET) return;
-                  apply({ category: v });
-                  setCategoryTarget(ANY_TARGET);
-                }}
-              >
-                <option value={ANY_TARGET}>Mover categoría…</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
-        )}
-        {onBulkSoftDelete && (
-          <button
-            type="button"
-            className="classifier-bulk-btn classifier-bulk-btn--danger"
-            onClick={() => {
-              onBulkSoftDelete(ids);
-              afterAction();
-            }}
-            title="Mover los seleccionados a la papelera"
-          >
-            🗑 Mover a papelera
-          </button>
-        )}
-      </div>
-      <button
-        type="button"
-        className="classifier-bulk-clear"
-        onClick={onClear}
-        title="Limpiar selección · Esc"
-      >
-        Limpiar
-      </button>
-    </div>
-  );
-}
-
-function DropZone({
-  id,
-  label,
-  kind,
-  isHover,
-  onDragEnter,
-  onDragLeave,
-  onDrop,
-}: {
-  id: string;
-  label: string;
-  kind: "section" | "category";
-  isHover: boolean;
-  onDragEnter: () => void;
-  onDragLeave: () => void;
-  onDrop: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`classifier-target classifier-target--${kind}${isHover ? " is-hover" : ""}`}
-      data-id={id}
-      onDragOver={(e) => {
-        // Required to mark the element as a valid drop target. Without
-        // preventDefault here, onDrop will never fire.
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-      }}
-      onDragEnter={(e) => {
-        e.preventDefault();
-        onDragEnter();
-      }}
-      onDragLeave={onDragLeave}
-      onDrop={(e) => {
-        e.preventDefault();
-        onDrop();
-      }}
-    >
-      {label}
-    </button>
-  );
-}
+// `BulkActionBar` lives in `./classifier/BulkActionBar.tsx`.
+// `useClassifierDrag` + `DropZone` live in `./classifier/useClassifierDrag.tsx`.
+// `ClassifierDragHint` lives in `./classifier/ClassifierDragHint.tsx`.
