@@ -16,6 +16,7 @@
 // passive viewing has no extra cost).
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function BulkEditRowMenu({ caso, onOpenEdit, onDelete }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -51,7 +53,7 @@ export function BulkEditRowMenu({ caso, onOpenEdit, onDelete }: Props) {
       <button
         type="button"
         className="bulk-edit-rowmenu-trigger"
-        aria-label="Más acciones"
+        aria-label={t("bulk.row.menu.aria")}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
@@ -69,7 +71,7 @@ export function BulkEditRowMenu({ caso, onOpenEdit, onDelete }: Props) {
                 onOpenEdit(caso);
               }}
             >
-              Abrir modal completo
+              {t("bulk.row.openFull")}
             </button>
           )}
           {onDelete && (
@@ -82,7 +84,7 @@ export function BulkEditRowMenu({ caso, onOpenEdit, onDelete }: Props) {
                 onDelete(caso);
               }}
             >
-              Eliminar caso
+              {t("bulk.row.delete")}
             </button>
           )}
         </div>

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import {
   BulkEditTagsCell,
   BulkEditTagSuggestions,
 } from "@/components/admin/bulk-edit/cells/TagsCell";
+import { renderWithLanguage as render } from "./test-utils";
 
 // The tags input has `list="..."` which makes it expose role="combobox"
 // per the WAI-ARIA spec, not "textbox". `findByRole("combobox")` is

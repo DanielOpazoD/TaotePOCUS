@@ -47,6 +47,10 @@ const WHITELIST = new Set<string>([
   // Description seam — the legacy single-string accessor that
   // explicitly reads `c.description.es` as the ES baseline.
   "lib/case-description.ts",
+  // Dictionary files use translation KEYS like "form.label.tags.es"
+  // — those are string literals naming the slot, not field accesses.
+  "lib/i18n/dict.es.ts",
+  "lib/i18n/dict.en.ts",
 
   // Admin productivity surfaces edit / sort by the ES slot directly.
   // These are documented at the callsite.

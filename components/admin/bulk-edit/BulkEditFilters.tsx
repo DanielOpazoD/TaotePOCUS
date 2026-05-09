@@ -14,7 +14,8 @@
 // orchestrator above; this file just provides the controls.
 
 import { SECTIONS } from "@/lib/data";
-import { categoryLabelEs } from "@/lib/i18n";
+import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { Category, SectionId } from "@/lib/types";
 
 interface Props {
@@ -48,29 +49,30 @@ export function BulkEditFilters({
   categories,
   pageSizes,
 }: Props) {
+  const { lang, t } = useLanguage();
   return (
     <div className="bulk-edit-head">
-      <div className="bulk-edit-filters" role="search" aria-label="Filtros">
+      <div className="bulk-edit-filters" role="search" aria-label={t("bulk.filters.aria")}>
         <select
           className="bulk-edit-filter"
-          aria-label="Sección"
+          aria-label={t("bulk.filter.section.aria")}
           value={filterSection}
           onChange={(e) => setFilterSection(e.target.value as SectionId | "")}
         >
-          <option value="">Todas las secciones</option>
+          <option value="">{t("bulk.filter.section.all")}</option>
           {SECTIONS.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.label}
+              {sectionLabel(s.id, lang)}
             </option>
           ))}
         </select>
         <select
           className="bulk-edit-filter"
-          aria-label="Categoría"
+          aria-label={t("bulk.filter.category.aria")}
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
         >
-          <option value="">Todas las categorías</option>
+          <option value="">{t("bulk.filter.category.all")}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {categoryLabelEs(c)}
@@ -80,10 +82,10 @@ export function BulkEditFilters({
         <input
           type="search"
           className="bulk-edit-search"
-          placeholder="Buscar por título, descripción o etiqueta…"
+          placeholder={t("bulk.filter.search.placeholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Buscar en la tabla"
+          aria-label={t("bulk.filter.search.aria")}
         />
       </div>
       <div className="bulk-edit-meta">
@@ -91,16 +93,20 @@ export function BulkEditFilters({
           className="bulk-edit-filter"
           value={pageSize}
           onChange={(e) => setPageSize(Number(e.target.value))}
-          aria-label="Casos por página"
+          aria-label={t("bulk.pagesize.aria")}
         >
           {pageSizes.map((n) => (
             <option key={n} value={n}>
-              {n} / página
+              {t("bulk.pagesize.option", { n })}
             </option>
           ))}
         </select>
         <span className="bulk-edit-count">
-          {pageStart + 1}–{Math.min(pageEnd, total)} de {total}
+          {t("bulk.count.range", {
+            start: pageStart + 1,
+            end: Math.min(pageEnd, total),
+            total,
+          })}
         </span>
       </div>
     </div>

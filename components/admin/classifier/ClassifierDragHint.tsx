@@ -14,7 +14,8 @@
 // component.
 
 import { SECTIONS } from "@/lib/data";
-import { categoryLabelEs } from "@/lib/i18n";
+import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
+import { useT, useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord, Category } from "@/lib/types";
 
 interface Props {
@@ -32,6 +33,8 @@ interface Props {
 }
 
 export function ClassifierDragHint({ draggedId, hoverTarget, cases, categories }: Props) {
+  const t = useT();
+  const { lang } = useLanguage();
   if (!draggedId) return null;
 
   // Compose the hint shown at the bottom of the viewport during
@@ -42,11 +45,14 @@ export function ClassifierDragHint({ draggedId, hoverTarget, cases, categories }
   if (hoverTarget) {
     const [kind, ...rest] = hoverTarget.split("-");
     const id = rest.join("-");
-    if (kind === "s") landing = SECTIONS.find((s) => s.id === id)?.label ?? null;
+    // Section labels follow the active UI language so the hint
+    // shown to a Spanish admin matches the public nav. Custom
+    // category labels stay on the ES baseline (the admin works in
+    // ES regardless of the visitor language — same rule as the
+    // rest of the classifier surface).
+    if (kind === "s")
+      landing = SECTIONS.find((s) => s.id === id) != null ? sectionLabel(id, lang) : null;
     else if (kind === "c") {
-      // Custom categories carry a `LocalizedString` label; built-ins
-      // a plain string. The drag hint is admin-only so the ES slot
-      // is the right reading regardless of the visitor's lang.
       const cat = categories.find((c) => c.id === id);
       landing = cat ? categoryLabelEs(cat) : null;
     }
@@ -54,11 +60,13 @@ export function ClassifierDragHint({ draggedId, hoverTarget, cases, categories }
 
   return (
     <div className="classifier-drag-hint" role="status" aria-live="polite">
-      <span className="classifier-drag-hint-label">Arrastrando</span>
+      <span className="classifier-drag-hint-label">{t("classifier.dragHint.label")}</span>
       {/* Drag hint on the admin classifier — show the ES title since
           this is editorial work. Falls back to a literal "caso" when
           the dragged case is unresolved (drag tracker race). */}
-      <span className="classifier-drag-hint-title">{dragged?.title.es ?? "caso"}</span>
+      <span className="classifier-drag-hint-title">
+        {dragged?.title.es ?? t("classifier.dragHint.fallback")}
+      </span>
       {landing ? (
         <>
           <span className="classifier-drag-hint-arrow" aria-hidden="true">
@@ -67,7 +75,7 @@ export function ClassifierDragHint({ draggedId, hoverTarget, cases, categories }
           <span className="classifier-drag-hint-target">{landing}</span>
         </>
       ) : (
-        <span className="classifier-drag-hint-empty">Suelta sobre una sección o categoría</span>
+        <span className="classifier-drag-hint-empty">{t("classifier.dragHint.empty")}</span>
       )}
     </div>
   );

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { screen, cleanup, fireEvent } from "@testing-library/react";
 import { BulkEditRowMenu } from "@/components/admin/bulk-edit/cells/RowMenu";
 import { caseFactory } from "./fixtures";
+import { renderWithLanguage as render } from "./test-utils";
 
 describe("BulkEditRowMenu", () => {
   beforeEach(() => {

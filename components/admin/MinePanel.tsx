@@ -14,6 +14,7 @@ import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { categoryLabelEs } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -32,20 +33,10 @@ interface Props {
   onNew: () => void;
 }
 
-function formatDateTime(iso?: string) {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleString("es", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
+/* `formatDateTime` removed in favor of `useLanguage().formatDateTime`,
+ * which threads the active UI locale (es-CL / en-US) through
+ * `Intl.DateTimeFormat`. The previous hardcoded "es" produced a
+ * Spanish stamp even for an EN reader on the trash table. */
 
 export function MinePanel({
   allCases,
@@ -60,39 +51,42 @@ export function MinePanel({
   onPurgeImport,
   onNew,
 }: Props) {
+  const { t, formatDateTime } = useLanguage();
+  const trashOne = (n: number) =>
+    t(n === 1 ? "admin.mine.trash.count.one" : "admin.mine.trash.count.many", { count: n });
   return (
     <>
       <div className="admin-stats">
         <div className="admin-stat">
           <span className="admin-stat-num">{allCases.length}</span>
-          <span className="admin-stat-label">Casos totales</span>
+          <span className="admin-stat-label">{t("admin.mine.stats.total")}</span>
         </div>
         <div className="admin-stat">
           <span className="admin-stat-num">{userCases.length}</span>
-          <span className="admin-stat-label">Subidos por ti</span>
+          <span className="admin-stat-label">{t("admin.mine.stats.uploaded")}</span>
         </div>
         <div className="admin-stat">
           <span className="admin-stat-num">{userCases.filter((c) => c.media).length}</span>
-          <span className="admin-stat-label">Con media real</span>
+          <span className="admin-stat-label">{t("admin.mine.stats.realMedia")}</span>
         </div>
         <div className="admin-stat">
           <span className="admin-stat-num">{CATEGORIES.length}</span>
-          <span className="admin-stat-label">Categorías</span>
+          <span className="admin-stat-label">{t("admin.mine.stats.categories")}</span>
         </div>
       </div>
 
       <div className="admin-section-head">
-        <h3>Tus publicaciones</h3>
+        <h3>{t("admin.mine.publications")}</h3>
         <button className="btn-primary" onClick={onNew}>
-          <Icon.plus /> Nuevo caso
+          <Icon.plus /> {t("newCase.label")}
         </button>
       </div>
 
       {userCases.length === 0 ? (
         <div className="admin-empty">
-          <p>Aún no has publicado casos. Empieza subiendo tu primer hallazgo ecográfico.</p>
+          <p>{t("admin.mine.empty.body")}</p>
           <button className="btn-primary" onClick={onNew}>
-            {Icon.plus()} Publicar primero
+            {Icon.plus()} {t("admin.mine.empty.cta")}
           </button>
         </div>
       ) : (
@@ -100,17 +94,17 @@ export function MinePanel({
           <thead>
             <tr>
               <th></th>
-              <th>Título</th>
-              <th>Categoría</th>
-              <th>Tipo</th>
-              <th>Fecha</th>
+              <th>{t("admin.mine.col.title")}</th>
+              <th>{t("admin.mine.col.category")}</th>
+              <th>{t("admin.mine.col.type")}</th>
+              <th>{t("admin.mine.col.date")}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {userCases.map((c) => {
               const cat = CATEGORIES.find((x) => x.id === c.category);
-              const mediaLabel = c.media ? c.media.kind.toUpperCase() : "Sintético";
+              const mediaLabel = c.media ? c.media.kind.toUpperCase() : t("admin.mine.synthetic");
               return (
                 <tr key={c.id}>
                   <td>
@@ -138,13 +132,17 @@ export function MinePanel({
                   </td>
                   <td className="admin-date">{c.date}</td>
                   <td className="admin-actions-cell">
-                    <button className="icon-btn" onClick={() => onEdit(c)} aria-label="Editar">
+                    <button
+                      className="icon-btn"
+                      onClick={() => onEdit(c)}
+                      aria-label={t("admin.mine.action.edit")}
+                    >
                       {Icon.edit()}
                     </button>
                     <button
                       className="icon-btn icon-btn-danger"
                       onClick={() => onDelete(c)}
-                      aria-label="Mover a papelera"
+                      aria-label={t("admin.mine.action.trash")}
                     >
                       {Icon.trash()}
                     </button>
@@ -159,17 +157,15 @@ export function MinePanel({
       {trashedCases.length > 0 && (
         <>
           <div className="admin-section-head">
-            <h3>Papelera</h3>
-            <span className="admin-trash-count">
-              {trashedCases.length} eliminado{trashedCases.length === 1 ? "" : "s"}
-            </span>
+            <h3>{t("admin.mine.trash.title")}</h3>
+            <span className="admin-trash-count">{trashOne(trashedCases.length)}</span>
           </div>
           <table className="admin-table admin-table-trash">
             <thead>
               <tr>
-                <th>Título</th>
-                <th>Eliminado</th>
-                <th>Por</th>
+                <th>{t("admin.mine.trash.col.title")}</th>
+                <th>{t("admin.mine.trash.col.deletedAt")}</th>
+                <th>{t("admin.mine.trash.col.deletedBy")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -187,12 +183,12 @@ export function MinePanel({
                       onClick={() => onRestore(c)}
                       style={{ marginRight: 6 }}
                     >
-                      Restaurar
+                      {t("admin.mine.action.restore")}
                     </button>
                     <button
                       className="icon-btn icon-btn-danger"
                       onClick={() => onPurge(c)}
-                      aria-label="Eliminar definitivamente"
+                      aria-label={t("admin.mine.action.purge")}
                     >
                       {Icon.trash()}
                     </button>
@@ -207,10 +203,8 @@ export function MinePanel({
       {trashedImports && trashedImports.length > 0 && onRestoreImport && (
         <>
           <div className="admin-section-head">
-            <h3>Papelera de importados</h3>
-            <span className="admin-trash-count">
-              {trashedImports.length} eliminado{trashedImports.length === 1 ? "" : "s"}
-            </span>
+            <h3>{t("admin.mine.imports.title")}</h3>
+            <span className="admin-trash-count">{trashOne(trashedImports.length)}</span>
           </div>
           {/* Twitter-imported cases the admin soft-deleted from the
               classifier. Restored via `clearOverride`-on-deletedAt so
@@ -219,9 +213,9 @@ export function MinePanel({
           <table className="admin-table admin-table-trash">
             <thead>
               <tr>
-                <th>Título</th>
-                <th>Eliminado</th>
-                <th>Por</th>
+                <th>{t("admin.mine.trash.col.title")}</th>
+                <th>{t("admin.mine.trash.col.deletedAt")}</th>
+                <th>{t("admin.mine.trash.col.deletedBy")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -239,14 +233,14 @@ export function MinePanel({
                       onClick={() => onRestoreImport(c)}
                       style={{ marginRight: 6 }}
                     >
-                      Restaurar
+                      {t("admin.mine.action.restore")}
                     </button>
                     {onPurgeImport && (
                       <button
                         className="icon-btn icon-btn-danger"
                         onClick={() => onPurgeImport(c)}
-                        aria-label="Eliminar definitivamente"
-                        title="Eliminar definitivamente · borra metadata y archivo del blob store"
+                        aria-label={t("admin.mine.action.purge")}
+                        title={t("admin.mine.imports.purge.title")}
                       >
                         {Icon.trash()}
                       </button>

@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import ClassifierBoard from "@/components/admin/ClassifierBoard";
 import { caseFactory } from "./fixtures";
+import { renderWithLanguage as render } from "./test-utils";
 
 // CineLoop renders a canvas + RAF; not relevant here.
 vi.mock("../components/cine", () => ({

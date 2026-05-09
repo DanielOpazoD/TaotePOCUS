@@ -23,7 +23,7 @@ import { useMemo } from "react";
 import { useCustomCategories } from "./useCustomCategories";
 import { useHiddenSections } from "./useHiddenSections";
 import { useSectionLabels, type SectionLabelOverrides } from "./useSectionLabels";
-import { categoryLabel } from "@/lib/i18n";
+import { categoryLabel, translate } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
 import type { Category, LocalizedString, Section, SectionId } from "@/lib/types";
 
@@ -154,7 +154,8 @@ export function useCatalogConfig({ showToast, lang = "es" }: Args): CatalogConfi
 
   const onAddCategory = async (label: string | LocalizedString) => {
     const created = await addCategory(label);
-    if (created) showToast(`Categoría "${labelEs(created.label)}" agregada`);
+    if (created)
+      showToast(translate(lang, "toast.category.added", { label: labelEs(created.label) }));
     return created;
   };
 
@@ -167,7 +168,7 @@ export function useCatalogConfig({ showToast, lang = "es" }: Args): CatalogConfi
       const beforeEs = labelEs(before.label);
       const incomingEs = typeof label === "string" ? label : (label.es ?? "");
       if (beforeEs !== incomingEs) {
-        showToast("Categoría renombrada", {
+        showToast(translate(lang, "toast.category.renamed"), {
           undo: () => renameCategory(id, before.label),
         });
       }
@@ -179,11 +180,11 @@ export function useCatalogConfig({ showToast, lang = "es" }: Args): CatalogConfi
     const before = categories.find((c) => c.id === id);
     const ok = await removeCategory(id);
     if (ok && before) {
-      showToast(`"${categoryLabel(before, lang)}" eliminada`, {
+      showToast(translate(lang, "toast.category.removed", { label: categoryLabel(before, lang) }), {
         undo: () => restoreCategory(before),
       });
     } else if (!ok) {
-      showToast("No se pudo eliminar la categoría");
+      showToast(translate(lang, "toast.category.removeFailed"));
     }
     return ok;
   };

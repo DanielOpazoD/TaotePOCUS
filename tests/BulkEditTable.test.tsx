@@ -14,13 +14,14 @@
 // We avoid asserting on internal HTML markup (column orders,
 // CSS classes) so style refactors don't break the tests.
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import BulkEditTable from "@/components/admin/BulkEditTable";
 import { CATEGORIES } from "@/lib/data";
 import type { CaseRecord } from "@/lib/types";
 import { caseFactory, resetIdCounter } from "./fixtures";
+import { renderWithLanguage as render } from "./test-utils";
 
 // next/image renders an img with a noisy generated srcset that
 // pollutes test output. The thumb path isn't what we're testing

@@ -5,7 +5,8 @@ import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
 import { getDescription } from "@/lib/case-description";
-import { categoryLabelEs } from "@/lib/i18n";
+import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord, Category } from "@/lib/types";
 import { DropZone, useClassifierDrag } from "./classifier/useClassifierDrag";
 import { ClassifierDragHint } from "./classifier/ClassifierDragHint";
@@ -82,6 +83,7 @@ export default function ClassifierBoard({
   // shift+click extend a range from the last toggled card.
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [lastToggledId, setLastToggledId] = useState<string | null>(null);
+  const { lang, t } = useLanguage();
 
   // Drag pipeline lives in its own hook so the state machine and
   // the DropZone wiring don't fight for space inside the board.
@@ -231,12 +233,8 @@ export default function ClassifierBoard({
   return (
     <div className="classifier">
       <div className="classifier-head">
-        <h2>Clasificación global</h2>
-        <p className="classifier-sub">
-          Arrastra cualquier miniatura sobre una sección o categoría para reclasificar. Click sobre
-          el ✓ marca el caso como revisado. Click sobre la miniatura abre el editor completo. Usá
-          los filtros para encontrar un caso ya clasificado y reasignarlo o eliminarlo.
-        </p>
+        <h2>{t("classifier.title")}</h2>
+        <p className="classifier-sub">{t("classifier.intro")}</p>
         <div className="classifier-filters" role="tablist">
           <button
             role="tab"
@@ -244,7 +242,8 @@ export default function ClassifierBoard({
             className={`filter-pill${filter === "unclassified" ? " is-active" : ""}`}
             onClick={() => setFilter("unclassified")}
           >
-            Sin clasificar <span className="filter-pill-count">{counts.unclassified}</span>
+            {t("classifier.tab.unclassified")}{" "}
+            <span className="filter-pill-count">{counts.unclassified}</span>
           </button>
           <button
             role="tab"
@@ -252,7 +251,8 @@ export default function ClassifierBoard({
             className={`filter-pill${filter === "unreviewed" ? " is-active" : ""}`}
             onClick={() => setFilter("unreviewed")}
           >
-            Sin revisar <span className="filter-pill-count">{counts.unreviewed}</span>
+            {t("classifier.tab.unreviewed")}{" "}
+            <span className="filter-pill-count">{counts.unreviewed}</span>
           </button>
           <button
             role="tab"
@@ -260,7 +260,7 @@ export default function ClassifierBoard({
             className={`filter-pill${filter === "all" ? " is-active" : ""}`}
             onClick={() => setFilter("all")}
           >
-            Todos <span className="filter-pill-count">{counts.all}</span>
+            {t("classifier.tab.all")} <span className="filter-pill-count">{counts.all}</span>
           </button>
         </div>
         {/* Auxiliary filters — search + section + category. AND-compose
@@ -271,21 +271,21 @@ export default function ClassifierBoard({
           <input
             type="search"
             className="classifier-aux-input"
-            placeholder="Buscar en título, resumen, hallazgos, tags…"
+            placeholder={t("classifier.search.placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Buscar caso por texto"
+            aria-label={t("classifier.search.aria")}
           />
           <select
             className="classifier-aux-input"
             value={sectionFilter}
             onChange={(e) => setSectionFilter(e.target.value)}
-            aria-label="Filtrar por sección"
+            aria-label={t("classifier.filter.section.aria")}
           >
-            <option value={ANY}>Cualquier sección</option>
+            <option value={ANY}>{t("classifier.filter.section.any")}</option>
             {SECTIONS.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.label}
+                {sectionLabel(s.id, lang)}
               </option>
             ))}
           </select>
@@ -293,9 +293,9 @@ export default function ClassifierBoard({
             className="classifier-aux-input"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            aria-label="Filtrar por categoría"
+            aria-label={t("classifier.filter.category.aria")}
           >
-            <option value={ANY}>Cualquier categoría</option>
+            <option value={ANY}>{t("classifier.filter.category.any")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {categoryLabelEs(c)}
@@ -307,20 +307,22 @@ export default function ClassifierBoard({
               type="button"
               className="classifier-aux-clear"
               onClick={clearAuxFilters}
-              aria-label="Limpiar filtros auxiliares"
+              aria-label={t("classifier.filter.clear.aria")}
             >
-              × Limpiar filtros
+              {t("classifier.filter.clear")}
             </button>
           )}
           <span className="classifier-aux-result">
-            {visible.length} resultado{visible.length === 1 ? "" : "s"}
+            {t(visible.length === 1 ? "classifier.results.one" : "classifier.results.many", {
+              count: visible.length,
+            })}
           </span>
         </div>
       </div>
 
       <div className="classifier-targets">
-        <div className="classifier-target-group" aria-label="Secciones">
-          <span className="classifier-target-label">Sección →</span>
+        <div className="classifier-target-group" aria-label={t("classifier.targets.section.aria")}>
+          <span className="classifier-target-label">{t("classifier.targets.section")}</span>
           {SECTIONS.map((s) => (
             <DropZone
               key={s.id}
@@ -334,8 +336,8 @@ export default function ClassifierBoard({
             />
           ))}
         </div>
-        <div className="classifier-target-group" aria-label="Categorías">
-          <span className="classifier-target-label">Categoría →</span>
+        <div className="classifier-target-group" aria-label={t("classifier.targets.category.aria")}>
+          <span className="classifier-target-label">{t("classifier.targets.category")}</span>
           {categories.map((c) => (
             <DropZone
               key={c.id}
@@ -379,7 +381,7 @@ export default function ClassifierBoard({
                 className="classifier-card-select"
                 role="checkbox"
                 aria-checked={selected.has(c.id)}
-                aria-label={`Seleccionar ${c.title.es}`}
+                aria-label={t("classifier.checkbox.aria", { title: c.title.es })}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (e.shiftKey) extendSelectionTo(c.id);

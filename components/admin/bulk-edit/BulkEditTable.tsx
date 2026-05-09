@@ -31,6 +31,7 @@ import { BulkEditRow } from "./BulkEditRow";
 import { BulkEditSortHeader } from "./cells/SortHeader";
 import { getDescription } from "@/lib/case-description";
 import { categoryLabelEs } from "@/lib/i18n";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 import type { SortDir, SortField } from "./types";
 
@@ -65,6 +66,7 @@ export default function BulkEditTable({
   onOpenEdit,
   onDelete,
 }: Props) {
+  const t = useT();
   // ─── Filters ───────────────────────────────────────────────────
   const [filterSection, setFilterSection] = useState<SectionId | "">("");
   const [filterCat, setFilterCat] = useState<string>("");
@@ -206,12 +208,11 @@ export default function BulkEditTable({
   const applyBulkCategory = (category: string) => onBulkPatch(Array.from(selected), { category });
   const applyBulkReviewed = (reviewed: boolean) => onBulkPatch(Array.from(selected), { reviewed });
   const applyBulkDelete = async () => {
-    if (
-      !window.confirm(
-        `Mover ${selected.size} caso${selected.size === 1 ? "" : "s"} a la papelera? La acción se puede deshacer.`,
-      )
-    )
-      return;
+    const msg = t(
+      selected.size === 1 ? "bulk.action.confirmDelete.one" : "bulk.action.confirmDelete.many",
+      { count: selected.size },
+    );
+    if (!window.confirm(msg)) return;
     await onBulkSoftDelete(Array.from(selected));
     clearSelection();
   };
@@ -288,7 +289,7 @@ export default function BulkEditTable({
               <th className="bulk-edit-th-check">
                 <input
                   type="checkbox"
-                  aria-label="Seleccionar todos los visibles"
+                  aria-label={t("bulk.selectAll.aria")}
                   checked={allVisibleSelected}
                   onChange={toggleAllVisible}
                 />
@@ -300,7 +301,7 @@ export default function BulkEditTable({
                 dir={sortDir}
                 onClick={cycleSort}
               >
-                Título
+                {t("bulk.col.title")}
               </BulkEditSortHeader>
               <BulkEditSortHeader
                 field="description"
@@ -308,7 +309,7 @@ export default function BulkEditTable({
                 dir={sortDir}
                 onClick={cycleSort}
               >
-                Descripción
+                {t("bulk.col.description")}
               </BulkEditSortHeader>
               <BulkEditSortHeader
                 field="category"
@@ -317,16 +318,16 @@ export default function BulkEditTable({
                 onClick={cycleSort}
                 className="bulk-edit-th-cat"
               >
-                Categoría
+                {t("bulk.col.category")}
               </BulkEditSortHeader>
-              <th className="bulk-edit-th-tags">Etiquetas</th>
+              <th className="bulk-edit-th-tags">{t("bulk.col.tags")}</th>
               <BulkEditSortHeader
                 field="reviewed"
                 active={sortField === "reviewed"}
                 dir={sortDir}
                 onClick={cycleSort}
                 className="bulk-edit-th-reviewed"
-                title="Marcado como revisado"
+                title={t("bulk.col.reviewed.title")}
               >
                 ✓
               </BulkEditSortHeader>
@@ -352,7 +353,7 @@ export default function BulkEditTable({
                 <td colSpan={8} className="bulk-edit-empty">
                   {hasActiveFilters ? (
                     <>
-                      <span>No hay casos que coincidan con los filtros.</span>
+                      <span>{t("bulk.empty.filtered")}</span>
                       <button
                         type="button"
                         className="bulk-edit-empty-clear"
@@ -362,11 +363,11 @@ export default function BulkEditTable({
                           setQuery("");
                         }}
                       >
-                        Limpiar filtros
+                        {t("bulk.empty.clearFilters")}
                       </button>
                     </>
                   ) : (
-                    "Aún no hay casos en el catálogo."
+                    t("bulk.empty.catalog")
                   )}
                 </td>
               </tr>

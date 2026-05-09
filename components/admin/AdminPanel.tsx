@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CATEGORIES } from "@/lib/data";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, LocalizedString, SectionId } from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
 import CategoriesEditor from "./CategoriesEditor";
@@ -130,6 +131,7 @@ export default function AdminPanel({
   // landing page; the classifier is one click away. State is local —
   // this isn't worth pushing into the URL.
   const [tab, setTab] = useState<Tab>("mine");
+  const t = useT();
 
   // Counts feed the tab badges so the admin sees how much queue
   // is left without opening the panel. The "Sin clasificar" marker
@@ -139,14 +141,14 @@ export default function AdminPanel({
 
   return (
     <div className="admin-panel">
-      <div className="admin-tabs" role="tablist" aria-label="Vistas admin">
+      <div className="admin-tabs" role="tablist" aria-label={t("admin.tabs.aria")}>
         <button
           role="tab"
           aria-selected={tab === "mine"}
           className={`admin-tab${tab === "mine" ? " is-active" : ""}`}
           onClick={() => setTab("mine")}
         >
-          Mis casos
+          {t("admin.tab.mine")}
         </button>
         {onPatch && (
           <button
@@ -155,7 +157,7 @@ export default function AdminPanel({
             className={`admin-tab${tab === "classify" ? " is-active" : ""}`}
             onClick={() => setTab("classify")}
           >
-            Clasificar
+            {t("admin.tab.classify")}
             {unclassifiedCount > 0 && <span className="admin-tab-count">{unclassifiedCount}</span>}
           </button>
         )}
@@ -165,9 +167,9 @@ export default function AdminPanel({
             aria-selected={tab === "edit"}
             className={`admin-tab${tab === "edit" ? " is-active" : ""}`}
             onClick={() => setTab("edit")}
-            title="Editar título / descripción / etiquetas en lote"
+            title={t("admin.tab.edit.title")}
           >
-            Edición
+            {t("admin.tab.edit")}
             <span className="admin-tab-count">{allCases.length}</span>
           </button>
         )}
@@ -178,7 +180,7 @@ export default function AdminPanel({
             className={`admin-tab${tab === "categories" ? " is-active" : ""}`}
             onClick={() => setTab("categories")}
           >
-            Categorías
+            {t("admin.tab.categories")}
             <span className="admin-tab-count">{resolvedCategories.length}</span>
           </button>
         )}
@@ -189,7 +191,7 @@ export default function AdminPanel({
             className={`admin-tab${tab === "sections" ? " is-active" : ""}`}
             onClick={() => setTab("sections")}
           >
-            Secciones
+            {t("admin.tab.sections")}
           </button>
         )}
         <button
@@ -197,9 +199,9 @@ export default function AdminPanel({
           aria-selected={tab === "activity"}
           className={`admin-tab${tab === "activity" ? " is-active" : ""}`}
           onClick={() => setTab("activity")}
-          title="Registro append-only de acciones admin"
+          title={t("admin.tab.activity.title")}
         >
-          Actividad
+          {t("admin.tab.activity")}
         </button>
         <button
           role="tab"
@@ -207,7 +209,7 @@ export default function AdminPanel({
           className={`admin-tab${tab === "backup" ? " is-active" : ""}`}
           onClick={() => setTab("backup")}
         >
-          Backup
+          {t("admin.tab.backup")}
         </button>
       </div>
 

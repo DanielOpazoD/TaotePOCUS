@@ -16,6 +16,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { COMMON_TAGS } from "@/lib/data";
+import { useT } from "@/hooks/useLanguage";
 
 interface Props {
   tags: readonly string[];
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function BulkEditTagsCell({ tags, onSave }: Props) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(tags.join(", "));
   const [saving, setSaving] = useState(false);
@@ -58,7 +60,7 @@ export function BulkEditTagsCell({ tags, onSave }: Props) {
       <button
         type="button"
         className="bulk-edit-tags-display"
-        aria-label="Editar etiquetas"
+        aria-label={t("bulk.tags.editAria")}
         onClick={() => {
           setEditing(true);
           // Focus after the input renders.
@@ -66,11 +68,11 @@ export function BulkEditTagsCell({ tags, onSave }: Props) {
         }}
       >
         {tags.length === 0 ? (
-          <span className="bulk-edit-cell-empty">— sin etiquetas —</span>
+          <span className="bulk-edit-cell-empty">{t("bulk.tags.empty")}</span>
         ) : (
-          tags.map((t) => (
-            <span key={t} className="bulk-edit-tag-chip">
-              {t}
+          tags.map((tag) => (
+            <span key={tag} className="bulk-edit-tag-chip">
+              {tag}
             </span>
           ))
         )}
@@ -96,8 +98,8 @@ export function BulkEditTagsCell({ tags, onSave }: Props) {
           void commit();
         }
       }}
-      aria-label="Etiquetas separadas por coma"
-      placeholder="ej: B-líneas, Patológico"
+      aria-label={t("bulk.tags.input.aria")}
+      placeholder={t("bulk.tags.input.placeholder")}
       disabled={saving}
     />
   );

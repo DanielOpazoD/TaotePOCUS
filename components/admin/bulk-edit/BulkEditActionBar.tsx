@@ -12,7 +12,8 @@
 
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
-import { categoryLabelEs } from "@/lib/i18n";
+import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { Category, SectionId } from "@/lib/types";
 
 interface Props {
@@ -34,11 +35,14 @@ export function BulkEditActionBar({
   onDelete,
   onClear,
 }: Props) {
+  const { lang, t } = useLanguage();
+  const countLabel = t(
+    selectedCount === 1 ? "bulk.selection.count.one" : "bulk.selection.count.many",
+    { count: selectedCount },
+  );
   return (
-    <div className="bulk-edit-actionbar" role="toolbar" aria-label="Acciones en lote">
-      <span className="bulk-edit-actionbar-count">
-        {selectedCount} seleccionado{selectedCount === 1 ? "" : "s"}
-      </span>
+    <div className="bulk-edit-actionbar" role="toolbar" aria-label={t("bulk.selection.aria")}>
+      <span className="bulk-edit-actionbar-count">{countLabel}</span>
       <select
         className="bulk-edit-filter"
         defaultValue=""
@@ -48,12 +52,12 @@ export function BulkEditActionBar({
             e.target.value = "";
           }
         }}
-        aria-label="Cambiar sección de seleccionados"
+        aria-label={t("bulk.action.changeSection.aria")}
       >
-        <option value="">Cambiar sección…</option>
+        <option value="">{t("bulk.action.changeSection")}</option>
         {SECTIONS.map((s) => (
           <option key={s.id} value={s.id}>
-            → {s.label}
+            → {sectionLabel(s.id, lang)}
           </option>
         ))}
       </select>
@@ -66,9 +70,9 @@ export function BulkEditActionBar({
             e.target.value = "";
           }
         }}
-        aria-label="Cambiar categoría de seleccionados"
+        aria-label={t("bulk.action.changeCategory.aria")}
       >
-        <option value="">Cambiar categoría…</option>
+        <option value="">{t("bulk.action.changeCategory")}</option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
             → {categoryLabelEs(c)}
@@ -76,16 +80,16 @@ export function BulkEditActionBar({
         ))}
       </select>
       <button type="button" className="btn-ghost" onClick={() => onApplyReviewed(true)}>
-        ✓ Marcar revisado
+        {t("bulk.action.markReviewed")}
       </button>
       <button type="button" className="btn-ghost" onClick={() => onApplyReviewed(false)}>
-        ✗ Sin marcar
+        {t("bulk.action.unmarkReviewed")}
       </button>
       <button type="button" className="btn-danger bulk-edit-actionbar-delete" onClick={onDelete}>
-        {Icon.trash()} Eliminar
+        {Icon.trash()} {t("bulk.action.delete")}
       </button>
       <button type="button" className="btn-ghost" onClick={onClear}>
-        Limpiar
+        {t("bulk.action.clear")}
       </button>
     </div>
   );
