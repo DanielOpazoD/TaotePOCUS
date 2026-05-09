@@ -12,12 +12,13 @@
 // implicitly via the "no upload, synthetic loop" path since none
 // of these tests touch the file input.
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import CaseForm from "@/components/admin/CaseForm";
 import { COMMON_TAGS } from "@/lib/data";
 import { adminFactory } from "./fixtures";
+import { renderWithLanguage as render } from "./test-utils";
 
 vi.mock("../components/cine", () => ({
   __esModule: true,

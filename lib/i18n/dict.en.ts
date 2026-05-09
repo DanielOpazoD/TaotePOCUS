@@ -396,6 +396,47 @@ export const DICT_EN: Dict = {
   "form.action.removeTag": "Remove tag {tag}",
   "form.action.removeTag.en": "Remove tag {tag}",
 
+  // ─── CaseForm — Media panel ────────────────────────────────────
+  "form.media.label": "Image / Video / GIF",
+  "form.media.uploader.aria": "Select an image, video or GIF file",
+  "form.media.processing": "Processing…",
+  "form.media.dropPrompt": "Drag or click to upload",
+  "form.media.formats": "JPG · PNG · GIF · MP4 · WebM",
+  "form.media.remove": "Remove",
+  "form.media.extra.label": "Additional images",
+  "form.media.extra.hint": "Shown in the modal as a carousel after the primary image.",
+  "form.media.extra.add": "+ Add another image",
+  "form.media.extra.removeAria": "Remove {name}",
+  "form.media.extra.fallbackName": "image {n}",
+  "form.media.error.size":
+    "File weighs {actual}. Max allowed: {max}. Compress the video or use a lighter GIF.",
+  "form.media.error.format": "Unsupported format: {type}.",
+  "form.media.error.formatUnknown": "unknown",
+  "form.media.error.read": "Couldn't read the file.",
+
+  // ─── CaseForm — Advanced panel ─────────────────────────────────
+  "form.advanced.section.label": "Section",
+  "form.advanced.loop.label": "Synthetic cine-loop (fallback)",
+  "form.advanced.loop.hint":
+    "Used only when there's no real media. The canvas animation is automatically replaced when you upload a file.",
+  "form.advanced.loop.notUsed":
+    "This case already has real media attached — the synthetic cine-loop isn't used.",
+  "form.advanced.featured.label": "Mark as featured",
+  "form.advanced.featured.hint":
+    'Featured cases appear in the "Featured" carousel on each section.',
+  "form.advanced.loop.blines": "B-lines",
+  "form.advanced.loop.tamponade": "Tamponade",
+  "form.advanced.loop.morrison": "FAST / Morrison",
+  "form.advanced.loop.seashore": "Seashore (M-mode)",
+  "form.advanced.loop.ijv": "Internal jugular",
+  "form.advanced.loop.dvt": "DVT",
+  "form.advanced.loop.hydro": "Hydronephrosis",
+  "form.advanced.loop.ob": "Gestational sac",
+  "form.advanced.loop.lvfunction": "LV function",
+  "form.advanced.loop.aaa": "AAA",
+  "form.advanced.loop.consolidation": "Consolidation",
+  "form.advanced.loop.gallstone": "Gallstone",
+
   // ─── ConfirmDialog ─────────────────────────────────────────────
   "confirm.dismiss.aria": "Dismiss dialog",
   "confirm.cancel": "Cancel",
