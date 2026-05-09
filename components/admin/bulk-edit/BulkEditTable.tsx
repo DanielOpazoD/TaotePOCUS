@@ -23,7 +23,7 @@
 // `setOverride` with an undo toast). Failures surface via the
 // toast layer; the cell reverts visually.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BulkEditActionBar } from "./BulkEditActionBar";
 import { BulkEditFilters } from "./BulkEditFilters";
 import { BulkEditPagination } from "./BulkEditPagination";
@@ -193,14 +193,19 @@ export default function BulkEditTable({
       return next;
     });
   };
-  const toggleOne = (id: string) => {
+  // Stable identity across renders so memoized rows skip re-renders
+  // on parent state changes (sort cycle, page flip, filter typing
+  // that doesn't change the id set). Without `useCallback` the
+  // closure identity changes every parent render and `React.memo`
+  // on `BulkEditRow` would never short-circuit.
+  const toggleOne = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
   const clearSelection = () => setSelected(new Set());
 
   // Bulk actions wrap the parent props with the selected set.
@@ -255,7 +260,10 @@ export default function BulkEditTable({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [paged, activeRow, onOpenEdit]);
+    // `toggleOne` is included now that it's wrapped in `useCallback`
+    // (Block D — perf). Identity is stable across renders so the
+    // listener doesn't re-subscribe on every keystroke.
+  }, [paged, activeRow, onOpenEdit, toggleOne]);
 
   // Scroll the active row into view as it changes via keyboard.
   useEffect(() => {
@@ -342,7 +350,11 @@ export default function BulkEditTable({
                 categories={categories}
                 checked={selected.has(c.id)}
                 isActive={i === activeRow}
-                onCheck={() => toggleOne(c.id)}
+                // Pass the stable id-receiving callback directly —
+                // wrapping it in an arrow `() => toggleOne(c.id)`
+                // would defeat the row's `React.memo` because the
+                // arrow's identity changes every parent render.
+                onCheck={toggleOne}
                 onPatch={onPatch}
                 onOpenEdit={onOpenEdit}
                 onDelete={onDelete}
