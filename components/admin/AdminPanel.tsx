@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIES } from "@/lib/data";
+import { CATEGORIES, IMPORT_MARKER_TAG } from "@/lib/data";
 import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, LocalizedString, SectionId } from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
@@ -134,10 +134,11 @@ export default function AdminPanel({
   const t = useT();
 
   // Counts feed the tab badges so the admin sees how much queue
-  // is left without opening the panel. The "Sin clasificar" marker
-  // is bilingual at the data layer but only checked in the ES slot
-  // because that's the slot the importer writes to.
-  const unclassifiedCount = allCases.filter((c) => c.tags.es.includes("Sin clasificar")).length;
+  // is left without opening the panel. The marker (`IMPORT_MARKER_TAG`)
+  // is data — the importer writes it onto `tags.es` regardless of
+  // the visitor language; the badge here is just a count, the pill
+  // copy comes from the i18n dictionary separately.
+  const unclassifiedCount = allCases.filter((c) => c.tags.es.includes(IMPORT_MARKER_TAG)).length;
 
   return (
     <div className="admin-panel">

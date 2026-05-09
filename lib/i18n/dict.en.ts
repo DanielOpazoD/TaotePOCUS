@@ -396,6 +396,47 @@ export const DICT_EN: Dict = {
   "form.action.removeTag": "Remove tag {tag}",
   "form.action.removeTag.en": "Remove tag {tag}",
 
+  // ─── CaseForm — Media panel ────────────────────────────────────
+  "form.media.label": "Image / Video / GIF",
+  "form.media.uploader.aria": "Select an image, video or GIF file",
+  "form.media.processing": "Processing…",
+  "form.media.dropPrompt": "Drag or click to upload",
+  "form.media.formats": "JPG · PNG · GIF · MP4 · WebM",
+  "form.media.remove": "Remove",
+  "form.media.extra.label": "Additional images",
+  "form.media.extra.hint": "Shown in the modal as a carousel after the primary image.",
+  "form.media.extra.add": "+ Add another image",
+  "form.media.extra.removeAria": "Remove {name}",
+  "form.media.extra.fallbackName": "image {n}",
+  "form.media.error.size":
+    "File weighs {actual}. Max allowed: {max}. Compress the video or use a lighter GIF.",
+  "form.media.error.format": "Unsupported format: {type}.",
+  "form.media.error.formatUnknown": "unknown",
+  "form.media.error.read": "Couldn't read the file.",
+
+  // ─── CaseForm — Advanced panel ─────────────────────────────────
+  "form.advanced.section.label": "Section",
+  "form.advanced.loop.label": "Synthetic cine-loop (fallback)",
+  "form.advanced.loop.hint":
+    "Used only when there's no real media. The canvas animation is automatically replaced when you upload a file.",
+  "form.advanced.loop.notUsed":
+    "This case already has real media attached — the synthetic cine-loop isn't used.",
+  "form.advanced.featured.label": "Mark as featured",
+  "form.advanced.featured.hint":
+    'Featured cases appear in the "Featured" carousel on each section.',
+  "form.advanced.loop.blines": "B-lines",
+  "form.advanced.loop.tamponade": "Tamponade",
+  "form.advanced.loop.morrison": "FAST / Morrison",
+  "form.advanced.loop.seashore": "Seashore (M-mode)",
+  "form.advanced.loop.ijv": "Internal jugular",
+  "form.advanced.loop.dvt": "DVT",
+  "form.advanced.loop.hydro": "Hydronephrosis",
+  "form.advanced.loop.ob": "Gestational sac",
+  "form.advanced.loop.lvfunction": "LV function",
+  "form.advanced.loop.aaa": "AAA",
+  "form.advanced.loop.consolidation": "Consolidation",
+  "form.advanced.loop.gallstone": "Gallstone",
+
   // ─── ConfirmDialog ─────────────────────────────────────────────
   "confirm.dismiss.aria": "Dismiss dialog",
   "confirm.cancel": "Cancel",
@@ -403,11 +444,32 @@ export const DICT_EN: Dict = {
   "confirm.delete": "Delete",
   "confirm.purge": "Delete permanently",
 
+  // ─── AuthModal (legacy email+password path) ────────────────────
+  "auth.close.aria": "Close",
+  "auth.aria": "Sign in",
+  "auth.title.login": "Welcome back",
+  "auth.title.register": "Create your account",
+  "auth.intro.login": "Sign in to save cases to your collection.",
+  "auth.intro.register": "Save cases, follow topics, and build your own atlas.",
+  "auth.label.name": "Name",
+  "auth.placeholder.name": "Dr. María Pérez",
+  "auth.label.email": "Email",
+  "auth.placeholder.email": "you@email.com",
+  "auth.label.password": "Password",
+  "auth.placeholder.password": "••••••••",
+  "auth.action.busy": "Verifying…",
+  "auth.action.login": "Sign in",
+  "auth.action.register": "Create account",
+  "auth.alt.toRegister": "New here? ",
+  "auth.alt.toLogin": "Already have an account? ",
+  "auth.demo.title": "Demo admin:",
+
   // ─── Toasts (admin) ────────────────────────────────────────────
   "toast.case.deleted": "Case deleted",
   "toast.case.purged": "Case permanently deleted",
   "toast.case.restored": "Case restored",
   "toast.case.saved": "Case saved",
+  "toast.case.edited": "Case edited · discard from the modal",
   "toast.action.undo": "Undo",
   "toast.category.added": 'Category "{label}" added',
   "toast.category.renamed": "Category renamed",

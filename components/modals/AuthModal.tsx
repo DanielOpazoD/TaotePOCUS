@@ -5,6 +5,7 @@ import { SignIn } from "@clerk/nextjs";
 import { Icon } from "@/lib/icons";
 import { ADMIN_CREDENTIALS, IS_CLERK_ENABLED } from "@/lib/env";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useT } from "@/hooks/useLanguage";
 import type { AuthErrorCode } from "@/lib/errors";
 
 interface Props {
@@ -38,6 +39,7 @@ export default function AuthModal(props: Props) {
 }
 
 function ClerkSignInModal({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
         onClose();
       }}
       onClick={onClickDialog}
-      aria-label="Iniciar sesión"
+      aria-label={t("auth.aria")}
     >
       {/* Minimal positioning wrapper — no background, no padding, no
           border. Clerk's <SignIn /> ships its own card chrome (shadow
@@ -86,7 +88,7 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
           type="button"
           className="modal-close auth-modal-clerk-close"
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label={t("auth.close.aria")}
         >
           {Icon.close()}
         </button>
@@ -130,6 +132,7 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
 }
 
 function LegacyAuthModal({ onClose, onLogin }: Props) {
+  const t = useT();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -200,46 +203,44 @@ function LegacyAuthModal({ onClose, onLogin }: Props) {
           className="modal-close"
           onClick={onClose}
           style={{ top: 16, right: 16 }}
-          aria-label="Cerrar"
+          aria-label={t("auth.close.aria")}
         >
           {Icon.close()}
         </button>
-        <h2 id="auth-title">{mode === "login" ? "Bienvenido de vuelta" : "Crea tu cuenta"}</h2>
-        <p>
-          {mode === "login"
-            ? "Accede para guardar casos en tu colección."
-            : "Guarda casos, sigue temas y construye tu propio atlas."}
-        </p>
+        <h2 id="auth-title">
+          {mode === "login" ? t("auth.title.login") : t("auth.title.register")}
+        </h2>
+        <p>{mode === "login" ? t("auth.intro.login") : t("auth.intro.register")}</p>
         {mode === "register" && (
           <>
-            <label htmlFor="auth-name">Nombre</label>
+            <label htmlFor="auth-name">{t("auth.label.name")}</label>
             <input
               id="auth-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Dr. María Pérez"
+              placeholder={t("auth.placeholder.name")}
             />
           </>
         )}
-        <label htmlFor="auth-email">Correo</label>
+        <label htmlFor="auth-email">{t("auth.label.email")}</label>
         <input
           id="auth-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="tu@correo.com"
+          placeholder={t("auth.placeholder.email")}
           required
           autoFocus
           autoComplete="email"
         />
-        <label htmlFor="auth-password">Contraseña</label>
+        <label htmlFor="auth-password">{t("auth.label.password")}</label>
         <input
           id="auth-password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
+          placeholder={t("auth.placeholder.password")}
           required
           autoComplete="current-password"
         />
@@ -249,20 +250,25 @@ function LegacyAuthModal({ onClose, onLogin }: Props) {
           </div>
         )}
         <button className="primary" type="submit" disabled={busy}>
-          {busy ? "Verificando…" : mode === "login" ? "Entrar" : "Crear cuenta"}
+          {busy
+            ? t("auth.action.busy")
+            : mode === "login"
+              ? t("auth.action.login")
+              : t("auth.action.register")}
         </button>
         <div className="alt">
-          {mode === "login" ? "¿Eres nuevo? " : "¿Ya tienes cuenta? "}
+          {mode === "login" ? t("auth.alt.toRegister") : t("auth.alt.toLogin")}
           <button
             type="button"
             className="link-btn"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
           >
-            {mode === "login" ? "Crear cuenta" : "Iniciar sesión"}
+            {mode === "login" ? t("auth.action.register") : t("auth.action.login")}
           </button>
         </div>
         <div className="auth-hint">
-          <strong>Demo admin:</strong> {ADMIN_CREDENTIALS.email} · {ADMIN_CREDENTIALS.password}
+          <strong>{t("auth.demo.title")}</strong> {ADMIN_CREDENTIALS.email} ·{" "}
+          {ADMIN_CREDENTIALS.password}
         </div>
       </form>
     </dialog>

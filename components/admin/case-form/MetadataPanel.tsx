@@ -19,6 +19,7 @@
 import { useMemo, useState } from "react";
 import { COMMON_TAGS } from "@/lib/data";
 import { categoryLabelEs } from "@/lib/i18n";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, LocalizedString, LocalizedTags } from "@/lib/types";
 import type { FormUpdate } from "./types";
 
@@ -70,6 +71,7 @@ function patchLocalizedTags(
 }
 
 export function MetadataPanel({ form, categories, tagSuggestions, update }: Props) {
+  const t = useT();
   const [tagInputEs, setTagInputEs] = useState("");
   const [tagInputEn, setTagInputEn] = useState("");
 
@@ -119,34 +121,35 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
       <div className="admin-row admin-row--bilingual">
         <div>
           <label className="admin-label" htmlFor="case-form-title-es">
-            Título · ES
+            {t("form.label.title.es")}
           </label>
           <input
             id="case-form-title-es"
             className="admin-input"
             value={form.title.es}
             onChange={(e) => setTitle("es", e.target.value)}
-            placeholder="Ej: Derrame pleural masivo"
+            placeholder={t("form.placeholder.title.es")}
             required
           />
         </div>
         <div>
           <label className="admin-label" htmlFor="case-form-title-en">
-            Title · EN <span className="admin-label-hint">(opcional)</span>
+            {t("form.label.title.en")}{" "}
+            <span className="admin-label-hint">{t("form.label.optional")}</span>
           </label>
           <input
             id="case-form-title-en"
             className="admin-input"
             value={form.title.en ?? ""}
             onChange={(e) => setTitle("en", e.target.value)}
-            placeholder="Ex: Massive pleural effusion"
+            placeholder={t("form.placeholder.title.en")}
           />
         </div>
       </div>
 
       <div className="admin-row">
         <div>
-          <label className="admin-label">Categoría</label>
+          <label className="admin-label">{t("form.label.category")}</label>
           <select
             className="admin-input"
             value={form.category}
@@ -160,19 +163,19 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
           </select>
         </div>
         <div>
-          <label className="admin-label">Modalidad / sonda</label>
+          <label className="admin-label">{t("form.label.modality")}</label>
           <input
             className="admin-input"
             value={form.modality}
             onChange={(e) => update({ modality: e.target.value })}
-            placeholder="Sonda lineal · 5 MHz"
+            placeholder={t("form.placeholder.modality")}
           />
         </div>
       </div>
 
       <div className="admin-row">
         <div>
-          <label className="admin-label">Autor</label>
+          <label className="admin-label">{t("form.label.author")}</label>
           <input
             className="admin-input"
             value={form.author}
@@ -180,7 +183,7 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
           />
         </div>
         <div>
-          <label className="admin-label">Especialidad</label>
+          <label className="admin-label">{t("form.label.role")}</label>
           <input
             className="admin-input"
             value={form.role}
@@ -189,7 +192,7 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
         </div>
       </div>
 
-      <label className="admin-label">Fecha</label>
+      <label className="admin-label">{t("form.label.date")}</label>
       <input
         className="admin-input"
         type="date"
@@ -201,7 +204,7 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
       <div className="admin-row admin-row--bilingual">
         <div>
           <label className="admin-label" htmlFor="case-form-description-es">
-            Descripción · ES
+            {t("form.label.description.es")}
           </label>
           <textarea
             id="case-form-description-es"
@@ -209,13 +212,14 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
             rows={6}
             value={form.description.es}
             onChange={(e) => setDescription("es", e.target.value)}
-            placeholder="Describe el caso: contexto clínico, lo que se ve en la imagen, conclusión…"
+            placeholder={t("form.placeholder.description.es")}
             required
           />
         </div>
         <div>
           <label className="admin-label" htmlFor="case-form-description-en">
-            Description · EN <span className="admin-label-hint">(opcional)</span>
+            {t("form.label.description.en")}{" "}
+            <span className="admin-label-hint">{t("form.label.optional")}</span>
           </label>
           <textarea
             id="case-form-description-en"
@@ -223,7 +227,7 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
             rows={6}
             value={form.description.en ?? ""}
             onChange={(e) => setDescription("en", e.target.value)}
-            placeholder="Describe the case: clinical context, what's visible, conclusion…"
+            placeholder={t("form.placeholder.description.en")}
           />
         </div>
       </div>
@@ -236,16 +240,16 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
       <div className="admin-row admin-row--bilingual">
         <div>
           <label className="admin-label" htmlFor="case-form-tag-input-es">
-            Etiquetas · ES
+            {t("form.label.tags.es")}
           </label>
           <div className="admin-tags-input">
-            {form.tags.es.map((t) => (
-              <span key={t} className="tag-chip active">
-                {t}{" "}
+            {form.tags.es.map((tag) => (
+              <span key={tag} className="tag-chip active">
+                {tag}{" "}
                 <button
                   type="button"
-                  onClick={() => removeTag("es", t)}
-                  aria-label={`Quitar etiqueta ${t}`}
+                  onClick={() => removeTag("es", tag)}
+                  aria-label={t("form.action.removeTag", { tag })}
                 >
                   ×
                 </button>
@@ -263,28 +267,29 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
               }}
               list="case-form-tag-suggestions-es"
               autoComplete="off"
-              placeholder="Agregar etiqueta + Enter"
+              placeholder={t("form.placeholder.tag.es")}
               className="admin-tag-input"
             />
             <datalist id="case-form-tag-suggestions-es">
-              {tagOptionsEs.map((t) => (
-                <option key={t} value={t} />
+              {tagOptionsEs.map((tag) => (
+                <option key={tag} value={tag} />
               ))}
             </datalist>
           </div>
         </div>
         <div>
           <label className="admin-label" htmlFor="case-form-tag-input-en">
-            Tags · EN <span className="admin-label-hint">(opcional)</span>
+            {t("form.label.tags.en")}{" "}
+            <span className="admin-label-hint">{t("form.label.optional")}</span>
           </label>
           <div className="admin-tags-input">
-            {(form.tags.en ?? []).map((t) => (
-              <span key={t} className="tag-chip active">
-                {t}{" "}
+            {(form.tags.en ?? []).map((tag) => (
+              <span key={tag} className="tag-chip active">
+                {tag}{" "}
                 <button
                   type="button"
-                  onClick={() => removeTag("en", t)}
-                  aria-label={`Remove tag ${t}`}
+                  onClick={() => removeTag("en", tag)}
+                  aria-label={t("form.action.removeTag.en", { tag })}
                 >
                   ×
                 </button>
@@ -301,7 +306,7 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
                 }
               }}
               autoComplete="off"
-              placeholder="Add tag + Enter"
+              placeholder={t("form.placeholder.tag.en")}
               className="admin-tag-input"
             />
           </div>

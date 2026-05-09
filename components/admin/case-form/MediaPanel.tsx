@@ -9,6 +9,7 @@
 
 import { useRef } from "react";
 import { Icon } from "@/lib/icons";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Media, MediaKind } from "@/lib/types";
 import { MAX_UPLOAD_BYTES, type FormUpdate } from "./types";
 
@@ -48,6 +49,7 @@ export function MediaPanel({
   uploadError,
   setUploadError,
 }: Props) {
+  const t = useT();
   const fileRef = useRef<HTMLInputElement | null>(null);
   // Secondary uploader: appends to `mediaExtra` so the same case can
   // host a sequence of images (e.g. parasternal + apical + subcostal
@@ -62,14 +64,19 @@ export function MediaPanel({
     setUploadError(null);
     if (f.size > MAX_UPLOAD_BYTES) {
       setUploadError(
-        `El archivo pesa ${formatBytes(f.size)}. Máximo permitido: ${formatBytes(
-          MAX_UPLOAD_BYTES,
-        )}. Comprime el video o usa un GIF más liviano.`,
+        t("form.media.error.size", {
+          actual: formatBytes(f.size),
+          max: formatBytes(MAX_UPLOAD_BYTES),
+        }),
       );
       return;
     }
     if (!f.type.startsWith("image/") && !f.type.startsWith("video/") && f.type !== "image/gif") {
-      setUploadError(`Formato no soportado: ${f.type || "desconocido"}.`);
+      setUploadError(
+        t("form.media.error.format", {
+          type: f.type || t("form.media.error.formatUnknown"),
+        }),
+      );
       return;
     }
     setUploading(true);
@@ -89,7 +96,7 @@ export function MediaPanel({
         });
       }
     } catch {
-      setUploadError("No se pudo leer el archivo.");
+      setUploadError(t("form.media.error.read"));
     } finally {
       setUploading(false);
     }
@@ -122,7 +129,7 @@ export function MediaPanel({
   return (
     <div className="admin-form-media">
       <label className="admin-label" htmlFor="case-media-upload">
-        Imagen / Video / GIF
+        {t("form.media.label")}
       </label>
       <div
         className="admin-uploader"
@@ -135,7 +142,7 @@ export function MediaPanel({
         }}
         role="button"
         tabIndex={0}
-        aria-label="Seleccionar archivo de imagen, video o GIF"
+        aria-label={t("form.media.uploader.aria")}
       >
         {form.media ? (
           form.media.kind === "video" ? (
@@ -146,8 +153,8 @@ export function MediaPanel({
         ) : (
           <div className="admin-upload-empty">
             {Icon.upload()}
-            <span>{uploading ? "Procesando…" : "Arrastra o haz clic para subir"}</span>
-            <small>JPG · PNG · GIF · MP4 · WebM</small>
+            <span>{uploading ? t("form.media.processing") : t("form.media.dropPrompt")}</span>
+            <small>{t("form.media.formats")}</small>
           </div>
         )}
         <input
@@ -163,7 +170,7 @@ export function MediaPanel({
         <div className="admin-media-actions">
           <span className="admin-media-name">{form.media.name}</span>
           <button type="button" className="link-btn" onClick={() => update({ media: undefined })}>
-            Quitar
+            {t("form.media.remove")}
           </button>
         </div>
       )}
@@ -174,10 +181,8 @@ export function MediaPanel({
           primary uploader's vocabulary. */}
       {form.media && (
         <div className="admin-media-extra">
-          <label className="admin-label">Imágenes adicionales</label>
-          <small className="admin-hint">
-            Se mostrarán en el modal como un carrusel después de la imagen principal.
-          </small>
+          <label className="admin-label">{t("form.media.extra.label")}</label>
+          <small className="admin-hint">{t("form.media.extra.hint")}</small>
           {form.mediaExtra && form.mediaExtra.length > 0 && (
             <ul className="admin-media-extra-list">
               {form.mediaExtra.map((m, i) => (
@@ -199,7 +204,9 @@ export function MediaPanel({
                     type="button"
                     className="link-btn"
                     onClick={() => removeExtra(i)}
-                    aria-label={`Quitar ${m.name ?? `imagen ${i + 1}`}`}
+                    aria-label={t("form.media.extra.removeAria", {
+                      name: m.name ?? t("form.media.extra.fallbackName", { n: i + 1 }),
+                    })}
                   >
                     ×
                   </button>
@@ -212,7 +219,7 @@ export function MediaPanel({
             className="btn-ghost admin-media-extra-add"
             onClick={() => extraFileRef.current?.click()}
           >
-            + Añadir otra imagen
+            {t("form.media.extra.add")}
           </button>
           <input
             ref={extraFileRef}

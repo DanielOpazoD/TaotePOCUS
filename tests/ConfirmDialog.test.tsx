@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import ConfirmDialog from "@/components/modals/ConfirmDialog";
+import { renderWithLanguage as render } from "./test-utils";
 
 describe("ConfirmDialog", () => {
   const baseProps = {

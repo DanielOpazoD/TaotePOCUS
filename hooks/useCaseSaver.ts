@@ -7,6 +7,7 @@
 // instead of hosting the branching logic inline.
 
 import { useCallback } from "react";
+import { useT } from "./useLanguage";
 import type { CaseRecord } from "@/lib/types";
 
 interface UserCasesShape {
@@ -50,6 +51,7 @@ export function useCaseSaver({
   editingCase,
   onAfterSave,
 }: Args) {
+  const t = useT();
   return useCallback(
     async (data: CaseRecord) => {
       const isUserOwned = userCases.live.some((c) => c.id === data.id);
@@ -61,11 +63,11 @@ export function useCaseSaver({
       } else {
         // Editing a seed/imported case → save as override.
         ok = await setOverride(data.id, data);
-        if (ok) showToast("Caso editado · puedes descartar desde el modal");
+        if (ok) showToast(t("toast.case.edited"));
       }
       if (!ok) return;
       onAfterSave();
     },
-    [userCases, setOverride, showToast, editingCase, onAfterSave],
+    [userCases, setOverride, showToast, editingCase, onAfterSave, t],
   );
 }

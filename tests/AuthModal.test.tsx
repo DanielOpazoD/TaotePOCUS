@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import AuthModal from "@/components/modals/AuthModal";
+import { renderWithLanguage as render } from "./test-utils";
 
 describe("AuthModal", () => {
   it("renders the login form by default", () => {

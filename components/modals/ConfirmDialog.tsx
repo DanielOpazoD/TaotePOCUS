@@ -12,12 +12,17 @@
 
 import { useEffect, useRef } from "react";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useT } from "@/hooks/useLanguage";
 
 interface Props {
   open: boolean;
   title: string;
   message?: string;
+  /** Custom label for the confirm button. Defaults to a translated
+   *  "Confirmar" / "Confirm" via the i18n dictionary. */
   confirmLabel?: string;
+  /** Custom label for the cancel button. Defaults to a translated
+   *  "Cancelar" / "Cancel". */
   cancelLabel?: string;
   destructive?: boolean;
   onConfirm: () => void;
@@ -28,12 +33,18 @@ export default function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = "Confirmar",
-  cancelLabel = "Cancelar",
+  confirmLabel,
+  cancelLabel,
   destructive = false,
   onConfirm,
   onCancel,
 }: Props) {
+  const t = useT();
+  // Default labels come from the dictionary so the buttons follow
+  // the active UI language. Callers that want destructive copy
+  // (e.g. "Eliminar" / "Delete") still pass an explicit label.
+  const resolvedConfirmLabel = confirmLabel ?? t("confirm.confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("confirm.cancel");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(open);
 
@@ -90,14 +101,14 @@ export default function ConfirmDialog({
         {message && <p id="confirm-message">{message}</p>}
         <div className="confirm-actions">
           <button type="button" className="btn-ghost" onClick={onCancel} autoFocus>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             type="button"
             className={destructive ? "btn-danger" : "btn-primary"}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </button>
         </div>
       </div>

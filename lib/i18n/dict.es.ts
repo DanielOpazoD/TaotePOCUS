@@ -406,6 +406,53 @@ export const DICT_ES = {
   "form.action.removeTag": "Quitar etiqueta {tag}",
   "form.action.removeTag.en": "Remove tag {tag}",
 
+  // ─── CaseForm — Media panel ────────────────────────────────────
+  "form.media.label": "Imagen / Video / GIF",
+  "form.media.uploader.aria": "Seleccionar archivo de imagen, video o GIF",
+  "form.media.processing": "Procesando…",
+  "form.media.dropPrompt": "Arrastra o haz clic para subir",
+  "form.media.formats": "JPG · PNG · GIF · MP4 · WebM",
+  "form.media.remove": "Quitar",
+  "form.media.extra.label": "Imágenes adicionales",
+  "form.media.extra.hint":
+    "Se mostrarán en el modal como un carrusel después de la imagen principal.",
+  "form.media.extra.add": "+ Añadir otra imagen",
+  "form.media.extra.removeAria": "Quitar {name}",
+  "form.media.extra.fallbackName": "imagen {n}",
+  "form.media.error.size":
+    "El archivo pesa {actual}. Máximo permitido: {max}. Comprime el video o usa un GIF más liviano.",
+  "form.media.error.format": "Formato no soportado: {type}.",
+  "form.media.error.formatUnknown": "desconocido",
+  "form.media.error.read": "No se pudo leer el archivo.",
+
+  // ─── CaseForm — Advanced panel ─────────────────────────────────
+  "form.advanced.section.label": "Sección",
+  "form.advanced.loop.label": "Cine-loop sintético (fallback)",
+  "form.advanced.loop.hint":
+    "Solo se usa si no hay media real. La animación en canvas se reemplaza automáticamente cuando subes un archivo.",
+  "form.advanced.loop.notUsed":
+    "Este caso ya tiene media real adjunta — el cine-loop sintético no se usa.",
+  "form.advanced.featured.label": "Marcar como destacado",
+  "form.advanced.featured.hint":
+    'Los casos destacados aparecen en el carrusel "Destacados" en cada sección.',
+  // Loop scene names. The values reuse the existing curated tags
+  // for the medical findings; sharing the same Spanish phrasing as
+  // `category.lung` etc. is intentional — these are the same
+  // concepts surfaced in two contexts (synthetic scene picker vs.
+  // case classification).
+  "form.advanced.loop.blines": "B-líneas",
+  "form.advanced.loop.tamponade": "Tamponade",
+  "form.advanced.loop.morrison": "FAST / Morrison",
+  "form.advanced.loop.seashore": "Seashore (modo M)",
+  "form.advanced.loop.ijv": "Yugular interna",
+  "form.advanced.loop.dvt": "TVP",
+  "form.advanced.loop.hydro": "Hidronefrosis",
+  "form.advanced.loop.ob": "Saco gestacional",
+  "form.advanced.loop.lvfunction": "Función VI",
+  "form.advanced.loop.aaa": "AAA",
+  "form.advanced.loop.consolidation": "Consolidación",
+  "form.advanced.loop.gallstone": "Colelitiasis",
+
   // ─── ConfirmDialog ─────────────────────────────────────────────
   "confirm.dismiss.aria": "Cerrar diálogo",
   "confirm.cancel": "Cancelar",
@@ -413,11 +460,32 @@ export const DICT_ES = {
   "confirm.delete": "Eliminar",
   "confirm.purge": "Eliminar definitivamente",
 
+  // ─── AuthModal (legacy email+password path) ────────────────────
+  "auth.close.aria": "Cerrar",
+  "auth.aria": "Iniciar sesión",
+  "auth.title.login": "Bienvenido de vuelta",
+  "auth.title.register": "Crea tu cuenta",
+  "auth.intro.login": "Accede para guardar casos en tu colección.",
+  "auth.intro.register": "Guarda casos, sigue temas y construye tu propio atlas.",
+  "auth.label.name": "Nombre",
+  "auth.placeholder.name": "Dr. María Pérez",
+  "auth.label.email": "Correo",
+  "auth.placeholder.email": "tu@correo.com",
+  "auth.label.password": "Contraseña",
+  "auth.placeholder.password": "••••••••",
+  "auth.action.busy": "Verificando…",
+  "auth.action.login": "Entrar",
+  "auth.action.register": "Crear cuenta",
+  "auth.alt.toRegister": "¿Eres nuevo? ",
+  "auth.alt.toLogin": "¿Ya tienes cuenta? ",
+  "auth.demo.title": "Demo admin:",
+
   // ─── Toasts (admin) ────────────────────────────────────────────
   "toast.case.deleted": "Caso eliminado",
   "toast.case.purged": "Caso eliminado definitivamente",
   "toast.case.restored": "Caso restaurado",
   "toast.case.saved": "Caso guardado",
+  "toast.case.edited": "Caso editado · puedes descartar desde el modal",
   "toast.action.undo": "Deshacer",
   "toast.category.added": 'Categoría "{label}" agregada',
   "toast.category.renamed": "Categoría renombrada",
