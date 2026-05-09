@@ -10,8 +10,21 @@ test.describe("Home page", () => {
     // layout renders most as `.case-card` and a couple as `.quote-card`
     // (textual variant) — count both. Lower bound rather than exact
     // count so adding more imported cases doesn't break the test.
+    //
+    // The seed corpus loads via `loadSeedCases` (async lazy chunk):
+    // the grid starts empty and fills once the chunk lands. A naked
+    // `await cards.count()` snapshots the count BEFORE hydration on
+    // slower runners (Linux CI hit this consistently — count of 0
+    // → flaky retry pass). `expect.poll` retries the read until the
+    // assertion holds or the timeout elapses, which is exactly the
+    // semantics we want here.
     const cards = page.locator(".case-card, .quote-card");
-    expect(await cards.count()).toBeGreaterThanOrEqual(12);
+    await expect
+      .poll(async () => cards.count(), {
+        message: "atlas grid should hydrate with the seed corpus",
+        timeout: 10_000,
+      })
+      .toBeGreaterThanOrEqual(12);
   });
 
   test("navigates between sections via the header", async ({ page }) => {
