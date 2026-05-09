@@ -352,6 +352,7 @@ export const DICT_EN: Dict = {
   "categories.row.toggleHidden": "Hide {label} from the atlas",
   "categories.row.toggleVisible.title": "Hidden from the public sidebar — click to show",
   "categories.row.toggleHidden.title": "Visible in the public sidebar — click to hide",
+  "categories.row.rename.aria": "Rename {label}",
   "categories.row.rename.es.aria": "Rename {label} in Spanish",
   "categories.row.rename.en.aria": "Rename {label} in English",
   "categories.row.rename.title": "Rename (ES + EN)",

@@ -364,6 +364,7 @@ export const DICT_ES = {
   "categories.row.toggleHidden": "Ocultar {label} del atlas",
   "categories.row.toggleVisible.title": "Oculta en el sidebar público — click para mostrar",
   "categories.row.toggleHidden.title": "Visible en el sidebar público — click para ocultar",
+  "categories.row.rename.aria": "Renombrar {label}",
   "categories.row.rename.es.aria": "Renombrar {label} en español",
   "categories.row.rename.en.aria": "Renombrar {label} en inglés",
   "categories.row.rename.title": "Renombrar (ES + EN)",

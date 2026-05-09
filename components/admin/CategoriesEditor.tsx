@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Icon } from "@/lib/icons";
 import { categoryLabelEs } from "@/lib/i18n";
+import { useT } from "@/hooks/useLanguage";
 import type { Category, LocalizedString } from "@/lib/types";
 
 interface Props {
@@ -59,6 +60,7 @@ export default function CategoriesEditor({
   setHidden,
   caseCounts,
 }: Props) {
+  const t = useT();
   const [draftEs, setDraftEs] = useState("");
   const [draftEn, setDraftEn] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export default function CategoriesEditor({
       // Either validation rejected (duplicate / empty) or the DB
       // wrote back not-ok. The toast layer surfaces the DB reason
       // separately; the inline error covers the validation case.
-      setError("No se pudo crear la categoría (¿ya existe?)");
+      setError(t("categories.error.create"));
       return;
     }
     setDraftEs("");
@@ -122,40 +124,35 @@ export default function CategoriesEditor({
   return (
     <div className="categories-editor">
       <div className="categories-intro">
-        <h2>Categorías</h2>
-        <p>
-          Las categorías integradas no se pueden modificar (sus traducciones vienen del diccionario
-          i18n). Las personalizadas que crees acá aparecerán en el clasificador y en el formulario
-          de edición. El campo en inglés es opcional — si lo dejas vacío, se muestra el español como
-          fallback.
-        </p>
+        <h2>{t("categories.intro.title")}</h2>
+        <p>{t("categories.intro.body")}</p>
       </div>
 
       <form className="categories-add categories-add--bilingual" onSubmit={handleAdd}>
         <input
           type="text"
           className="admin-input"
-          placeholder="Categoría · ES (ej. Pediatría)"
+          placeholder={t("categories.add.placeholder.es")}
           value={draftEs}
           onChange={(e) => {
             setDraftEs(e.target.value);
             if (error) setError(null);
           }}
           maxLength={48}
-          aria-label="Nombre de la nueva categoría en español"
+          aria-label={t("categories.add.aria.es")}
           required
         />
         <input
           type="text"
           className="admin-input"
-          placeholder="Category · EN (opcional)"
+          placeholder={t("categories.add.placeholder.en")}
           value={draftEn}
           onChange={(e) => setDraftEn(e.target.value)}
           maxLength={48}
-          aria-label="Nombre de la nueva categoría en inglés"
+          aria-label={t("categories.add.aria.en")}
         />
         <button type="submit" className="btn-primary" disabled={!draftEs.trim()}>
-          <Icon.plus /> Agregar
+          <Icon.plus /> {t("categories.add.submit")}
         </button>
       </form>
       {error && (
@@ -165,8 +162,10 @@ export default function CategoriesEditor({
       )}
 
       <div className="admin-section-head">
-        <h3>Integradas</h3>
-        <span className="admin-trash-count">{builtIns.length} categorías</span>
+        <h3>{t("categories.section.builtin")}</h3>
+        <span className="admin-trash-count">
+          {t("categories.count", { count: builtIns.length })}
+        </span>
       </div>
       <ul className="categories-list">
         {builtIns.map((c) => {
@@ -177,7 +176,12 @@ export default function CategoriesEditor({
               <span className="categories-row-label">{labelEs}</span>
               <span className="categories-row-id">{c.id}</span>
               <span className="categories-row-count">
-                {caseCounts[c.id] ?? 0} caso{caseCounts[c.id] === 1 ? "" : "s"}
+                {(() => {
+                  const n = caseCounts[c.id] ?? 0;
+                  return t(n === 1 ? "categories.row.cases.one" : "categories.row.cases.many", {
+                    count: n,
+                  });
+                })()}
               </span>
               <span className="categories-row-actions">
                 <button
@@ -185,18 +189,22 @@ export default function CategoriesEditor({
                   className={`categories-visibility-toggle${hidden ? " is-hidden" : ""}`}
                   onClick={() => setHidden(c.id, !hidden)}
                   aria-label={
-                    hidden ? `Mostrar ${labelEs} en el atlas` : `Ocultar ${labelEs} del atlas`
+                    hidden
+                      ? t("categories.row.toggleVisible", { label: labelEs })
+                      : t("categories.row.toggleHidden", { label: labelEs })
                   }
                   aria-pressed={!hidden}
                   title={
                     hidden
-                      ? "Oculta en el sidebar público — click para mostrar"
-                      : "Visible en el sidebar público — click para ocultar"
+                      ? t("categories.row.toggleVisible.title")
+                      : t("categories.row.toggleHidden.title")
                   }
                 >
                   {hidden ? "🚫" : "👁"}
                 </button>
-                <span className="categories-row-locked-label">Integrada</span>
+                <span className="categories-row-locked-label">
+                  {t("categories.row.builtin.tag")}
+                </span>
               </span>
             </li>
           );
@@ -204,13 +212,13 @@ export default function CategoriesEditor({
       </ul>
 
       <div className="admin-section-head">
-        <h3>Personalizadas</h3>
-        <span className="admin-trash-count">{customs.length} categorías</span>
+        <h3>{t("categories.section.custom")}</h3>
+        <span className="admin-trash-count">
+          {t("categories.count", { count: customs.length })}
+        </span>
       </div>
       {customs.length === 0 ? (
-        <p className="categories-empty">
-          Aún no has creado categorías personalizadas. Usa el campo de arriba para empezar.
-        </p>
+        <p className="categories-empty">{t("categories.empty")}</p>
       ) : (
         <ul className="categories-list">
           {customs.map((c) => {
@@ -234,8 +242,8 @@ export default function CategoriesEditor({
                         if (e.key === "Escape") cancelEdit();
                       }}
                       maxLength={48}
-                      aria-label={`Renombrar ${labelEs} en español`}
-                      placeholder="Español"
+                      aria-label={t("categories.row.rename.es.aria", { label: labelEs })}
+                      placeholder={t("categories.row.rename.placeholder.es")}
                     />
                     <input
                       type="text"
@@ -247,31 +255,34 @@ export default function CategoriesEditor({
                         if (e.key === "Escape") cancelEdit();
                       }}
                       maxLength={48}
-                      aria-label={`Renombrar ${labelEs} en inglés`}
-                      placeholder="English (opcional)"
+                      aria-label={t("categories.row.rename.en.aria", { label: labelEs })}
+                      placeholder={t("categories.row.rename.placeholder.en")}
                     />
                     <button
                       type="button"
                       className="btn-ghost"
                       onClick={commitEdit}
-                      title="Guardar (Enter)"
+                      title={t("categories.row.save.title")}
                     >
-                      Guardar
+                      {t("categories.row.save")}
                     </button>
                     <button
                       type="button"
                       className="btn-ghost"
                       onClick={cancelEdit}
-                      title="Cancelar (Esc)"
+                      title={t("categories.row.cancel.title")}
                     >
-                      Cancelar
+                      {t("categories.row.cancel")}
                     </button>
                   </span>
                 ) : (
                   <span className="categories-row-label">
                     {labelEs}
                     {labelEn && (
-                      <span className="categories-row-translation" title="Traducción al inglés">
+                      <span
+                        className="categories-row-translation"
+                        title={t("categories.row.translation.title")}
+                      >
                         · {labelEn}
                       </span>
                     )}
@@ -279,7 +290,9 @@ export default function CategoriesEditor({
                 )}
                 <span className="categories-row-id">{c.id}</span>
                 <span className="categories-row-count">
-                  {inUse} caso{inUse === 1 ? "" : "s"}
+                  {t(inUse === 1 ? "categories.row.cases.one" : "categories.row.cases.many", {
+                    count: inUse,
+                  })}
                 </span>
                 <span className="categories-row-actions">
                   {!isEditing && (
@@ -288,12 +301,16 @@ export default function CategoriesEditor({
                         type="button"
                         className={`categories-visibility-toggle${hidden ? " is-hidden" : ""}`}
                         onClick={() => setHidden(c.id, !hidden)}
-                        aria-label={hidden ? `Mostrar ${labelEs}` : `Ocultar ${labelEs}`}
+                        aria-label={
+                          hidden
+                            ? t("categories.row.toggleVisible", { label: labelEs })
+                            : t("categories.row.toggleHidden", { label: labelEs })
+                        }
                         aria-pressed={!hidden}
                         title={
                           hidden
-                            ? "Oculta en el sidebar público — click para mostrar"
-                            : "Visible en el sidebar público — click para ocultar"
+                            ? t("categories.row.toggleVisible.title")
+                            : t("categories.row.toggleHidden.title")
                         }
                       >
                         {hidden ? "🚫" : "👁"}
@@ -302,8 +319,8 @@ export default function CategoriesEditor({
                         type="button"
                         className="icon-btn"
                         onClick={() => startEdit(c)}
-                        aria-label={`Renombrar ${labelEs}`}
-                        title="Renombrar (ES + EN)"
+                        aria-label={t("categories.row.rename.aria", { label: labelEs })}
+                        title={t("categories.row.rename.title")}
                       >
                         {Icon.edit()}
                       </button>
@@ -317,9 +334,12 @@ export default function CategoriesEditor({
                           if (
                             inUse > 0 &&
                             !window.confirm(
-                              `${labelEs} está asignada a ${inUse} caso${
-                                inUse === 1 ? "" : "s"
-                              }. Si la eliminas, esos casos quedarán con la categoría "${c.id}" como referencia rota. ¿Continuar?`,
+                              t(
+                                inUse === 1
+                                  ? "categories.row.delete.confirm.one"
+                                  : "categories.row.delete.confirm.many",
+                                { label: labelEs, count: inUse, id: c.id },
+                              ),
                             )
                           )
                             return;
@@ -328,8 +348,8 @@ export default function CategoriesEditor({
                           // walk back if the click was a slip.
                           void onRemove(c.id);
                         }}
-                        aria-label={`Eliminar ${labelEs}`}
-                        title="Eliminar categoría"
+                        aria-label={t("categories.row.delete.aria", { label: labelEs })}
+                        title={t("categories.row.delete.title")}
                       >
                         {Icon.trash()}
                       </button>

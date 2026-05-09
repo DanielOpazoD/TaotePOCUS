@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import CategoriesEditor from "@/components/admin/CategoriesEditor";
+import { renderWithLanguage as render } from "./test-utils";
 import type { Category } from "@/lib/types";
 
 const builtIns: Category[] = [

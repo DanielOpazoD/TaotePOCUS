@@ -52,10 +52,6 @@ const WHITELIST = new Set<string>([
   // Backup panel — `<button>Cancelar</button>` in two confirm
   // flows + a couple of inline status strings. Pending follow-up.
   "components/admin/BackupPanel.tsx",
-  // Categories editor — the Phase-3 dual-input rename surface
-  // shipped, but the page heading + add-row placeholder + a
-  // couple of action buttons stayed Spanish. Follow-up.
-  "components/admin/CategoriesEditor.tsx",
 ]);
 
 /**
