@@ -519,6 +519,43 @@ export const DICT_ES = {
   "auth.alt.toLogin": "¿Ya tienes cuenta? ",
   "auth.demo.title": "Demo admin:",
 
+  // ─── Admin panel — Activity feed ──────────────────────────────
+  "activity.intro.title": "Actividad",
+  "activity.intro.body":
+    "Registro append-only de cada cambio admin: overrides, categorías, casos eliminados o restaurados, importaciones. Útil para auditar quién hizo qué y cuándo.",
+  "activity.skeleton.aria": "Cargando actividad…",
+  "activity.filter.aria": "Filtrar por tipo de acción",
+  "activity.filter.all": "Todas las acciones",
+  "activity.count.suffix": "acciones",
+  // "{visible} de {total}" — when the kind filter narrows the row
+  // set, this fragment surfaces between the visible-count and the
+  // " acciones" suffix above. Kept separate so the count stays a
+  // raw `{visibleRows.length}` in JSX.
+  "activity.count.of": "de {total}",
+  "activity.error.auth": "Necesitás iniciar sesión para ver la actividad.",
+  "activity.error.forbidden": "Tu cuenta no tiene permisos de administrador.",
+  "activity.error.load": "No se pudo cargar la actividad. Reintentá más tarde.",
+  "activity.error.network": "Error de red. Reintentá más tarde.",
+  "activity.empty":
+    "Aún no se registraron acciones. Cualquier edición admin que hagas a partir de ahora aparece acá.",
+  "activity.col.date": "Fecha",
+  "activity.col.action": "Acción",
+  "activity.col.target": "Caso / objeto",
+  "activity.col.admin": "Admin",
+  "activity.empty.filtered": "Ninguna acción de tipo «{label}» en el rango cargado.",
+  "activity.loadMore": "Cargar más",
+  "activity.loadMore.busy": "Cargando…",
+  "activity.kind.override_set": "Override aplicado",
+  "activity.kind.override_cleared": "Override descartado",
+  "activity.kind.category_added": "Categoría creada",
+  "activity.kind.category_renamed": "Categoría renombrada",
+  "activity.kind.category_removed": "Categoría eliminada",
+  "activity.kind.user_case_saved": "Caso guardado",
+  "activity.kind.user_case_soft_deleted": "Caso a papelera",
+  "activity.kind.user_case_restored": "Caso restaurado",
+  "activity.kind.import_purged": "Caso eliminado permanentemente",
+  "activity.kind.bulk_imported": "Importación masiva",
+
   // ─── Toasts (admin) ────────────────────────────────────────────
   "toast.case.deleted": "Caso eliminado",
   "toast.case.purged": "Caso eliminado definitivamente",

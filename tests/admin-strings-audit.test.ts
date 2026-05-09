@@ -44,11 +44,6 @@ const ROOT = join(__dirname, "..");
  * (`codex/admin-i18n-residuals`):
  */
 const WHITELIST = new Set<string>([
-  // Activity log labels (event-type → human label map). Live in
-  // an internal admin-only timeline; localising the label map is
-  // a follow-up that also needs to handle past activity rows
-  // (which were written under a different label).
-  "components/admin/ActivityPanel.tsx",
   // Backup panel — `<button>Cancelar</button>` in two confirm
   // flows + a couple of inline status strings. Pending follow-up.
   "components/admin/BackupPanel.tsx",
