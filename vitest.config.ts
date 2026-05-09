@@ -13,7 +13,7 @@ export default defineConfig({
       // `text` gives the local terminal output; `html` is the local
       // browseable report developers open from `coverage/index.html`.
       reporter: ["text", "html", "json-summary"],
-      include: ["lib/**/*.{ts,tsx}"],
+      include: ["lib/**/*.{ts,tsx}", "hooks/**/*.{ts,tsx}"],
       exclude: [
         "**/*.d.ts",
         "**/index.ts", // barrel files have no logic
@@ -50,15 +50,32 @@ export default defineConfig({
         // `lib/store` from components. No logic to test.
         "lib/storage-status.ts",
       ],
-      // Hard floor for `lib/`. CI fails if a PR drops coverage below
-      // these without justification — keeps the unit-test contract real.
-      // `hooks/` are React glue, covered by the e2e suite, deliberately
-      // not included here.
+      // Per-glob thresholds. CI fails if a PR drops coverage below these
+      // without justification — keeps the unit-test contract real.
+      //
+      // `lib/` is the algorithmic core (storage, schemas, migrations,
+      // localization, repo facade). Threshold tracks ~1pp under current
+      // actuals (statements 93.4 / branches 85.5 / functions 97.2 /
+      // lines 96.5) so any noticeable regression breaks the build.
+      //
+      // `hooks/` is React glue. Most surface is exercised through e2e,
+      // so the bar is intentionally lower — we still want a floor to
+      // catch the case where someone deletes a hook test wholesale.
+      // Floor sits ~5pp under current actuals (statements 60.9 /
+      // branches 50.8 / functions 58.9 / lines 64.0).
       thresholds: {
-        statements: 90,
-        branches: 80,
-        functions: 90,
-        lines: 90,
+        "lib/**": {
+          statements: 92,
+          branches: 84,
+          functions: 95,
+          lines: 95,
+        },
+        "hooks/**": {
+          statements: 55,
+          branches: 45,
+          functions: 55,
+          lines: 60,
+        },
       },
     },
   },
