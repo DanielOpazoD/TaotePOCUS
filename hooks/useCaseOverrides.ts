@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { repo } from "@/lib/repo";
 import { log } from "@/lib/log";
+import { normalizeCase } from "@/lib/case-localized";
 import type { CaseRecord } from "@/lib/types";
 import { useCrossTabSync } from "./useCrossTabSync";
 
@@ -141,6 +142,20 @@ export function useCaseOverrides() {
  * Apply per-case overrides to a list. Pure helper, useful in
  * `useCaseFilters` or anywhere the consumer has both a list of
  * `CaseRecord`s and a map of overrides.
+ *
+ * Re-normalizes the bilingual fields (`title` / `description` /
+ * `tags`) AFTER the spread so a legacy-shaped patch (plain string
+ * for title, plain array for tags — pre-Phase-2 persistence) can't
+ * reintroduce the legacy shape on top of an already-normalized
+ * source case. Without this, downstream consumers that read
+ * `c.tags.es` would crash with "cannot read property of undefined"
+ * when the override carries a plain `string[]` for tags.
+ *
+ * The validator at the data boundary (`lib/schemas.ts >
+ * validateOverrideMap`) already normalizes overrides on read, but
+ * defending here too is cheap and protects against any callsite
+ * that hand-crafts an override patch (tests, undo handlers, future
+ * refactors).
  */
 export function mergeWithOverrides(
   cases: CaseRecord[],
@@ -149,6 +164,10 @@ export function mergeWithOverrides(
   if (Object.keys(overrides).length === 0) return cases;
   return cases.map((c) => {
     const patch = overrides[c.id];
-    return patch ? { ...c, ...patch } : c;
+    if (!patch) return c;
+    // Spread, then re-normalize the bilingual slots so the merged
+    // case is always in the modern shape regardless of which form
+    // the patch carried.
+    return normalizeCase({ ...c, ...patch });
   });
 }

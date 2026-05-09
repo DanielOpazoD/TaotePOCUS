@@ -108,25 +108,36 @@ export function normalizeCase(c: CaseRecord): CaseRecord {
  * Resolve a `LocalizedString` to the language the user is viewing.
  * Falls back to Spanish when EN is requested but missing or empty.
  * The `source` flag tells the caller whether the fallback fired.
+ *
+ * Defensive against malformed input: if a legacy plain string or a
+ * malformed object slips past upstream validation (a stale override
+ * spread on top of a normalized case record, an old backup imported
+ * mid-rollout), the helper normalizes inline rather than crashing
+ * with "cannot read property of undefined". The runtime cost is a
+ * single object allocation per call, which is negligible compared
+ * to the React render around it.
  */
-export function readLocalized(value: LocalizedString, lang: Lang): LocalizedRead {
+export function readLocalized(value: LocalizedString | unknown, lang: Lang): LocalizedRead {
+  // Inline normalization — handles plain string (legacy), normal
+  // `{ es; en? }`, and accidental `null` / missing slot.
+  const norm = normalizeLocalizedString(value);
   if (lang === "es") {
-    return { value: value.es, isFallback: false, source: "es" };
+    return { value: norm.es, isFallback: false, source: "es" };
   }
-  if (typeof value.en === "string" && value.en.length > 0) {
-    return { value: value.en, isFallback: false, source: "en" };
+  if (typeof norm.en === "string" && norm.en.length > 0) {
+    return { value: norm.en, isFallback: false, source: "en" };
   }
-  return { value: value.es, isFallback: true, source: "es" };
+  return { value: norm.es, isFallback: true, source: "es" };
 }
 
 /** Sugar for case titles. Equivalent to `readLocalized(c.title, lang)`. */
 export function getCaseTitle(c: CaseRecord, lang: Lang): LocalizedRead {
-  return readLocalized(c.title, lang);
+  return readLocalized(c.title as unknown, lang);
 }
 
 /** Sugar for case bodies. Equivalent to `readLocalized(c.description, lang)`. */
 export function getCaseDescription(c: CaseRecord, lang: Lang): LocalizedRead {
-  return readLocalized(c.description, lang);
+  return readLocalized(c.description as unknown, lang);
 }
 
 /**
@@ -138,18 +149,24 @@ export function getCaseDescription(c: CaseRecord, lang: Lang): LocalizedRead {
  *
  * An empty EN list is treated as missing on purpose: an admin who
  * cleared the EN tags clearly hasn't translated this case yet.
+ *
+ * Defensive against legacy shapes: if `c.tags` arrives as a plain
+ * `string[]` (pre-Phase-2 override merged on top of a normalized
+ * case, ancient backup), normalize inline so consumers never hit
+ * the "tags.es is undefined" runtime error.
  */
 export function getCaseTags(
   c: CaseRecord,
   lang: Lang,
 ): { tags: string[]; isFallback: boolean; source: Lang } {
+  const norm = normalizeLocalizedTags(c.tags as unknown);
   if (lang === "es") {
-    return { tags: c.tags.es, isFallback: false, source: "es" };
+    return { tags: norm.es, isFallback: false, source: "es" };
   }
-  if (Array.isArray(c.tags.en) && c.tags.en.length > 0) {
-    return { tags: c.tags.en, isFallback: false, source: "en" };
+  if (Array.isArray(norm.en) && norm.en.length > 0) {
+    return { tags: norm.en, isFallback: false, source: "en" };
   }
-  return { tags: c.tags.es, isFallback: true, source: "es" };
+  return { tags: norm.es, isFallback: true, source: "es" };
 }
 
 /**
@@ -160,15 +177,22 @@ export function getCaseTags(
  *
  * Returned in lowercase (search is case-insensitive); empty parts
  * are skipped so the resulting string doesn't pad with whitespace.
+ *
+ * Defensive against legacy persistence shapes — title / description
+ * may arrive as plain strings, tags as plain arrays. Normalizes
+ * inline rather than throwing "cannot read property" inside a memo.
  */
 export function searchHaystack(c: CaseRecord): string {
+  const title = normalizeLocalizedString(c.title as unknown);
+  const description = normalizeLocalizedString(c.description as unknown);
+  const tags = normalizeLocalizedTags(c.tags as unknown);
   const parts: string[] = [];
-  if (c.title.es) parts.push(c.title.es);
-  if (c.title.en) parts.push(c.title.en);
-  if (c.description.es) parts.push(c.description.es);
-  if (c.description.en) parts.push(c.description.en);
-  parts.push(...c.tags.es);
-  if (c.tags.en) parts.push(...c.tags.en);
+  if (title.es) parts.push(title.es);
+  if (title.en) parts.push(title.en);
+  if (description.es) parts.push(description.es);
+  if (description.en) parts.push(description.en);
+  parts.push(...tags.es);
+  if (tags.en) parts.push(...tags.en);
   if (c.author) parts.push(c.author);
   return parts.join(" ").toLowerCase();
 }
