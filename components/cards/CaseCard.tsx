@@ -3,10 +3,13 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "./AdminThumbMenu";
+import FallbackBadge from "./FallbackBadge";
 import { Icon, CategoryGlyph, CustomCategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
-import { getDescription } from "@/lib/case-description";
+import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
+import { categoryLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import { highlight } from "@/lib/highlight";
 import type { CaseRecord, Category } from "@/lib/types";
 
@@ -62,6 +65,14 @@ function CaseCardImpl({
   priority = false,
   searchQuery,
 }: Props) {
+  const { lang } = useLanguage();
+  // Resolve every translatable field once per render; reuse below.
+  // The `isFallback` flag from each helper feeds the `<FallbackBadge>`
+  // that renders next to the affected text when the user picked EN
+  // and the admin hasn't translated this case yet.
+  const titleRead = getCaseTitle(caso, lang);
+  const descRead = getCaseDescription(caso, lang);
+  const tagsRead = getCaseTags(caso, lang);
   // Live-preview focus while the FocusEditor is open. Falls back to
   // the persisted `caso.focus` when the editor is closed (or never
   // opened). The CineLoop reads the resolved focus directly — no
@@ -147,10 +158,11 @@ function CaseCardImpl({
         />
         <div className="case-thumb-overlay"></div>
         <div className="case-thumb-preview">
-          {/* First sentence of the canonical description. Falls back
-              to the legacy fields via `getDescription` so imported
-              cases keep their hover preview. */}
-          <p>{firstSentence(getDescription(caso))}</p>
+          {/* First sentence of the active-language description (with
+              EN→ES fallback). Imported cases that ship as ES-only
+              still render the preview because the helper falls
+              through to the Spanish baseline. */}
+          <p>{firstSentence(descRead.value)}</p>
         </div>
         {/* Admin-only review badge — appears top-right under the fav
             button when the editorial review has been confirmed. The
@@ -190,18 +202,16 @@ function CaseCardImpl({
           <span className="case-cat-glyph" aria-hidden="true">
             {CategoryGlyph[caso.category] ?? CustomCategoryGlyph}
           </span>
-          <span>{cat?.label}</span>
+          <span>{cat ? categoryLabel(cat, lang) : ""}</span>
         </div>
         <h3 className="case-title">
-          {searchQuery ? highlight(caso.title, searchQuery) : caso.title}
+          {searchQuery ? highlight(titleRead.value, searchQuery) : titleRead.value}
+          {titleRead.isFallback && <FallbackBadge read={titleRead} />}
         </h3>
-        {/* Short blurb under the title — also pulls from the canonical
-            description rather than the legacy `summary` slot. */}
+        {/* Short blurb under the title in the active language. */}
         <p className="case-summary">
-          {(() => {
-            const desc = getDescription(caso);
-            return searchQuery ? highlight(desc, searchQuery) : desc;
-          })()}
+          {searchQuery ? highlight(descRead.value, searchQuery) : descRead.value}
+          {descRead.isFallback && <FallbackBadge read={descRead} inline />}
         </p>
         <div className="case-byline">
           <span>{caso.author}</span>
@@ -211,11 +221,14 @@ function CaseCardImpl({
           </time>
         </div>
         <div className="case-tags">
-          {caso.tags.slice(0, 3).map((t) => (
+          {tagsRead.tags.slice(0, 3).map((t) => (
             <span key={t} className="case-tag-mini">
               {searchQuery ? highlight(t, searchQuery) : t}
             </span>
           ))}
+          {tagsRead.isFallback && tagsRead.tags.length > 0 && (
+            <FallbackBadge read={{ value: "", isFallback: true, source: "es" }} />
+          )}
         </div>
       </div>
     </div>

@@ -39,9 +39,9 @@ describe("CaseForm — tag autocomplete", () => {
     // de-duped. Read the option values straight off the DOM —
     // happy-dom doesn't render datalist visually but the elements
     // are queryable.
-    const options = Array.from(container.querySelectorAll("#case-form-tag-suggestions option")).map(
-      (o) => (o as HTMLOptionElement).value,
-    );
+    const options = Array.from(
+      container.querySelectorAll("#case-form-tag-suggestions-es option"),
+    ).map((o) => (o as HTMLOptionElement).value);
     expect(options).toContain("B-líneas");
     expect(options).toContain("TVP");
     expect(options).toContain("Neumotórax");
@@ -58,18 +58,21 @@ describe("CaseForm — tag autocomplete", () => {
     // The form's `addTag` flow appends to `form.tags`. To preselect
     // a tag for this assertion we use the `initial` prop with a
     // pre-populated case.
+    // Bilingual fields supplied as the modern shape — the form
+    // populates the ES slot from `title.es` / `description.es` /
+    // `tags.es`.
     const initial = {
       id: "u_test",
       section: "atlas" as const,
-      title: "Test",
+      title: { es: "Test" },
       category: "cardiac",
-      tags: ["B-líneas"],
+      tags: { es: ["B-líneas"] },
       modality: "POCUS",
       loop: "blines" as const,
       author: "Tester",
       role: "QA",
       date: "2026-04-26",
-      description: "Description text.",
+      description: { es: "Description text." },
     };
     const { container } = render(
       <CaseForm
@@ -80,9 +83,9 @@ describe("CaseForm — tag autocomplete", () => {
         onCancel={vi.fn()}
       />,
     );
-    const options = Array.from(container.querySelectorAll("#case-form-tag-suggestions option")).map(
-      (o) => (o as HTMLOptionElement).value,
-    );
+    const options = Array.from(
+      container.querySelectorAll("#case-form-tag-suggestions-es option"),
+    ).map((o) => (o as HTMLOptionElement).value);
     expect(options).not.toContain("B-líneas");
     expect(options).toContain("TVP");
   });
@@ -91,9 +94,9 @@ describe("CaseForm — tag autocomplete", () => {
     const { container } = render(
       <CaseForm initial={null} currentUser={adminFactory()} onSave={vi.fn()} onCancel={vi.fn()} />,
     );
-    const options = Array.from(container.querySelectorAll("#case-form-tag-suggestions option")).map(
-      (o) => (o as HTMLOptionElement).value,
-    );
+    const options = Array.from(
+      container.querySelectorAll("#case-form-tag-suggestions-es option"),
+    ).map((o) => (o as HTMLOptionElement).value);
     // Every COMMON_TAGS entry is present (vocabulary floor).
     for (const t of COMMON_TAGS) {
       expect(options).toContain(t);
@@ -110,18 +113,25 @@ describe("CaseForm — submit gate", () => {
     // Empty form → submit button click does nothing observable.
     fireEvent.click(screen.getByRole("button", { name: /Publicar caso/ }));
     expect(onSave).not.toHaveBeenCalled();
-    // Title only — still rejected (description required).
-    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Hello" } });
+    // The Phase-2 i18n editor splits title / description into bilingual
+    // pairs; the gated fields are the Spanish slots ("Título · ES" /
+    // "Descripción · ES"). EN is optional and never blocks save.
+    fireEvent.change(screen.getByLabelText("Título · ES"), { target: { value: "Hello" } });
     fireEvent.click(screen.getByRole("button", { name: /Publicar caso/ }));
     expect(onSave).not.toHaveBeenCalled();
-    // Both filled → onSave fires.
-    fireEvent.change(screen.getByLabelText("Descripción"), {
+    // Both ES slots filled → onSave fires.
+    fireEvent.change(screen.getByLabelText("Descripción · ES"), {
       target: { value: "A description that's long enough to be valid." },
     });
     fireEvent.click(screen.getByRole("button", { name: /Publicar caso/ }));
     expect(onSave).toHaveBeenCalledTimes(1);
-    const saved = onSave.mock.calls[0]?.[0] as { description: string; id: string };
-    expect(saved.description).toMatch(/long enough to be valid/);
+    const saved = onSave.mock.calls[0]?.[0] as {
+      description: { es: string };
+      title: { es: string };
+      id: string;
+    };
+    expect(saved.description.es).toMatch(/long enough to be valid/);
+    expect(saved.title.es).toBe("Hello");
     expect(saved.id).toMatch(/^u_/); // generated id for new cases
   });
 });

@@ -14,7 +14,7 @@ import { BulkEditRowMenu } from "./cells/RowMenu";
 import { BulkEditTagsCell } from "./cells/TagsCell";
 import { BulkEditThumb } from "./cells/Thumb";
 import { getDescription, setDescription as makeDescriptionPatch } from "@/lib/case-description";
-import type { CaseRecord, Category } from "@/lib/types";
+import type { CaseRecord, Category, LocalizedTags } from "@/lib/types";
 
 interface Props {
   caso: CaseRecord;
@@ -37,7 +37,12 @@ export function BulkEditRow({
   onOpenEdit,
   onDelete,
 }: Props) {
+  // The bulk-edit table edits the Spanish baseline directly — the
+  // admin's productivity surface, not a translation tool. Edits to
+  // EN happen in the full CaseForm modal opened via the row menu.
+  const titleEs = caso.title.es;
   const description = getDescription(caso);
+  const tagsEs = caso.tags.es;
   const cls = ["bulk-edit-row", checked ? "is-selected" : "", isActive ? "is-active" : ""]
     .filter(Boolean)
     .join(" ");
@@ -46,7 +51,7 @@ export function BulkEditRow({
       <td className="bulk-edit-td-check">
         <input
           type="checkbox"
-          aria-label={`Seleccionar ${caso.title}`}
+          aria-label={`Seleccionar ${titleEs}`}
           checked={checked}
           onChange={onCheck}
         />
@@ -56,11 +61,16 @@ export function BulkEditRow({
       </td>
       <td>
         <BulkEditEditableText
-          value={caso.title}
-          ariaLabel={`Título de ${caso.title}`}
+          value={titleEs}
+          ariaLabel={`Título de ${titleEs}`}
           onSave={async (next) => {
-            if (next.trim() && next !== caso.title) {
-              await onPatch(caso.id, { title: next.trim() });
+            if (next.trim() && next !== titleEs) {
+              // Edit the ES slot, preserve any existing EN translation
+              // so this productivity edit doesn't silently undo a
+              // translation made in the full editor.
+              const nextTitle: CaseRecord["title"] = { es: next.trim() };
+              if (caso.title.en) nextTitle.en = caso.title.en;
+              await onPatch(caso.id, { title: nextTitle });
             }
           }}
         />
@@ -68,11 +78,13 @@ export function BulkEditRow({
       <td>
         <BulkEditEditableText
           value={description}
-          ariaLabel={`Descripción de ${caso.title}`}
+          ariaLabel={`Descripción de ${titleEs}`}
           multiline
           onSave={async (next) => {
             if (next !== description) {
-              await onPatch(caso.id, makeDescriptionPatch(next));
+              // `makeDescriptionPatch` already preserves the EN slot
+              // when given the previous LocalizedString.
+              await onPatch(caso.id, makeDescriptionPatch(next, caso.description));
             }
           }}
         />
@@ -81,7 +93,7 @@ export function BulkEditRow({
         <select
           className="bulk-edit-cat-select"
           value={caso.category}
-          aria-label={`Categoría de ${caso.title}`}
+          aria-label={`Categoría de ${titleEs}`}
           onChange={(e) => {
             void onPatch(caso.id, { category: e.target.value });
           }}
@@ -95,16 +107,20 @@ export function BulkEditRow({
       </td>
       <td className="bulk-edit-td-tags">
         <BulkEditTagsCell
-          tags={caso.tags}
+          tags={tagsEs}
           onSave={async (next) => {
-            await onPatch(caso.id, { tags: next });
+            // Replace the ES list, preserve EN so a quick tag edit
+            // doesn't drop an existing translated tag set.
+            const nextTags: LocalizedTags = { es: next };
+            if (caso.tags.en && caso.tags.en.length > 0) nextTags.en = caso.tags.en;
+            await onPatch(caso.id, { tags: nextTags });
           }}
         />
       </td>
       <td className="bulk-edit-td-reviewed">
         <input
           type="checkbox"
-          aria-label={`${caso.title}: ${caso.reviewed ? "marcar sin revisar" : "marcar revisado"}`}
+          aria-label={`${titleEs}: ${caso.reviewed ? "marcar sin revisar" : "marcar revisado"}`}
           checked={!!caso.reviewed}
           onChange={(e) => {
             void onPatch(caso.id, { reviewed: e.target.checked });

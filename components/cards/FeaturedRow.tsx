@@ -1,9 +1,12 @@
 "use client";
 
 import { CineLoop } from "../cine";
+import FallbackBadge from "./FallbackBadge";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import { getDescription } from "@/lib/case-description";
+import { getCaseDescription, getCaseTitle } from "@/lib/case-localized";
+import { categoryLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -26,7 +29,10 @@ function FeaturedCard({
   onOpen: () => void;
   onFav: () => void;
 }) {
+  const { lang, t } = useLanguage();
   const cat = CATEGORIES.find((c) => c.id === caso.category);
+  const titleRead = getCaseTitle(caso, lang);
+  const descRead = getCaseDescription(caso, lang);
   // The "Crítico" red badge was removed in May-2026 — see CaseCard.tsx
   // for the rationale.
   return (
@@ -62,16 +68,24 @@ function FeaturedCard({
             e.stopPropagation();
             onFav();
           }}
-          aria-label="Favorito"
+          aria-label={t("card.fav.aria")}
         >
           {Icon.heart(isFav)}
         </button>
         <span className="case-thumb-modality">{caso.modality}</span>
       </div>
       <div className="featured-meta">
-        <div className="case-cat">{cat?.label}</div>
-        <h3 className="featured-title">{caso.title}</h3>
-        {variant === "hero" && <p className="featured-abstract">{getDescription(caso)}</p>}
+        <div className="case-cat">{cat ? categoryLabel(cat, lang) : ""}</div>
+        <h3 className="featured-title">
+          {titleRead.value}
+          {titleRead.isFallback && <FallbackBadge read={titleRead} />}
+        </h3>
+        {variant === "hero" && (
+          <p className="featured-abstract">
+            {descRead.value}
+            {descRead.isFallback && <FallbackBadge read={descRead} inline />}
+          </p>
+        )}
         <div className="case-byline">
           <span>{caso.author}</span>
           <span className="dot"></span>
@@ -83,6 +97,7 @@ function FeaturedCard({
 }
 
 export default function FeaturedRow({ cases, favs, onOpen, onFav }: Props) {
+  const { t } = useLanguage();
   const featured = cases.filter((c) => c.featured).slice(0, 3);
   const [hero, ...side] = featured;
   // The early return both skips an empty row and narrows `hero` from
@@ -91,7 +106,7 @@ export default function FeaturedRow({ cases, favs, onOpen, onFav }: Props) {
   return (
     <section className="featured-row">
       <div className="featured-head">
-        <h2>Destacados</h2>
+        <h2>{t("featured.title")}</h2>
         <span className="featured-rule" />
       </div>
       <div className={`featured-grid ${side.length === 0 ? "single" : ""}`}>

@@ -26,26 +26,45 @@ function nextId(prefix: string): string {
  * Build a `CaseRecord` with realistic-looking defaults. The default
  * scene is "blines" because it's the safest cine-loop type — most
  * tests don't render the canvas, but if one does, it works.
+ *
+ * The factory accepts the modern `LocalizedString` shape AND the
+ * legacy plain-string shape for `title` / `description` / `tags`,
+ * normalizing whichever you pass. Legacy callers (the bulk of the
+ * test suite written before Phase-2 i18n) can keep doing
+ * `caseFactory({ title: "x" })`; new tests can pass
+ * `{ title: { es: "Hola", en: "Hello" } }` directly.
  */
-export function caseFactory(overrides: Partial<CaseRecord> = {}): CaseRecord {
+import { normalizeLocalizedString, normalizeLocalizedTags } from "@/lib/case-localized";
+import type { LocalizedString, LocalizedTags } from "@/lib/types";
+
+export type CaseFactoryOverrides = Omit<Partial<CaseRecord>, "title" | "description" | "tags"> & {
+  title?: string | LocalizedString;
+  description?: string | LocalizedString;
+  tags?: string[] | LocalizedTags;
+};
+
+export function caseFactory(overrides: CaseFactoryOverrides = {}): CaseRecord {
+  const { title, description, tags, ...rest } = overrides;
   return {
     id: nextId("c"),
     section: "atlas",
-    title: "Edema pulmonar agudo",
+    title: normalizeLocalizedString(title ?? "Edema pulmonar agudo"),
     category: "lung",
-    tags: ["B-líneas", "Crítico"],
+    tags: normalizeLocalizedTags(tags ?? ["B-líneas", "Crítico"]),
     modality: "Lung POCUS",
     loop: "blines",
     author: "Dr. Test Author",
     role: "Residente UCI",
     date: "2026-04-15",
-    description:
-      "Paciente con disnea súbita; eco rápido confirma sobrecarga de volumen. " +
-      "Patrón B confluente bilateral, líneas pleurales engrosadas. " +
-      "Edema pulmonar agudo cardiogénico.",
+    description: normalizeLocalizedString(
+      description ??
+        "Paciente con disnea súbita; eco rápido confirma sobrecarga de volumen. " +
+          "Patrón B confluente bilateral, líneas pleurales engrosadas. " +
+          "Edema pulmonar agudo cardiogénico.",
+    ),
     featured: false,
     difficulty: "intermediate",
-    ...overrides,
+    ...rest,
   };
 }
 

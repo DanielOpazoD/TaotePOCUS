@@ -104,7 +104,11 @@ export default function BulkEditTable({
   // empty the message stays static (clearing nothing wouldn't help).
   const hasActiveFilters = filterSection !== "" || filterCat !== "" || query.trim() !== "";
 
-  // Filter pipeline — same vocab as the public catalog.
+  // Filter pipeline — admin-side, so we search across BOTH language
+  // slots (title.es, title.en, description.es, description.en,
+  // tags.es, tags.en). Lets the admin find a case by typing its
+  // English title even though the visible cells show the Spanish
+  // baseline.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return cases.filter((c) => {
@@ -112,11 +116,12 @@ export default function BulkEditTable({
       if (filterSection && c.section !== filterSection) return false;
       if (filterCat && c.category !== filterCat) return false;
       if (q) {
-        const hay =
-          c.title.toLowerCase().includes(q) ||
-          getDescription(c).toLowerCase().includes(q) ||
-          c.tags.some((t) => t.toLowerCase().includes(q));
-        if (!hay) return false;
+        const titleHay = `${c.title.es} ${c.title.en ?? ""}`.toLowerCase();
+        const descHay = `${c.description.es} ${c.description.en ?? ""}`.toLowerCase();
+        const tagHay = [...c.tags.es, ...(c.tags.en ?? [])].some((t) =>
+          t.toLowerCase().includes(q),
+        );
+        if (!(titleHay.includes(q) || descHay.includes(q) || tagHay)) return false;
       }
       return true;
     });
@@ -130,8 +135,12 @@ export default function BulkEditTable({
       let av: string | number;
       let bv: string | number;
       if (sortField === "title") {
-        av = a.title;
-        bv = b.title;
+        // Sort by the Spanish slot — the bulk-edit table always
+        // shows the ES title cell, so sorting by what's NOT visible
+        // would surprise the admin. EN-translated cases sort with
+        // their ES siblings.
+        av = a.title.es;
+        bv = b.title.es;
       } else if (sortField === "description") {
         av = getDescription(a);
         bv = getDescription(b);

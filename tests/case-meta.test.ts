@@ -54,14 +54,14 @@ describe("getCaseMedia", () => {
 describe("readingTimeFor", () => {
   it("returns at least '1 min' for very short cases", () => {
     const c = caseFactory({ title: "x", description: "y", tags: [] });
-    expect(readingTimeFor(c)).toBe("1 min");
+    expect(readingTimeFor(c, "es")).toBe("1 min");
   });
 
   it("scales roughly with word count (180 wpm)", () => {
     // ~720 words → 4 minutes at 180 wpm.
     const longText = Array.from({ length: 720 }, (_, i) => `palabra${i}`).join(" ");
     const c = caseFactory({ title: "Caso", description: longText, tags: [] });
-    expect(readingTimeFor(c)).toBe("4 min");
+    expect(readingTimeFor(c, "es")).toBe("4 min");
   });
 
   it("counts title + description + tags into the estimate", () => {
@@ -72,19 +72,19 @@ describe("readingTimeFor", () => {
       tags: ["B-líneas", "Crítico", "Cardiogénico"],
     });
     // ~9 words total → still rounds to 1 min, but the call shouldn't throw.
-    expect(readingTimeFor(c)).toMatch(/^\d+ min$/);
+    expect(readingTimeFor(c, "es")).toMatch(/^\d+ min$/);
   });
 });
 
 describe("difficultyLabel", () => {
   it("returns the Spanish label for each level", () => {
-    expect(difficultyLabel(caseFactory({ difficulty: "basic" }))).toBe("Básico");
-    expect(difficultyLabel(caseFactory({ difficulty: "intermediate" }))).toBe("Intermedio");
-    expect(difficultyLabel(caseFactory({ difficulty: "advanced" }))).toBe("Avanzado");
+    expect(difficultyLabel(caseFactory({ difficulty: "basic" }), "es")).toBe("Básico");
+    expect(difficultyLabel(caseFactory({ difficulty: "intermediate" }), "es")).toBe("Intermedio");
+    expect(difficultyLabel(caseFactory({ difficulty: "advanced" }), "es")).toBe("Avanzado");
   });
 
   it("defaults to 'Intermedio' when difficulty is missing", () => {
-    expect(difficultyLabel(caseFactory({ difficulty: undefined }))).toBe("Intermedio");
+    expect(difficultyLabel(caseFactory({ difficulty: undefined }), "es")).toBe("Intermedio");
   });
 });
 
@@ -92,14 +92,14 @@ describe("lastUpdatedFor", () => {
   it("formats lastUpdated when present (Spanish full date)", () => {
     // Use noon UTC to dodge timezone shifts at midnight boundaries.
     const c = caseFactory({ date: "2026-01-01", lastUpdated: "2026-04-15T12:00:00Z" });
-    const out = lastUpdatedFor(c);
+    const out = lastUpdatedFor(c, "es");
     expect(out).toContain("2026");
     expect(out).toMatch(/abril/i); // month name in Spanish
   });
 
   it("falls back to date when lastUpdated is missing", () => {
     const c = caseFactory({ date: "2026-04-15T12:00:00Z", lastUpdated: undefined });
-    const out = lastUpdatedFor(c);
+    const out = lastUpdatedFor(c, "es");
     expect(out).toContain("2026");
     expect(out).toMatch(/abril/i);
   });

@@ -78,7 +78,7 @@ export function BulkEditThumb({ caso, onOpen }: Props) {
       type="button"
       className="bulk-edit-thumb-btn"
       onClick={onOpen}
-      aria-label={`Abrir edición completa de ${caso.title}`}
+      aria-label={`Abrir edición completa de ${caso.title.es}`}
     >
       {inner}
     </button>

@@ -177,6 +177,37 @@ textarea.admin-input {
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
 }
+/*
+ * Bilingual variant. Same two-column grid as `.admin-row` but
+ * collapses to a stack on narrow viewports so the ES and EN slots
+ * stay editable side-by-side on desktop and stack vertically on
+ * mobile. A faint hairline between the columns visually separates
+ * the two language slots without adding boxes/cards.
+ */
+.admin-row--bilingual {
+  /* On wide viewports: ES + EN side by side, with the hairline. */
+  position: relative;
+}
+@media (min-width: 720px) {
+  .admin-row--bilingual {
+    column-gap: var(--space-4);
+  }
+}
+@media (max-width: 719px) {
+  .admin-row--bilingual {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-3);
+  }
+}
+.admin-label-hint {
+  /* Subtle "(opcional)" or similar suffix next to a label. Reads
+     as a footnote rather than a competing label. */
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-mute);
+  margin-left: 4px;
+  letter-spacing: normal;
+}
 .admin-hint {
   display: block;
   font-size: 11px;

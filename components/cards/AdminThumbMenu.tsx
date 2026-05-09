@@ -285,9 +285,15 @@ function ReclassifyInline({
   );
   const apply = (patch: Partial<CaseRecord>) => {
     // Match drag-drop semantics: any classification decision strips
-    // the import-time `Sin clasificar` tag.
-    const tags = caso.tags.filter((t) => t !== "Sin clasificar");
-    onPatch(caso.id, { ...patch, tags });
+    // the import-time `Sin clasificar` tag from BOTH language slots.
+    // The marker is bilingual because we want the classifier to clean
+    // up both lists in one move; the EN list (if present) gets the
+    // same filter pass.
+    const cleanedEs = caso.tags.es.filter((t) => t !== "Sin clasificar");
+    const cleanedEn = caso.tags.en?.filter((t) => t !== "Sin clasificar");
+    const nextTags: CaseRecord["tags"] =
+      cleanedEn && cleanedEn.length > 0 ? { es: cleanedEs, en: cleanedEn } : { es: cleanedEs };
+    onPatch(caso.id, { ...patch, tags: nextTags });
   };
   return (
     <div className="admin-thumb-menu-sub">

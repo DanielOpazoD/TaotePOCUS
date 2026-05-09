@@ -27,7 +27,6 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import { getDescription } from "@/lib/case-description";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import { MetadataPanel } from "./case-form/MetadataPanel";
 import { MediaPanel } from "./case-form/MediaPanel";
@@ -72,19 +71,23 @@ export default function CaseForm({
   onSave,
   onCancel,
 }: Props) {
+  // New cases start with empty bilingual slots — the admin types the
+  // ES content first (mandatory baseline) and optionally fills the
+  // EN slot before saving. Empty `en` is fine; the renderer falls
+  // back to ES with a small "ES" badge when EN is missing.
   const blank: CaseRecord = {
     id: "",
     section: "atlas",
-    title: "",
+    title: { es: "" },
     category: "cardiac",
-    tags: [],
+    tags: { es: [] },
     modality: "",
     loop: "blines",
     media: undefined,
     author: currentUser?.name || "Administrador",
     role: "Administrador",
     date: new Date().toISOString().slice(0, 10),
-    description: "",
+    description: { es: "" },
     featured: false,
   };
   const [form, setForm] = useState<CaseRecord>(initial || blank);
@@ -103,17 +106,14 @@ export default function CaseForm({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Description goes through `getDescription` so legacy cases
-    // (with `findings` / `summary` / `diagnosis` instead of
-    // `description`) still pass the validation gate without the
-    // admin re-typing their body. New writes always populate the
-    // canonical `description` field.
-    const description = getDescription(form);
-    if (!form.title.trim() || !description.trim()) {
+    // Validation gate: the Spanish baseline must be populated. The
+    // English slot is optional — we never block save on a missing
+    // translation (the renderer falls back to ES with a badge).
+    if (!form.title.es.trim() || !form.description.es.trim()) {
       // If validation fails because of a field that lives in a
       // non-active tab, switch to the tab that hosts the missing
       // field so the admin can see what's wrong. Both gated fields
-      // (title + description) live on the Metadatos panel.
+      // (title.es + description.es) live on the Metadatos panel.
       setTab("metadata");
       return;
     }

@@ -48,7 +48,10 @@ export function ClassifierDragHint({ draggedId, hoverTarget, cases, categories }
   return (
     <div className="classifier-drag-hint" role="status" aria-live="polite">
       <span className="classifier-drag-hint-label">Arrastrando</span>
-      <span className="classifier-drag-hint-title">{dragged?.title ?? "caso"}</span>
+      {/* Drag hint on the admin classifier — show the ES title since
+          this is editorial work. Falls back to a literal "caso" when
+          the dragged case is unresolved (drag tracker race). */}
+      <span className="classifier-drag-hint-title">{dragged?.title.es ?? "caso"}</span>
       {landing ? (
         <>
           <span className="classifier-drag-hint-arrow" aria-hidden="true">

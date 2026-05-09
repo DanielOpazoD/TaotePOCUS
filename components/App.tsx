@@ -395,13 +395,13 @@ function AppInner() {
         editingCase={editingCase}
         currentUser={user}
         categories={config.categories}
-        // Catalog-wide tag vocabulary for the autocomplete in the
+        // Catalog-wide ES tag vocabulary for the autocomplete in the
         // tags input. Pulled from every case (live + soft-deleted)
         // so re-using a freshly-deprecated tag still suggests it
-        // until the admin actually purges. The form unions this with
-        // `COMMON_TAGS` and dedupes; we keep that logic co-located
-        // there.
-        tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags)))}
+        // until the admin actually purges. Only the ES slot — the
+        // EN editor doesn't surface autocomplete because the EN tag
+        // corpus grows organically with translations.
+        tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags.es)))}
         onCancelForm={() => {
           setFormOpen(false);
           setEditingCase(null);

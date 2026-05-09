@@ -96,7 +96,10 @@ export default function ClassifierBoard({
     let pool: CaseRecord[];
     switch (filter) {
       case "unclassified":
-        pool = cases.filter((c) => c.tags.includes("Sin clasificar"));
+        // The "Sin clasificar" marker is bilingual at the data layer
+        // (it can land in either tag list during import) but we only
+        // need to check the ES slot — the importer always writes there.
+        pool = cases.filter((c) => c.tags.es.includes("Sin clasificar"));
         break;
       case "unreviewed":
         pool = cases.filter((c) => !c.reviewed);
@@ -110,9 +113,21 @@ export default function ClassifierBoard({
     const q = searchQuery.trim().toLowerCase();
     if (q) {
       pool = pool.filter((c) => {
-        // Single canonical description in the haystack — `getDescription`
-        // covers the new field plus the legacy fallback chain in one read.
-        const haystack = [c.title, getDescription(c), c.author, ...c.tags].join(" ").toLowerCase();
+        // Search across ES + EN content + tags + author so the admin
+        // can find a partially-translated case by typing in either
+        // language. `getDescription` returns the ES baseline; we
+        // append the EN slot when present.
+        const haystack = [
+          c.title.es,
+          c.title.en ?? "",
+          getDescription(c),
+          c.description.en ?? "",
+          c.author,
+          ...c.tags.es,
+          ...(c.tags.en ?? []),
+        ]
+          .join(" ")
+          .toLowerCase();
         return haystack.includes(q);
       });
     }
@@ -122,7 +137,7 @@ export default function ClassifierBoard({
   const counts = useMemo(
     () => ({
       all: cases.length,
-      unclassified: cases.filter((c) => c.tags.includes("Sin clasificar")).length,
+      unclassified: cases.filter((c) => c.tags.es.includes("Sin clasificar")).length,
       unreviewed: cases.filter((c) => !c.reviewed).length,
     }),
     [cases],
@@ -363,7 +378,7 @@ export default function ClassifierBoard({
                 className="classifier-card-select"
                 role="checkbox"
                 aria-checked={selected.has(c.id)}
-                aria-label={`Seleccionar ${c.title}`}
+                aria-label={`Seleccionar ${c.title.es}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (e.shiftKey) extendSelectionTo(c.id);
@@ -400,7 +415,11 @@ export default function ClassifierBoard({
                 />
               </button>
               <div className="classifier-card-meta">
-                <div className="classifier-card-title">{c.title}</div>
+                {/* Admin queue surface shows the ES baseline — the
+                    classifier is editorial work; the canonical title
+                    is what gets reviewed and tagged here. EN
+                    translation lives in the full CaseForm modal. */}
+                <div className="classifier-card-title">{c.title.es}</div>
                 <div className="classifier-card-tags">
                   <span>{c.section}</span>
                   <span className="dot" aria-hidden="true">

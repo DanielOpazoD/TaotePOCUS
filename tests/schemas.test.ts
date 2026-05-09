@@ -22,8 +22,33 @@ const baseValid = {
 };
 
 describe("validateCase — required-field gate", () => {
-  it("accepts a fully-valid case", () => {
-    expect(validateCase(baseValid)).toMatchObject({ id: "tw-1", title: "Test" });
+  it("accepts a fully-valid case (legacy plain-string shape)", () => {
+    // The validator normalizes legacy plain-string title / tags /
+    // description into the modern `LocalizedString` /
+    // `LocalizedTags` shapes so consumers downstream of the data
+    // boundary always see the new form.
+    const c = validateCase(baseValid);
+    expect(c).toMatchObject({
+      id: "tw-1",
+      title: { es: "Test" },
+      tags: { es: ["B-líneas"] },
+      description: { es: "Body." },
+    });
+  });
+
+  it("accepts a fully-valid case (modern bilingual shape)", () => {
+    const modern = {
+      ...baseValid,
+      title: { es: "Test", en: "Test EN" },
+      description: { es: "Body.", en: "Body EN." },
+      tags: { es: ["B-líneas"], en: ["B-lines"] },
+    };
+    const c = validateCase(modern);
+    expect(c).toMatchObject({
+      title: { es: "Test", en: "Test EN" },
+      description: { es: "Body.", en: "Body EN." },
+      tags: { es: ["B-líneas"], en: ["B-lines"] },
+    });
   });
 
   it("rejects entries missing id / title / section / category / tags", () => {
@@ -147,7 +172,10 @@ describe("validateOverrideMap", () => {
       },
       "test",
     );
-    expect(result.overrides["tw-1"]).toEqual({ title: "Edited" });
+    // Validator normalizes the legacy plain-string title to the
+    // modern `LocalizedString` shape; tags / reviewed / deletedAt
+    // are stripped (wrong type / wrong shape).
+    expect(result.overrides["tw-1"]).toEqual({ title: { es: "Edited" } });
   });
 
   it("preserves unknown fields (forward-compat)", () => {
@@ -156,7 +184,7 @@ describe("validateOverrideMap", () => {
       "test",
     );
     expect(result.overrides["tw-1"]).toMatchObject({
-      title: "Edited",
+      title: { es: "Edited" },
       futureField: { nested: true },
     });
   });

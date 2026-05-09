@@ -61,8 +61,11 @@ describe("ClassifierBoard drop handling", () => {
     expect(id).toBe("c-stuck");
     expect(patch.section).toBe("ecg");
     // The fix: section drops also strip "Sin clasificar".
-    expect(patch.tags).toEqual(["Cardíaco"]);
-    expect(patch.tags).not.toContain("Sin clasificar");
+    // The tags patch is bilingual now — the cleaned ES list lives
+    // under `tags.es`. EN slot is undefined when the source case had
+    // no EN tags.
+    expect(patch.tags).toEqual({ es: ["Cardíaco"] });
+    expect(patch.tags.es).not.toContain("Sin clasificar");
   });
 
   it("auxiliary filters (search / section / category) compose with the queue-state pill", () => {
@@ -150,8 +153,8 @@ describe("ClassifierBoard drop handling", () => {
     const [id, patch] = onPatch.mock.calls[0]!;
     expect(id).toBe("c-pending");
     expect(patch.category).toBe("cardiac");
-    expect(patch.tags).toEqual(["Pediátrico"]);
-    expect(patch.tags).not.toContain("Sin clasificar");
+    expect(patch.tags).toEqual({ es: ["Pediátrico"] });
+    expect(patch.tags.es).not.toContain("Sin clasificar");
   });
 });
 

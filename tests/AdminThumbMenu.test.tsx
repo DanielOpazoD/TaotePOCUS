@@ -137,9 +137,11 @@ describe("AdminThumbMenu — reclassify sub-view", () => {
 
     fireEvent.click(screen.getByRole("menuitemradio", { name: /ECG/i }));
     // Section change strips the import-time tag, same as drag-drop.
+    // Tags are bilingual now; the cleaned ES list drops "Sin clasificar"
+    // and the EN slot stays unset (the case had none).
     expect(onPatch).toHaveBeenCalledWith("c-r1", {
       section: "ecg",
-      tags: [],
+      tags: { es: [] },
     });
     // Picking a value closes the menu entirely.
     expect(screen.queryByRole("menu")).toBeNull();

@@ -126,7 +126,11 @@ export function MinePanel({
                       )}
                     </div>
                   </td>
-                  <td className="admin-title-cell">{c.title}</td>
+                  {/* Admin surfaces always render the canonical Spanish
+                      slot — the editor works with the source of truth
+                      and reads the ES original even when the public
+                      site is in EN mode. */}
+                  <td className="admin-title-cell">{c.title.es}</td>
                   <td>{cat?.label}</td>
                   <td>
                     <span className="admin-pill">{mediaLabel}</span>
@@ -172,7 +176,7 @@ export function MinePanel({
               {trashedCases.map((c) => (
                 <tr key={c.id}>
                   <td className="admin-title-cell">
-                    <span className="admin-trash-title">{c.title}</span>
+                    <span className="admin-trash-title">{c.title.es}</span>
                   </td>
                   <td className="admin-date">{formatDateTime(c.deletedAt)}</td>
                   <td className="admin-date">{c.deletedBy || "—"}</td>
@@ -224,7 +228,7 @@ export function MinePanel({
               {trashedImports.map((c) => (
                 <tr key={c.id}>
                   <td className="admin-title-cell">
-                    <span className="admin-trash-title">{c.title}</span>
+                    <span className="admin-trash-title">{c.title.es}</span>
                   </td>
                   <td className="admin-date">{formatDateTime(c.deletedAt)}</td>
                   <td className="admin-date">{c.deletedBy || "—"}</td>

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CineLoop from "./CineLoop";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
-import { getDescription } from "@/lib/case-description";
+import { getCaseDescription, getCaseTitle } from "@/lib/case-localized";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function PresentationMode({ cases, startId, onClose }: Props) {
+  const { lang } = useLanguage();
   const startIdx = Math.max(
     0,
     cases.findIndex((c) => c.id === startId),
@@ -110,10 +112,13 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
       </div>
 
       <div className="presentation-meta">
-        <h1>{caso.title}</h1>
-        {/* Body uses the canonical description; legacy `findings` is
-            covered by the fallback chain inside `getDescription`. */}
-        <p className="presentation-findings">{getDescription(caso)}</p>
+        {/* Presentation surface follows the active UI language so a
+            speaker presenting in English sees the EN slot, falling
+            back to ES (without a badge — the fullscreen presentation
+            UI is intentionally chrome-less so a partial translation
+            doesn't disrupt the talk). */}
+        <h1>{getCaseTitle(caso, lang).value}</h1>
+        <p className="presentation-findings">{getCaseDescription(caso, lang).value}</p>
         {/* The "reveal diagnosis" pedagogical mechanic was removed in
             May-2026 (ADR-0010): with the trio collapsed into a single
             `description`, there's no separate diagnosis line to

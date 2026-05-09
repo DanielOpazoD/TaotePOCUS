@@ -121,8 +121,10 @@ export default function AdminPanel({
   const [tab, setTab] = useState<Tab>("mine");
 
   // Counts feed the tab badges so the admin sees how much queue
-  // is left without opening the panel.
-  const unclassifiedCount = allCases.filter((c) => c.tags.includes("Sin clasificar")).length;
+  // is left without opening the panel. The "Sin clasificar" marker
+  // is bilingual at the data layer but only checked in the ES slot
+  // because that's the slot the importer writes to.
+  const unclassifiedCount = allCases.filter((c) => c.tags.es.includes("Sin clasificar")).length;
 
   return (
     <div className="admin-panel">

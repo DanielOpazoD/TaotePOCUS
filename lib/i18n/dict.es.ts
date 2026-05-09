@@ -96,6 +96,46 @@ export const DICT_ES = {
   "toolbar.sort.featured": "Destacados",
   "toolbar.sort.title": "Alfabético",
 
+  // ─── Bilingual case content fallback ───────────────────────────
+  // Shown as a tooltip on the small "ES" badge that appears next to
+  // a case title / body when the user picked English but the admin
+  // hasn't translated that field yet.
+  "case.fallback.badge": "ES",
+  "case.fallback.title": "Traducción pendiente — mostrando en español",
+
+  // ─── Case modal meta (reading time, difficulty pills) ──────────
+  "case.readingTime": "{minutes} min",
+  "case.difficulty.basic": "Básico",
+  "case.difficulty.intermediate": "Intermedio",
+  "case.difficulty.advanced": "Avanzado",
+
+  // ─── Case card chrome ──────────────────────────────────────────
+  "card.fav.aria": "Favorito",
+  "card.reviewed.title": "Caso revisado",
+  "card.reviewed.aria": "Revisado",
+
+  // ─── Featured row ──────────────────────────────────────────────
+  "featured.title": "Destacados",
+
+  // ─── Case modal chrome (close, play/pause, sections, actions) ──
+  "modal.close.aria": "Cerrar caso",
+  "modal.close.title": "Cerrar (Esc)",
+  "modal.play.aria": "Reproducir",
+  "modal.pause.aria": "Pausar",
+  "modal.readingTime.title": "Tiempo de lectura estimado",
+  "modal.lastUpdated.title": "Actualizado: {date}",
+  "modal.updated": "Actualizado",
+  "modal.section.description": "Descripción",
+  "modal.section.tags": "Etiquetas",
+  "modal.fav.aria": "Guardar en favoritos",
+  "modal.fav.title": "Guardar en favoritos (F)",
+  "modal.unfav.aria": "Quitar de favoritos",
+  "modal.unfav.title": "Quitar de favoritos (F)",
+  "modal.share.aria": "Compartir enlace al caso",
+  "modal.share.title": "Copiar enlace al caso (S)",
+  "modal.present.aria": "Modo presentación",
+  "modal.present.title": "Modo presentación (P)",
+
   // ─── Page heads (favs / admin / fallback) ──────────────────────
   // Used by `derivePageHead` for the title / sub / crumb of the
   // section hero. Section-specific copy (atlas, ecg, …) reuses

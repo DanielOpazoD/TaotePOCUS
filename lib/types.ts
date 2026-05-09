@@ -71,17 +71,59 @@ export interface Media {
   modality?: string;
 }
 
+/**
+ * Translatable string slot for case content. Spanish is the canonical
+ * baseline (every case must have it); English is optional and gets
+ * filled in by the admin one case at a time. When `en` is missing,
+ * the renderer falls back to `es` and shows a small "ES" badge so
+ * the EN reader knows the content hasn't been translated yet.
+ *
+ * Legacy persistence shape (plain `string`) is migrated lazily on
+ * read by `lib/case-localized.ts > normalizeLocalizedString` — the
+ * type below is the post-migration shape every consumer sees.
+ */
+export interface LocalizedString {
+  es: string;
+  en?: string;
+}
+
+/**
+ * Translatable tag list. Tags are free-form (per the product call —
+ * no shared taxonomy) so each language has its own independent list.
+ * Legacy `string[]` is migrated to `{ es: [...] }` on read.
+ */
+export interface LocalizedTags {
+  es: string[];
+  en?: string[];
+}
+
 export interface CaseRecord {
   id: string;
   section: SectionId;
-  title: string;
+  /**
+   * Bilingual case title. Spanish is mandatory (baseline editorial
+   * content), English is optional (admin fills it in case by case).
+   * Renderers go through `getCaseTitle(c, lang)` from
+   * `lib/case-localized.ts` which handles the EN→ES fallback and
+   * surfaces a `isFallback` flag so the UI can show a small badge.
+   *
+   * Persistence: legacy cases stored as `title: string` are migrated
+   * lazily on read — see `normalizeCase` in `lib/case-localized.ts`.
+   */
+  title: LocalizedString;
   /**
    * Category id — either a built-in literal (CategoryId) or a custom
    * id created via the admin Categorías editor. Stored as `string` so
    * runtime-added categories don't require a type-system change.
    */
   category: CategoryId | string;
-  tags: string[];
+  /**
+   * Bilingual tag lists. Independent per language (free-form tags,
+   * no shared taxonomy). EN list is optional; when absent renderers
+   * fall back to the ES list. Filter / search consumers read via
+   * `getCaseTags(c, lang)`.
+   */
+  tags: LocalizedTags;
   modality: string;
   /**
    * Identifies the synthetic cine-loop scene to render when no real
@@ -93,15 +135,18 @@ export interface CaseRecord {
   role: string;
   date: string;
   /**
-   * Canonical body text. The May-2026 UX simplification collapsed
-   * the prior trio (`summary` + `findings` + `diagnosis`) into one
-   * field; the legacy trio was backfilled into `description` and
-   * removed from the type per ADR-0010. New cases write here
-   * directly; the modal, card preview, and search index all read
-   * via `getDescription(c)` in `lib/case-description.ts` (one-line
-   * indirection retained for future migrations).
+   * Bilingual case body. Spanish baseline + optional English; same
+   * fallback semantics as `title`. Read via
+   * `getCaseDescription(c, lang)` in `lib/case-localized.ts`. The
+   * one-line `getDescription(c, lang)` in `lib/case-description.ts`
+   * is the legacy seam (kept so future migrations land in one place).
+   *
+   * History: in May-2026 the trio (`summary` + `findings` +
+   * `diagnosis`) was collapsed into a single `description: string`
+   * field per ADR-0010. Phase-2 i18n (Nov-2026) widened the field
+   * to `LocalizedString` while preserving the same indirection.
    */
-  description: string;
+  description: LocalizedString;
   featured?: boolean;
   /**
    * Primary uploaded media (the "cover" item shown on the card and as

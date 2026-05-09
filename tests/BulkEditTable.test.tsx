@@ -163,7 +163,11 @@ describe("BulkEditTable — inline edit", () => {
     // onSave (passed by the component) calls onPatch async; the
     // mock fires synchronously. Wait a microtask.
     await Promise.resolve();
-    expect(onPatch).toHaveBeenCalledWith("a-1", { title: "Tamponade — actualizado" });
+    // Phase-2 i18n: title patches preserve the EN slot — the test
+    // case has no EN translation so the patch is just `{ es: "..." }`.
+    expect(onPatch).toHaveBeenCalledWith("a-1", {
+      title: { es: "Tamponade — actualizado" },
+    });
   });
 
   it("title edit with the same value does NOT fire onPatch", async () => {

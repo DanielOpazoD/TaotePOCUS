@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ModalLoopMedia from "./ModalLoopMedia";
+import FallbackBadge from "../cards/FallbackBadge";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
@@ -10,6 +11,7 @@ import { useSwipeToClose } from "@/hooks/useSwipeToClose";
 import { useNativeDialog } from "@/hooks/useNativeDialog";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { useModalShortcuts } from "@/hooks/useModalShortcuts";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   difficultyLabel,
   getCaseMedia,
@@ -17,7 +19,8 @@ import {
   readingTimeFor,
   wasUpdatedAfterPublication,
 } from "@/lib/case-meta";
-import { getDescription } from "@/lib/case-description";
+import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
+import { categoryLabel } from "@/lib/i18n";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -38,6 +41,7 @@ interface Props {
 }
 
 export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
+  const { lang, t } = useLanguage();
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
   const dialogRef = useNativeDialog<HTMLDialogElement>();
@@ -55,11 +59,11 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
     const parts = caso.author.split(/\s+/);
     return (parts.slice(-1)[0]?.[0] || "") + (parts[1]?.[0] || "");
   }, [caso.author]);
-  // Single description field. The Apr-2026 UX simplification dropped
-  // the separate Resumen / Hallazgos / Diagnóstico sections; the
-  // canonical read goes through `getDescription` which falls through
-  // the legacy fields for cases that pre-date the migration.
-  const description = useMemo(() => getDescription(caso), [caso]);
+  // Bilingual reads. Each returns `{ value, isFallback, source }` so
+  // the renderer can show the small "ES" badge when EN is missing.
+  const titleRead = useMemo(() => getCaseTitle(caso, lang), [caso, lang]);
+  const descRead = useMemo(() => getCaseDescription(caso, lang), [caso, lang]);
+  const tagsRead = useMemo(() => getCaseTags(caso, lang), [caso, lang]);
 
   // Unified media list for this case. May be empty (case has only the
   // synthetic cine-loop) or contain one or more uploaded items. The
@@ -71,17 +75,18 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
   // result tools (e.g. Google Search Console) parse this JSON-LD to
   // surface the case in articles / medical content panels. We use
   // MedicalScholarlyArticle as the closest fit for an educational
-  // clinical case.
+  // clinical case. The `inLanguage` field reflects the active UI
+  // language so a deep link shared in EN-mode is annotated correctly.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "MedicalScholarlyArticle",
-    headline: caso.title,
-    description,
+    headline: titleRead.value,
+    description: descRead.value,
     author: { "@type": "Person", name: caso.author, jobTitle: caso.role },
     datePublished: caso.date,
-    articleSection: cat?.label ?? "POCUS",
-    keywords: caso.tags.join(", "),
-    inLanguage: "es",
+    articleSection: cat ? categoryLabel(cat, lang) : "POCUS",
+    keywords: tagsRead.tags.join(", "),
+    inLanguage: lang,
     isAccessibleForFree: true,
     publisher: { "@type": "Organization", name: "Taote POCUS" },
   };
@@ -146,8 +151,8 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
         <button
           className="modal-close"
           onClick={onClose}
-          aria-label="Cerrar caso"
-          title="Cerrar (Esc)"
+          aria-label={t("modal.close.aria")}
+          title={t("modal.close.title")}
         >
           {Icon.close()}
         </button>
@@ -157,7 +162,7 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
             <div className="modal-loop-controls">
               <button
                 onClick={() => setPaused((p) => !p)}
-                aria-label={paused ? "Reproducir" : "Pausar"}
+                aria-label={paused ? t("modal.play.aria") : t("modal.pause.aria")}
               >
                 {paused ? Icon.play() : Icon.pause()}
               </button>
@@ -176,18 +181,24 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
             </div>
           </div>
           <div className="modal-body" ref={bodyRef}>
-            <div className="case-cat">{cat?.label}</div>
-            <h2 id="case-modal-title">{caso.title}</h2>
+            <div className="case-cat">{cat ? categoryLabel(cat, lang) : ""}</div>
+            <h2 id="case-modal-title">
+              {titleRead.value}
+              {titleRead.isFallback && <FallbackBadge read={titleRead} />}
+            </h2>
             <div className="modal-meta-pills">
               <span className={`pill pill-${caso.difficulty ?? "intermediate"}`}>
-                {difficultyLabel(caso)}
+                {difficultyLabel(caso, lang)}
               </span>
-              <span className="pill pill-muted" title="Tiempo de lectura estimado">
-                {readingTimeFor(caso)}
+              <span className="pill pill-muted" title={t("modal.readingTime.title")}>
+                {readingTimeFor(caso, lang)}
               </span>
               {wasUpdatedAfterPublication(caso) && (
-                <span className="pill pill-muted" title={`Actualizado: ${lastUpdatedFor(caso)}`}>
-                  Actualizado
+                <span
+                  className="pill pill-muted"
+                  title={t("modal.lastUpdated.title", { date: lastUpdatedFor(caso, lang) })}
+                >
+                  {t("modal.updated")}
                 </span>
               )}
             </div>
@@ -201,27 +212,33 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                 {dateLabel}
               </time>
             </div>
-            {/* Single description block. Apr-2026 UX simplification:
-                the modal used to render three labeled sections (Resumen
-                del caso · Hallazgos ecográficos · Diagnóstico) with a
-                pull-quote aside. Editors found the trio redundant for
-                short cases, so we collapse to one body — the data
-                model still has the three fields for legacy reads, and
-                `description` above falls through them in order. */}
+            {/* Single description block in the active language. The
+                helper falls back to ES when the EN slot is missing —
+                surfaced visually by `FallbackBadge` next to the
+                section heading so the reader knows why they're
+                seeing Spanish copy in EN mode. */}
             <div className="modal-section modal-section--lede">
-              <h5>Descripción</h5>
+              <h5>
+                {t("modal.section.description")}
+                {descRead.isFallback && <FallbackBadge read={descRead} />}
+              </h5>
               {/* The lede paragraph carries the editorial drop cap via
                   ::first-letter CSS, applied through the parent
                   `modal-section--lede` class. Kept as a plain `<p>` so
                   screen readers read the first letter normally. */}
-              <p id="case-modal-description">{description}</p>
+              <p id="case-modal-description">{descRead.value}</p>
             </div>
             <div className="modal-section">
-              <h5>Etiquetas</h5>
+              <h5>
+                {t("modal.section.tags")}
+                {tagsRead.isFallback && tagsRead.tags.length > 0 && (
+                  <FallbackBadge read={{ value: "", isFallback: true, source: tagsRead.source }} />
+                )}
+              </h5>
               <div className="modal-tags">
-                {caso.tags.map((t) => (
-                  <span key={t} className="tag-chip">
-                    {t}
+                {tagsRead.tags.map((tag) => (
+                  <span key={tag} className="tag-chip">
+                    {tag}
                   </span>
                 ))}
               </div>
@@ -235,9 +252,9 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                 type="button"
                 className={"modal-action modal-action--fav" + (isFav ? " is-active" : "")}
                 onClick={onFav}
-                aria-label={isFav ? "Quitar de favoritos" : "Guardar en favoritos"}
+                aria-label={isFav ? t("modal.unfav.aria") : t("modal.fav.aria")}
                 aria-pressed={isFav}
-                title={isFav ? "Quitar de favoritos (F)" : "Guardar en favoritos (F)"}
+                title={isFav ? t("modal.unfav.title") : t("modal.fav.title")}
               >
                 {Icon.heart(isFav)}
               </button>
@@ -245,8 +262,8 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                 type="button"
                 className="modal-action"
                 onClick={onShare}
-                aria-label="Compartir enlace al caso"
-                title="Copiar enlace al caso (S)"
+                aria-label={t("modal.share.aria")}
+                title={t("modal.share.title")}
               >
                 {Icon.share()}
               </button>
@@ -254,8 +271,8 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                 type="button"
                 className="modal-action"
                 onClick={onPresent}
-                aria-label="Modo presentación"
-                title="Modo presentación (P)"
+                aria-label={t("modal.present.aria")}
+                title={t("modal.present.title")}
               >
                 {Icon.presentation()}
               </button>

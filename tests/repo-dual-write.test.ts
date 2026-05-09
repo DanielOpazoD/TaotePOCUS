@@ -100,7 +100,7 @@ afterEach(() => {
 
 describe("dualWriteCases — listOverrides (DB-first read)", () => {
   it("returns DB data and refreshes local cache on success", async () => {
-    const dbData = { "tw-1": { title: "Edited" } as Partial<CaseRecord> };
+    const dbData = { "tw-1": { title: { es: "Edited" } } as Partial<CaseRecord> };
     m(db.dbListOverrides).mockResolvedValueOnce(dbData);
     const result = await dualWriteCases.listOverrides();
     expect(result).toEqual(dbData);
@@ -110,7 +110,7 @@ describe("dualWriteCases — listOverrides (DB-first read)", () => {
 
   it("falls back to local when DB returns an empty map (does NOT overwrite local with empty)", async () => {
     m(db.dbListOverrides).mockResolvedValueOnce({});
-    const localData = { "tw-1": { title: "Local edit" } as Partial<CaseRecord> };
+    const localData = { "tw-1": { title: { es: "Local edit" } } as Partial<CaseRecord> };
     m(Store.getCaseOverrides).mockReturnValueOnce(localData);
 
     const result = await dualWriteCases.listOverrides();
@@ -121,7 +121,7 @@ describe("dualWriteCases — listOverrides (DB-first read)", () => {
 
   it("falls back to local when the DB action throws (transient outage)", async () => {
     m(db.dbListOverrides).mockRejectedValueOnce(new Error("network blip"));
-    const localData = { "tw-1": { title: "Cached" } as Partial<CaseRecord> };
+    const localData = { "tw-1": { title: { es: "Cached" } } as Partial<CaseRecord> };
     m(Store.getCaseOverrides).mockReturnValueOnce(localData);
 
     const result = await dualWriteCases.listOverrides();
@@ -314,14 +314,14 @@ describe("dualWriteCases — writes (DB authoritative)", () => {
 
     it("setOverride: ok DB mirrors via Store.setCaseOverrides", async () => {
       m(db.dbSetOverride).mockResolvedValueOnce({ ok: true });
-      const r = await dualWriteCases.setOverride("tw-1", { title: "x" });
+      const r = await dualWriteCases.setOverride("tw-1", { title: { es: "x" } });
       expect(r).toEqual({ ok: true });
       expect(Store.setCaseOverrides).toHaveBeenCalled();
     });
 
     it("setOverride: DB fails → Store.setCaseOverrides untouched", async () => {
       m(db.dbSetOverride).mockResolvedValueOnce({ ok: false, reason: "auth_required" });
-      const r = await dualWriteCases.setOverride("tw-1", { title: "x" });
+      const r = await dualWriteCases.setOverride("tw-1", { title: { es: "x" } });
       expect(r).toEqual({ ok: false, reason: "auth_required" });
       expect(Store.setCaseOverrides).not.toHaveBeenCalled();
     });
@@ -435,8 +435,8 @@ describe("dualWriteCases — concurrency", () => {
       .mockResolvedValueOnce({ ok: false, reason: "forbidden" });
 
     const [a, b] = await Promise.all([
-      dualWriteCases.setOverride("tw-1", { title: "A" }),
-      dualWriteCases.setOverride("tw-1", { title: "B" }),
+      dualWriteCases.setOverride("tw-1", { title: { es: "A" } }),
+      dualWriteCases.setOverride("tw-1", { title: { es: "B" } }),
     ]);
 
     expect(a).toEqual({ ok: true });

@@ -31,20 +31,31 @@ const adminUser: User = {
   expiresAt: Date.now() + 1_000_000,
 };
 
-const mkCase = (overrides: Partial<CaseRecord> = {}): CaseRecord => ({
-  id: "u_test",
-  section: "atlas",
-  title: "Test case",
-  category: "cardiac",
-  tags: [],
-  modality: "Test",
-  loop: "blines",
-  author: "Tester",
-  role: "QA",
-  date: "2026-04-26",
-  description: "Test description.",
-  ...overrides,
-});
+// Permissive overrides shape — see useUserCases.test.tsx for rationale.
+import { normalizeLocalizedString, normalizeLocalizedTags } from "@/lib/case-localized";
+import type { LocalizedString, LocalizedTags } from "@/lib/types";
+type MkCaseOverrides = Omit<Partial<CaseRecord>, "title" | "description" | "tags"> & {
+  title?: string | LocalizedString;
+  description?: string | LocalizedString;
+  tags?: string[] | LocalizedTags;
+};
+const mkCase = (overrides: MkCaseOverrides = {}): CaseRecord => {
+  const { title, description, tags, ...rest } = overrides;
+  return {
+    id: "u_test",
+    section: "atlas",
+    title: normalizeLocalizedString(title ?? "Test case"),
+    category: "cardiac",
+    tags: normalizeLocalizedTags(tags ?? []),
+    modality: "Test",
+    loop: "blines",
+    author: "Tester",
+    role: "QA",
+    date: "2026-04-26",
+    description: normalizeLocalizedString(description ?? "Test description."),
+    ...rest,
+  };
+};
 
 beforeEach(() => {
   localStorage.clear();

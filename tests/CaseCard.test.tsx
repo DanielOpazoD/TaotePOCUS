@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import CaseCard from "@/components/cards/CaseCard";
 import { caseFactory } from "./fixtures";
+import { renderWithLanguage as render } from "./test-utils";
 
 // CineLoop ships a canvas + RAF that hurts test perf and isn't what
 // we're testing here. Stub it.
@@ -27,7 +28,8 @@ const baseCase = caseFactory({
 describe("CaseCard", () => {
   it("renders the case title, category, byline and tags", () => {
     render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={vi.fn()} />);
-    expect(screen.getByText(baseCase.title)).toBeTruthy();
+    // Default render is in Spanish; the title resolves to the ES slot.
+    expect(screen.getByText(baseCase.title.es)).toBeTruthy();
     expect(screen.getByText("Pulmonar")).toBeTruthy(); // category label
     expect(screen.getByText(baseCase.author)).toBeTruthy();
     expect(screen.getByText("B-líneas")).toBeTruthy();
@@ -84,7 +86,7 @@ describe("CaseCard", () => {
   it("limits visible tags to 3", () => {
     const many = {
       ...baseCase,
-      tags: ["one", "two", "three", "four", "five"],
+      tags: { es: ["one", "two", "three", "four", "five"] },
     };
     render(<CaseCard caso={many} isFav={false} onFav={vi.fn()} onOpen={vi.fn()} />);
     expect(screen.getByText("one")).toBeTruthy();

@@ -95,6 +95,43 @@ export const DICT_EN: Dict = {
   "toolbar.sort.featured": "Featured",
   "toolbar.sort.title": "Alphabetical",
 
+  // ─── Bilingual case content fallback ───────────────────────────
+  "case.fallback.badge": "ES",
+  "case.fallback.title": "Translation pending — showing the Spanish original",
+
+  // ─── Case modal meta (reading time, difficulty pills) ──────────
+  "case.readingTime": "{minutes} min",
+  "case.difficulty.basic": "Basic",
+  "case.difficulty.intermediate": "Intermediate",
+  "case.difficulty.advanced": "Advanced",
+
+  // ─── Case card chrome ──────────────────────────────────────────
+  "card.fav.aria": "Favorite",
+  "card.reviewed.title": "Case reviewed",
+  "card.reviewed.aria": "Reviewed",
+
+  // ─── Featured row ──────────────────────────────────────────────
+  "featured.title": "Featured",
+
+  // ─── Case modal chrome (close, play/pause, sections, actions) ──
+  "modal.close.aria": "Close case",
+  "modal.close.title": "Close (Esc)",
+  "modal.play.aria": "Play",
+  "modal.pause.aria": "Pause",
+  "modal.readingTime.title": "Estimated reading time",
+  "modal.lastUpdated.title": "Updated: {date}",
+  "modal.updated": "Updated",
+  "modal.section.description": "Description",
+  "modal.section.tags": "Tags",
+  "modal.fav.aria": "Save to favorites",
+  "modal.fav.title": "Save to favorites (F)",
+  "modal.unfav.aria": "Remove from favorites",
+  "modal.unfav.title": "Remove from favorites (F)",
+  "modal.share.aria": "Share link to case",
+  "modal.share.title": "Copy link to case (S)",
+  "modal.present.aria": "Presentation mode",
+  "modal.present.title": "Presentation mode (P)",
+
   // ─── Page heads (favs / admin / fallback) ──────────────────────
   "page.favs.title": "Your collection",
   "page.favs.sub": "Cases you've saved to review later.",

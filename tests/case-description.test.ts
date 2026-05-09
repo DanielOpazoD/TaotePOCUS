@@ -25,8 +25,19 @@ describe("getDescription", () => {
 });
 
 describe("setDescription", () => {
-  it("writes the canonical `description` field", () => {
-    expect(setDescription("Hello.")).toEqual({ description: "Hello." });
+  it("writes the canonical `description` field as a bilingual slot", () => {
+    // Phase-2 i18n: `description` widened from `string` to
+    // `LocalizedString = { es; en? }`. The helper writes to the
+    // ES slot — the EN translation, when present, is preserved
+    // by passing the previous value via the second arg.
+    expect(setDescription("Hello.")).toEqual({ description: { es: "Hello." } });
+  });
+
+  it("preserves the existing EN slot when only ES is being edited", () => {
+    const patch = setDescription("Spanish edit.", { es: "Old", en: "Existing English" });
+    expect(patch).toEqual({
+      description: { es: "Spanish edit.", en: "Existing English" },
+    });
   });
 
   it("returns a Partial<CaseRecord> — only the description key", () => {

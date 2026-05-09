@@ -95,8 +95,15 @@ export function useClassifierDrag({ cases, onPatch }: UseDragArgs): ClassifierDr
     // section silently updated `section` but left the card visible
     // under the "Sin clasificar" filter, which felt like the drop
     // had failed (issue surfaced 2026-04).
+    //
+    // The marker is filtered from BOTH language slots — keeps the
+    // ES and EN tag lists consistent in case the admin had already
+    // translated the tag set before classifying.
     const dragged = cases.find((c) => c.id === draggedId);
-    const tags = (dragged?.tags || []).filter((t) => t !== "Sin clasificar");
+    const cleanedEs = (dragged?.tags.es ?? []).filter((t) => t !== "Sin clasificar");
+    const cleanedEn = dragged?.tags.en?.filter((t) => t !== "Sin clasificar");
+    const tags: CaseRecord["tags"] =
+      cleanedEn && cleanedEn.length > 0 ? { es: cleanedEs, en: cleanedEn } : { es: cleanedEs };
     if (kind === "section") {
       onPatch(draggedId, { section: id as SectionId, tags });
     } else {

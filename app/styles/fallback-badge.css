@@ -1,0 +1,67 @@
+/* =================== FALLBACK BADGE =================== */
+/*
+ * Tiny "ES" pill that appears next to bilingual content when the
+ * user picked English but the admin hasn't translated that field
+ * yet. Designed to be glanceable but not loud — the message is
+ * "translation pending", not "warning".
+ *
+ * Geometry mirrors the brand-tag in the header (10px mono, soft
+ * outline, neutral fill) so the visual language is consistent
+ * across "this is a language indicator" surfaces.
+ */
+
+.fallback-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Pinned width keeps the badge from jittering when its label
+     flips between two-letter codes (always ES today, but defensive
+     for a future third language). */
+  min-width: 22px;
+  height: 16px;
+  padding: 0 5px;
+  margin-left: 6px;
+  /* Slightly raise off the baseline so it reads as a chip on the
+     same line as the title rather than as a punctuation mark. */
+  vertical-align: 1px;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-mute);
+  background: color-mix(in oklch, var(--ink-mute) 8%, transparent);
+  border: 1px solid color-mix(in oklch, var(--ink-mute) 20%, transparent);
+  border-radius: var(--radius-pill, 999px);
+  cursor: help;
+  /* Don't inherit text-decoration from links (the case title is
+     wrapped in an `<a>` for the modal trigger). */
+  text-decoration: none;
+  /* Hover/focus reveals slightly more contrast as a craft moment. */
+  transition:
+    color var(--duration-fast) ease,
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.fallback-badge:hover,
+.fallback-badge:focus-visible {
+  color: var(--ink-soft);
+  background: color-mix(in oklch, var(--ink-mute) 14%, transparent);
+  border-color: color-mix(in oklch, var(--ink-mute) 35%, transparent);
+}
+
+/* Inline variant — for flowing body copy (case-summary, modal body).
+   Subtler still: the surrounding paragraph is the protagonist, the
+   badge is just a footnote. */
+.fallback-badge--inline {
+  vertical-align: baseline;
+  font-size: 9px;
+  height: 14px;
+  min-width: 20px;
+  margin-left: 4px;
+  /* Drop the background so the badge reads more like a typographic
+     footnote mark than a UI chip when it floats among prose. */
+  background: transparent;
+  border-color: color-mix(in oklch, var(--ink-mute) 18%, transparent);
+}

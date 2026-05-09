@@ -50,11 +50,11 @@ describe("useMergedCatalog", () => {
     const { result } = renderHook(() =>
       useMergedCatalog({
         userCasesLive: [],
-        overrides: { "seed-1": { title: "Patched" } },
+        overrides: { "seed-1": { title: { es: "Patched" } } },
       }),
     );
 
-    expect(result.current.allCases[0]?.title).toBe("Patched");
+    expect(result.current.allCases[0]?.title.es).toBe("Patched");
   });
 
   it("hides soft-deleted cases from `allCases` but keeps them in `trashedImports`", () => {

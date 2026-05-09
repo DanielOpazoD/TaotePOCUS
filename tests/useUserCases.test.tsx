@@ -13,20 +13,35 @@ const adminUser: User = {
   expiresAt: Date.now() + 1_000_000,
 };
 
-const mkCase = (overrides: Partial<CaseRecord> = {}): CaseRecord => ({
-  id: "u_test",
-  section: "atlas",
-  title: "Test case",
-  category: "cardiac",
-  tags: [],
-  modality: "Test",
-  loop: "blines",
-  author: "Tester",
-  role: "QA",
-  date: "2026-04-26",
-  description: "Test description.",
-  ...overrides,
-});
+// `Partial<CaseRecord>` would force callers to pass dual-language
+// shapes for title / description / tags. Widen here to accept either
+// the modern `LocalizedString` / `LocalizedTags` or a legacy plain
+// string / array — useful sugar for the dozens of inline test
+// fixtures below. Normalized via the helpers from `case-localized`.
+import { normalizeLocalizedString, normalizeLocalizedTags } from "@/lib/case-localized";
+import type { LocalizedString, LocalizedTags } from "@/lib/types";
+type MkCaseOverrides = Omit<Partial<CaseRecord>, "title" | "description" | "tags"> & {
+  title?: string | LocalizedString;
+  description?: string | LocalizedString;
+  tags?: string[] | LocalizedTags;
+};
+const mkCase = (overrides: MkCaseOverrides = {}): CaseRecord => {
+  const { title, description, tags, ...rest } = overrides;
+  return {
+    id: "u_test",
+    section: "atlas",
+    title: normalizeLocalizedString(title ?? "Test case"),
+    category: "cardiac",
+    tags: normalizeLocalizedTags(tags ?? []),
+    modality: "Test",
+    loop: "blines",
+    author: "Tester",
+    role: "QA",
+    date: "2026-04-26",
+    description: normalizeLocalizedString(description ?? "Test description."),
+    ...rest,
+  };
+};
 
 describe("useUserCases", () => {
   it("hydrates raw, live, and trashed lists from storage", async () => {

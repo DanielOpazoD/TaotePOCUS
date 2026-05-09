@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/data";
-import { getDescription } from "@/lib/case-description";
+import { compareTitles, getCaseTags, searchHaystack } from "@/lib/case-localized";
+import { useLanguage } from "./useLanguage";
 import type { CaseRecord, CategoryWithCount, View } from "@/lib/types";
 import type { SortOrder } from "@/lib/url";
 
@@ -56,6 +57,8 @@ interface Result {
  *   return <Grid cases={filtered} />;
  */
 export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }: Args): Result {
+  const { lang } = useLanguage();
+
   // Indirection: only use `favs` as a memo dep when the view actually
   // depends on it. Without this gate, every fav toggle (a hot path —
   // user clicks a heart in the catalog) invalidates `scopedCases`
@@ -91,40 +94,46 @@ export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }:
   }, [scopedCases]);
 
   const sectionTags = useMemo(() => {
+    // Frequency map of tags in the active language (with ES fallback
+    // for cases the admin hasn't translated yet). The sidebar then
+    // shows the EN tags when the user is in EN mode, but still
+    // surfaces ES tags from un-translated cases so the catalog
+    // stays browseable mid-rollout.
     const counts: Record<string, number> = {};
-    scopedCases.forEach((c) =>
-      c.tags.forEach((t) => {
+    scopedCases.forEach((c) => {
+      getCaseTags(c, lang).tags.forEach((t) => {
         counts[t] = (counts[t] ?? 0) + 1;
-      }),
-    );
+      });
+    });
     return Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
-  }, [scopedCases]);
+  }, [scopedCases, lang]);
 
   const filtered = useMemo(() => {
     let list = scopedCases.slice();
     if (cat) list = list.filter((c) => c.category === cat);
-    if (tags.length) list = list.filter((c) => tags.every((t) => c.tags.includes(t)));
-    if (query.trim()) {
-      const q = query.toLowerCase();
+    if (tags.length) {
       list = list.filter((c) => {
-        // `getDescription` already falls through `description →
-        // findings → summary → diagnosis`, so a single search index
-        // entry covers every legacy slot. New cases written through
-        // the simplified form populate `description`; old imports
-        // keep matching via their `findings`.
-        return (
-          c.title.toLowerCase().includes(q) ||
-          getDescription(c).toLowerCase().includes(q) ||
-          c.tags.join(" ").toLowerCase().includes(q) ||
-          c.author.toLowerCase().includes(q)
-        );
+        // Active filter tags are matched against the current-language
+        // tag list (with EN→ES fallback). A user who applied "Cardiac"
+        // in EN mode keeps the same case scope when they flip to ES
+        // because the case's ES list contains the equivalent tag —
+        // the URL `?tags=` slot stays language-stable across toggles.
+        const caseTags = getCaseTags(c, lang).tags;
+        return tags.every((t) => caseTags.includes(t));
       });
     }
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      // `searchHaystack` concatenates ES + EN content + tags + author
+      // so a query in either language matches even when the case is
+      // only partially translated.
+      list = list.filter((c) => searchHaystack(c).includes(q));
+    }
     if (sort === "recent") list.sort((a, b) => b.date.localeCompare(a.date));
-    if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title));
+    if (sort === "title") list.sort((a, b) => compareTitles(a, b, lang));
     if (sort === "featured") list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     return list;
-  }, [scopedCases, cat, tags, query, sort]);
+  }, [scopedCases, cat, tags, query, sort, lang]);
 
   return { scopedCases, sectionCategories, sectionTags, filtered };
 }

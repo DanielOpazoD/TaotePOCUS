@@ -24,13 +24,20 @@
 //     the entry kept. Better to lose a malformed `focus` than
 //     to drop the whole case.
 //
+// Bilingual fields (`title`, `description`, `tags`) accept BOTH
+// the legacy plain-string shape and the modern `LocalizedString` /
+// `LocalizedTags` objects. Inputs are normalized in the validator
+// so consumers downstream of the data boundary always see the
+// modern shape — no per-callsite migration needed.
+//
 // Errors are reported via the returned `dropped` count (and a
 // brief `log.warn` once per validation pass — we don't spam the
 // console with 326 individual lines if the entire corpus is
 // malformed).
 
+import { normalizeLocalizedString, normalizeLocalizedTags } from "./case-localized";
 import { log } from "./log";
-import type { CaseRecord, MediaKind, SectionId } from "./types";
+import type { CaseRecord, LocalizedString, LocalizedTags, MediaKind, SectionId } from "./types";
 
 const SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>([
   "atlas",
@@ -59,6 +66,29 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 }
 
 /**
+ * A bilingual title/description is "valid" if it's either a
+ * non-empty string (legacy shape — we'll normalize on output) or
+ * an object with a non-empty `es` slot. Empty / missing values
+ * still fail the required-field check.
+ */
+function isValidLocalizedStringInput(v: unknown): boolean {
+  if (typeof v === "string") return v.length > 0;
+  if (isPlainObject(v)) return typeof v.es === "string" && v.es.length > 0;
+  return false;
+}
+
+/**
+ * A bilingual tag list accepts the legacy `string[]` shape or the
+ * modern `{ es: string[]; en?: string[] }` object. An empty ES list
+ * is allowed (matches the legacy `tags: []` cases the corpus has).
+ */
+function isValidLocalizedTagsInput(v: unknown): boolean {
+  if (isStringArray(v)) return true;
+  if (isPlainObject(v)) return Array.isArray(v.es);
+  return false;
+}
+
+/**
  * Validate one case. Returns the case (typed) or `null` if it
  * fails the required-field check. Optional malformed fields are
  * dropped without rejecting the whole entry.
@@ -69,19 +99,36 @@ export function validateCase(raw: unknown): CaseRecord | null {
 
   // ─── Required ──────────────────────────────────────────────
   if (!isNonEmptyString(r.id)) return null;
-  if (!isNonEmptyString(r.title)) return null;
+  if (!isValidLocalizedStringInput(r.title)) return null;
   if (!isString(r.section) || !SECTIONS.has(r.section as SectionId)) return null;
   if (!isNonEmptyString(r.category)) return null;
-  if (!isStringArray(r.tags)) return null;
+  if (!isValidLocalizedTagsInput(r.tags)) return null;
   if (!isString(r.modality)) return null;
   if (!isNonEmptyString(r.loop)) return null;
   if (!isString(r.author)) return null;
   if (!isString(r.role)) return null;
   if (!isString(r.date)) return null;
-  if (!isString(r.description)) return null;
+  // Description is required but accepts an empty body — some legacy
+  // imports landed without one. Validate the SHAPE; the helper
+  // tolerates an empty `es` slot below.
+  if (
+    !(
+      typeof r.description === "string" ||
+      (isPlainObject(r.description) && typeof r.description.es === "string")
+    )
+  ) {
+    return null;
+  }
 
   // ─── Optional, sanitize when present ───────────────────────
   const out: Record<string, unknown> = { ...r };
+
+  // Normalize bilingual fields to the modern shape so consumers
+  // never see the legacy plain-string / plain-array form. Idempotent
+  // — already-normalized inputs pass through unchanged.
+  out.title = normalizeLocalizedString(r.title);
+  out.description = normalizeLocalizedString(r.description);
+  out.tags = normalizeLocalizedTags(r.tags);
 
   // featured: must be boolean if present.
   if ("featured" in r && typeof r.featured !== "boolean") delete out.featured;
@@ -212,17 +259,26 @@ export function validateOverrideMap(
       // is conservative: unknown / unfamiliar field names pass
       // through (forward-compat) — only KNOWN fields with the
       // wrong type are stripped.
-      if (k === "tags" && !isStringArray(v)) continue;
+      if (k === "tags") {
+        if (!isValidLocalizedTagsInput(v)) continue;
+        // Normalize so consumers see the modern shape regardless
+        // of which form the override was persisted in.
+        clean[k] = normalizeLocalizedTags(v) satisfies LocalizedTags;
+        continue;
+      }
+      if (k === "title" || k === "description") {
+        if (!isValidLocalizedStringInput(v)) continue;
+        clean[k] = normalizeLocalizedString(v) satisfies LocalizedString;
+        continue;
+      }
       if (k === "section" && (!isString(v) || !SECTIONS.has(v as SectionId))) continue;
       if (
-        (k === "title" ||
-          k === "category" ||
+        (k === "category" ||
           k === "modality" ||
           k === "loop" ||
           k === "author" ||
           k === "role" ||
           k === "date" ||
-          k === "description" ||
           k === "lastUpdated" ||
           k === "deletedAt" ||
           k === "deletedBy") &&

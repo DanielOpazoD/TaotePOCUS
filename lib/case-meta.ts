@@ -3,49 +3,61 @@
  * label, last-updated formatting, media list. Pure — testable in isolation.
  */
 
-import { getDescription } from "./case-description";
+import { getCaseDescription, getCaseTags, getCaseTitle } from "./case-localized";
+import { localeOf, translate, type Lang } from "./i18n";
 import type { CaseRecord, Media } from "./types";
 
-/** Words per minute used for the estimate. Conservative for a Spanish
- *  reader skimming clinical content with technical terms. */
+/** Words per minute used for the reading-time estimate. Conservative
+ *  for a clinical reader skimming technical terms. The same number
+ *  is reasonable for Spanish and English (medical jargon density is
+ *  roughly comparable). */
 const WPM = 180;
 
-const DIFFICULTY_LABEL: Record<NonNullable<CaseRecord["difficulty"]>, string> = {
-  basic: "Básico",
-  intermediate: "Intermedio",
-  advanced: "Avanzado",
+/**
+ * Localized difficulty labels. Keyed by language so `difficultyLabel`
+ * can return Spanish or English without branching at every callsite.
+ * The map mirrors the dict keys `case.difficulty.*` but stays inline
+ * here because (a) the values are tiny, (b) the i18n provider is a
+ * React-only surface and `case-meta.ts` is also called from server
+ * paths (sitemap, page metadata).
+ */
+const DIFFICULTY_LABEL: Record<Lang, Record<NonNullable<CaseRecord["difficulty"]>, string>> = {
+  es: { basic: "Básico", intermediate: "Intermedio", advanced: "Avanzado" },
+  en: { basic: "Basic", intermediate: "Intermediate", advanced: "Advanced" },
 };
 
 /**
- * Estimate reading time in minutes (rounded up, minimum 1) based on the
- * combined narrative fields. Returned as a localized string ready to
- * paste into the UI.
+ * Estimate reading time in minutes (rounded up, minimum 1) based on
+ * the combined narrative fields in the active language (with EN→ES
+ * fallback). Counted in the language the user is viewing so the
+ * estimate matches what they'll actually read.
+ *
+ * Returned with a localized "min" suffix.
  */
-export function readingTimeFor(c: CaseRecord): string {
-  // Single canonical description (with legacy fallback) + title +
-  // tags. Counting `summary` + `findings` + `diagnosis` separately
-  // would triple-count the same content for cases that have it
-  // duplicated, inflating the estimate. The fallback chain inside
-  // `getDescription` already picks one slot per case.
-  const text = `${c.title} ${getDescription(c)} ${c.tags.join(" ")}`;
-  const words = text.trim().split(/\s+/).length;
+export function readingTimeFor(c: CaseRecord, lang: Lang): string {
+  const title = getCaseTitle(c, lang).value;
+  const body = getCaseDescription(c, lang).value;
+  const tags = getCaseTags(c, lang).tags.join(" ");
+  const text = `${title} ${body} ${tags}`;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.round(words / WPM));
-  return `${minutes} min`;
+  return translate(lang, "case.readingTime", { minutes });
 }
 
-/** Human-readable difficulty label, with `intermediate` as the default. */
-export function difficultyLabel(c: CaseRecord): string {
-  return DIFFICULTY_LABEL[c.difficulty ?? "intermediate"];
+/** Human-readable difficulty label in the requested language. */
+export function difficultyLabel(c: CaseRecord, lang: Lang): string {
+  const key = c.difficulty ?? "intermediate";
+  return DIFFICULTY_LABEL[lang][key];
 }
 
 /**
- * Returns the most relevant date for "last update" display:
- * `lastUpdated` if present, falling back to `date`. Always returns a
- * Spanish-localized "21 de abril de 2026" style string.
+ * Most relevant date for "last update" display: `lastUpdated` if
+ * present, falling back to `date`. Returns a locale-aware "21 de
+ * abril de 2026" / "April 21, 2026" string via `Intl.DateTimeFormat`.
  */
-export function lastUpdatedFor(c: CaseRecord): string {
+export function lastUpdatedFor(c: CaseRecord, lang: Lang): string {
   const iso = c.lastUpdated || c.date;
-  return new Date(iso).toLocaleDateString("es", {
+  return new Date(iso).toLocaleDateString(localeOf(lang), {
     day: "numeric",
     month: "long",
     year: "numeric",

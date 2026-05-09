@@ -6,15 +6,15 @@ import type { CaseRecord } from "@/lib/types";
 const mkCase = (overrides: Partial<CaseRecord> = {}): CaseRecord => ({
   id: "u_test",
   section: "atlas",
-  title: "Test case",
+  title: { es: "Test case" },
   category: "cardiac",
-  tags: ["Test"],
+  tags: { es: ["Test"] },
   modality: "Test mod",
   loop: "blines",
   author: "Tester",
   role: "QA",
   date: "2026-04-26",
-  description: "Test description.",
+  description: { es: "Test description." },
   ...overrides,
 });
 
@@ -103,11 +103,11 @@ describe("repo.cases", () => {
     let user = await repo.cases.listUser();
     expect(user).toHaveLength(1);
 
-    const updated = { ...c, title: "Updated" };
+    const updated: CaseRecord = { ...c, title: { es: "Updated" } };
     await repo.cases.save(updated, user);
     user = await repo.cases.listUser();
     expect(user).toHaveLength(1);
-    expect(user[0]!.title).toBe("Updated");
+    expect(user[0]!.title.es).toBe("Updated");
   });
 
   it("remove drops the case by id", async () => {
@@ -119,7 +119,7 @@ describe("repo.cases", () => {
   });
 
   it("listAll merges user cases ahead of seed", async () => {
-    await repo.cases.save(mkCase({ id: "u_1", title: "Mine" }), []);
+    await repo.cases.save(mkCase({ id: "u_1", title: { es: "Mine" } }), []);
     const all = await repo.cases.listAll();
     expect(all[0]!.id).toBe("u_1");
     expect(all.length).toBeGreaterThan(10);

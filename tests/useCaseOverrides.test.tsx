@@ -20,35 +20,35 @@ describe("useCaseOverrides", () => {
   it("hydrates from localStorage when an override is already persisted", async () => {
     localStorage.setItem(
       "pocus_case_overrides",
-      JSON.stringify({ "tw-1": { title: "Persistido" } }),
+      JSON.stringify({ "tw-1": { title: { es: "Persistido" } } }),
     );
     const { result } = renderHook(() => useCaseOverrides());
     await waitFor(() => expect(result.current.hydrated).toBe(true));
-    expect(result.current.overrides).toEqual({ "tw-1": { title: "Persistido" } });
+    expect(result.current.overrides).toEqual({ "tw-1": { title: { es: "Persistido" } } });
   });
 
   it("setOverride writes to localStorage and updates state", async () => {
     const { result } = renderHook(() => useCaseOverrides());
     await waitFor(() => expect(result.current.hydrated).toBe(true));
     await act(async () => {
-      await result.current.setOverride("tw-1", { title: "Nuevo título" });
+      await result.current.setOverride("tw-1", { title: { es: "Nuevo título" } });
     });
-    expect(result.current.overrides).toEqual({ "tw-1": { title: "Nuevo título" } });
+    expect(result.current.overrides).toEqual({ "tw-1": { title: { es: "Nuevo título" } } });
     const persisted = JSON.parse(localStorage.getItem("pocus_case_overrides") ?? "{}");
-    expect(persisted).toEqual({ "tw-1": { title: "Nuevo título" } });
+    expect(persisted).toEqual({ "tw-1": { title: { es: "Nuevo título" } } });
   });
 
   it("setOverride shallow-merges multiple writes for the same id", async () => {
     const { result } = renderHook(() => useCaseOverrides());
     await waitFor(() => expect(result.current.hydrated).toBe(true));
     await act(async () => {
-      await result.current.setOverride("tw-1", { title: "Primera" });
+      await result.current.setOverride("tw-1", { title: { es: "Primera" } });
     });
     await act(async () => {
       await result.current.setOverride("tw-1", { category: "lung" });
     });
     expect(result.current.overrides["tw-1"]).toEqual({
-      title: "Primera",
+      title: { es: "Primera" },
       category: "lung",
     });
   });
@@ -57,7 +57,7 @@ describe("useCaseOverrides", () => {
     const { result } = renderHook(() => useCaseOverrides());
     await waitFor(() => expect(result.current.hydrated).toBe(true));
     await act(async () => {
-      await result.current.setOverride("tw-1", { title: "Editado" });
+      await result.current.setOverride("tw-1", { title: { es: "Editado" } });
     });
     await act(async () => {
       await result.current.clearOverride("tw-1");
@@ -70,7 +70,7 @@ describe("useCaseOverrides", () => {
     const { result } = renderHook(() => useCaseOverrides());
     await waitFor(() => expect(result.current.hydrated).toBe(true));
     await act(async () => {
-      await result.current.setOverride("tw-1", { title: "X", featured: true });
+      await result.current.setOverride("tw-1", { title: { es: "X" }, featured: true });
     });
     await act(async () => {
       // Setting `featured: undefined` is the caller's signal for
@@ -78,7 +78,7 @@ describe("useCaseOverrides", () => {
       await result.current.setOverride("tw-1", { featured: undefined });
     });
     // `featured` was removed; `title` survives.
-    expect(result.current.overrides["tw-1"]).toEqual({ title: "X" });
+    expect(result.current.overrides["tw-1"]).toEqual({ title: { es: "X" } });
   });
 });
 
@@ -96,10 +96,10 @@ describe("mergeWithOverrides", () => {
       caseFactory({ id: "c2", title: "Original 2" }),
     ];
     const result = mergeWithOverrides(cases, {
-      c2: { title: "Editado" },
+      c2: { title: { es: "Editado" } },
     });
-    expect(result[0]?.title).toBe("Original 1");
-    expect(result[1]?.title).toBe("Editado");
+    expect(result[0]?.title.es).toBe("Original 1");
+    expect(result[1]?.title.es).toBe("Editado");
   });
 
   it("preserves untouched fields from the source case", () => {
@@ -111,9 +111,9 @@ describe("mergeWithOverrides", () => {
       description: "Original description.",
     });
     const result = mergeWithOverrides([original], {
-      c1: { title: "Nuevo" },
+      c1: { title: { es: "Nuevo" } },
     });
-    expect(result[0]).toEqual({ ...original, title: "Nuevo" });
+    expect(result[0]).toEqual({ ...original, title: { es: "Nuevo" } });
   });
 
   it("supports overriding multiple fields at once", () => {
@@ -128,7 +128,7 @@ describe("mergeWithOverrides", () => {
   it("ignores override entries for ids that don't exist in the list", () => {
     const cases = [caseFactory({ id: "c1" })];
     const result = mergeWithOverrides(cases, {
-      "c-nonexistent": { title: "Nada" },
+      "c-nonexistent": { title: { es: "Nada" } },
     });
     expect(result).toHaveLength(1);
     expect(result[0]?.id).toBe("c1");
