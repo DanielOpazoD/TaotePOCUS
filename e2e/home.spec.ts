@@ -20,11 +20,14 @@ test.describe("Home page", () => {
     await expect(page).toHaveURL(/\/ecg/);
     await expect(page.getByRole("heading", { level: 1, name: "ECG" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Casos clínicos" }).click();
-    await expect(page).toHaveURL(/\/cases/);
-    // /cases uses an editorial hero with its own title; assert the
-    // section's hero shell is mounted instead of a literal section name.
-    await expect(page.locator(".hero--cases")).toBeVisible();
+    // Navigate to /info (Infografías). "Casos clínicos" was hidden
+    // from the default public nav by the May-2026 product decision
+    // (see `useHiddenSections > DEFAULT_HIDDEN`); using a section
+    // that's actually visible in the nav avoids relying on admin
+    // visibility state we don't set up for this test.
+    await page.getByRole("link", { name: "Infografías" }).click();
+    await expect(page).toHaveURL(/\/info/);
+    await expect(page.getByRole("heading", { level: 1, name: /Infograf[ií]as/ })).toBeVisible();
   });
 
   test("opens a case modal and closes it with Esc", async ({ page }) => {

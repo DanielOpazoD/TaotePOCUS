@@ -63,7 +63,12 @@ test.describe("Visual regression", () => {
 
   test("infographics section", async ({ page }) => {
     await page.goto("/info");
-    await expect(page.locator(".case-grid .case-card").first()).toBeVisible();
+    // /info has zero entries in the imported corpus (everything came
+    // in classified as atlas / ecg / cases) so the EmptyState
+    // illustration is what's actually on screen. Wait for either the
+    // grid OR the empty-state illustration so the snapshot covers
+    // whichever the deploy produces.
+    await expect(page.locator(".case-grid .case-card, .empty--illustrated").first()).toBeVisible();
     await page.waitForLoadState("networkidle");
     await maskedScreenshot(page, "info.png");
   });

@@ -28,7 +28,24 @@ export default defineConfig({
   webServer: {
     // Build once, serve the static output. Faster + closer to prod than
     // running the dev server.
-    command: `npm run build && PORT=${PORT} npm run start`,
+    //
+    // Force the legacy auth path for e2e: the admin specs assume the
+    // local AuthModal (`Bienvenido de vuelta` / admin@taote.pocus /
+    // admin123 credentials), which only renders when
+    // `IS_CLERK_ENABLED=false`. Without this override the build picks
+    // up `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` from `.env.local` and
+    // mounts the Clerk widget instead — the admin specs then can't
+    // find the dialog and time out. Empty value => legacy.
+    //
+    // Same with the DB / Blobs envs: clear them so the build doesn't
+    // try to call out to Netlify services that aren't configured for
+    // local e2e (the local repo facade + the seed JSON corpus answer
+    // every read the catalog needs).
+    command:
+      `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY= NEXT_PUBLIC_USE_DB= ` +
+      `npm run build && PORT=${PORT} ` +
+      `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY= NEXT_PUBLIC_USE_DB= ` +
+      `npm run start`,
     url: BASE,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

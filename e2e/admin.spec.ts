@@ -70,11 +70,14 @@ test.describe("Admin flow", () => {
     // 4. The Backup tab is always present and switches the subtree.
     await page.getByRole("tab", { name: "Backup" }).click();
     await expect(page.getByRole("heading", { name: "Backup", level: 2 })).toBeVisible();
-    // Pre-flight summary buckets render.
-    await expect(page.getByText("reclasificaciones")).toBeVisible();
-    await expect(page.getByText("favoritos")).toBeVisible();
-    await expect(page.getByText("casos propios")).toBeVisible();
-    await expect(page.getByText("categorías personalizadas")).toBeVisible();
+    // Pre-flight summary buckets render. Each label appears in two
+    // places (the "Exportá un archivo JSON con…" intro paragraph and
+    // each `<li>` entry on the summary list); narrow with `.first()`
+    // so strict-mode doesn't flag the dual match.
+    await expect(page.getByText("reclasificaciones").first()).toBeVisible();
+    await expect(page.getByText("favoritos").first()).toBeVisible();
+    await expect(page.getByText("casos propios").first()).toBeVisible();
+    await expect(page.getByText("categorías personalizadas").first()).toBeVisible();
 
     // 5. Export button is present and enabled — proves the panel
     // wiring resolved a non-zero env state without crashing.
