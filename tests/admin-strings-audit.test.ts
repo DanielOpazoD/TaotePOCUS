@@ -56,11 +56,6 @@ const WHITELIST = new Set<string>([
   // shipped, but the page heading + add-row placeholder + a
   // couple of action buttons stayed Spanish. Follow-up.
   "components/admin/CategoriesEditor.tsx",
-  // CaseForm orchestrator — owns the modal head copy + the
-  // bottom action row ("Cancelar" / "Guardar cambios" /
-  // "Publicar caso"). Routed through `form.action.*` keys
-  // already; the orchestrator just needs the swap.
-  "components/admin/CaseForm.tsx",
   // Sections editor — "Restaurar" reset button + cancel button
   // in the bilingual rename row. Follow-up.
   "components/admin/SectionsEditor.tsx",

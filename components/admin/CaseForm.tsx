@@ -27,6 +27,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import { MetadataPanel } from "./case-form/MetadataPanel";
 import { MediaPanel } from "./case-form/MediaPanel";
@@ -57,12 +58,6 @@ interface TabDescriptor {
   label: string;
 }
 
-const TABS: TabDescriptor[] = [
-  { id: "metadata", label: "Metadatos" },
-  { id: "media", label: "Media" },
-  { id: "advanced", label: "Avanzado" },
-];
-
 export default function CaseForm({
   initial,
   currentUser,
@@ -71,6 +66,12 @@ export default function CaseForm({
   onSave,
   onCancel,
 }: Props) {
+  const t = useT();
+  const TABS: TabDescriptor[] = [
+    { id: "metadata", label: t("form.tab.metadata") },
+    { id: "media", label: t("form.tab.media") },
+    { id: "advanced", label: t("form.tab.advanced") },
+  ];
   // New cases start with empty bilingual slots — the admin types the
   // ES content first (mandatory baseline) and optionally fills the
   // EN slot before saving. Empty `en` is fine; the renderer falls
@@ -133,14 +134,12 @@ export default function CaseForm({
         </button>
         <form onSubmit={submit}>
           <div className="admin-form-head">
-            <div className="case-cat">{initial ? "Editar caso" : "Nuevo caso"}</div>
-            <h2>Sube contenido al atlas</h2>
-            <p>
-              Imagen estática, GIF, video clip o cine-loop sintético si todavía no tienes archivo.
-            </p>
+            <div className="case-cat">{initial ? t("form.head.edit") : t("form.head.new")}</div>
+            <h2>{t("form.head.title")}</h2>
+            <p>{t("form.head.body")}</p>
           </div>
 
-          <div className="admin-form-tabs" role="tablist" aria-label="Secciones del formulario">
+          <div className="admin-form-tabs" role="tablist" aria-label={t("form.tabs.aria")}>
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -185,10 +184,10 @@ export default function CaseForm({
 
           <div className="admin-form-actions">
             <button type="button" className="btn-ghost" onClick={onCancel}>
-              Cancelar
+              {t("form.action.cancel")}
             </button>
             <button type="submit" className="btn-primary">
-              {initial ? "Guardar cambios" : "Publicar caso"}
+              {initial ? t("form.action.save") : t("form.action.publish")}
             </button>
           </div>
         </form>
