@@ -67,10 +67,6 @@ const WHITELIST = new Set<string>([
   // Bulk action bar — "Quitar revisado" button label + title
   // attribute. Follow-up.
   "components/admin/classifier/BulkActionBar.tsx",
-  // Classifier — empty-state message ("Cuando este filtro tenga
-  // casos pendientes, aparecerán acá.") and a couple of inline
-  // titles. Follow-up.
-  "components/admin/ClassifierBoard.tsx",
 ]);
 
 /**
