@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type Theme = "light" | "dark";
 
@@ -32,6 +33,7 @@ const MoonIcon = () => (
 );
 
 export default function ThemeToggle() {
+  const { t } = useLanguage();
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
@@ -55,8 +57,8 @@ export default function ThemeToggle() {
     <button
       className="icon-btn theme-toggle"
       onClick={toggle}
-      aria-label={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-      title={theme === "dark" ? "Tema claro" : "Tema oscuro"}
+      aria-label={theme === "dark" ? t("theme.toLight.aria") : t("theme.toDark.aria")}
+      title={theme === "dark" ? t("theme.light.title") : t("theme.dark.title")}
     >
       {theme === "dark" ? <SunIcon /> : <MoonIcon />}
     </button>

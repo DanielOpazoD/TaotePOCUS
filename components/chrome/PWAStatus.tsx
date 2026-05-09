@@ -20,9 +20,11 @@
 import { useEffect, useState } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
+import { useLanguage } from "@/hooks/useLanguage";
 import { isUsingMemoryStorage } from "@/lib/storage-status";
 
 export default function PWAStatus() {
+  const { t } = useLanguage();
   const online = useOnlineStatus();
   const { updateAvailable, applyUpdate } = useServiceWorker();
   // Storage backend probe runs lazily on first read. We trigger it
@@ -39,7 +41,7 @@ export default function PWAStatus() {
       {!online && (
         <div className="pwa-status pwa-status--offline" role="status" aria-live="polite">
           <span aria-hidden="true">⚠</span>
-          <span>Estás sin conexión — viendo la versión guardada</span>
+          <span>{t("pwa.offline")}</span>
         </div>
       )}
       {memoryStorage && (
@@ -47,17 +49,17 @@ export default function PWAStatus() {
           className="pwa-status pwa-status--memory"
           role="status"
           aria-live="polite"
-          title="El navegador no permite guardar datos en este modo. Lo que edites aquí se perderá al cerrar la pestaña."
+          title={t("pwa.memory.title")}
         >
           <span aria-hidden="true">⏳</span>
-          <span>Modo privado · esta sesión es temporal</span>
+          <span>{t("pwa.memory")}</span>
         </div>
       )}
       {updateAvailable && (
         <div className="pwa-status pwa-status--update" role="status" aria-live="polite">
-          <span>Hay una versión nueva disponible</span>
+          <span>{t("pwa.update")}</span>
           <button type="button" className="pwa-status-action" onClick={applyUpdate}>
-            Recargar
+            {t("pwa.update.action")}
           </button>
         </div>
       )}

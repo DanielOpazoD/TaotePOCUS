@@ -19,10 +19,13 @@ import TransitionLink from "./TransitionLink";
 import { useEffect } from "react";
 import { CategoryGlyph, CustomCategoryGlyph, Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
+import { categoryLabel, sectionLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import { viewToPath } from "@/lib/url";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { CategoryWithCount, Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 interface Props {
   open: boolean;
@@ -69,6 +72,7 @@ export default function MobileDrawer({
   totalCount = 0,
 }: Props) {
   const trapRef = useFocusTrap<HTMLDivElement>(open);
+  const { lang, t } = useLanguage();
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export default function MobileDrawer({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Menú de navegación"
+      aria-label={t("nav.menu.aria")}
     >
       <div className="drawer" onClick={(e) => e.stopPropagation()} ref={trapRef}>
         <div className="drawer-head">
@@ -132,14 +136,14 @@ export default function MobileDrawer({
             type="button"
             className="modal-close"
             onClick={onClose}
-            aria-label="Cerrar menú"
+            aria-label={t("nav.menu.close")}
             style={{ position: "static", boxShadow: "none" }}
           >
             {Icon.close()}
           </button>
         </div>
 
-        <nav className="drawer-nav" aria-label="Secciones">
+        <nav className="drawer-nav" aria-label={t("nav.aria.sections")}>
           {sections.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
@@ -150,7 +154,7 @@ export default function MobileDrawer({
                 onClick={onClose}
                 aria-current={isActive(target) ? "page" : undefined}
               >
-                {s.label}
+                {sectionLabel(s.id, lang)}
               </TransitionLink>
             );
           })}
@@ -159,7 +163,7 @@ export default function MobileDrawer({
             className={view.kind === "favs" ? "active" : ""}
             onClick={onClose}
           >
-            Favoritos {favCount > 0 && <span className="fav-count">{favCount}</span>}
+            {t("nav.favoritos")} {favCount > 0 && <span className="fav-count">{favCount}</span>}
           </TransitionLink>
           {isAdmin && (
             <TransitionLink
@@ -167,7 +171,7 @@ export default function MobileDrawer({
               className={view.kind === "admin" ? "active" : ""}
               onClick={onClose}
             >
-              Administrar
+              {t("nav.administrar")}
             </TransitionLink>
           )}
         </nav>
@@ -177,8 +181,8 @@ export default function MobileDrawer({
             categories don't apply, so we hide the section. The
             "Todos" row matches the desktop sidebar's first item. */}
         {setActiveCat && categories && view.kind === "section" && (
-          <div className="drawer-filters" aria-label="Filtros por categoría">
-            <h4>Categorías</h4>
+          <div className="drawer-filters" aria-label={t("drawer.filters.aria")}>
+            <h4>{t("drawer.categories")}</h4>
             <ul className="drawer-cat-list">
               <li>
                 <button
@@ -193,7 +197,7 @@ export default function MobileDrawer({
                     <span className="drawer-cat-glyph" aria-hidden="true">
                       {Icon.search()}
                     </span>
-                    Todos
+                    {t("drawer.todos")}
                   </span>
                   <span className="drawer-cat-count">{totalCount}</span>
                 </button>
@@ -212,7 +216,7 @@ export default function MobileDrawer({
                       <span className="drawer-cat-glyph" aria-hidden="true">
                         {CategoryGlyph[c.id] ?? CustomCategoryGlyph}
                       </span>
-                      {c.label}
+                      {categoryLabel(c, lang)}
                     </span>
                     <span className="drawer-cat-count">{c.count}</span>
                   </button>
@@ -232,7 +236,7 @@ export default function MobileDrawer({
                 onNewCase();
               }}
             >
-              <Icon.plus /> Nuevo caso
+              <Icon.plus /> {t("newCase.label")}
             </button>
           )}
           {user ? (
@@ -253,7 +257,7 @@ export default function MobileDrawer({
                 }}
                 style={{ marginLeft: "auto" }}
               >
-                Salir
+                {t("nav.salir")}
               </button>
             </div>
           ) : (
@@ -264,14 +268,18 @@ export default function MobileDrawer({
                 onClose();
                 onLogin();
               }}
-              aria-label="Entrar"
-              title="Entrar"
+              aria-label={t("nav.entrar")}
+              title={t("nav.entrar")}
             >
               <Icon.user />
             </button>
           )}
           <div className="drawer-theme">
-            <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>Tema</span>
+            {/* Two icon controls stacked horizontally: language and
+                theme. Mobile users get the same surface area as the
+                header right-cluster on desktop. */}
+            <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("theme.label")}</span>
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </div>

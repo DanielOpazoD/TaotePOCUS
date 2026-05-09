@@ -27,7 +27,13 @@ const CHANNEL_NAME = "pocus:state";
  * Topic identifiers — narrow union so a typo in a publish call is a
  * compile error. Adding a new topic = one literal here.
  */
-export type SyncTopic = "favs" | "overrides" | "user-cases" | "categories" | "section-visibility";
+export type SyncTopic =
+  | "favs"
+  | "overrides"
+  | "user-cases"
+  | "categories"
+  | "section-visibility"
+  | "language";
 
 /**
  * Message envelope. `actorId` is a per-tab random string (set in

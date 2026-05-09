@@ -1,0 +1,142 @@
+/* =================== LANGUAGE SWITCHER =================== */
+/*
+ * Globe icon + ES/EN dropdown. Lives in the header's right cluster
+ * next to the theme toggle. Uses the existing `.icon-btn` shape
+ * for the trigger so it visually matches the theme button — same
+ * 32×32 footprint, same hover behavior — with a small uppercase
+ * abbreviation tucked next to the globe.
+ *
+ * The dropdown is anchored to the trigger (absolute, top: full
+ * height + small gap) and floats with the same shadow language as
+ * cards on hover. No portal — the trigger is the closest
+ * positioning ancestor.
+ */
+
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+}
+
+.lang-switcher-trigger {
+  /* The globe-only icon-btn would be too narrow to pair with the
+     ES/EN abbreviation. Widen slightly and keep the height pinned
+     to the rest of the icon-btn family. */
+  width: auto;
+  padding: 0 8px;
+  gap: 4px;
+}
+
+.lang-switcher-trigger svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lang-switcher-label {
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  /* Slight visual weight so it reads as a status indicator rather
+     than competing with the globe glyph. */
+  color: var(--ink-soft);
+  /* Tabular figures keep the two-letter slot from twitching when
+     the value flips between "ES" and "EN". */
+  font-variant-numeric: tabular-nums;
+}
+
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: var(--shadow-2);
+  /* Same z-stack as the toast / pwa-status pills so the menu
+     reliably sits above page content. */
+  z-index: var(--z-presentation);
+  min-width: 160px;
+  /* Subtle entrance — matches the 140ms cadence View Transitions
+     uses for filter changes. Reduced motion drops the animation
+     in the @media block below. */
+  animation: langMenuIn 120ms var(--ease-emphasized);
+  transform-origin: top right;
+}
+
+.lang-menu-item {
+  /* Reset button defaults to look like a clean menu row. */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  /* Subtle on-hover lift; same behavior as sidebar list items. */
+  transition: background-color var(--duration-fast) ease;
+}
+
+.lang-menu-item:hover,
+.lang-menu-item:focus-visible {
+  background: var(--bg-soft);
+  outline: none;
+}
+
+.lang-menu-item.is-active {
+  /* Active row is muted-bold rather than colored — the checkmark
+     carries the active-state signal so the row doesn't have to
+     fight with brand color. */
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.lang-menu-code {
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  width: 22px;
+  /* Pinned width so the labels align in a column regardless of
+     which code is two chars (always two today, but defensive). */
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.lang-menu-label {
+  flex: 1;
+}
+
+.lang-menu-check {
+  width: 14px;
+  height: 14px;
+  color: var(--accent-ink, var(--ink));
+  flex-shrink: 0;
+}
+
+@keyframes langMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-menu {
+    animation: none;
+  }
+}

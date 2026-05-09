@@ -4,6 +4,8 @@
 // the View union.
 
 import { CATEGORIES, SECTIONS } from "./data";
+import { categoryLabel, sectionLabel, sectionSub, translate } from "./i18n";
+import { DEFAULT_LANG, type Lang } from "./i18n/types";
 import type { View } from "./types";
 
 /**
@@ -39,42 +41,54 @@ export interface PageHead {
  *   `SECTIONS`. Empty object / omitted → uses defaults. Driven by
  *   `useSectionLabels` on the client; tests + server-render call
  *   without it for default behavior.
+ * @param lang
+ *   UI language. Defaults to the canonical fallback (Spanish) so
+ *   existing callers (server render, focused tests, the sitemap
+ *   builder) keep working without modification. The client passes
+ *   the live language from `useLanguage`.
  * @returns The page head copy. Always returns valid strings — falls
- *          back to "Taote POCUS" / "Inicio" for an unknown section.
+ *          back to the brand defaults for an unknown section.
  */
 export function derivePageHead(
   view: View,
   activeCat: string | null,
   sectionLabelOverrides: Record<string, string> = {},
+  lang: Lang = DEFAULT_LANG,
 ): PageHead {
   if (view.kind === "favs") {
     return {
-      title: "Tu colección",
-      sub: "Casos que has guardado para revisar más tarde.",
-      crumb: "Mi colección",
+      title: translate(lang, "page.favs.title"),
+      sub: translate(lang, "page.favs.sub"),
+      crumb: translate(lang, "page.favs.crumb"),
     };
   }
   if (view.kind === "admin") {
     return {
-      title: "Panel de administración",
-      sub: "Sube nuevas imágenes, videos o GIFs y gestiona tus publicaciones.",
-      crumb: "Admin",
+      title: translate(lang, "page.admin.title"),
+      sub: translate(lang, "page.admin.sub"),
+      crumb: translate(lang, "page.admin.crumb"),
     };
   }
   // section view
   const section = SECTIONS.find((s) => s.id === view.section);
-  const sectionLabel = section ? (sectionLabelOverrides[section.id] ?? section.label) : null;
+  // Admin override wins over the dictionary translation: the admin
+  // explicitly chose this label, language preference is secondary
+  // intent. Falls through to the i18n-aware label otherwise.
+  const resolvedSectionLabel = section
+    ? (sectionLabelOverrides[section.id] ?? sectionLabel(section.id, lang))
+    : null;
   const cat = activeCat ? CATEGORIES.find((c) => c.id === activeCat) : null;
-  if (cat && section && sectionLabel) {
+  if (cat && section && resolvedSectionLabel) {
+    const localizedCat = categoryLabel(cat, lang);
     return {
-      title: cat.label,
-      sub: `${sectionLabel} · ${cat.label}`,
-      crumb: `${sectionLabel} · Categoría`,
+      title: localizedCat,
+      sub: `${resolvedSectionLabel} · ${localizedCat}`,
+      crumb: `${resolvedSectionLabel} · ${translate(lang, "page.crumb.category")}`,
     };
   }
   return {
-    title: sectionLabel || "Taote POCUS",
-    sub: section?.sub || "Casos clínicos contribuidos por la comunidad.",
-    crumb: sectionLabel || "Inicio",
+    title: resolvedSectionLabel || translate(lang, "page.fallback.title"),
+    sub: section ? sectionSub(section.id, lang) : translate(lang, "page.fallback.sub"),
+    crumb: resolvedSectionLabel || translate(lang, "page.fallback.crumb"),
   };
 }

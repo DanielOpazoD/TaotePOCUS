@@ -57,12 +57,20 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Pre-paint theme script — avoids the light→dark flash by setting
-  // data-theme on <html> before React hydrates. The literal `pocus_theme`
-  // here is canonically `STORAGE_KEYS.theme` from `lib/storage-keys.ts`;
-  // it can't be imported because this script runs in the browser before
-  // any module loads. Keep both spellings aligned if the key is ever
-  // renamed.
+  // Pre-paint theme + language script — avoids the light→dark flash
+  // and a same-paint `<html lang>` mismatch by setting both on
+  // <html> before React hydrates. The literal `pocus_theme` /
+  // `pocus_lang` keys here are canonically `STORAGE_KEYS.theme` /
+  // `STORAGE_KEYS.lang` from `lib/storage-keys.ts`; they can't be
+  // imported because this script runs in the browser before any
+  // module loads. Keep both spellings aligned if those keys are
+  // ever renamed.
+  //
+  // Language resolution order matches `useLanguage`'s policy:
+  //   1. URL query `?lang=es|en`
+  //   2. localStorage `pocus_lang`
+  //   3. `navigator.language` primary subtag
+  //   4. fallback "es"
   const themeScript = `
     (function () {
       try {
@@ -70,6 +78,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         var theme = stored || (prefersDark ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+      try {
+        var fromUrl = null;
+        try {
+          fromUrl = new URLSearchParams(window.location.search).get('lang');
+        } catch (e) {}
+        var fromStorage = localStorage.getItem('pocus_lang');
+        var browser = (navigator.language || 'es').toLowerCase().split(/[-_]/)[0];
+        var lang =
+          (fromUrl === 'es' || fromUrl === 'en') ? fromUrl :
+          (fromStorage === 'es' || fromStorage === 'en') ? fromStorage :
+          (browser === 'en') ? 'en' : 'es';
+        document.documentElement.lang = lang;
       } catch (e) {}
     })();
   `;

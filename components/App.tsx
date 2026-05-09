@@ -30,6 +30,7 @@ import { useCatalogDerivations } from "@/hooks/useCatalogDerivations";
 import { useCardCallbacks } from "@/hooks/useCardCallbacks";
 import { useCaseSaver } from "@/hooks/useCaseSaver";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
 
 // Lazy-loaded subtrees: needed only on a specific path. Keeping them out
 // of the initial bundle preserves first-paint on the home grid (audit
@@ -41,9 +42,16 @@ const FeaturedRow = dynamic(() => import("./cards/FeaturedRow"));
 const MobileDrawer = dynamic(() => import("./chrome/MobileDrawer"), { ssr: false });
 
 export default function App() {
+  // `<LanguageProvider>` wraps the entire client tree so any chrome,
+  // modal, or panel can read the active language via `useLanguage`.
+  // It sits inside the top-level `<Suspense>` boundary because the
+  // initial language resolution only requires synchronous reads of
+  // URL / localStorage / navigator — no async, no suspending.
   return (
     <Suspense fallback={null}>
-      <AppInner />
+      <LanguageProvider>
+        <AppInner />
+      </LanguageProvider>
     </Suspense>
   );
 }
@@ -223,7 +231,8 @@ function AppInner() {
     },
   });
 
-  const head = derivePageHead(view, cat, config.sectionLabelOverrides);
+  const { lang } = useLanguage();
+  const head = derivePageHead(view, cat, config.sectionLabelOverrides, lang);
 
   return (
     <>

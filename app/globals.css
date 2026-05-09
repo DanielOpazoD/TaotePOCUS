@@ -20,6 +20,7 @@
 /* Top-of-page chrome */
 @import "./styles/header.css";
 @import "./styles/drawer.css";
+@import "./styles/language.css";
 
 /* Layout shell + main + sidebar (the three-column page) */
 @import "./styles/layout.css";

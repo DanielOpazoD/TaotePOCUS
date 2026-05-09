@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import Sidebar from "@/components/Sidebar";
+import { renderWithLanguage as render } from "./test-utils";
 import type { CategoryWithCount } from "@/lib/types";
 
 const cats: CategoryWithCount[] = [

@@ -18,11 +18,19 @@ export default defineConfig({
     baseURL: BASE,
     trace: "on-first-retry",
     headless: true,
+    // Pin the browser locale so the i18n auto-detector
+    // (`detectBrowserLang(navigator.language)`) resolves to Spanish
+    // by default. Without this, Playwright's Chromium reports
+    // `en-US` and the catalog auto-translates to English, breaking
+    // every spec that asserts Spanish copy. EN-specific behavior
+    // is exercised by overriding the URL `?lang=en` inside the
+    // relevant spec.
+    locale: "es-CL",
   },
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], locale: "es-CL" },
     },
   ],
   webServer: {

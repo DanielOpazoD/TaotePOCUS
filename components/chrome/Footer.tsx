@@ -1,6 +1,8 @@
 "use client";
 
+import { Fragment } from "react";
 import { useSeedCases } from "@/hooks/useSeedCases";
+import { useLanguage } from "@/hooks/useLanguage";
 
 /**
  * Editorial footer / colophon. A short mono strip at the bottom of
@@ -23,56 +25,59 @@ import { useSeedCases } from "@/hooks/useSeedCases";
  */
 export default function Footer({ extraCases = 0 }: { extraCases?: number }) {
   const { seed } = useSeedCases();
+  const { t, formatDate } = useLanguage();
   const total = seed.length + extraCases;
-  const buildDate = formatBuildDate();
+  const buildDate = formatDate(buildDateInput());
   const year = new Date().getFullYear();
+  // The "composed in" line embeds an italicized "Newsreader" mid-
+  // sentence. Splitting on the placeholder lets the dictionary keep
+  // the surrounding copy translatable while preserving the <em>
+  // typography. Re-using the {newsreader} convention rather than a
+  // separate React-only path keeps the dictionary string readable
+  // for non-engineer translators.
+  const composedTemplate = t("footer.composed");
+  const composedParts = composedTemplate.split(/\{newsreader\}/);
 
   return (
     <footer className="page-footer" role="contentinfo">
       <div className="page-footer-inner">
         <p className="colophon">
           <span>
-            Compuesto en <em>Newsreader</em>, IBM Plex Sans y IBM Plex Mono.
+            {composedParts.map((part, i) => (
+              <Fragment key={i}>
+                {part}
+                {i < composedParts.length - 1 && <em>Newsreader</em>}
+              </Fragment>
+            ))}
           </span>
           <span className="colophon-sep" aria-hidden="true">
             ·
           </span>
-          <span className="tnum">{total} casos publicados</span>
+          <span className="tnum">{t("footer.cases", { count: total })}</span>
           <span className="colophon-sep" aria-hidden="true">
             ·
           </span>
-          <span className="tnum">Actualizado {buildDate}</span>
+          <span className="tnum">{t("footer.updated", { date: buildDate })}</span>
         </p>
         <p className="colophon-mark">
-          <span>© {year} Taote POCUS</span>
+          <span>{t("footer.copyright", { year })}</span>
           <span className="colophon-sep" aria-hidden="true">
             ·
           </span>
-          <span>Hecho con cuidado en Rapa Nui</span>
+          <span>{t("footer.signature")}</span>
         </p>
       </div>
     </footer>
   );
 }
 
-/** Format today's date as "28 abr 2026". */
-function formatBuildDate(): string {
+/** Resolve the build date input, preferring the env-injected stamp
+ *  over a runtime `new Date()` so two clients on the same deploy
+ *  agree on what "actualizado" means. Returns `undefined` for an
+ *  invalid env value so the formatter renders an em-dash. */
+function buildDateInput(): string | Date | undefined {
   const env = process.env["NEXT_PUBLIC_BUILD_DATE"];
-  const d = env ? new Date(env) : new Date();
-  if (Number.isNaN(d.getTime())) return "—";
-  const months = [
-    "ene",
-    "feb",
-    "mar",
-    "abr",
-    "may",
-    "jun",
-    "jul",
-    "ago",
-    "sep",
-    "oct",
-    "nov",
-    "dic",
-  ];
-  return `${d.getDate()} ${months[d.getMonth()] ?? ""} ${d.getFullYear()}`;
+  if (!env) return new Date();
+  const d = new Date(env);
+  return Number.isNaN(d.getTime()) ? undefined : d;
 }

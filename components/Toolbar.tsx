@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { SortOrder } from "@/lib/url";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Props {
   /** Number of results currently visible — drives the "N casos" copy. */
@@ -27,6 +28,7 @@ interface Props {
  * `replacePatch`.
  */
 export default function Toolbar({ count, tags, query, sort, onReplace }: Props) {
+  const { t } = useLanguage();
   const [clearShaking, setClearShaking] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasFilters = tags.length > 0 || !!query;
@@ -45,7 +47,7 @@ export default function Toolbar({ count, tags, query, sort, onReplace }: Props) 
   return (
     <div className="toolbar">
       <span className="results">
-        {count} {count === 1 ? "caso" : "casos"}
+        {t(count === 1 ? "toolbar.results.one" : "toolbar.results.many", { count })}
       </span>
       <button
         className={`clear-btn${clearShaking ? " is-shaking" : ""}`}
@@ -64,24 +66,24 @@ export default function Toolbar({ count, tags, query, sort, onReplace }: Props) 
           onReplace({ tags: [], query: "" });
         }}
       >
-        Limpiar filtros
+        {t("toolbar.clearFilters")}
       </button>
       {tags.length > 0 && (
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {tags.map((t) => (
+          {tags.map((tag) => (
             <button
-              key={t}
+              key={tag}
               className="tag-chip active"
-              onClick={() => onReplace({ tags: tags.filter((x) => x !== t) })}
+              onClick={() => onReplace({ tags: tags.filter((x) => x !== tag) })}
             >
-              {t} ×
+              {tag} ×
             </button>
           ))}
         </div>
       )}
       <div className="toolbar-right">
         <label htmlFor="sort-select" className="toolbar-label">
-          Ordenar
+          {t("toolbar.sortLabel")}
         </label>
         <select
           id="sort-select"
@@ -89,9 +91,9 @@ export default function Toolbar({ count, tags, query, sort, onReplace }: Props) 
           value={sort}
           onChange={(e) => onReplace({ sort: e.target.value as SortOrder })}
         >
-          <option value="recent">Más recientes</option>
-          <option value="featured">Destacados</option>
-          <option value="title">Alfabético</option>
+          <option value="recent">{t("toolbar.sort.recent")}</option>
+          <option value="featured">{t("toolbar.sort.featured")}</option>
+          <option value="title">{t("toolbar.sort.title")}</option>
         </select>
       </div>
     </div>

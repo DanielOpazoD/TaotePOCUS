@@ -1,6 +1,8 @@
-// Top-of-page chrome: header bar, mobile drawer, theme toggle.
+// Top-of-page chrome: header bar, mobile drawer, theme toggle,
+// language switcher.
 export { default as Header } from "./Header";
 export { default as MobileDrawer } from "./MobileDrawer";
 export { default as ThemeToggle } from "./ThemeToggle";
+export { default as LanguageSwitcher } from "./LanguageSwitcher";
 export { default as TransitionLink } from "./TransitionLink";
 export { default as Footer } from "./Footer";

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import Header from "@/components/chrome/Header";
+import { renderWithLanguage as render } from "./test-utils";
 import type { User, View } from "@/lib/types";
 
 vi.mock("next/link", () => ({

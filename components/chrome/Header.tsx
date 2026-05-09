@@ -4,9 +4,12 @@ import { useEffect, useRef } from "react";
 import TransitionLink from "./TransitionLink";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
+import { sectionLabel } from "@/lib/i18n";
+import { useLanguage } from "@/hooks/useLanguage";
 import { viewToPath } from "@/lib/url";
 import type { Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 /**
  * Returns true when the user is currently typing in a field. We use it
@@ -53,6 +56,7 @@ export default function Header({
   onOpenDrawer,
   sections = SECTIONS,
 }: Props) {
+  const { lang, t } = useLanguage();
   const isAdmin = user?.role === "admin";
   const isActive = (target: View) => {
     if (target.kind !== view.kind) return false;
@@ -106,10 +110,15 @@ export default function Header({
   return (
     <header className="app-header" ref={headerRef}>
       <div className="header-inner">
-        <button type="button" className="hamburger" onClick={onOpenDrawer} aria-label="Abrir menú">
+        <button
+          type="button"
+          className="hamburger"
+          onClick={onOpenDrawer}
+          aria-label={t("nav.menu.open")}
+        >
           {Icon.menu()}
         </button>
-        <TransitionLink className="brand" href="/" aria-label="Taote POCUS — inicio">
+        <TransitionLink className="brand" href="/" aria-label={t("brand.aria.home")}>
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
               {/* Outer ring: ultrasound field. `pathLength={100}`
@@ -139,9 +148,12 @@ export default function Header({
           <span className="brand-wordmark">
             Taote <em>POCUS</em>
           </span>
-          <span className="brand-tag">ES</span>
+          {/* Brand tag mirrors the active language so the wordmark
+              stays self-describing. The interactive switcher in the
+              right cluster is what changes it. */}
+          <span className="brand-tag">{lang.toUpperCase()}</span>
         </TransitionLink>
-        <nav className="nav" aria-label="Secciones">
+        <nav className="nav" aria-label={t("nav.aria.sections")}>
           {sections.map((s) => {
             const target: View = { kind: "section", section: s.id };
             return (
@@ -151,7 +163,7 @@ export default function Header({
                 className={isActive(target) ? "active" : ""}
                 aria-current={isActive(target) ? "page" : undefined}
               >
-                {s.label}
+                {sectionLabel(s.id, lang)}
               </TransitionLink>
             );
           })}
@@ -160,7 +172,7 @@ export default function Header({
             className={view.kind === "favs" ? "active" : ""}
             aria-current={view.kind === "favs" ? "page" : undefined}
           >
-            Favoritos {favCount > 0 && <span className="fav-count">{favCount}</span>}
+            {t("nav.favoritos")} {favCount > 0 && <span className="fav-count">{favCount}</span>}
           </TransitionLink>
           {isAdmin && (
             <TransitionLink
@@ -168,7 +180,7 @@ export default function Header({
               className={view.kind === "admin" ? "active" : ""}
               aria-current={view.kind === "admin" ? "page" : undefined}
             >
-              Administrar
+              {t("nav.administrar")}
             </TransitionLink>
           )}
         </nav>
@@ -177,8 +189,8 @@ export default function Header({
           <input
             ref={searchRef}
             type="search"
-            placeholder="Buscar casos, hallazgos, etiquetas…"
-            aria-label="Buscar casos, hallazgos y etiquetas"
+            placeholder={t("search.placeholder")}
+            aria-label={t("search.aria")}
             aria-keyshortcuts="/"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -188,33 +200,34 @@ export default function Header({
           </kbd>
         </div>
         <div className="header-right">
+          <LanguageSwitcher />
           <ThemeToggle />
           {isAdmin && (
             <button
               className="btn-primary btn-icon-only"
               onClick={onNewCase}
-              aria-label="Nuevo caso"
-              title="Nuevo caso"
+              aria-label={t("newCase.aria")}
+              title={t("newCase.label")}
             >
               <Icon.plus />
             </button>
           )}
           {user ? (
             <>
-              {isAdmin && <span className="admin-badge">ADMIN</span>}
+              {isAdmin && <span className="admin-badge">{t("admin.badge")}</span>}
               <div className="modal-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>
                 {user.initials}
               </div>
               <button className="btn-ghost" onClick={onLogout}>
-                Salir
+                {t("nav.salir")}
               </button>
             </>
           ) : (
             <button
               className="btn-primary btn-icon-only"
               onClick={onLogin}
-              aria-label="Entrar"
-              title="Entrar"
+              aria-label={t("nav.entrar")}
+              title={t("nav.entrar")}
             >
               <Icon.user />
             </button>

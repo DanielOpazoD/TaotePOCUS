@@ -101,6 +101,13 @@ export const STORAGE_KEYS = {
   /** Last successful backup timestamp (ISO string). Surfaced in
    *  the BackupPanel as a "última copia" hint. */
   lastBackupAt: "pocus_last_backup_at",
+
+  /** UI language preference (`"es" | "en"`). Source-of-truth order:
+   *  URL `?lang=` > this localStorage slot > `navigator.language`
+   *  detection > `DEFAULT_LANG`. Read by the pre-paint script in
+   *  `app/layout.tsx` so `<html lang>` is set before hydration —
+   *  keep both spellings aligned if the key is renamed. */
+  lang: "pocus_lang",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

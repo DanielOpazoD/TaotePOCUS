@@ -2,6 +2,8 @@
 
 import { CategoryGlyph, CustomCategoryGlyph, Icon } from "@/lib/icons";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useLanguage } from "@/hooks/useLanguage";
+import { categoryLabel } from "@/lib/i18n";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { CategoryWithCount } from "@/lib/types";
 
@@ -31,6 +33,7 @@ export default function Sidebar({
   collapsed,
   onToggleCollapsed,
 }: Props) {
+  const { lang, t } = useLanguage();
   // Tags section collapse state. Default open on first visit so
   // newcomers see the vocabulary; once collapsed, the choice persists.
   // Active tags force-open below so applied filters never go invisible.
@@ -44,61 +47,61 @@ export default function Sidebar({
   const effectivelyOpen = tagsOpen || activeTags.length > 0;
 
   return (
-    <aside
-      className={`sidebar${collapsed ? " is-collapsed" : ""}`}
-      aria-label="Filtros y categorías"
-    >
+    <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`} aria-label={t("sidebar.aria")}>
       <button
         type="button"
         className="sidebar-toggle"
         onClick={onToggleCollapsed}
-        aria-label={collapsed ? "Expandir panel lateral" : "Colapsar panel lateral"}
+        aria-label={collapsed ? t("sidebar.expand.aria") : t("sidebar.collapse.aria")}
         aria-expanded={!collapsed}
-        title={collapsed ? "Expandir" : "Colapsar"}
+        title={collapsed ? t("sidebar.expand.title") : t("sidebar.collapse.title")}
       >
         {collapsed ? Icon.arrowRight() : Icon.arrowLeft()}
       </button>
       <div className="side-section sidebar-categories">
-        <h4>Categorías</h4>
+        <h4>{t("sidebar.categories")}</h4>
         <ul className="cat-list">
           <li>
             <button
               className={!activeCat ? "active" : ""}
               onClick={() => setActiveCat(null)}
-              title="Todos"
+              title={t("sidebar.todos")}
             >
               <span className="cat-label">
                 <span className="cat-glyph" aria-hidden="true">
                   {Icon.search()}
                 </span>
-                <span className="cat-text">Todos</span>
+                <span className="cat-text">{t("sidebar.todos")}</span>
               </span>
               <span className="cat-count">{totalCount}</span>
             </button>
           </li>
-          {categories.map((c) => (
-            <li key={c.id}>
-              <button
-                className={activeCat === c.id ? "active" : ""}
-                onClick={() => setActiveCat(c.id)}
-                title={c.label}
-              >
-                <span className="cat-label">
-                  <span className="cat-glyph" aria-hidden="true">
-                    {/* Built-in categories have hand-drawn glyphs in
-                        `CategoryGlyph`. Custom (`c:*`) categories
-                        created by the admin get the generic
-                        `CustomCategoryGlyph` (a ring + tag) so they
-                        don't render as a blank slot in the sidebar
-                        nav. */}
-                    {CategoryGlyph[c.id] ?? CustomCategoryGlyph}
+          {categories.map((c) => {
+            const label = categoryLabel(c, lang);
+            return (
+              <li key={c.id}>
+                <button
+                  className={activeCat === c.id ? "active" : ""}
+                  onClick={() => setActiveCat(c.id)}
+                  title={label}
+                >
+                  <span className="cat-label">
+                    <span className="cat-glyph" aria-hidden="true">
+                      {/* Built-in categories have hand-drawn glyphs in
+                          `CategoryGlyph`. Custom (`c:*`) categories
+                          created by the admin get the generic
+                          `CustomCategoryGlyph` (a ring + tag) so they
+                          don't render as a blank slot in the sidebar
+                          nav. */}
+                      {CategoryGlyph[c.id] ?? CustomCategoryGlyph}
+                    </span>
+                    <span className="cat-text">{label}</span>
                   </span>
-                  <span className="cat-text">{c.label}</span>
-                </span>
-                <span className="cat-count">{c.count}</span>
-              </button>
-            </li>
-          ))}
+                  <span className="cat-count">{c.count}</span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </div>
       <div className={`side-section sidebar-tags${effectivelyOpen ? " is-open" : " is-closed"}`}>
@@ -112,7 +115,7 @@ export default function Sidebar({
           aria-expanded={effectivelyOpen}
           aria-controls="sidebar-tags-cloud"
         >
-          <span>Etiquetas</span>
+          <span>{t("sidebar.tags")}</span>
           <span className="side-section-meta tnum">{tags.length}</span>
           <span className="side-section-chevron" aria-hidden="true">
             {Icon.arrowRight()}
