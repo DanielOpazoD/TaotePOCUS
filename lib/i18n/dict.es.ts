@@ -283,6 +283,7 @@ export const DICT_ES = {
   "bulk.row.openFull": "Abrir modal completo",
   "bulk.row.delete": "Eliminar caso",
   "bulk.cell.editHint": "{label} (click para editar)",
+  "bulk.cell.empty": "— vacío —",
   "bulk.row.checkbox.select": "Seleccionar {title}",
   "bulk.row.category.aria": "Categoría de {title}",
   "bulk.row.reviewed.toggleOn": "{title}: marcar revisado",
@@ -312,6 +313,31 @@ export const DICT_ES = {
   "classifier.empty.unclassified": "No hay casos sin clasificar.",
   "classifier.empty.unreviewed": "No hay casos pendientes de revisar.",
   "classifier.empty.all": "El catálogo está vacío.",
+  "classifier.empty.title": "Nada por clasificar",
+  "classifier.empty.body": "Cuando este filtro tenga casos pendientes, aparecerán acá.",
+  "classifier.thumb.title": "Click para editar · ⌘/Ctrl+click para seleccionar",
+  "classifier.thumb.aria": "Editar {title}",
+  "classifier.review.markAria": "Marcar revisado",
+  "classifier.review.markTitle": "Marcar como revisado",
+  "classifier.review.unmarkTitle": "Quitar marca de revisado",
+  // ─── Admin panel — Classifier bulk action bar ──────────────────
+  "classifier.bulk.aria": "Acciones en lote",
+  // Suffix to "{<strong>N</strong>} ___" — kept as a separate key so
+  // the `<strong>` wrapper around the number can stay in JSX.
+  "classifier.bulk.count.suffix.one": "seleccionado",
+  "classifier.bulk.count.suffix.many": "seleccionados",
+  "classifier.bulk.markReviewed": "✓ Marcar revisado",
+  "classifier.bulk.markReviewed.title": "Marcar todos como revisados",
+  "classifier.bulk.unmarkReviewed": "Quitar revisado",
+  "classifier.bulk.unmarkReviewed.title": "Quitar marca de revisado a todos",
+  "classifier.bulk.section.label": "Mover sección a",
+  "classifier.bulk.section.placeholder": "Mover sección…",
+  "classifier.bulk.category.label": "Mover categoría a",
+  "classifier.bulk.category.placeholder": "Mover categoría…",
+  "classifier.bulk.trash": "🗑 Mover a papelera",
+  "classifier.bulk.trash.title": "Mover los seleccionados a la papelera",
+  "classifier.bulk.clear": "Limpiar",
+  "classifier.bulk.clear.title": "Limpiar selección · Esc",
   "classifier.dragHint.label": "Arrastrando",
   "classifier.dragHint.fallback": "caso",
   "classifier.dragHint.empty": "Suelta sobre una sección o categoría",
@@ -338,6 +364,7 @@ export const DICT_ES = {
   "categories.row.toggleHidden": "Ocultar {label} del atlas",
   "categories.row.toggleVisible.title": "Oculta en el sidebar público — click para mostrar",
   "categories.row.toggleHidden.title": "Visible en el sidebar público — click para ocultar",
+  "categories.row.rename.aria": "Renombrar {label}",
   "categories.row.rename.es.aria": "Renombrar {label} en español",
   "categories.row.rename.en.aria": "Renombrar {label} en inglés",
   "categories.row.rename.title": "Renombrar (ES + EN)",
@@ -368,6 +395,18 @@ export const DICT_ES = {
   "sections.row.toggleHidden": "Ocultar {label} del menú",
   "sections.row.toggleVisible.title": "Oculta en el menú público — click para mostrar",
   "sections.row.toggleHidden.title": "Visible en el menú público — click para ocultar",
+  "sections.row.rename.es.aria": "Renombrar {label} en español",
+  "sections.row.rename.en.aria": "Renombrar {label} en inglés",
+  "sections.row.rename.placeholder.en": "English (opcional)",
+  "sections.row.rename.tooltip": "Renombrar (ES + EN)",
+  "sections.row.translation.title": "Traducción al inglés",
+  "sections.row.rename.aria": "Renombrar {label}",
+  "sections.row.cases.one": "{count} caso",
+  "sections.row.cases.many": "{count} casos",
+  "sections.row.save": "Guardar",
+  "sections.row.save.title": "Guardar (Enter)",
+  "sections.row.cancel": "Cancelar",
+  "sections.row.cancel.title": "Cancelar (Esc)",
 
   // ─── Admin panel — CaseForm chrome ─────────────────────────────
   "form.head.edit": "Editar caso",
@@ -479,6 +518,105 @@ export const DICT_ES = {
   "auth.alt.toRegister": "¿Eres nuevo? ",
   "auth.alt.toLogin": "¿Ya tienes cuenta? ",
   "auth.demo.title": "Demo admin:",
+
+  // ─── Admin panel — Backup ─────────────────────────────────────
+  "backup.intro.title": "Backup",
+  "backup.intro.body":
+    "Exportá un archivo JSON con todo lo que has hecho desde admin: reclasificaciones, categorías personalizadas, casos propios y favoritos. Guardalo en Drive / Dropbox / iCloud — es tu única red contra perder los datos del navegador, cambiar de máquina o reinstalar.",
+  "backup.relative.never": "nunca",
+  "backup.relative.today": "hoy",
+  "backup.relative.yesterday": "ayer",
+  "backup.relative.daysAgo": "hace {days} días",
+  "backup.status.label": "Último backup",
+  "backup.status.warn.stale":
+    "Hace más de {days} días — descargá uno nuevo si has clasificado casos desde entonces.",
+  "backup.status.warn.never":
+    "Aún no has hecho un backup. Descargá uno antes de seguir clasificando.",
+  "backup.export.title": "Exportar",
+  "backup.export.body": "Descarga un snapshot del estado actual.",
+  "backup.summary.overrides": "reclasificaciones",
+  "backup.summary.categories": "categorías personalizadas",
+  "backup.summary.categoriesShort": "categorías",
+  "backup.summary.userCases": "casos propios",
+  "backup.summary.favorites": "favoritos",
+  "backup.export.action": "Exportar backup",
+  "backup.toast.exported":
+    "Backup descargado · {overrides} reclasificaciones, {categories} categorías, {userCases} casos propios",
+  "backup.import.title": "Importar",
+  "backup.import.body.prefix":
+    "Reemplaza el estado actual con el contenido del archivo. Esta operación",
+  "backup.import.body.strong": "sobrescribe",
+  "backup.import.body.suffix": "tus datos locales — usa con cuidado.",
+  "backup.import.action": "Elegir archivo JSON…",
+  "backup.error.invalidJson": "El archivo no es JSON válido.",
+  "backup.error.invalidEnvelope":
+    "El archivo no parece un backup válido (versión incorrecta o estructura distinta).",
+  "backup.error.read": "No se pudo leer el archivo.",
+  "backup.error.writeFailed": "Falló la escritura en localStorage (¿espacio agotado?).",
+  "backup.error.restoreUnknown": "No se pudo restaurar — revisa la consola.",
+  "backup.toast.restored":
+    "Backup restaurado · {overrides} reclasificaciones, {categories} categorías. Recargando…",
+  "backup.confirm.restore.title": "¿Reemplazar tus datos locales?",
+  "backup.confirm.restore.body":
+    "Vas a sobrescribir el estado actual con este backup del {date}{by}.",
+  "backup.confirm.restore.warn":
+    "Tus datos actuales se perderán. Si tenés cambios sin exportar, cancelá y descargá un backup nuevo primero.",
+  "backup.confirm.restore.confirm": "Reemplazar y recargar",
+  "backup.confirm.cancel": "Cancelar",
+  "backup.db.title": "Sincronizar con base de datos",
+  "backup.db.body":
+    "Sube el estado actual de localStorage a Postgres (Netlify Database). La operación reemplaza todos los datos en la DB con los locales — usar para la migración inicial o para reconciliar drift después de un fallo de sincronización.",
+  "backup.db.action": "Subir a base de datos",
+  "backup.db.action.busy": "Subiendo…",
+  "backup.db.error":
+    "No se pudo subir a la base de datos. Revisá los logs de Netlify Functions para el detalle.",
+  "backup.db.error.exception": "Error: {message}",
+  "backup.db.error.unknown": "Error desconocido durante la subida.",
+  "backup.db.toast":
+    "Subido a DB · {overrides} reclasificaciones, {categories} categorías, {userCases} casos propios, {favs} favoritos",
+  "backup.db.confirm.title": "¿Subir a la base de datos?",
+  "backup.db.confirm.body":
+    "Se va a sobrescribir el contenido de Postgres con el estado actual de tu navegador. Esta operación es atómica — todo o nada.",
+  "backup.db.confirm.warn":
+    "Si trabajaste desde otro dispositivo y hay datos solo en la DB, vas a perderlos. Para casos así, primero exportá un backup desde el otro dispositivo.",
+  "backup.db.confirm.confirm": "Subir y reemplazar",
+
+  // ─── Admin panel — Activity feed ──────────────────────────────
+  "activity.intro.title": "Actividad",
+  "activity.intro.body":
+    "Registro append-only de cada cambio admin: overrides, categorías, casos eliminados o restaurados, importaciones. Útil para auditar quién hizo qué y cuándo.",
+  "activity.skeleton.aria": "Cargando actividad…",
+  "activity.filter.aria": "Filtrar por tipo de acción",
+  "activity.filter.all": "Todas las acciones",
+  "activity.count.suffix": "acciones",
+  // "{visible} de {total}" — when the kind filter narrows the row
+  // set, this fragment surfaces between the visible-count and the
+  // " acciones" suffix above. Kept separate so the count stays a
+  // raw `{visibleRows.length}` in JSX.
+  "activity.count.of": "de {total}",
+  "activity.error.auth": "Necesitás iniciar sesión para ver la actividad.",
+  "activity.error.forbidden": "Tu cuenta no tiene permisos de administrador.",
+  "activity.error.load": "No se pudo cargar la actividad. Reintentá más tarde.",
+  "activity.error.network": "Error de red. Reintentá más tarde.",
+  "activity.empty":
+    "Aún no se registraron acciones. Cualquier edición admin que hagas a partir de ahora aparece acá.",
+  "activity.col.date": "Fecha",
+  "activity.col.action": "Acción",
+  "activity.col.target": "Caso / objeto",
+  "activity.col.admin": "Admin",
+  "activity.empty.filtered": "Ninguna acción de tipo «{label}» en el rango cargado.",
+  "activity.loadMore": "Cargar más",
+  "activity.loadMore.busy": "Cargando…",
+  "activity.kind.override_set": "Override aplicado",
+  "activity.kind.override_cleared": "Override descartado",
+  "activity.kind.category_added": "Categoría creada",
+  "activity.kind.category_renamed": "Categoría renombrada",
+  "activity.kind.category_removed": "Categoría eliminada",
+  "activity.kind.user_case_saved": "Caso guardado",
+  "activity.kind.user_case_soft_deleted": "Caso a papelera",
+  "activity.kind.user_case_restored": "Caso restaurado",
+  "activity.kind.import_purged": "Caso eliminado permanentemente",
+  "activity.kind.bulk_imported": "Importación masiva",
 
   // ─── Toasts (admin) ────────────────────────────────────────────
   "toast.case.deleted": "Caso eliminado",

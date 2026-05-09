@@ -359,8 +359,8 @@ export default function ClassifierBoard({
 
       {visible.length === 0 ? (
         <div className="empty empty--illustrated">
-          <h3>Nada por clasificar</h3>
-          <p>Cuando este filtro tenga casos pendientes, aparecerán acá.</p>
+          <h3>{t("classifier.empty.title")}</h3>
+          <p>{t("classifier.empty.body")}</p>
         </div>
       ) : (
         <div className="classifier-grid">
@@ -410,8 +410,8 @@ export default function ClassifierBoard({
                   }
                   onOpenEdit(c);
                 }}
-                title="Click para editar · ⌘/Ctrl+click para seleccionar"
-                aria-label={`Editar ${c.title}`}
+                title={t("classifier.thumb.title")}
+                aria-label={t("classifier.thumb.aria", { title: c.title.es })}
               >
                 <CineLoop
                   kind={c.loop}
@@ -449,8 +449,10 @@ export default function ClassifierBoard({
                 type="button"
                 className={`classifier-card-review${c.reviewed ? " is-on" : ""}`}
                 onClick={() => onPatch(c.id, { reviewed: !c.reviewed })}
-                title={c.reviewed ? "Quitar marca de revisado" : "Marcar como revisado"}
-                aria-label="Marcar revisado"
+                title={
+                  c.reviewed ? t("classifier.review.unmarkTitle") : t("classifier.review.markTitle")
+                }
+                aria-label={t("classifier.review.markAria")}
                 aria-pressed={Boolean(c.reviewed)}
               >
                 ✓

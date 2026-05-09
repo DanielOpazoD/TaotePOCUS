@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import BackupPanel from "@/components/admin/BackupPanel";
+import { renderWithLanguage as render } from "./test-utils";
 
 // The component imports a Server Action from `@/app/actions/db`. In a
 // vitest run there's no Netlify runtime, so calling it would throw.

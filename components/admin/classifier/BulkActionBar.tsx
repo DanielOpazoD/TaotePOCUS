@@ -25,6 +25,7 @@
 import { useState } from "react";
 import { SECTIONS } from "@/lib/data";
 import { categoryLabelEs } from "@/lib/i18n";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 
 interface Props {
@@ -48,6 +49,7 @@ export function BulkActionBar({
   onBulkSoftDelete,
   afterAction,
 }: Props) {
+  const t = useT();
   const ANY_TARGET = "__pick__";
   const [sectionTarget, setSectionTarget] = useState<string>(ANY_TARGET);
   const [categoryTarget, setCategoryTarget] = useState<string>(ANY_TARGET);
@@ -59,9 +61,10 @@ export function BulkActionBar({
   };
 
   return (
-    <div className="classifier-bulk" role="region" aria-label="Acciones en lote">
+    <div className="classifier-bulk" role="region" aria-label={t("classifier.bulk.aria")}>
       <div className="classifier-bulk-count">
-        <strong>{count}</strong> seleccionado{count === 1 ? "" : "s"}
+        <strong>{count}</strong>{" "}
+        {t(count === 1 ? "classifier.bulk.count.suffix.one" : "classifier.bulk.count.suffix.many")}
       </div>
       <div className="classifier-bulk-actions">
         {onBulkPatch && (
@@ -70,20 +73,20 @@ export function BulkActionBar({
               type="button"
               className="classifier-bulk-btn"
               onClick={() => apply({ reviewed: true })}
-              title="Marcar todos como revisados"
+              title={t("classifier.bulk.markReviewed.title")}
             >
-              ✓ Marcar revisado
+              {t("classifier.bulk.markReviewed")}
             </button>
             <button
               type="button"
               className="classifier-bulk-btn"
               onClick={() => apply({ reviewed: false })}
-              title="Quitar marca de revisado a todos"
+              title={t("classifier.bulk.unmarkReviewed.title")}
             >
-              Quitar revisado
+              {t("classifier.bulk.unmarkReviewed")}
             </button>
             <label className="classifier-bulk-select">
-              <span className="sr-only">Mover sección a</span>
+              <span className="sr-only">{t("classifier.bulk.section.label")}</span>
               <select
                 value={sectionTarget}
                 onChange={(e) => {
@@ -93,7 +96,7 @@ export function BulkActionBar({
                   setSectionTarget(ANY_TARGET);
                 }}
               >
-                <option value={ANY_TARGET}>Mover sección…</option>
+                <option value={ANY_TARGET}>{t("classifier.bulk.section.placeholder")}</option>
                 {SECTIONS.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.label}
@@ -102,7 +105,7 @@ export function BulkActionBar({
               </select>
             </label>
             <label className="classifier-bulk-select">
-              <span className="sr-only">Mover categoría a</span>
+              <span className="sr-only">{t("classifier.bulk.category.label")}</span>
               <select
                 value={categoryTarget}
                 onChange={(e) => {
@@ -112,7 +115,7 @@ export function BulkActionBar({
                   setCategoryTarget(ANY_TARGET);
                 }}
               >
-                <option value={ANY_TARGET}>Mover categoría…</option>
+                <option value={ANY_TARGET}>{t("classifier.bulk.category.placeholder")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {categoryLabelEs(c)}
@@ -130,9 +133,9 @@ export function BulkActionBar({
               onBulkSoftDelete(ids);
               afterAction();
             }}
-            title="Mover los seleccionados a la papelera"
+            title={t("classifier.bulk.trash.title")}
           >
-            🗑 Mover a papelera
+            {t("classifier.bulk.trash")}
           </button>
         )}
       </div>
@@ -140,9 +143,9 @@ export function BulkActionBar({
         type="button"
         className="classifier-bulk-clear"
         onClick={onClear}
-        title="Limpiar selección · Esc"
+        title={t("classifier.bulk.clear.title")}
       >
-        Limpiar
+        {t("classifier.bulk.clear")}
       </button>
     </div>
   );

@@ -40,41 +40,11 @@ const ROOT = join(__dirname, "..");
  * a translation already shipped, the entry should be REMOVED, not
  * left as a no-op.
  *
- * Today's debt — scheduled for a follow-up branch
- * (`codex/admin-i18n-residuals`):
+ * The original Phase-3 follow-up (`codex/admin-i18n-residuals`)
+ * cleared every entry; the set stays here as the seam where a new
+ * pending residue would land.
  */
-const WHITELIST = new Set<string>([
-  // Activity log labels (event-type → human label map). Live in
-  // an internal admin-only timeline; localising the label map is
-  // a follow-up that also needs to handle past activity rows
-  // (which were written under a different label).
-  "components/admin/ActivityPanel.tsx",
-  // Backup panel — `<button>Cancelar</button>` in two confirm
-  // flows + a couple of inline status strings. Pending follow-up.
-  "components/admin/BackupPanel.tsx",
-  // Categories editor — the Phase-3 dual-input rename surface
-  // shipped, but the page heading + add-row placeholder + a
-  // couple of action buttons stayed Spanish. Follow-up.
-  "components/admin/CategoriesEditor.tsx",
-  // CaseForm orchestrator — owns the modal head copy + the
-  // bottom action row ("Cancelar" / "Guardar cambios" /
-  // "Publicar caso"). Routed through `form.action.*` keys
-  // already; the orchestrator just needs the swap.
-  "components/admin/CaseForm.tsx",
-  // Sections editor — "Restaurar" reset button + cancel button
-  // in the bilingual rename row. Follow-up.
-  "components/admin/SectionsEditor.tsx",
-  // Bulk action bar — "Quitar revisado" button label + title
-  // attribute. Follow-up.
-  "components/admin/classifier/BulkActionBar.tsx",
-  // Classifier — empty-state message ("Cuando este filtro tenga
-  // casos pendientes, aparecerán acá.") and a couple of inline
-  // titles. Follow-up.
-  "components/admin/ClassifierBoard.tsx",
-  // BulkEdit cells — "— vacío —" placeholder rendered inside the
-  // inline EditableText cell. Trivial swap; follow-up.
-  "components/admin/bulk-edit/cells/EditableText.tsx",
-]);
+const WHITELIST = new Set<string>();
 
 /**
  * Folders we walk. Keep narrow on purpose — the audit is about

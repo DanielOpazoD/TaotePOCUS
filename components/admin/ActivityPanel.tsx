@@ -23,25 +23,30 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dbListAdminActions, type AdminActionRow } from "@/app/actions/db";
+import { useLanguage, useT } from "@/hooks/useLanguage";
+import { localeOf, type DictKey } from "@/lib/i18n";
 
-const KIND_LABELS: Record<string, string> = {
-  override_set: "Override aplicado",
-  override_cleared: "Override descartado",
-  category_added: "Categoría creada",
-  category_renamed: "Categoría renombrada",
-  category_removed: "Categoría eliminada",
-  user_case_saved: "Caso guardado",
-  user_case_soft_deleted: "Caso a papelera",
-  user_case_restored: "Caso restaurado",
-  import_purged: "Caso eliminado permanentemente",
-  bulk_imported: "Importación masiva",
-};
+/** Action `kind` → translation-key suffix. The dict ships the labels
+ *  under `activity.kind.<suffix>` for both languages. Unknown kinds
+ *  fall back to the raw kind string at the call site. */
+const KIND_KEYS = [
+  "override_set",
+  "override_cleared",
+  "category_added",
+  "category_renamed",
+  "category_removed",
+  "user_case_saved",
+  "user_case_soft_deleted",
+  "user_case_restored",
+  "import_purged",
+  "bulk_imported",
+] as const;
 
 const PAGE_SIZE = 100;
 
-function formatTime(iso: string): string {
+function formatTime(iso: string, locale: string): string {
   try {
-    return new Date(iso).toLocaleString("es", {
+    return new Date(iso).toLocaleString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -55,9 +60,9 @@ function formatTime(iso: string): string {
 
 /** Six fake rows that match the table column layout while the
  *  Server Action resolves. Avoids the empty-then-pop UX. */
-function ActivitySkeleton() {
+function ActivitySkeleton({ ariaLabel }: { ariaLabel: string }) {
   return (
-    <div aria-busy="true" aria-label="Cargando actividad…">
+    <div aria-busy="true" aria-label={ariaLabel}>
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className="skeleton-table-row is-narrow">
           <span className="skeleton-line" style={{ width: "100%" }} />
@@ -71,6 +76,8 @@ function ActivitySkeleton() {
 }
 
 export default function ActivityPanel() {
+  const t = useT();
+  const { lang } = useLanguage();
   const [rows, setRows] = useState<AdminActionRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loadingFirst, setLoadingFirst] = useState(true);
@@ -78,26 +85,42 @@ export default function ActivityPanel() {
   const [hasMore, setHasMore] = useState(true);
   const [kindFilter, setKindFilter] = useState<string>("");
 
-  const fetchPage = useCallback(async (offset: number): Promise<AdminActionRow[] | null> => {
-    try {
-      const res = await dbListAdminActions(PAGE_SIZE, offset);
-      if (res.ok) {
-        setError(null);
-        return res.rows;
+  /** Resolve a server-side `kind` to its translated label, falling
+   *  back to the raw id when the kind is one we don't have a key
+   *  for (defensive — every kind in `KIND_KEYS` is covered). */
+  const labelForKind = useCallback(
+    (kind: string): string => {
+      if ((KIND_KEYS as readonly string[]).includes(kind)) {
+        return t(`activity.kind.${kind}` as DictKey);
       }
-      setError(
-        res.reason === "auth_required"
-          ? "Necesitás iniciar sesión para ver la actividad."
-          : res.reason === "forbidden"
-            ? "Tu cuenta no tiene permisos de administrador."
-            : "No se pudo cargar la actividad. Reintentá más tarde.",
-      );
-      return null;
-    } catch {
-      setError("Error de red. Reintentá más tarde.");
-      return null;
-    }
-  }, []);
+      return kind;
+    },
+    [t],
+  );
+
+  const fetchPage = useCallback(
+    async (offset: number): Promise<AdminActionRow[] | null> => {
+      try {
+        const res = await dbListAdminActions(PAGE_SIZE, offset);
+        if (res.ok) {
+          setError(null);
+          return res.rows;
+        }
+        setError(
+          res.reason === "auth_required"
+            ? t("activity.error.auth")
+            : res.reason === "forbidden"
+              ? t("activity.error.forbidden")
+              : t("activity.error.load"),
+        );
+        return null;
+      } catch {
+        setError(t("activity.error.network"));
+        return null;
+      }
+    },
+    [t],
+  );
 
   // Initial load.
   useEffect(() => {
@@ -134,24 +157,21 @@ export default function ActivityPanel() {
   );
 
   // The set of kinds that actually appear in the loaded rows —
-  // surfaced as the filter dropdown. Sorted by their Spanish label
-  // so the dropdown reads alphabetically.
+  // surfaced as the filter dropdown. Sorted by the localized label
+  // so the dropdown reads alphabetically in the active language.
   const availableKinds = useMemo(() => {
     const set = new Set<string>();
     for (const r of rows) set.add(r.kind);
-    return Array.from(set).sort((a, b) =>
-      (KIND_LABELS[a] ?? a).localeCompare(KIND_LABELS[b] ?? b, "es"),
-    );
-  }, [rows]);
+    const collator = localeOf(lang);
+    return Array.from(set).sort((a, b) => labelForKind(a).localeCompare(labelForKind(b), collator));
+  }, [rows, lang, labelForKind]);
 
+  const locale = localeOf(lang);
   return (
     <div className="categories-editor">
       <div className="categories-intro">
-        <h2>Actividad</h2>
-        <p>
-          Registro append-only de cada cambio admin: overrides, categorías, casos eliminados o
-          restaurados, importaciones. Útil para auditar quién hizo qué y cuándo.
-        </p>
+        <h2>{t("activity.intro.title")}</h2>
+        <p>{t("activity.intro.body")}</p>
       </div>
 
       {!loadingFirst && rows.length > 0 && (
@@ -161,12 +181,12 @@ export default function ActivityPanel() {
               className="bulk-edit-filter"
               value={kindFilter}
               onChange={(e) => setKindFilter(e.target.value)}
-              aria-label="Filtrar por tipo de acción"
+              aria-label={t("activity.filter.aria")}
             >
-              <option value="">Todas las acciones</option>
+              <option value="">{t("activity.filter.all")}</option>
               {availableKinds.map((k) => (
                 <option key={k} value={k}>
-                  {KIND_LABELS[k] ?? k}
+                  {labelForKind(k)}
                 </option>
               ))}
             </select>
@@ -174,40 +194,38 @@ export default function ActivityPanel() {
           <div className="bulk-edit-meta">
             <span className="bulk-edit-count">
               {visibleRows.length}
-              {kindFilter ? ` de ${rows.length}` : ""} acciones
+              {kindFilter ? ` ${t("activity.count.of", { total: rows.length })}` : ""}{" "}
+              {t("activity.count.suffix")}
             </span>
           </div>
         </div>
       )}
 
       {loadingFirst ? (
-        <ActivitySkeleton />
+        <ActivitySkeleton ariaLabel={t("activity.skeleton.aria")} />
       ) : error ? (
         <p className="categories-empty" role="alert">
           {error}
         </p>
       ) : rows.length === 0 ? (
-        <p className="categories-empty">
-          Aún no se registraron acciones. Cualquier edición admin que hagas a partir de ahora
-          aparece acá.
-        </p>
+        <p className="categories-empty">{t("activity.empty")}</p>
       ) : (
         <>
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th>Acción</th>
-                <th>Caso / objeto</th>
-                <th>Admin</th>
+                <th>{t("activity.col.date")}</th>
+                <th>{t("activity.col.action")}</th>
+                <th>{t("activity.col.target")}</th>
+                <th>{t("activity.col.admin")}</th>
               </tr>
             </thead>
             <tbody>
               {visibleRows.map((r) => (
                 <tr key={r.id}>
-                  <td className="admin-date">{formatTime(r.created_at)}</td>
+                  <td className="admin-date">{formatTime(r.created_at, locale)}</td>
                   <td>
-                    <span className="admin-pill">{KIND_LABELS[r.kind] ?? r.kind}</span>
+                    <span className="admin-pill">{labelForKind(r.kind)}</span>
                   </td>
                   <td className="admin-title-cell">
                     {r.target_id ? (
@@ -224,8 +242,7 @@ export default function ActivityPanel() {
               {visibleRows.length === 0 && (
                 <tr>
                   <td colSpan={4} className="bulk-edit-empty">
-                    Ninguna acción de tipo «{KIND_LABELS[kindFilter] ?? kindFilter}» en el rango
-                    cargado.
+                    {t("activity.empty.filtered", { label: labelForKind(kindFilter) })}
                   </td>
                 </tr>
               )}
@@ -239,7 +256,7 @@ export default function ActivityPanel() {
                 onClick={() => void loadMore()}
                 disabled={loadingMore}
               >
-                {loadingMore ? "Cargando…" : "Cargar más"}
+                {loadingMore ? t("activity.loadMore.busy") : t("activity.loadMore")}
               </button>
             </div>
           )}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { sectionLabel as defaultSectionLabel } from "@/lib/i18n";
+import { useT } from "@/hooks/useLanguage";
 import type { LocalizedString, SectionId } from "@/lib/types";
 
 interface Props {
@@ -66,6 +67,7 @@ export default function SectionsEditor({
   caseCounts,
   overrides,
 }: Props) {
+  const t = useT();
   const [editingId, setEditingId] = useState<SectionId | null>(null);
   const [draftEs, setDraftEs] = useState("");
   const [draftEn, setDraftEn] = useState("");
@@ -99,14 +101,8 @@ export default function SectionsEditor({
   return (
     <div className="categories-editor">
       <div className="categories-intro">
-        <h2>Secciones</h2>
-        <p>
-          Renombrá las secciones haciendo click en el lápiz: podés definir un nombre en español
-          (mandatorio cuando lo personalizas) y otro en inglés (opcional). Los visitantes verán el
-          slot que coincida con el idioma activo, con fallback al español. La URL y los enlaces
-          compartidos no cambian. Las secciones ocultas tampoco aparecen en el menú aunque la URL
-          siga funcionando.
-        </p>
+        <h2>{t("sections.intro.title")}</h2>
+        <p>{t("sections.intro.body")}</p>
       </div>
 
       <ul className="categories-list">
@@ -142,7 +138,7 @@ export default function SectionsEditor({
                       }
                     }}
                     maxLength={48}
-                    aria-label={`Renombrar ${s.label} en español`}
+                    aria-label={t("sections.row.rename.es.aria", { label: s.label })}
                     placeholder={dictDefault}
                   />
                   <input
@@ -161,24 +157,24 @@ export default function SectionsEditor({
                       }
                     }}
                     maxLength={48}
-                    aria-label={`Renombrar ${s.label} en inglés`}
-                    placeholder="English (opcional)"
+                    aria-label={t("sections.row.rename.en.aria", { label: s.label })}
+                    placeholder={t("sections.row.rename.placeholder.en")}
                   />
                   <button
                     type="button"
                     className="btn-ghost"
                     onClick={commitEdit}
-                    title="Guardar (Enter)"
+                    title={t("sections.row.save.title")}
                   >
-                    Guardar
+                    {t("sections.row.save")}
                   </button>
                   <button
                     type="button"
                     className="btn-ghost"
                     onClick={cancelEdit}
-                    title="Cancelar (Esc)"
+                    title={t("sections.row.cancel.title")}
                   >
-                    Cancelar
+                    {t("sections.row.cancel")}
                   </button>
                 </span>
               ) : (
@@ -186,16 +182,22 @@ export default function SectionsEditor({
                   type="button"
                   className="categories-row-label categories-row-label--editable"
                   onClick={() => startEdit(s.id, currentLabelEs, overrideEn)}
-                  title="Click para renombrar"
+                  title={t("sections.row.rename.title")}
                 >
                   {currentLabelEs}
                   {overrideEn && (
-                    <span className="categories-row-translation" title="Traducción al inglés">
+                    <span
+                      className="categories-row-translation"
+                      title={t("sections.row.translation.title")}
+                    >
                       · {overrideEn}
                     </span>
                   )}
                   {isCustomized && (
-                    <span className="categories-row-rename-mark" title="Renombrada del default">
+                    <span
+                      className="categories-row-rename-mark"
+                      title={t("sections.row.renamed.title")}
+                    >
                       ✎
                     </span>
                   )}
@@ -203,7 +205,9 @@ export default function SectionsEditor({
               )}
               <span className="categories-row-id">{s.id}</span>
               <span className="categories-row-count">
-                {count} caso{count === 1 ? "" : "s"}
+                {t(count === 1 ? "sections.row.cases.one" : "sections.row.cases.many", {
+                  count,
+                })}
               </span>
               <span className="categories-row-actions">
                 {!isEditing && isCustomized && (
@@ -211,9 +215,9 @@ export default function SectionsEditor({
                     type="button"
                     className="link-btn categories-row-reset"
                     onClick={() => resetToDefault(s.id)}
-                    title={`Restaurar nombres por defecto (${dictDefault})`}
+                    title={t("sections.row.reset.title", { default: dictDefault })}
                   >
-                    Restaurar
+                    {t("sections.row.reset")}
                   </button>
                 )}
                 {!isEditing && (
@@ -221,8 +225,8 @@ export default function SectionsEditor({
                     type="button"
                     className="icon-btn"
                     onClick={() => startEdit(s.id, currentLabelEs, overrideEn)}
-                    aria-label={`Renombrar ${currentLabelEs}`}
-                    title="Renombrar (ES + EN)"
+                    aria-label={t("sections.row.rename.aria", { label: currentLabelEs })}
+                    title={t("sections.row.rename.tooltip")}
                   >
                     {Icon.edit()}
                   </button>
@@ -233,14 +237,14 @@ export default function SectionsEditor({
                   onClick={() => setHidden(s.id, !hidden)}
                   aria-label={
                     hidden
-                      ? `Mostrar ${currentLabelEs} en el menú`
-                      : `Ocultar ${currentLabelEs} del menú`
+                      ? t("sections.row.toggleVisible", { label: currentLabelEs })
+                      : t("sections.row.toggleHidden", { label: currentLabelEs })
                   }
                   aria-pressed={!hidden}
                   title={
                     hidden
-                      ? "Oculta en el menú público — click para mostrar"
-                      : "Visible en el menú público — click para ocultar"
+                      ? t("sections.row.toggleVisible.title")
+                      : t("sections.row.toggleHidden.title")
                   }
                 >
                   {hidden ? "🚫" : "👁"}
