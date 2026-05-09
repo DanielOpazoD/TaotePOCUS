@@ -57,6 +57,7 @@ function AppInner() {
     sort,
     caso: openCaseId,
     presenting: presentingId,
+    page,
     pushPatch,
     replacePatch,
   } = useViewState();
@@ -353,6 +354,8 @@ function AppInner() {
               onPatch={isAdmin ? adminActions.onPatch : undefined}
               onBulkPatch={isAdmin ? adminActions.onBulkPatch : undefined}
               onBulkSoftDelete={isAdmin ? adminActions.onBulkSoftDelete : undefined}
+              page={page}
+              onPageChange={(p) => replacePatch({ page: p })}
             />
           </ErrorBoundary>
         </main>

@@ -65,6 +65,19 @@ describe("parseViewState", () => {
   it("falls back to recent for invalid sort", () => {
     expect(parseViewState("/", new URLSearchParams("sort=garbage")).sort).toBe("recent");
   });
+
+  it("parses page as 0-indexed (URL is 1-indexed for human sharing)", () => {
+    expect(parseViewState("/", new URLSearchParams("")).page).toBe(0);
+    expect(parseViewState("/", new URLSearchParams("page=1")).page).toBe(0);
+    expect(parseViewState("/", new URLSearchParams("page=2")).page).toBe(1);
+    expect(parseViewState("/", new URLSearchParams("page=11")).page).toBe(10);
+  });
+
+  it("falls back to page 0 for invalid / negative page values", () => {
+    expect(parseViewState("/", new URLSearchParams("page=garbage")).page).toBe(0);
+    expect(parseViewState("/", new URLSearchParams("page=-3")).page).toBe(0);
+    expect(parseViewState("/", new URLSearchParams("page=0")).page).toBe(0);
+  });
 });
 
 describe("applyViewPatch", () => {
@@ -110,5 +123,35 @@ describe("applyViewPatch", () => {
     expect(parsed.query).toBe("infarto");
     expect(parsed.sort).toBe("title");
     expect(parsed.caso).toBe("ecg001");
+  });
+
+  it("encodes page as 1-indexed (drops the param at page 0)", () => {
+    expect(applyViewPatch(new URLSearchParams(""), { page: 0 }).get("page")).toBeNull();
+    expect(applyViewPatch(new URLSearchParams(""), { page: 1 }).get("page")).toBe("2");
+    expect(applyViewPatch(new URLSearchParams(""), { page: 5 }).get("page")).toBe("6");
+  });
+
+  it("auto-clears page when a filter changes (cat / tags / query / sort / view)", () => {
+    const seed = new URLSearchParams("page=3");
+    expect(applyViewPatch(seed, { cat: "lung" }).get("page")).toBeNull();
+    expect(applyViewPatch(seed, { tags: ["Crítico"] }).get("page")).toBeNull();
+    expect(applyViewPatch(seed, { query: "infarto" }).get("page")).toBeNull();
+    expect(applyViewPatch(seed, { sort: "title" }).get("page")).toBeNull();
+    expect(applyViewPatch(seed, { view: { kind: "favs" } }).get("page")).toBeNull();
+  });
+
+  it("KEEPS page when a non-filter patch happens (e.g. just opening a case)", () => {
+    const seed = new URLSearchParams("page=3");
+    expect(applyViewPatch(seed, { caso: "c001" }).get("page")).toBe("3");
+    expect(applyViewPatch(seed, { presenting: "c001" }).get("page")).toBe("3");
+  });
+
+  it("respects an EXPLICIT page in a filter patch (deep-link arrival)", () => {
+    // Deep-link `/?cat=lung&page=2` — the patch carries both cat
+    // and page, so the auto-clear shouldn't fire. This is the
+    // "shareable URL with filter + page" case.
+    const next = applyViewPatch(new URLSearchParams(""), { cat: "lung", page: 1 });
+    expect(next.get("cat")).toBe("lung");
+    expect(next.get("page")).toBe("2");
   });
 });

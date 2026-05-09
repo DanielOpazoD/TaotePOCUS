@@ -1066,6 +1066,76 @@
   }
 }
 
+/* ─── Catalog pagination ─────────────────────────────────────────
+ * Bottom-of-grid bar with "Mostrando X–Y de Z" + page controls.
+ * Only renders when totalPages > 1. Centred horizontally with
+ * generous vertical padding so it reads as a section break, not as
+ * the next row of cards. */
+.catalog-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0 var(--space-4);
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--hairline);
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+.catalog-pagination-summary {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.catalog-pagination-summary strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.catalog-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.catalog-pagination-btn {
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+  /* Tabular numerals so "12 / 12" doesn't shift width as the
+     page count climbs. */
+  font-variant-numeric: tabular-nums;
+}
+.catalog-pagination-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.catalog-pagination-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.catalog-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.catalog-pagination-indicator {
+  font-variant-numeric: tabular-nums;
+  padding: 0 var(--space-2);
+}
+.catalog-pagination-indicator strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 /* ─── Search match highlight ─────────────────────────────────────
  * Wraps the substrings inside CaseCard's title / description /
  * tags that match the active text query. The browser's default

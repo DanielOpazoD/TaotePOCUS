@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { CaseCard } from "./cards";
+import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
 import type { CaseRecord, Category, SectionId, View } from "@/lib/types";
 
@@ -102,7 +103,17 @@ interface Props {
    *  classifier's bulk bar. Skips the per-card confirm; the parent
    *  shows a unified undo toast. */
   onBulkSoftDelete?: (ids: string[]) => void;
+  /** Current 0-indexed page from URL state. The grid renders a
+   *  slice of `filtered` corresponding to this page. */
+  page: number;
+  /** Patch the URL's `page` param. Used by the pagination control. */
+  onPageChange: (page: number) => void;
 }
+
+/** How many cases per page in the public catalog grid. Hardcoded
+ *  for now; if it ever needs to be configurable per-section the
+ *  pageSize moves into the URL state too. */
+const CATALOG_PAGE_SIZE = 30;
 
 /**
  * Decides what fills the main column based on view + filter state and
@@ -162,6 +173,8 @@ export default function MainGrid({
   onPatch,
   onBulkPatch,
   onBulkSoftDelete,
+  page,
+  onPageChange,
 }: Props) {
   // Hooks first — Rules of Hooks. The early returns for the admin /
   // empty branches don't render the grid below, but `useMemo` still
@@ -233,6 +246,18 @@ export default function MainGrid({
   const cardOnPatch = isAdmin ? onPatch : undefined;
   const cardCategories = isAdmin ? categories : undefined;
 
+  // Pagination — slice `filtered` to the active page
+  // (CATALOG_PAGE_SIZE cases per page). The 0-indexed `page` arrives
+  // from URL state; the pagination control below patches the URL on
+  // prev / next / jump. We clamp `page` defensively so a stale URL
+  // (`?page=10` after a category change shrinks the result set)
+  // doesn't render a blank grid — clamp to the last valid page when
+  // the user lands on something out of range.
+  const totalPages = Math.max(1, Math.ceil(filtered.length / CATALOG_PAGE_SIZE));
+  const safePage = Math.min(Math.max(0, page), totalPages - 1);
+  const pageStart = safePage * CATALOG_PAGE_SIZE;
+  const paged = filtered.slice(pageStart, pageStart + CATALOG_PAGE_SIZE);
+
   // Atlas landing falls through to the uniform `case-grid` below —
   // the Bento hero was removed in May-2026 (see file header).
   //
@@ -244,27 +269,36 @@ export default function MainGrid({
   // first 6 stay lazy / low priority — they're below the fold and
   // shouldn't compete with the LCP cards for bandwidth.
   return (
-    <div className="case-grid">
-      {filtered.map((c, i) => (
-        <CaseCard
-          key={c.id}
-          caso={c}
-          isFav={favSet.has(c.id)}
-          onFav={onToggleFav}
-          onOpen={onOpen}
-          onDelete={cardOnDelete}
-          onPurge={cardOnPurge}
-          onPatch={cardOnPatch}
-          categories={cardCategories}
-          priority={i < 6}
-          // Pass the trimmed query through so the card can wrap
-          // matches in <mark>. The string is empty-or-stable per
-          // render so React.memo keeps short-circuiting unaffected
-          // cards (only cards whose `query` actually changed
-          // re-render — same set affected by the filter anyway).
-          searchQuery={query.trim() || undefined}
-        />
-      ))}
-    </div>
+    <>
+      <div className="case-grid">
+        {paged.map((c, i) => (
+          <CaseCard
+            key={c.id}
+            caso={c}
+            isFav={favSet.has(c.id)}
+            onFav={onToggleFav}
+            onOpen={onOpen}
+            onDelete={cardOnDelete}
+            onPurge={cardOnPurge}
+            onPatch={cardOnPatch}
+            categories={cardCategories}
+            priority={i < 6}
+            // Pass the trimmed query through so the card can wrap
+            // matches in <mark>. The string is empty-or-stable per
+            // render so React.memo keeps short-circuiting unaffected
+            // cards (only cards whose `query` actually changed
+            // re-render — same set affected by the filter anyway).
+            searchQuery={query.trim() || undefined}
+          />
+        ))}
+      </div>
+      <CatalogPagination
+        page={safePage}
+        totalPages={totalPages}
+        total={filtered.length}
+        pageSize={CATALOG_PAGE_SIZE}
+        onPageChange={onPageChange}
+      />
+    </>
   );
 }

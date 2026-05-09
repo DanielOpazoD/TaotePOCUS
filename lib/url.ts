@@ -24,6 +24,11 @@ export interface ViewState {
   sort: SortOrder;
   caso: string | null;
   presenting: string | null;
+  /** 0-indexed catalog page. The grid renders pageSize cases per
+   *  page (~30); this drives "next/prev" navigation. The param is
+   *  cleared (back to 0) on any filter change so the user doesn't
+   *  land on page 7 of a 1-page result set. */
+  page: number;
 }
 
 const VALID_SECTIONS: SectionId[] = ["atlas", "ecg", "cases", "info", "rayos"];
@@ -68,8 +73,15 @@ export function parseViewState(pathname: string, params: URLSearchParams): ViewS
   const sort = sortParam && VALID_SORT.includes(sortParam) ? sortParam : "recent";
   const caso = params.get("caso") || null;
   const presenting = params.get("present") || null;
+  // `page` is 1-indexed in the URL (`?page=2`) for human-readable
+  // sharing, but exposed as 0-indexed throughout the React tree
+  // (matches BulkEditTable's existing local state). Decrement on
+  // parse, increment on serialize. Defensive: invalid / negative
+  // values fall back to page 0.
+  const pageParam = parseInt(params.get("page") || "1", 10);
+  const page = Number.isFinite(pageParam) && pageParam > 1 ? pageParam - 1 : 0;
 
-  return { view, cat, tags, query, sort, caso, presenting };
+  return { view, cat, tags, query, sort, caso, presenting, page };
 }
 
 export type ViewPatch = Partial<{
@@ -80,6 +92,9 @@ export type ViewPatch = Partial<{
   sort: SortOrder;
   caso: string | null;
   presenting: string | null;
+  /** 0-indexed page. Setting `0` removes the URL param (clean
+   *  shareable URLs default to page 1). */
+  page: number;
 }>;
 
 /**
@@ -88,6 +103,12 @@ export type ViewPatch = Partial<{
  *
  * When the view changes, cat/tags are dropped — they are section-
  * specific and would land the user on a likely-empty grid.
+ *
+ * Filter-changing patches (`view`, `cat`, `tags`, `query`, `sort`)
+ * also implicitly drop `page` back to 0 — landing on page 7 of a
+ * 1-page result is worse than landing on page 1. Callers can
+ * explicitly pass `page` in the same patch to override (e.g. a
+ * deep-link that arrives with `?cat=lung&page=2`).
  */
 export function applyViewPatch(prev: URLSearchParams, patch: ViewPatch): URLSearchParams {
   const sp = new URLSearchParams(prev.toString());
@@ -106,5 +127,20 @@ export function applyViewPatch(prev: URLSearchParams, patch: ViewPatch): URLSear
   if (patch.sort !== undefined) set("sort", patch.sort === "recent" ? null : patch.sort);
   if (patch.caso !== undefined) set("caso", patch.caso);
   if (patch.presenting !== undefined) set("present", patch.presenting);
+
+  // Implicit reset: any filter change drops the page param unless
+  // the caller passed `page` explicitly in the same patch.
+  const isFilterPatch =
+    patch.view !== undefined ||
+    patch.cat !== undefined ||
+    patch.tags !== undefined ||
+    patch.query !== undefined ||
+    patch.sort !== undefined;
+  if (patch.page !== undefined) {
+    // Page is 1-indexed in URLs (human-readable); 0 → no param.
+    set("page", patch.page > 0 ? String(patch.page + 1) : null);
+  } else if (isFilterPatch) {
+    sp.delete("page");
+  }
   return sp;
 }
