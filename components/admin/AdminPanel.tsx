@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CATEGORIES } from "@/lib/data";
-import type { CaseRecord, Category, SectionId } from "@/lib/types";
+import type { CaseRecord, Category, LocalizedString, SectionId } from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
 import CategoriesEditor from "./CategoriesEditor";
 import SectionsEditor from "./SectionsEditor";
@@ -49,8 +49,11 @@ interface Props {
   categories?: Category[];
   /** Cases-per-category counter for the editor's "in use" badge. */
   categoryCaseCounts?: Record<string, number>;
-  onAddCategory?: (label: string) => Promise<Category | null>;
-  onRenameCategory?: (id: string, label: string) => Promise<boolean>;
+  /** Add / rename a custom category. Phase-3 i18n widened the label
+   *  input to accept a `LocalizedString` (with optional EN slot) in
+   *  addition to the legacy plain string. */
+  onAddCategory?: (label: string | LocalizedString) => Promise<Category | null>;
+  onRenameCategory?: (id: string, label: string | LocalizedString) => Promise<boolean>;
   onRemoveCategory?: (id: string) => Promise<boolean>;
   isCustomCategory?: (id: string) => boolean;
   isCategoryHidden?: (id: string) => boolean;
@@ -63,8 +66,15 @@ interface Props {
   /** Resolve the user-facing label for a section (override or
    *  default). When omitted the editor shows the static defaults. */
   getSectionLabel?: (id: SectionId, fallback: string) => string;
-  /** Apply a label override. Empty string clears the override. */
-  onSetSectionLabel?: (id: SectionId, label: string) => void;
+  /** Apply a label override. Empty string clears the slot. The
+   *  optional `slot` arg targets the EN slot (Phase-3 i18n); ES is
+   *  the default for back-compat with older callers. */
+  onSetSectionLabel?: (id: SectionId, label: string, slot?: "es" | "en") => void;
+  /** Raw override map — passed through to the SectionsEditor so the
+   *  EN slot can render alongside the ES slot in the bilingual
+   *  rename UI. Optional; falls back to "no EN override visible"
+   *  when omitted. */
+  sectionLabelOverrides?: Partial<Record<SectionId, LocalizedString>>;
   /** Cases-per-section counter, used by the Secciones editor's
    *  "N casos" hint. Optional; missing entries render as 0. */
   sectionCaseCounts?: Record<string, number>;
@@ -103,6 +113,7 @@ export default function AdminPanel({
   onSetSectionHidden,
   getSectionLabel,
   onSetSectionLabel,
+  sectionLabelOverrides,
   sectionCaseCounts,
   currentEmail,
   notify,
@@ -242,6 +253,7 @@ export default function AdminPanel({
           getLabel={getSectionLabel ?? ((_id, fallback) => fallback)}
           setLabel={onSetSectionLabel ?? (() => undefined)}
           caseCounts={sectionCaseCounts ?? {}}
+          overrides={sectionLabelOverrides}
         />
       ) : tab === "activity" ? (
         <ActivityPanel />

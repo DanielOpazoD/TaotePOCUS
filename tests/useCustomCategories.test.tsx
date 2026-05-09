@@ -50,8 +50,11 @@ describe("useCustomCategories — local path (no DB flag)", () => {
     await act(async () => {
       created = await result.current.addCategory("Pediatría");
     });
-    expect(created).toMatchObject({ label: "Pediatría" });
-    expect(result.current.customCategories.map((c) => c.label)).toEqual(["Pediatría"]);
+    // Phase-3 i18n: labels are stored as `LocalizedString` so the
+    // ES baseline lives under `.es`. EN slot is undefined when the
+    // admin only typed Spanish.
+    expect(created).toMatchObject({ label: { es: "Pediatría" } });
+    expect(result.current.customCategories.map((c) => c.label)).toEqual([{ es: "Pediatría" }]);
   });
 
   it("addCategory rejects duplicates (case-insensitive) by returning null", async () => {
@@ -77,7 +80,9 @@ describe("useCustomCategories — local path (no DB flag)", () => {
     await act(async () => {
       await result.current.renameCategory(id, "Pediatría general");
     });
-    expect(result.current.customCategories[0]?.label).toBe("Pediatría general");
+    expect(result.current.customCategories[0]?.label).toEqual({
+      es: "Pediatría general",
+    });
   });
 
   it("renameCategory rejects built-in ids", async () => {

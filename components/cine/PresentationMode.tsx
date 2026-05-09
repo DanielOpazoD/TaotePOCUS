@@ -5,6 +5,7 @@ import CineLoop from "./CineLoop";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { getCaseDescription, getCaseTitle } from "@/lib/case-localized";
+import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord } from "@/lib/types";
 
@@ -82,7 +83,7 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
           <span className="sep">/</span>
           <span className="total">{cases.length.toString().padStart(2, "0")}</span>
           <span className="sep">·</span>
-          <span className="cat">{cat?.label}</span>
+          <span className="cat">{cat ? categoryLabel(cat, lang) : ""}</span>
         </div>
         <button className="presentation-exit" onClick={onClose} aria-label="Salir (Esc)">
           {Icon.close()} <span>Salir</span>

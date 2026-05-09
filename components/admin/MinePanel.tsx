@@ -13,6 +13,7 @@ import Image from "next/image";
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -131,7 +132,7 @@ export function MinePanel({
                       and reads the ES original even when the public
                       site is in EN mode. */}
                   <td className="admin-title-cell">{c.title.es}</td>
-                  <td>{cat?.label}</td>
+                  <td>{cat ? categoryLabelEs(cat) : ""}</td>
                   <td>
                     <span className="admin-pill">{mediaLabel}</span>
                   </td>

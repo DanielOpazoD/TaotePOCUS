@@ -43,8 +43,19 @@ function renderEditor(
   render(
     <CategoriesEditor
       categories={[...builtIns, ...customs]}
-      onAdd={onAdd as unknown as (label: string) => Promise<Category | null>}
-      onRename={onRename as unknown as (id: string, label: string) => Promise<boolean>}
+      // Phase-3 i18n widened the label arg to `string | LocalizedString`;
+      // the runtime mock accepts both, the cast just satisfies TS.
+      onAdd={
+        onAdd as unknown as (
+          label: string | { es: string; en?: string },
+        ) => Promise<Category | null>
+      }
+      onRename={
+        onRename as unknown as (
+          id: string,
+          label: string | { es: string; en?: string },
+        ) => Promise<boolean>
+      }
       onRemove={onRemove as unknown as (id: string) => Promise<boolean>}
       isCustom={(id) => id.startsWith("c:")}
       isHidden={isHidden as unknown as (id: string) => boolean}
@@ -82,26 +93,45 @@ describe("CategoriesEditor — listing", () => {
 });
 
 describe("CategoriesEditor — add", () => {
-  it("submits the trimmed label to onAdd and clears the input", async () => {
-    // `onAdd` is async post-ADR-0011 follow-up; the component awaits.
-    // The test waits for the input to clear, which only happens after
-    // the resolved Promise lands.
-    const onAdd = vi.fn().mockResolvedValue({ id: "c:trauma", label: "Trauma" });
+  it("submits the trimmed ES + EN labels to onAdd and clears the inputs", async () => {
+    // Phase-3 i18n: the form has two inputs (ES baseline + EN
+    // optional). The hook receives a `LocalizedString` patch with
+    // both slots populated when EN is non-empty. The component now
+    // trims at the call site, so onAdd sees the trimmed values.
+    const onAdd = vi
+      .fn()
+      .mockResolvedValue({ id: "c:trauma", label: { es: "Trauma", en: "Trauma EN" } });
     renderEditor({ onAdd });
 
-    const input = screen.getByPlaceholderText(/Nueva categoría/i) as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "  Trauma  " } });
+    const esInput = screen.getByLabelText(/nueva categoría en español/i) as HTMLInputElement;
+    const enInput = screen.getByLabelText(/nueva categoría en inglés/i) as HTMLInputElement;
+    fireEvent.change(esInput, { target: { value: "  Trauma  " } });
+    fireEvent.change(enInput, { target: { value: "  Trauma EN  " } });
     fireEvent.click(screen.getByRole("button", { name: /Agregar/i }));
 
-    expect(onAdd).toHaveBeenCalledWith("  Trauma  "); // component leaves trim to the hook
-    await waitFor(() => expect(input.value).toBe("")); // input cleared on success
+    expect(onAdd).toHaveBeenCalledWith({ es: "Trauma", en: "Trauma EN" });
+    await waitFor(() => expect(esInput.value).toBe(""));
+    expect(enInput.value).toBe("");
+  });
+
+  it("submits ES-only when EN is left blank", async () => {
+    const onAdd = vi.fn().mockResolvedValue({ id: "c:trauma", label: { es: "Trauma" } });
+    renderEditor({ onAdd });
+
+    const esInput = screen.getByLabelText(/nueva categoría en español/i) as HTMLInputElement;
+    fireEvent.change(esInput, { target: { value: "Trauma" } });
+    fireEvent.click(screen.getByRole("button", { name: /Agregar/i }));
+
+    // EN slot omitted from the patch when blank — fallback semantics
+    // treat its absence as "translation pending".
+    expect(onAdd).toHaveBeenCalledWith({ es: "Trauma" });
   });
 
   it("shows an error when onAdd resolves null (duplicate / empty / DB rejection)", async () => {
     const onAdd = vi.fn().mockResolvedValue(null);
     renderEditor({ onAdd });
 
-    fireEvent.change(screen.getByPlaceholderText(/Nueva categoría/i), {
+    fireEvent.change(screen.getByLabelText(/nueva categoría en español/i), {
       target: { value: "Cardíaco" }, // duplicate
     });
     fireEvent.click(screen.getByRole("button", { name: /Agregar/i }));
@@ -113,19 +143,36 @@ describe("CategoriesEditor — add", () => {
 });
 
 describe("CategoriesEditor — rename custom", () => {
-  it("commits the new label on Enter", () => {
+  it("commits the new bilingual label on Enter", () => {
     const onRename = vi.fn().mockReturnValue(true);
     renderEditor({ onRename });
 
-    // Find the rename button on the Pediatría row (icon-btn with edit aria-label)
+    // Open the bilingual edit row. The pencil button uses a generic
+    // accessible name; we target the row by id-derived ES label.
     const renameBtn = screen.getByRole("button", { name: /Renombrar Pediatría/i });
     fireEvent.click(renameBtn);
 
-    const input = screen.getByLabelText(/Renombrar Pediatría/i) as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "Pediátrico" } });
-    fireEvent.keyDown(input, { key: "Enter" });
+    // Phase-3 i18n: edit mode exposes ES + EN inputs side by side.
+    // Enter on either commits both slots through the same patch.
+    const esInput = screen.getByLabelText(/Renombrar Pediatría en español/i) as HTMLInputElement;
+    const enInput = screen.getByLabelText(/Renombrar Pediatría en inglés/i) as HTMLInputElement;
+    fireEvent.change(esInput, { target: { value: "Pediátrico" } });
+    fireEvent.change(enInput, { target: { value: "Pediatrics" } });
+    fireEvent.keyDown(esInput, { key: "Enter" });
 
-    expect(onRename).toHaveBeenCalledWith("c:peds", "Pediátrico");
+    expect(onRename).toHaveBeenCalledWith("c:peds", { es: "Pediátrico", en: "Pediatrics" });
+  });
+
+  it("commits ES-only when EN is left blank", () => {
+    const onRename = vi.fn().mockReturnValue(true);
+    renderEditor({ onRename });
+    fireEvent.click(screen.getByRole("button", { name: /Renombrar Pediatría/i }));
+
+    const esInput = screen.getByLabelText(/Renombrar Pediatría en español/i);
+    fireEvent.change(esInput, { target: { value: "Pediátrico" } });
+    fireEvent.keyDown(esInput, { key: "Enter" });
+
+    expect(onRename).toHaveBeenCalledWith("c:peds", { es: "Pediátrico" });
   });
 
   it("aborts rename on Escape without calling onRename", () => {
@@ -133,9 +180,9 @@ describe("CategoriesEditor — rename custom", () => {
     renderEditor({ onRename });
 
     fireEvent.click(screen.getByRole("button", { name: /Renombrar Pediatría/i }));
-    const input = screen.getByLabelText(/Renombrar Pediatría/i);
-    fireEvent.change(input, { target: { value: "X" } });
-    fireEvent.keyDown(input, { key: "Escape" });
+    const esInput = screen.getByLabelText(/Renombrar Pediatría en español/i);
+    fireEvent.change(esInput, { target: { value: "X" } });
+    fireEvent.keyDown(esInput, { key: "Escape" });
 
     expect(onRename).not.toHaveBeenCalled();
   });

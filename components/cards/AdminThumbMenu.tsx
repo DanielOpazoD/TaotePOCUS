@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category } from "@/lib/types";
 
 interface Props {
@@ -169,7 +170,10 @@ export default function AdminThumbMenu({
                       Reclasificar
                       <span className="admin-thumb-menu-meta">
                         {caso.section} ·{" "}
-                        {categories.find((c) => c.id === caso.category)?.label ?? caso.category}
+                        {(() => {
+                          const cat = categories.find((c) => c.id === caso.category);
+                          return cat ? categoryLabelEs(cat) : caso.category;
+                        })()}
                       </span>
                     </button>
                   </li>
@@ -330,7 +334,7 @@ function ReclassifyInline({
           <span className="admin-thumb-menu-check" aria-hidden="true">
             {caso.category === c.id ? "✓" : ""}
           </span>
-          {c.label}
+          {categoryLabelEs(c)}
         </button>
       ))}
     </div>

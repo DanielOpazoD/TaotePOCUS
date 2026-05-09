@@ -6,7 +6,25 @@
 import { CATEGORIES, SECTIONS } from "./data";
 import { categoryLabel, sectionLabel, sectionSub, translate } from "./i18n";
 import { DEFAULT_LANG, type Lang } from "./i18n/types";
-import type { View } from "./types";
+import type { LocalizedString, View } from "./types";
+
+/**
+ * Override map shape supported by `derivePageHead`. Phase-3 i18n
+ * widened the legacy `Record<string, string>` to a bilingual slot
+ * per section; the function still accepts the legacy shape for
+ * back-compat with focused tests and the server-render path.
+ */
+export type SectionLabelOverridesInput = Record<string, string | LocalizedString>;
+
+/** Pick the right slot from a `LocalizedString` override, or read a
+ *  legacy plain string directly. EN→ES fallback baked in. */
+function readOverride(value: string | LocalizedString | undefined, lang: Lang): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value.length > 0 ? value : null;
+  if (lang === "en" && value.en && value.en.length > 0) return value.en;
+  if (value.es && value.es.length > 0) return value.es;
+  return null;
+}
 
 /**
  * Header copy displayed at the top of the main content. Title is the
@@ -52,7 +70,7 @@ export interface PageHead {
 export function derivePageHead(
   view: View,
   activeCat: string | null,
-  sectionLabelOverrides: Record<string, string> = {},
+  sectionLabelOverrides: SectionLabelOverridesInput = {},
   lang: Lang = DEFAULT_LANG,
 ): PageHead {
   if (view.kind === "favs") {
@@ -73,10 +91,12 @@ export function derivePageHead(
   const section = SECTIONS.find((s) => s.id === view.section);
   // Admin override wins over the dictionary translation: the admin
   // explicitly chose this label, language preference is secondary
-  // intent. Falls through to the i18n-aware label otherwise.
-  const resolvedSectionLabel = section
-    ? (sectionLabelOverrides[section.id] ?? sectionLabel(section.id, lang))
-    : null;
+  // intent. Falls through to the i18n-aware label otherwise. Override
+  // entries support both the legacy plain-string shape and the
+  // Phase-3 bilingual `LocalizedString` (with EN→ES fallback inside
+  // `readOverride`).
+  const overrideLabel = section ? readOverride(sectionLabelOverrides[section.id], lang) : null;
+  const resolvedSectionLabel = section ? (overrideLabel ?? sectionLabel(section.id, lang)) : null;
   const cat = activeCat ? CATEGORIES.find((c) => c.id === activeCat) : null;
   if (cat && section && resolvedSectionLabel) {
     const localizedCat = categoryLabel(cat, lang);

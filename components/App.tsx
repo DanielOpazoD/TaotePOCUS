@@ -132,7 +132,12 @@ function AppInner() {
   // (`useCustomCategories`, `useHiddenSections`, `useSectionLabels`)
   // and the undo-toast surfacing into a single bag — see
   // `hooks/useCatalogConfig.ts`.
-  const config = useCatalogConfig({ showToast });
+  // Active UI language threaded into the catalog config so the
+  // override layer (section labels) resolves to the right slot for
+  // the visible nav. Reading from `useLanguage` here is safe because
+  // `<LanguageProvider>` wraps `<AppInner>` at the top of the tree.
+  const { lang } = useLanguage();
+  const config = useCatalogConfig({ showToast, lang });
 
   // Catalog derivation (allCases / trashedImports / categoryCaseCounts).
   // Lives in `useMergedCatalog` so the merge + filter rules have one
@@ -231,7 +236,7 @@ function AppInner() {
     },
   });
 
-  const { lang } = useLanguage();
+  // `lang` is already destructured above (threaded into useCatalogConfig).
   const head = derivePageHead(view, cat, config.sectionLabelOverrides, lang);
 
   return (
@@ -349,6 +354,7 @@ function AppInner() {
               onSetSectionHidden={config.setSectionHidden}
               getSectionLabel={config.getSectionLabel}
               onSetSectionLabel={config.setSectionLabel}
+              sectionLabelOverrides={config.sectionLabelOverrides}
               sectionCaseCounts={sectionCaseCounts}
               currentEmail={user?.email ?? null}
               notify={showToast}

@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { CaseCard } from "./cards";
 import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
-import type { CaseRecord, Category, SectionId, View } from "@/lib/types";
+import type { CaseRecord, Category, LocalizedString, SectionId, View } from "@/lib/types";
 
 // AdminPanel is admin-only chrome; lazy-load so its tree stays out of
 // the public-route bundles.
@@ -55,8 +55,8 @@ interface Props {
    *  categories editor's "in use" hint. */
   categoryCaseCounts?: Record<string, number>;
   /** Categories CRUD callbacks. Wired to `useCustomCategories`. */
-  onAddCategory?: (label: string) => Promise<Category | null>;
-  onRenameCategory?: (id: string, label: string) => Promise<boolean>;
+  onAddCategory?: (label: string | LocalizedString) => Promise<Category | null>;
+  onRenameCategory?: (id: string, label: string | LocalizedString) => Promise<boolean>;
   onRemoveCategory?: (id: string) => Promise<boolean>;
   /** Predicate — is this id a runtime-defined custom category? */
   isCustomCategory?: (id: string) => boolean;
@@ -69,9 +69,13 @@ interface Props {
   isSectionHidden?: (id: SectionId) => boolean;
   onSetSectionHidden?: (id: SectionId, hidden: boolean) => void;
   /** Resolve / set the user-facing label for a section. Wired in
-   *  App.tsx to `useSectionLabels`. */
+   *  App.tsx to `useSectionLabels`. Phase-3 i18n widened the setter
+   *  to accept an optional language slot ("es" | "en"). */
   getSectionLabel?: (id: SectionId, fallback: string) => string;
-  onSetSectionLabel?: (id: SectionId, label: string) => void;
+  onSetSectionLabel?: (id: SectionId, label: string, slot?: "es" | "en") => void;
+  /** Raw section label override map — passed to AdminPanel so the
+   *  Secciones editor can render the EN slot value alongside ES. */
+  sectionLabelOverrides?: Partial<Record<SectionId, LocalizedString>>;
   /** Cases-per-section counter, indexed by section id. Powers the
    *  "N casos" hint in the Secciones editor. */
   sectionCaseCounts?: Record<string, number>;
@@ -159,6 +163,7 @@ export default function MainGrid({
   onSetSectionHidden,
   getSectionLabel,
   onSetSectionLabel,
+  sectionLabelOverrides,
   sectionCaseCounts,
   currentEmail,
   notify,
@@ -206,6 +211,7 @@ export default function MainGrid({
         onSetSectionHidden={onSetSectionHidden}
         getSectionLabel={getSectionLabel}
         onSetSectionLabel={onSetSectionLabel}
+        sectionLabelOverrides={sectionLabelOverrides}
         sectionCaseCounts={sectionCaseCounts}
         currentEmail={currentEmail}
         notify={notify}

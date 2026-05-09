@@ -5,6 +5,7 @@ import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
 import { CATEGORIES, SECTIONS } from "@/lib/data";
 import { getDescription } from "@/lib/case-description";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category } from "@/lib/types";
 import { DropZone, useClassifierDrag } from "./classifier/useClassifierDrag";
 import { ClassifierDragHint } from "./classifier/ClassifierDragHint";
@@ -297,7 +298,7 @@ export default function ClassifierBoard({
             <option value={ANY}>Cualquier categoría</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.label}
+                {categoryLabelEs(c)}
               </option>
             ))}
           </select>
@@ -339,7 +340,7 @@ export default function ClassifierBoard({
             <DropZone
               key={c.id}
               id={c.id}
-              label={c.label}
+              label={categoryLabelEs(c)}
               kind="category"
               isHover={drag.hoverTarget === `c-${c.id}`}
               onDragEnter={() => drag.onZoneEnter(`c-${c.id}`)}
@@ -426,7 +427,10 @@ export default function ClassifierBoard({
                     ·
                   </span>
                   <span>
-                    {categories.find((cat) => cat.id === c.category)?.label || c.category}
+                    {(() => {
+                      const cat = categories.find((x) => x.id === c.category);
+                      return cat ? categoryLabelEs(cat) : c.category;
+                    })()}
                   </span>
                 </div>
               </div>

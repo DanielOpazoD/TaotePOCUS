@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
-import type { SectionId } from "@/lib/types";
+import { sectionLabel as defaultSectionLabel } from "@/lib/i18n";
+import type { LocalizedString, SectionId } from "@/lib/types";
 
 interface Props {
   /** Predicate — is this section currently hidden from the public nav? */
@@ -11,25 +12,43 @@ interface Props {
   /** Toggle visibility for a single section. Persisted via the
    *  `useHiddenSections` hook in App.tsx. */
   setHidden: (id: SectionId, hidden: boolean) => void;
-  /** Resolve the current label for a section (override or default). */
+  /**
+   * Resolve the current label for a section in the active language
+   * (ES default), with admin override applied when set.
+   */
   getLabel: (id: SectionId, fallback: string) => string;
-  /** Apply a label override. Empty string clears it (revert to
-   *  default in `lib/data.ts`). */
-  setLabel: (id: SectionId, label: string) => void;
+  /**
+   * Apply a label override to a single language slot. Empty string
+   * clears that slot (revert to dictionary / default in
+   * `lib/data.ts`). Phase-3 i18n: pass `slot: "en"` to update the
+   * English rename.
+   */
+  setLabel: (id: SectionId, label: string, slot?: "es" | "en") => void;
   /** Cases-per-section counter, indexed by section id. Surfaces a
    *  small "N casos" hint per row so the admin sees what they're
    *  hiding before clicking. */
   caseCounts: Record<string, number>;
+  /**
+   * Raw override map — needed so the editor can render the EN slot
+   * value alongside the ES slot. Optional; falls back to "no EN
+   * override" when omitted (reasonable for older callers / tests).
+   */
+  overrides?: Partial<Record<SectionId, LocalizedString>>;
 }
 
 /**
- * Admin UI for the four top-level sections. Three controls per row:
+ * Admin UI for the four top-level sections. Phase-3 i18n widened the
+ * rename to a bilingual pair: each section can have an ES override
+ * (mandatory baseline when overriding) and an optional EN
+ * translation. Visitors see the slot for their active language with
+ * EN→ES fallback.
  *
- *   1. **Inline rename** — click the label to edit; Enter / blur
- *      saves; Esc cancels; clearing the field reverts to the
- *      default. Affects what visitors see in the nav and on the
- *      section hero. SEO surfaces (sitemap, OG) keep the static
- *      defaults — pure cosmetic personalization.
+ * Three controls per row:
+ *
+ *   1. **Bilingual rename** — click the label or pencil to enter
+ *      edit mode, which exposes ES + EN inputs side by side. Enter
+ *      / Save commits both slots; Esc / Cancel discards. Clearing
+ *      a slot reverts that language to the dictionary default.
  *   2. **Visibility toggle** (eye / 🚫). Hides the section from the
  *      top nav and mobile drawer. Direct URLs still resolve.
  *   3. Cases counter (`N casos`) for context.
@@ -45,25 +64,36 @@ export default function SectionsEditor({
   getLabel,
   setLabel,
   caseCounts,
+  overrides,
 }: Props) {
   const [editingId, setEditingId] = useState<SectionId | null>(null);
-  const [draft, setDraft] = useState("");
+  const [draftEs, setDraftEs] = useState("");
+  const [draftEn, setDraftEn] = useState("");
 
-  const startEdit = (id: SectionId, current: string) => {
+  const startEdit = (id: SectionId, currentEs: string, currentEn: string) => {
     setEditingId(id);
-    setDraft(current);
+    setDraftEs(currentEs);
+    setDraftEn(currentEn);
   };
   const commitEdit = () => {
-    if (editingId) setLabel(editingId, draft);
+    if (!editingId) return;
+    // Persist both slots independently — `setLabel` deletes the slot
+    // when we pass an empty string, which reverts that language to
+    // the dictionary default.
+    setLabel(editingId, draftEs, "es");
+    setLabel(editingId, draftEn, "en");
     setEditingId(null);
-    setDraft("");
+    setDraftEs("");
+    setDraftEn("");
   };
   const cancelEdit = () => {
     setEditingId(null);
-    setDraft("");
+    setDraftEs("");
+    setDraftEn("");
   };
   const resetToDefault = (id: SectionId) => {
-    setLabel(id, "");
+    setLabel(id, "", "es");
+    setLabel(id, "", "en");
   };
 
   return (
@@ -71,9 +101,11 @@ export default function SectionsEditor({
       <div className="categories-intro">
         <h2>Secciones</h2>
         <p>
-          Renombrá las secciones haciendo click en el nombre — los visitantes verán el nombre nuevo
-          en el menú y en el encabezado. La URL y los enlaces compartidos no cambian. Las secciones
-          ocultas tampoco aparecen en el menú aunque la URL siga funcionando.
+          Renombrá las secciones haciendo click en el lápiz: podés definir un nombre en español
+          (mandatorio cuando lo personalizas) y otro en inglés (opcional). Los visitantes verán el
+          slot que coincida con el idioma activo, con fallback al español. La URL y los enlaces
+          compartidos no cambian. Las secciones ocultas tampoco aparecen en el menú aunque la URL
+          siga funcionando.
         </p>
       </div>
 
@@ -81,41 +113,87 @@ export default function SectionsEditor({
         {SECTIONS.map((s) => {
           const hidden = isHidden(s.id);
           const count = caseCounts[s.id] ?? 0;
-          const currentLabel = getLabel(s.id, s.label);
-          const isCustomized = currentLabel !== s.label;
+          const currentLabelEs = getLabel(s.id, s.label);
+          const overrideEn = overrides?.[s.id]?.en ?? "";
+          // The "default" comparison is anchored to the dictionary
+          // baseline (built-in section labels live there) — anything
+          // different from the dict ES means the admin renamed.
+          const dictDefault = defaultSectionLabel(s.id, "es");
+          const isCustomized = currentLabelEs !== dictDefault || overrideEn !== "";
           const isEditing = editingId === s.id;
           return (
             <li key={s.id} className={`categories-row${hidden ? " is-hidden" : ""}`}>
               {isEditing ? (
-                <input
-                  type="text"
-                  autoFocus
-                  className="admin-input categories-row-input"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onBlur={commitEdit}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      commitEdit();
-                    }
-                    if (e.key === "Escape") {
-                      e.preventDefault();
-                      cancelEdit();
-                    }
-                  }}
-                  maxLength={48}
-                  aria-label={`Renombrar ${s.label}`}
-                  placeholder={s.label}
-                />
+                <span className="categories-row-bilingual-edit">
+                  <input
+                    type="text"
+                    autoFocus
+                    className="admin-input categories-row-input"
+                    value={draftEs}
+                    onChange={(e) => setDraftEs(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelEdit();
+                      }
+                    }}
+                    maxLength={48}
+                    aria-label={`Renombrar ${s.label} en español`}
+                    placeholder={dictDefault}
+                  />
+                  <input
+                    type="text"
+                    className="admin-input categories-row-input"
+                    value={draftEn}
+                    onChange={(e) => setDraftEn(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelEdit();
+                      }
+                    }}
+                    maxLength={48}
+                    aria-label={`Renombrar ${s.label} en inglés`}
+                    placeholder="English (opcional)"
+                  />
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={commitEdit}
+                    title="Guardar (Enter)"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={cancelEdit}
+                    title="Cancelar (Esc)"
+                  >
+                    Cancelar
+                  </button>
+                </span>
               ) : (
                 <button
                   type="button"
                   className="categories-row-label categories-row-label--editable"
-                  onClick={() => startEdit(s.id, currentLabel)}
+                  onClick={() => startEdit(s.id, currentLabelEs, overrideEn)}
                   title="Click para renombrar"
                 >
-                  {currentLabel}
+                  {currentLabelEs}
+                  {overrideEn && (
+                    <span className="categories-row-translation" title="Traducción al inglés">
+                      · {overrideEn}
+                    </span>
+                  )}
                   {isCustomized && (
                     <span className="categories-row-rename-mark" title="Renombrada del default">
                       ✎
@@ -133,7 +211,7 @@ export default function SectionsEditor({
                     type="button"
                     className="link-btn categories-row-reset"
                     onClick={() => resetToDefault(s.id)}
-                    title={`Restaurar nombre por defecto: ${s.label}`}
+                    title={`Restaurar nombres por defecto (${dictDefault})`}
                   >
                     Restaurar
                   </button>
@@ -142,9 +220,9 @@ export default function SectionsEditor({
                   <button
                     type="button"
                     className="icon-btn"
-                    onClick={() => startEdit(s.id, currentLabel)}
-                    aria-label={`Renombrar ${currentLabel}`}
-                    title="Renombrar"
+                    onClick={() => startEdit(s.id, currentLabelEs, overrideEn)}
+                    aria-label={`Renombrar ${currentLabelEs}`}
+                    title="Renombrar (ES + EN)"
                   >
                     {Icon.edit()}
                   </button>
@@ -155,8 +233,8 @@ export default function SectionsEditor({
                   onClick={() => setHidden(s.id, !hidden)}
                   aria-label={
                     hidden
-                      ? `Mostrar ${currentLabel} en el menú`
-                      : `Ocultar ${currentLabel} del menú`
+                      ? `Mostrar ${currentLabelEs} en el menú`
+                      : `Ocultar ${currentLabelEs} del menú`
                   }
                   aria-pressed={!hidden}
                   title={

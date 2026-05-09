@@ -130,13 +130,55 @@ export function sectionSub(sectionId: string, lang: Lang): string {
 }
 
 /**
- * Resolve a category label by id. Built-in categories get their
- * dictionary translation; **custom** categories (admin-created)
- * fall back to the original `label` field — those will get dual
- * labels in Phase 3 of the i18n rollout.
+ * Resolve a category label by id. Three resolution paths:
+ *
+ *   1. Built-in ids (`cardiac`, `lung`, …) get the dictionary
+ *      translation — that's the editorial canon, the static
+ *      `CATEGORIES.label` is just a sane fallback for unbound dict
+ *      lookups.
+ *   2. Custom ids (`c:foo`) with a `LocalizedString` label get the
+ *      slot for the active language (with EN→ES fallback).
+ *   3. Custom ids with the legacy plain-string label (pre-Phase-3
+ *      data) read the string directly.
+ *
+ * The shape of `category.label` mirrors `CaseRecord.title` — both
+ * carry a transitional `string | LocalizedString` union so older
+ * persistence and freshly-created bilingual entries can coexist.
  */
-export function categoryLabel(category: { id: string; label: string }, lang: Lang): string {
+export function categoryLabel(
+  category: { id: string; label: string | { es: string; en?: string } },
+  lang: Lang,
+): string {
   const key = `category.${category.id}` as DictKey;
   const fromDict = DICTS[lang][key];
-  return fromDict ?? category.label;
+  if (fromDict) return fromDict;
+  // Custom category: pick the right slot from the localized label,
+  // with the same EN→ES fallback the case-content helpers use.
+  if (typeof category.label === "string") return category.label;
+  if (lang === "en" && category.label.en && category.label.en.length > 0) {
+    return category.label.en;
+  }
+  return category.label.es;
+}
+
+/**
+ * Spanish-baseline shortcut for admin productivity surfaces. Skips
+ * the dictionary + EN slot — used by BulkEditTable / ClassifierBoard /
+ * MinePanel where the editor works with the canonical Spanish label
+ * regardless of the visitor language. For public-facing display use
+ * `categoryLabel(c, lang)` instead.
+ *
+ * Built-in categories: returns the static `CATEGORIES.label` (the
+ * Spanish baseline). Custom categories: returns the ES slot from
+ * `LocalizedString`, or the legacy plain string. Falls back to the
+ * id if both are absent (defensive — never happens with validated
+ * data).
+ */
+export function categoryLabelEs(category: {
+  id: string;
+  label: string | { es: string; en?: string };
+}): string {
+  if (typeof category.label === "string") return category.label;
+  if (category.label.es && category.label.es.length > 0) return category.label.es;
+  return category.id;
 }

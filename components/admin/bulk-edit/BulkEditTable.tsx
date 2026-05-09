@@ -30,6 +30,7 @@ import { BulkEditPagination } from "./BulkEditPagination";
 import { BulkEditRow } from "./BulkEditRow";
 import { BulkEditSortHeader } from "./cells/SortHeader";
 import { getDescription } from "@/lib/case-description";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
 import type { SortDir, SortField } from "./types";
 
@@ -146,9 +147,12 @@ export default function BulkEditTable({
         bv = getDescription(b);
       } else if (sortField === "category") {
         // Compare by user-facing label so the result matches what the
-        // column actually displays.
-        av = categories.find((c) => c.id === a.category)?.label ?? a.category;
-        bv = categories.find((c) => c.id === b.category)?.label ?? b.category;
+        // column actually displays. ES baseline only — matches what
+        // every cell in the table renders.
+        const catA = categories.find((c) => c.id === a.category);
+        const catB = categories.find((c) => c.id === b.category);
+        av = catA ? categoryLabelEs(catA) : a.category;
+        bv = catB ? categoryLabelEs(catB) : b.category;
       } else {
         av = a.reviewed ? 1 : 0;
         bv = b.reviewed ? 1 : 0;

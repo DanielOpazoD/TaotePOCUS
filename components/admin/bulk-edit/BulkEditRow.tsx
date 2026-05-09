@@ -14,6 +14,7 @@ import { BulkEditRowMenu } from "./cells/RowMenu";
 import { BulkEditTagsCell } from "./cells/TagsCell";
 import { BulkEditThumb } from "./cells/Thumb";
 import { getDescription, setDescription as makeDescriptionPatch } from "@/lib/case-description";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category, LocalizedTags } from "@/lib/types";
 
 interface Props {
@@ -100,7 +101,7 @@ export function BulkEditRow({
         >
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.label}
+              {categoryLabelEs(c)}
             </option>
           ))}
         </select>

@@ -18,6 +18,7 @@
 
 import { useMemo, useState } from "react";
 import { COMMON_TAGS } from "@/lib/data";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category, LocalizedString, LocalizedTags } from "@/lib/types";
 import type { FormUpdate } from "./types";
 
@@ -153,7 +154,7 @@ export function MetadataPanel({ form, categories, tagSuggestions, update }: Prop
           >
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.label}
+                {categoryLabelEs(c)}
               </option>
             ))}
           </select>

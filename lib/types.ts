@@ -29,7 +29,23 @@ export type CategoryId =
 export interface Category {
   /** Built-in literal or runtime-defined custom id (prefixed `c:`). */
   id: CategoryId | string;
-  label: string;
+  /**
+   * Display label.
+   *
+   * Two shapes coexist for transitional reasons:
+   *   - **Plain string** — what the legacy persistence and the
+   *     static `CATEGORIES` table (`lib/data.ts`) ship today. Built-in
+   *     ids resolve their bilingual labels via the i18n dictionary
+   *     (`section.cardiac` etc.); the plain string is the fallback.
+   *   - **`LocalizedString`** — what custom (admin-created) categories
+   *     persist in Phase 3+, so the admin can give each category a
+   *     Spanish + optional English name.
+   *
+   * Renderers go through `categoryLabel(c, lang)` from
+   * `lib/i18n/index.ts` which handles both shapes + dictionary lookup
+   * + EN→ES fallback.
+   */
+  label: string | LocalizedString;
 }
 
 /**

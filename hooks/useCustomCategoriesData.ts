@@ -27,7 +27,7 @@ import {
   dbRenameCategory,
   dbRemoveCategory,
 } from "@/app/actions/db";
-import type { Category } from "@/lib/types";
+import type { Category, LocalizedString } from "@/lib/types";
 
 const STORAGE_KEY = STORAGE_KEYS.customCategories;
 
@@ -74,13 +74,44 @@ function slugifyLabel(label: string): string {
   return `c:${base || "categoria"}`;
 }
 
+/**
+ * Coerce a persisted custom-category label into the modern
+ * `LocalizedString` shape. Legacy entries stored a plain string;
+ * Phase-3 entries store `{ es; en? }`. Idempotent — already-modern
+ * inputs pass through unchanged. Empty / missing inputs become
+ * `{ es: "" }` so the renderer never sees `undefined`.
+ */
+function normalizeCategoryLabel(value: unknown): LocalizedString {
+  if (typeof value === "string") return { es: value };
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const es = typeof obj.es === "string" ? obj.es : "";
+    const out: LocalizedString = { es };
+    if (typeof obj.en === "string" && obj.en.length > 0) out.en = obj.en;
+    return out;
+  }
+  return { es: "" };
+}
+
+/** Read the ES slot from a `Category.label` regardless of legacy /
+ *  modern shape. Used by the duplicate-detection guard on add. */
+function categoryLabelEs(label: Category["label"]): string {
+  return typeof label === "string" ? label : (label.es ?? "");
+}
+
 export interface UseCustomCategoriesDataResult {
   /** Custom-only list (excludes the eight built-ins). */
   customCategories: Category[];
   /** Built-in + custom merged list, in display order. */
   categories: Category[];
-  addCategory: (label: string) => Promise<Category | null>;
-  renameCategory: (id: string, label: string) => Promise<boolean>;
+  /**
+   * Add a custom category. The single-arg signature kept for
+   * back-compat builds the ES slot only; the dual-arg variant
+   * (`{ es; en? }`) lets the admin populate both languages at
+   * creation time.
+   */
+  addCategory: (label: string | LocalizedString) => Promise<Category | null>;
+  renameCategory: (id: string, label: string | LocalizedString) => Promise<boolean>;
   removeCategory: (id: string) => Promise<boolean>;
   /** Re-add a category at its previous id + label. Used by the
    *  undo path on `removeCategory`. */
@@ -97,14 +128,28 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
         if (!Array.isArray(arr)) return undefined;
         // Defensive: drop anything that doesn't look like a Category
         // so a corrupt entry doesn't crash the whole admin panel.
-        return arr.filter(
-          (x) =>
-            x &&
-            typeof x.id === "string" &&
-            typeof x.label === "string" &&
-            x.id.length > 0 &&
-            x.label.length > 0,
-        );
+        // Labels can be either a non-empty string (legacy) or a
+        // `LocalizedString` object with a non-empty `es` slot
+        // (Phase-3+); we normalize on output so consumers always see
+        // the modern bilingual shape.
+        return arr
+          .filter((x) => {
+            if (!x || typeof x.id !== "string" || x.id.length === 0) return false;
+            if (typeof x.label === "string" && x.label.length > 0) return true;
+            if (
+              x.label &&
+              typeof x.label === "object" &&
+              typeof x.label.es === "string" &&
+              x.label.es.length > 0
+            ) {
+              return true;
+            }
+            return false;
+          })
+          .map((x) => ({
+            id: x.id as string,
+            label: normalizeCategoryLabel(x.label),
+          }));
       } catch {
         return undefined;
       }
@@ -134,14 +179,20 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
       }
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return;
-      const safe = parsed.filter(
-        (x): x is Category =>
-          x &&
-          typeof x.id === "string" &&
-          typeof x.label === "string" &&
-          x.id.length > 0 &&
-          x.label.length > 0,
-      );
+      // Same shape acceptance as the initial deserialize: legacy
+      // plain-string labels coexist with the Phase-3 LocalizedString.
+      const safe: Category[] = [];
+      for (const x of parsed) {
+        if (!x || typeof x.id !== "string" || x.id.length === 0) continue;
+        const labelOk =
+          (typeof x.label === "string" && x.label.length > 0) ||
+          (x.label &&
+            typeof x.label === "object" &&
+            typeof x.label.es === "string" &&
+            x.label.es.length > 0);
+        if (!labelOk) continue;
+        safe.push({ id: x.id, label: normalizeCategoryLabel(x.label) });
+      }
       setCustoms(safe);
     } catch {
       /* ignore — corrupt JSON falls back to current state */
@@ -152,6 +203,12 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
   // mount and replace the local state if the DB has anything. Empty
   // DB keeps localStorage intact (covers the "flag just turned on"
   // scenario where the DB hasn't been seeded yet).
+  //
+  // The DB still persists the legacy plain-string label (Phase-3 keeps
+  // the DB schema unchanged for now); we normalize on the client so
+  // downstream consumers see the modern bilingual shape. EN
+  // translations live only in localStorage until a future migration
+  // promotes them to a DB column.
   const hydratedRef = useRef(false);
   useEffect(() => {
     if (!IS_NETLIFY_DB_ENABLED || hydratedRef.current) return;
@@ -161,7 +218,7 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
       try {
         const dbCats = await dbListCategories();
         if (!cancelled && dbCats.length > 0) {
-          setCustoms(dbCats);
+          setCustoms(dbCats.map((c) => ({ id: c.id, label: normalizeCategoryLabel(c.label) })));
         }
       } catch (err) {
         log.warn("Categories DB hydration failed", { area: "categories" }, err);
@@ -173,24 +230,38 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
   }, [setCustoms]);
 
   const addCategory = useCallback(
-    async (label: string): Promise<Category | null> => {
-      const trimmed = label.trim();
-      if (!trimmed) return null;
-      // Reject duplicates by label (case-insensitive) — the admin
-      // probably meant to reuse the existing one.
-      const existing = categories.find((c) => c.label.toLowerCase() === trimmed.toLowerCase());
+    async (label: string | LocalizedString): Promise<Category | null> => {
+      const localized = normalizeCategoryLabel(label);
+      const trimmedEs = localized.es.trim();
+      const trimmedEn = localized.en?.trim() ?? "";
+      if (!trimmedEs) return null;
+      // Reject duplicates by ES label (case-insensitive) — the admin
+      // probably meant to reuse the existing one. The ES slot is the
+      // mandatory baseline, so it's the right axis for collision.
+      const existing = categories.find(
+        (c) => categoryLabelEs(c.label).toLowerCase() === trimmedEs.toLowerCase(),
+      );
       if (existing) return null;
 
       // Disambiguate id collisions (rare, but two labels with the
-      // same diacritic-stripped form would otherwise clash).
-      const baseId = slugifyLabel(trimmed);
+      // same diacritic-stripped form would otherwise clash). Slug is
+      // derived from the ES baseline; the EN translation is purely
+      // cosmetic for the user-facing label.
+      const baseId = slugifyLabel(trimmedEs);
       let id = baseId;
       let n = 2;
       while (categories.some((c) => c.id === id)) {
         id = `${baseId}-${n++}`;
       }
-      const next: Category = { id, label: trimmed };
-      const ok = await awaitDb("categories.add", () => dbAddCategory(id, trimmed, null));
+      const nextLabel: LocalizedString = trimmedEn
+        ? { es: trimmedEs, en: trimmedEn }
+        : { es: trimmedEs };
+      const next: Category = { id, label: nextLabel };
+      // The DB schema only stores the ES slot today (a future
+      // migration can promote `label` to JSONB). The EN translation
+      // lives in localStorage; the cross-tab listener and re-hydrate
+      // logic handles the fan-out.
+      const ok = await awaitDb("categories.add", () => dbAddCategory(id, trimmedEs, null));
       if (!ok) return null;
       setCustoms([...customs, next]);
       publishCategoriesChange();
@@ -200,13 +271,20 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
   );
 
   const renameCategory = useCallback(
-    async (id: string, label: string): Promise<boolean> => {
+    async (id: string, label: string | LocalizedString): Promise<boolean> => {
       if (builtInIds.has(id)) return false;
-      const trimmed = label.trim();
-      if (!trimmed) return false;
-      const ok = await awaitDb("categories.rename", () => dbRenameCategory(id, trimmed));
+      const localized = normalizeCategoryLabel(label);
+      const trimmedEs = localized.es.trim();
+      const trimmedEn = localized.en?.trim() ?? "";
+      if (!trimmedEs) return false;
+      // Same DB-schema caveat as `addCategory`: only ES persists in
+      // Postgres for now.
+      const ok = await awaitDb("categories.rename", () => dbRenameCategory(id, trimmedEs));
       if (!ok) return false;
-      setCustoms(customs.map((c) => (c.id === id ? { ...c, label: trimmed } : c)));
+      const nextLabel: LocalizedString = trimmedEn
+        ? { es: trimmedEs, en: trimmedEn }
+        : { es: trimmedEs };
+      setCustoms(customs.map((c) => (c.id === id ? { ...c, label: nextLabel } : c)));
       publishCategoriesChange();
       return true;
     },
@@ -228,12 +306,18 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
   // Re-add at the previous id + label. Distinct from `addCategory`,
   // which generates a fresh slug from a label. Postgres
   // `ON CONFLICT DO NOTHING` makes the DB call idempotent if the
-  // row somehow survived.
+  // row somehow survived. The DB write only carries the ES slot;
+  // the localStorage entry preserves the bilingual shape so the EN
+  // translation survives the round trip on the same browser.
   const restoreCategory = useCallback(
     async (cat: Category): Promise<boolean> => {
-      const ok = await awaitDb("categories.restore", () => dbAddCategory(cat.id, cat.label, null));
+      const restoredLabel = normalizeCategoryLabel(cat.label);
+      const ok = await awaitDb("categories.restore", () =>
+        dbAddCategory(cat.id, restoredLabel.es, null),
+      );
       if (!ok) return false;
-      setCustoms((prev) => (prev.some((c) => c.id === cat.id) ? prev : [...prev, cat]));
+      const restored: Category = { id: cat.id, label: restoredLabel };
+      setCustoms((prev) => (prev.some((c) => c.id === cat.id) ? prev : [...prev, restored]));
       publishCategoriesChange();
       return true;
     },

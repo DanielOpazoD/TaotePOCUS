@@ -14,6 +14,7 @@
 // component.
 
 import { SECTIONS } from "@/lib/data";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category } from "@/lib/types";
 
 interface Props {
@@ -42,7 +43,13 @@ export function ClassifierDragHint({ draggedId, hoverTarget, cases, categories }
     const [kind, ...rest] = hoverTarget.split("-");
     const id = rest.join("-");
     if (kind === "s") landing = SECTIONS.find((s) => s.id === id)?.label ?? null;
-    else if (kind === "c") landing = categories.find((c) => c.id === id)?.label ?? null;
+    else if (kind === "c") {
+      // Custom categories carry a `LocalizedString` label; built-ins
+      // a plain string. The drag hint is admin-only so the ES slot
+      // is the right reading regardless of the visitor's lang.
+      const cat = categories.find((c) => c.id === id);
+      landing = cat ? categoryLabelEs(cat) : null;
+    }
   }
 
   return (

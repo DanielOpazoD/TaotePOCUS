@@ -12,6 +12,7 @@
 
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
+import { categoryLabelEs } from "@/lib/i18n";
 import type { Category, SectionId } from "@/lib/types";
 
 interface Props {
@@ -70,7 +71,7 @@ export function BulkEditActionBar({
         <option value="">Cambiar categoría…</option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
-            → {c.label}
+            → {categoryLabelEs(c)}
           </option>
         ))}
       </select>
