@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { repo } from "@/lib/repo";
 import { log } from "@/lib/log";
 import type { CaseRecord } from "@/lib/types";
+import { useCrossTabSync } from "./useCrossTabSync";
 
 /**
  * Per-case override map keyed by case id. Each entry is a partial
@@ -71,6 +72,15 @@ export function useCaseOverrides() {
     };
   }, []);
 
+  // Cross-tab sync: when another tab writes an override, refresh
+  // ours from storage. Without this two admin tabs editing the
+  // same catalog produce a "last F5 wins" experience — the user
+  // can save an edit in one tab, switch to the other, see the
+  // pre-edit version, and overwrite their own change.
+  const publishOverridesChange = useCrossTabSync("overrides", () => {
+    void repo.cases.listOverrides().then(setOverrides);
+  });
+
   const setOverride = useCallback(
     async (id: string, patch: Partial<CaseRecord>) => {
       // Optimistic local update so the UI reflects the change before
@@ -100,9 +110,11 @@ export function useCaseOverrides() {
         setOverrides(prev);
         return false;
       }
+      // Successful write — broadcast so any other open tab refreshes.
+      publishOverridesChange();
       return true;
     },
-    [overrides],
+    [overrides, publishOverridesChange],
   );
 
   const clearOverride = useCallback(
@@ -116,9 +128,10 @@ export function useCaseOverrides() {
         setOverrides(prev);
         return false;
       }
+      publishOverridesChange();
       return true;
     },
-    [overrides],
+    [overrides, publishOverridesChange],
   );
 
   return { overrides, setOverride, clearOverride, hydrated };

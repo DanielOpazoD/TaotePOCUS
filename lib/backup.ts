@@ -4,6 +4,7 @@
 // a different origin).
 
 import { STORAGE_KEYS, FAVS_KEY_PREFIX, favsKey } from "./storage-keys";
+import { getStorageBackend } from "./store";
 //
 // The bundle covers everything the admin can produce manually:
 //
@@ -60,9 +61,16 @@ export interface RestoreResult {
   };
 }
 
+// Read / write helpers. Routed through `getStorageBackend()` so the
+// in-memory fallback (Safari Private, sandboxed iframes) is honored
+// — without this, `buildBackup()` would always read from real
+// `localStorage` and return an empty bundle when the active state
+// lives only in the in-memory shim.
 function readJson<T>(key: string, fallback: T): T {
+  const backend = getStorageBackend();
+  if (!backend) return fallback;
   try {
-    const raw = localStorage.getItem(key);
+    const raw = backend.getItem(key);
     if (raw == null) return fallback;
     return JSON.parse(raw) as T;
   } catch {
@@ -71,8 +79,10 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 function writeJson(key: string, value: unknown): boolean {
+  const backend = getStorageBackend();
+  if (!backend) return false;
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    backend.setItem(key, JSON.stringify(value));
     return true;
   } catch {
     return false;
@@ -95,9 +105,10 @@ export function buildBackup(currentEmail: string | null = null): BackupEnvelope 
   const customCategories = readJson<unknown[]>(STORAGE_KEYS.customCategories, []);
 
   const favsByEmail: Record<string, string[]> = {};
-  if (typeof localStorage !== "undefined") {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
+  const backend = getStorageBackend();
+  if (backend) {
+    for (let i = 0; i < backend.length; i++) {
+      const k = backend.key(i);
       if (!k || !k.startsWith(FAVS_KEY_PREFIX)) continue;
       const email = k.slice(FAVS_KEY_PREFIX.length);
       favsByEmail[email] = readJson<string[]>(k, []);
@@ -158,10 +169,11 @@ export function restoreBackup(env: BackupEnvelope): RestoreResult {
   // Wipe existing favs first so old emails not present in the bundle
   // are dropped. We deliberately don't wipe userCases / overrides /
   // categories key-by-key — `writeJson` overwrites them whole.
-  if (typeof localStorage !== "undefined") {
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith(FAVS_KEY_PREFIX)) localStorage.removeItem(k);
+  const wipeBackend = getStorageBackend();
+  if (wipeBackend) {
+    for (let i = wipeBackend.length - 1; i >= 0; i--) {
+      const k = wipeBackend.key(i);
+      if (k && k.startsWith(FAVS_KEY_PREFIX)) wipeBackend.removeItem(k);
     }
   }
 

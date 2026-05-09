@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { repo } from "@/lib/repo";
 import { log } from "@/lib/log";
 import type { User } from "@/lib/types";
+import { useCrossTabSync } from "./useCrossTabSync";
 
 interface Options {
   /** Triggers the auth modal when an anonymous user tries to favorite. */
@@ -37,6 +38,15 @@ export function useFavs(user: User | null, hydrated: boolean, options: Options) 
     };
   }, [user, hydrated]);
 
+  // Cross-tab sync. When another tab toggles a favorite, the
+  // localStorage write fires; this tab's BroadcastChannel listener
+  // re-reads and re-renders. Without this, the second tab kept
+  // showing the stale list until F5.
+  const publishFavsChange = useCrossTabSync("favs", () => {
+    if (!hydrated) return;
+    void repo.favs.list(user?.email).then(setFavs);
+  });
+
   const toggle = useCallback(
     async (id: string) => {
       if (!user) {
@@ -59,8 +69,10 @@ export function useFavs(user: User | null, hydrated: boolean, options: Options) 
         return;
       }
       setFavs(next);
+      // Notify other tabs so their UI reflects the new fav state.
+      publishFavsChange();
     },
-    [user, favs, onAnonymous, notify],
+    [user, favs, onAnonymous, notify, publishFavsChange],
   );
 
   return { favs, toggle };

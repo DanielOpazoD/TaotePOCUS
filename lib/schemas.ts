@@ -1,0 +1,260 @@
+// Defensive shape validators for the data the app reads from
+// untrusted sources: the corpus JSON (from `public/data/`), the
+// override map (from localStorage), the user-cases list (from
+// localStorage or DB), and the favorites list. Each validator
+// returns the SAFE subset and reports what was dropped.
+//
+// Why hand-rolled instead of zod / valibot:
+//   - Zero new runtime deps (~80 KB minified for zod, plus its
+//     types in the bundle).
+//   - The shapes are small and stable; the full power of a schema
+//     library is overkill.
+//   - Compile-time we still have TypeScript, so the validators
+//     are a runtime-only safety net for input we can't trust at
+//     compile time (JSON.parse output, localStorage.getItem
+//     output, network responses).
+//
+// Policy:
+//   - Required fields missing → entry rejected. The merge layer
+//     won't see it; the catalog stays consistent.
+//   - Wrong-type required fields → entry rejected.
+//   - Unknown fields preserved (forward-compat: future fields
+//     added by a re-import shouldn't be stripped here).
+//   - Optional fields with wrong types → field stripped, rest of
+//     the entry kept. Better to lose a malformed `focus` than
+//     to drop the whole case.
+//
+// Errors are reported via the returned `dropped` count (and a
+// brief `log.warn` once per validation pass — we don't spam the
+// console with 326 individual lines if the entire corpus is
+// malformed).
+
+import { log } from "./log";
+import type { CaseRecord, MediaKind, SectionId } from "./types";
+
+const SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>([
+  "atlas",
+  "ecg",
+  "cases",
+  "info",
+  "rayos",
+]);
+
+const MEDIA_KINDS: ReadonlySet<MediaKind> = new Set<MediaKind>(["video", "image", "gif"]);
+
+function isString(v: unknown): v is string {
+  return typeof v === "string";
+}
+
+function isNonEmptyString(v: unknown): v is string {
+  return typeof v === "string" && v.length > 0;
+}
+
+function isStringArray(v: unknown): v is string[] {
+  return Array.isArray(v) && v.every((x) => typeof x === "string");
+}
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/**
+ * Validate one case. Returns the case (typed) or `null` if it
+ * fails the required-field check. Optional malformed fields are
+ * dropped without rejecting the whole entry.
+ */
+export function validateCase(raw: unknown): CaseRecord | null {
+  if (!isPlainObject(raw)) return null;
+  const r = raw;
+
+  // ─── Required ──────────────────────────────────────────────
+  if (!isNonEmptyString(r.id)) return null;
+  if (!isNonEmptyString(r.title)) return null;
+  if (!isString(r.section) || !SECTIONS.has(r.section as SectionId)) return null;
+  if (!isNonEmptyString(r.category)) return null;
+  if (!isStringArray(r.tags)) return null;
+  if (!isString(r.modality)) return null;
+  if (!isNonEmptyString(r.loop)) return null;
+  if (!isString(r.author)) return null;
+  if (!isString(r.role)) return null;
+  if (!isString(r.date)) return null;
+  if (!isString(r.description)) return null;
+
+  // ─── Optional, sanitize when present ───────────────────────
+  const out: Record<string, unknown> = { ...r };
+
+  // featured: must be boolean if present.
+  if ("featured" in r && typeof r.featured !== "boolean") delete out.featured;
+
+  // media: must be a valid Media object if present.
+  if ("media" in r) {
+    const m = r.media;
+    if (
+      !isPlainObject(m) ||
+      !isString(m.kind) ||
+      !MEDIA_KINDS.has(m.kind as MediaKind) ||
+      !isString(m.src)
+    ) {
+      delete out.media;
+    }
+  }
+
+  // mediaExtra: must be an array of valid Media. Filter bad entries.
+  if ("mediaExtra" in r) {
+    if (!Array.isArray(r.mediaExtra)) {
+      delete out.mediaExtra;
+    } else {
+      out.mediaExtra = r.mediaExtra.filter(
+        (m) =>
+          isPlainObject(m) &&
+          isString(m.kind) &&
+          MEDIA_KINDS.has(m.kind as MediaKind) &&
+          isString(m.src),
+      );
+    }
+  }
+
+  // difficulty
+  if ("difficulty" in r) {
+    const d = r.difficulty;
+    if (d !== "basic" && d !== "intermediate" && d !== "advanced") delete out.difficulty;
+  }
+
+  // String-typed optionals.
+  for (const k of ["lastUpdated", "deletedAt", "deletedBy"] as const) {
+    if (k in r && typeof r[k] !== "string") delete out[k];
+  }
+
+  // boolean-typed optionals.
+  for (const k of ["reviewed", "purged"] as const) {
+    if (k in r && typeof r[k] !== "boolean") delete out[k];
+  }
+
+  // focus: each sub-field must be a number if present; entire focus
+  // dropped if not an object.
+  if ("focus" in r) {
+    const f = r.focus;
+    if (!isPlainObject(f)) {
+      delete out.focus;
+    } else {
+      const cleanFocus: Record<string, number> = {};
+      for (const k of ["x", "y", "scale"] as const) {
+        if (typeof f[k] === "number" && Number.isFinite(f[k])) cleanFocus[k] = f[k];
+      }
+      out.focus = cleanFocus;
+    }
+  }
+
+  // The required fields above were checked before this point so
+  // `out` carries the right shape for them. The `unknown` cast is
+  // the documented escape hatch from the structural-check world
+  // back into the typed world.
+  return out as unknown as CaseRecord;
+}
+
+/**
+ * Validate an array of cases (the corpus JSON shape). Drops bad
+ * entries silently and reports the count. Returns `[]` for
+ * non-array input.
+ */
+export function validateCorpus(
+  raw: unknown,
+  area: string,
+): { cases: CaseRecord[]; dropped: number } {
+  if (!Array.isArray(raw)) {
+    log.warn(`Corpus is not an array — got ${typeof raw}`, { area });
+    return { cases: [], dropped: 0 };
+  }
+  const cases: CaseRecord[] = [];
+  let dropped = 0;
+  for (const item of raw) {
+    const valid = validateCase(item);
+    if (valid) cases.push(valid);
+    else dropped += 1;
+  }
+  if (dropped > 0) {
+    log.warn(`Dropped ${dropped} malformed cases from corpus`, { area });
+  }
+  return { cases, dropped };
+}
+
+/**
+ * Validate the override map (`Record<id, Partial<CaseRecord>>`).
+ * Override entries are PARTIAL — every field is optional — so the
+ * validation is permissive: any non-object key is dropped, any
+ * non-string-keyed entry is dropped, and within each entry only
+ * fields with the wrong type are stripped (the entry itself
+ * survives).
+ *
+ * Returns the safe subset + the number of dropped entries.
+ */
+export function validateOverrideMap(
+  raw: unknown,
+  area: string,
+): { overrides: Record<string, Partial<CaseRecord>>; dropped: number } {
+  if (!isPlainObject(raw)) {
+    log.warn(`Override map is not an object — got ${typeof raw}`, { area });
+    return { overrides: {}, dropped: 0 };
+  }
+  const overrides: Record<string, Partial<CaseRecord>> = {};
+  let dropped = 0;
+  for (const [id, patch] of Object.entries(raw)) {
+    if (!isPlainObject(patch)) {
+      dropped += 1;
+      continue;
+    }
+    // Override entries are always partial — we strip wrong-typed
+    // fields but keep the rest of the patch. The merge layer then
+    // applies the cleaned patch on top of the source case.
+    const clean: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(patch)) {
+      // Cheap structural checks for the most common fields. This
+      // is conservative: unknown / unfamiliar field names pass
+      // through (forward-compat) — only KNOWN fields with the
+      // wrong type are stripped.
+      if (k === "tags" && !isStringArray(v)) continue;
+      if (k === "section" && (!isString(v) || !SECTIONS.has(v as SectionId))) continue;
+      if (
+        (k === "title" ||
+          k === "category" ||
+          k === "modality" ||
+          k === "loop" ||
+          k === "author" ||
+          k === "role" ||
+          k === "date" ||
+          k === "description" ||
+          k === "lastUpdated" ||
+          k === "deletedAt" ||
+          k === "deletedBy") &&
+        typeof v !== "string"
+      ) {
+        continue;
+      }
+      if ((k === "featured" || k === "reviewed" || k === "purged") && typeof v !== "boolean") {
+        continue;
+      }
+      clean[k] = v;
+    }
+    overrides[id] = clean as Partial<CaseRecord>;
+  }
+  if (dropped > 0) {
+    log.warn(`Dropped ${dropped} malformed override entries`, { area });
+  }
+  return { overrides, dropped };
+}
+
+/**
+ * Validate the favorites list (just an array of case ids). Drops
+ * non-string entries; returns `[]` for non-array input.
+ */
+export function validateFavsList(raw: unknown, area: string): string[] {
+  if (!Array.isArray(raw)) {
+    log.warn(`Favs list is not an array — got ${typeof raw}`, { area });
+    return [];
+  }
+  const out: string[] = [];
+  for (const x of raw) {
+    if (typeof x === "string" && x.length > 0) out.push(x);
+  }
+  return out;
+}

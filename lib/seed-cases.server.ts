@@ -16,6 +16,7 @@ import "server-only";
 
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { validateCorpus } from "./schemas";
 import type { CaseRecord } from "./types";
 
 let cache: CaseRecord[] | null = null;
@@ -26,11 +27,18 @@ const CORPUS_FS_PATH = ["public", "data", "imported-cases.json"];
  * Load the corpus from disk. Cached for the lifetime of the process
  * — `next build` runs `sitemap()` once, `next start` will reuse the
  * cached array across requests inside the same Node process.
+ *
+ * Validation goes through the same `validateCorpus` the client
+ * loader uses, so the server / client see the same safe subset.
+ * A malformed disk file → empty corpus + a warn log; sitemap
+ * generation degrades to listing only sections, never crashes.
  */
 export async function loadSeedCasesServer(): Promise<CaseRecord[]> {
   if (cache) return cache;
   const full = join(process.cwd(), ...CORPUS_FS_PATH);
   const raw = await readFile(full, "utf8");
-  cache = JSON.parse(raw) as CaseRecord[];
+  const parsed: unknown = JSON.parse(raw);
+  const { cases } = validateCorpus(parsed, "seed-cases.server");
+  cache = cases;
   return cache;
 }

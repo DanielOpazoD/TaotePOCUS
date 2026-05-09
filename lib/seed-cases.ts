@@ -26,6 +26,7 @@
 // to async via `hooks/useSeedCases.tsx`, which renders an empty
 // catalog on first paint and updates once the load resolves.
 
+import { validateCorpus } from "./schemas";
 import type { CaseRecord } from "./types";
 
 let cache: CaseRecord[] | null = null;
@@ -60,9 +61,16 @@ export function loadSeedCases(): Promise<CaseRecord[]> {
     })
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load corpus: ${res.status}`);
-        return res.json() as Promise<CaseRecord[]>;
+        return res.json() as Promise<unknown>;
       })
-      .then((cases) => {
+      .then((raw) => {
+        // Defensive: validate every entry before they reach the
+        // catalog merge. A malformed JSON (truncated deploy, swapped
+        // schema, attacker-controlled mirror) shouldn't crash the
+        // merge — drop the bad entries silently and keep the good
+        // ones. Counts surface via `lib/log.warn` so operators can
+        // see drift in observability.
+        const { cases } = validateCorpus(raw, "seed-cases.client");
         cache = cases;
         return cases;
       })
