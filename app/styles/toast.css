@@ -82,8 +82,11 @@
  *
  *   - `.pwa-status--offline` — sits ~80px from the bottom, soft
  *     yellow bg. Persists for as long as the user is offline.
- *   - `.pwa-status--update` — bumps another ~52px above. Shows
- *     until the user clicks "Recargar" or until we reload.
+ *   - `.pwa-status--memory`  — bumps another ~52px above. Soft
+ *     muted bg. Visible whenever the storage backend is the
+ *     in-memory shim (Safari Private, sandboxed iframe).
+ *   - `.pwa-status--update`  — top of the stack. Shows until the
+ *     user clicks "Recargar" or until we reload.
  *
  * Same pill geometry as `.toast` for visual cohesion.
  */
@@ -108,8 +111,25 @@
   color: oklch(0.32 0.06 70);
   border: 1px solid oklch(0.85 0.09 85);
 }
-.pwa-status--update {
+.pwa-status--memory {
+  /* Sits above offline (when both apply). Muted neutral so it
+     reads as "informational" rather than "warning" — the app is
+     fully functional, just transient. */
   bottom: 132px;
+  background: oklch(0.96 0.01 250);
+  color: oklch(0.35 0.02 250);
+  border: 1px solid oklch(0.85 0.02 250);
+  cursor: help;
+}
+@media (prefers-color-scheme: dark) {
+  .pwa-status--memory {
+    background: oklch(0.22 0.01 250);
+    color: oklch(0.85 0.02 250);
+    border-color: oklch(0.35 0.02 250);
+  }
+}
+.pwa-status--update {
+  bottom: 184px;
   background: var(--accent-soft);
   color: var(--accent-ink);
   border: 1px solid var(--accent-ink);

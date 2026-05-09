@@ -94,6 +94,40 @@
   .section-head .crumb {
     view-transition-name: hero-crumb;
   }
+
+  /* Tighten the default transition to feel like a filter change,
+     not a route change. The browser default is ~250ms which reads
+     as "I went somewhere". Filter clicks (cat / tags / page) want
+     "the result rearranged in place" — 140ms ease-out delivers
+     that. Section navigation (router-driven) inherits the same
+     duration; the named-element morph above gives the hero-h1 +
+     crumb their own continuous identity, so the rest of the page
+     crossfading at 140ms still feels right.
+
+     The `::view-transition-group(root)` pseudo addresses the
+     full-page fade. Named groups (hero-h1, hero-crumb,
+     nav-active, results-count) are unaffected — they morph at
+     whatever duration is set on the named target's transition. */
+  ::view-transition-group(root) {
+    animation-duration: 140ms;
+    animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Honor the user's stated preference: kill the crossfade. The
+     URL still updates synchronously; the browser just doesn't
+     animate the snapshot diff. Doesn't disable named-element
+     morphs because those are usually the part that READS as
+     "the page hasn't changed identity" — but they also obey
+     reduced-motion via their own transition properties. */
+  @supports (view-transition-name: hero-h1) {
+    ::view-transition-group(root),
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
+    }
+  }
 }
 
 /* =================== TOOLBAR MICROINTERACTIONS =================== */

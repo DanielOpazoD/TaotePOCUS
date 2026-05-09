@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePersistedState } from "./usePersistedState";
+import { useCrossTabSync } from "./useCrossTabSync";
 import { CATEGORIES } from "@/lib/data";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
 import { log } from "@/lib/log";
@@ -115,6 +116,38 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
 
   const categories = useMemo<Category[]>(() => [...CATEGORIES, ...customs], [customs]);
 
+  // Cross-tab sync. Adding / renaming / removing a custom category
+  // in one admin tab now refreshes the list in any other open tab
+  // immediately. Without this, the sidebar's category nav and the
+  // CategoriesEditor's row list could drift between tabs until F5.
+  //
+  // The listener re-reads from `usePersistedState`'s underlying
+  // localStorage by re-applying the deserialize logic via setCustoms
+  // (we re-fetch the array from storage and set it back into state).
+  const publishCategoriesChange = useCrossTabSync("categories", () => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        setCustoms([]);
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      const safe = parsed.filter(
+        (x): x is Category =>
+          x &&
+          typeof x.id === "string" &&
+          typeof x.label === "string" &&
+          x.id.length > 0 &&
+          x.label.length > 0,
+      );
+      setCustoms(safe);
+    } catch {
+      /* ignore — corrupt JSON falls back to current state */
+    }
+  });
+
   // DB hydration: when the flag is on, fetch the DB's categories on
   // mount and replace the local state if the DB has anything. Empty
   // DB keeps localStorage intact (covers the "flag just turned on"
@@ -160,9 +193,10 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
       const ok = await awaitDb("categories.add", () => dbAddCategory(id, trimmed, null));
       if (!ok) return null;
       setCustoms([...customs, next]);
+      publishCategoriesChange();
       return next;
     },
-    [categories, customs, setCustoms],
+    [categories, customs, setCustoms, publishCategoriesChange],
   );
 
   const renameCategory = useCallback(
@@ -173,9 +207,10 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
       const ok = await awaitDb("categories.rename", () => dbRenameCategory(id, trimmed));
       if (!ok) return false;
       setCustoms(customs.map((c) => (c.id === id ? { ...c, label: trimmed } : c)));
+      publishCategoriesChange();
       return true;
     },
-    [builtInIds, customs, setCustoms],
+    [builtInIds, customs, setCustoms, publishCategoriesChange],
   );
 
   const removeCategory = useCallback(
@@ -184,9 +219,10 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
       const ok = await awaitDb("categories.remove", () => dbRemoveCategory(id));
       if (!ok) return false;
       setCustoms(customs.filter((c) => c.id !== id));
+      publishCategoriesChange();
       return true;
     },
-    [builtInIds, customs, setCustoms],
+    [builtInIds, customs, setCustoms, publishCategoriesChange],
   );
 
   // Re-add at the previous id + label. Distinct from `addCategory`,
@@ -198,9 +234,10 @@ export function useCustomCategoriesData(): UseCustomCategoriesDataResult {
       const ok = await awaitDb("categories.restore", () => dbAddCategory(cat.id, cat.label, null));
       if (!ok) return false;
       setCustoms((prev) => (prev.some((c) => c.id === cat.id) ? prev : [...prev, cat]));
+      publishCategoriesChange();
       return true;
     },
-    [setCustoms],
+    [setCustoms, publishCategoriesChange],
   );
 
   return {

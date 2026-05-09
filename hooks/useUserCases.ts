@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { repo } from "@/lib/repo";
 import { log } from "@/lib/log";
 import type { CaseRecord, User } from "@/lib/types";
+import { useCrossTabSync } from "./useCrossTabSync";
 
 interface Options {
   /** User-facing message channel for save / delete / restore failures. */
@@ -97,6 +98,15 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
     setRaw(await repo.cases.listUserRaw());
   }, []);
 
+  // Cross-tab sync: another tab saving / soft-deleting / restoring
+  // / purging a user case fires this listener; we re-read from the
+  // repo (which already does dedup-by-id). Without this, two open
+  // admin tabs see divergent lists until F5.
+  const publishUserCasesChange = useCrossTabSync("user-cases", () => {
+    if (!hydrated) return;
+    void repo.cases.listUserRaw().then(setRaw);
+  });
+
   const save = useCallback(
     async (c: CaseRecord, opts: { isUpdate: boolean }) => {
       const result = await repo.cases.save(c, raw);
@@ -111,10 +121,11 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
         return false;
       }
       await refresh();
+      publishUserCasesChange();
       notify?.(opts.isUpdate ? "Caso actualizado" : "Caso publicado");
       return true;
     },
-    [raw, notify, refresh],
+    [raw, notify, refresh, publishUserCasesChange],
   );
 
   const remove = useCallback(
@@ -131,10 +142,11 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
         return false;
       }
       await refresh();
+      publishUserCasesChange();
       notify?.("Caso eliminado · puedes restaurarlo desde Papelera");
       return true;
     },
-    [raw, user, notify, refresh],
+    [raw, user, notify, refresh, publishUserCasesChange],
   );
 
   const restore = useCallback(
@@ -153,10 +165,11 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
         return false;
       }
       await refresh();
+      publishUserCasesChange();
       notify?.("Caso restaurado");
       return true;
     },
-    [raw, notify, refresh],
+    [raw, notify, refresh, publishUserCasesChange],
   );
 
   const purge = useCallback(
@@ -173,10 +186,11 @@ export function useUserCases(user: User | null, hydrated: boolean, { notify }: O
         return false;
       }
       await refresh();
+      publishUserCasesChange();
       notify?.("Caso eliminado permanentemente");
       return true;
     },
-    [raw, notify, refresh],
+    [raw, notify, refresh, publishUserCasesChange],
   );
 
   return { raw, live, trashed, save, remove, restore, purge };

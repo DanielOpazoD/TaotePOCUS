@@ -57,8 +57,45 @@ export function useViewState(): ViewState & {
       // is requested.
       const isSamePath = path === pathname;
       if (isSamePath && typeof window !== "undefined") {
-        if (mode === "push") window.history.pushState(null, "", url);
-        else window.history.replaceState(null, "", url);
+        const doIt = () => {
+          if (mode === "push") window.history.pushState(null, "", url);
+          else window.history.replaceState(null, "", url);
+        };
+
+        // Wrap filter changes in `document.startViewTransition` when
+        // the browser supports it. The browser captures the before /
+        // after states and crossfades the difference automatically.
+        // Categories, tag toggles, query changes, page navigation —
+        // they all get a smooth feel-instant transition for free.
+        //
+        // Modal-only patches (`caso` or `presenting` toggling) are
+        // skipped: the modal has its own focus-trap + scale-in
+        // animation that fights the View Transitions snapshot
+        // (the modal would crossfade with the grid behind it
+        // producing a double-fade artifact).
+        const isModalOnly =
+          (patch.caso !== undefined || patch.presenting !== undefined) &&
+          patch.view === undefined &&
+          patch.cat === undefined &&
+          patch.tags === undefined &&
+          patch.query === undefined &&
+          patch.sort === undefined &&
+          patch.page === undefined;
+
+        const supportsViewTransition =
+          typeof document !== "undefined" &&
+          typeof (document as Document & { startViewTransition?: unknown }).startViewTransition ===
+            "function";
+
+        if (!isModalOnly && supportsViewTransition) {
+          (
+            document as Document & {
+              startViewTransition: (cb: () => void) => unknown;
+            }
+          ).startViewTransition(doIt);
+        } else {
+          doIt();
+        }
         return;
       }
       if (mode === "push") router.push(url, { scroll: false });
