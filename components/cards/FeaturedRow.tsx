@@ -76,10 +76,12 @@ function FeaturedCard({
       </div>
       <div className="featured-meta">
         <div className="case-cat">{cat ? categoryLabel(cat, lang) : ""}</div>
-        <h3 className="featured-title">
+        {/* h2 (not h3) — same heading-order discipline as `CaseCard`.
+            The page ships only h1 chrome, so cards must be h2. */}
+        <h2 className="featured-title">
           {titleRead.value}
           {titleRead.isFallback && <FallbackBadge read={titleRead} />}
-        </h3>
+        </h2>
         {variant === "hero" && (
           <p className="featured-abstract">
             {descRead.value}

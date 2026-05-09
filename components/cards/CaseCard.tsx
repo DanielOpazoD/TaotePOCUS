@@ -204,10 +204,15 @@ function CaseCardImpl({
           </span>
           <span>{cat ? categoryLabel(cat, lang) : ""}</span>
         </div>
-        <h3 className="case-title">
+        {/* h2 (not h3): the page chrome ships only an h1 (the section
+            brand), so the cards must be h2 to keep the heading
+            hierarchy contiguous. Lighthouse "heading-order" failed
+            with h3 here because there's no intervening h2 between the
+            page h1 and these card titles. */}
+        <h2 className="case-title">
           {searchQuery ? highlight(titleRead.value, searchQuery) : titleRead.value}
           {titleRead.isFallback && <FallbackBadge read={titleRead} />}
-        </h3>
+        </h2>
         {/* Short blurb under the title in the active language. */}
         <p className="case-summary">
           {searchQuery ? highlight(descRead.value, searchQuery) : descRead.value}
