@@ -108,6 +108,22 @@ export const STORAGE_KEYS = {
    *  `app/layout.tsx` so `<html lang>` is set before hydration —
    *  keep both spellings aligned if the key is renamed. */
   lang: "pocus_lang",
+
+  /** Persisted schema version of the localStorage payload. Bumped
+   *  by `lib/storage-migrations.ts` on each breaking shape change.
+   *  When the persisted version is below the latest known, the
+   *  migration runner walks the upgrade ladder once at app start
+   *  and writes the new version back. Missing key (legacy install,
+   *  Safari Private flush) is treated as version 0 — every
+   *  migration runs from scratch on top of whatever data is there.
+   *
+   *  Versions:
+   *    0 = pre-Phase-2 (plain string title / description, plain
+   *        string[] tags, plain string category labels, plain
+   *        string section overrides).
+   *    1 = Phase-2/3 (LocalizedString / LocalizedTags everywhere).
+   */
+  schemaVersion: "pocus_schema_version",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

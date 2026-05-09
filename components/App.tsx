@@ -30,6 +30,7 @@ import { useCatalogDerivations } from "@/hooks/useCatalogDerivations";
 import { useCardCallbacks } from "@/hooks/useCardCallbacks";
 import { useCaseSaver } from "@/hooks/useCaseSaver";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { runStorageMigrations } from "@/lib/storage-migrations";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
 
 // Lazy-loaded subtrees: needed only on a specific path. Keeping them out
@@ -41,7 +42,28 @@ import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
 const FeaturedRow = dynamic(() => import("./cards/FeaturedRow"));
 const MobileDrawer = dynamic(() => import("./chrome/MobileDrawer"), { ssr: false });
 
+/**
+ * Module-level guard so the storage migrations run exactly once per
+ * client load, BEFORE any descendant hook reads the affected
+ * localStorage keys. A `useEffect` would fire too late — by then
+ * `usePersistedState` already hydrated the React state with the
+ * legacy shape, and the migration would only land on the next
+ * navigation.
+ */
+let didRunStorageMigrations = false;
+function ensureStorageMigrations(): void {
+  if (didRunStorageMigrations) return;
+  didRunStorageMigrations = true;
+  runStorageMigrations();
+}
+
 export default function App() {
+  // Migrate the persisted catalog shape to the latest schema BEFORE
+  // any child component mounts. Idempotent + SSR-safe (the guard
+  // inside `runStorageMigrations` short-circuits when `window` is
+  // undefined). One-time per page load — see `didRunStorageMigrations`.
+  ensureStorageMigrations();
+
   // `<LanguageProvider>` wraps the entire client tree so any chrome,
   // modal, or panel can read the active language via `useLanguage`.
   // It sits inside the top-level `<Suspense>` boundary because the
@@ -241,18 +263,25 @@ function AppInner() {
 
   return (
     <>
-      <Header
-        user={user}
-        onLogin={() => setAuthOpen(true)}
-        onLogout={logout}
-        query={query}
-        setQuery={(q) => replacePatch({ query: q })}
-        view={view}
-        favCount={favs.length}
-        onNewCase={onNewCase}
-        onOpenDrawer={() => setDrawerOpen(true)}
-        sections={config.visibleSectionsWithLabels}
-      />
+      {/* Each top-level zone gets its own ErrorBoundary so a crash
+          in one (the language switcher's outside-click handler, the
+          mobile drawer's focus trap, the persistent sidebar) doesn't
+          take down the rest of the page. The user can still navigate
+          away from a broken zone via the surfaces that survive. */}
+      <ErrorBoundary name="header">
+        <Header
+          user={user}
+          onLogin={() => setAuthOpen(true)}
+          onLogout={logout}
+          query={query}
+          setQuery={(q) => replacePatch({ query: q })}
+          view={view}
+          favCount={favs.length}
+          onNewCase={onNewCase}
+          onOpenDrawer={() => setDrawerOpen(true)}
+          sections={config.visibleSectionsWithLabels}
+        />
+      </ErrorBoundary>
       <MobileDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -277,23 +306,25 @@ function AppInner() {
       />
 
       <div className="layout" data-section={view.kind === "section" ? view.section : view.kind}>
-        <Sidebar
-          activeCat={cat}
-          setActiveCat={(c) => {
-            if (view.kind === "favs")
-              replacePatch({ view: { kind: "section", section: "atlas" }, cat: c });
-            else replacePatch({ cat: c });
-          }}
-          activeTags={tags}
-          toggleTag={(t) =>
-            replacePatch({ tags: tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t] })
-          }
-          totalCount={scopedCases.length}
-          categories={sectionCategories}
-          tags={sectionTags}
-          collapsed={sidebarCollapsed}
-          onToggleCollapsed={toggleSidebar}
-        />
+        <ErrorBoundary name="sidebar">
+          <Sidebar
+            activeCat={cat}
+            setActiveCat={(c) => {
+              if (view.kind === "favs")
+                replacePatch({ view: { kind: "section", section: "atlas" }, cat: c });
+              else replacePatch({ cat: c });
+            }}
+            activeTags={tags}
+            toggleTag={(t) =>
+              replacePatch({ tags: tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t] })
+            }
+            totalCount={scopedCases.length}
+            categories={sectionCategories}
+            tags={sectionTags}
+            collapsed={sidebarCollapsed}
+            onToggleCollapsed={toggleSidebar}
+          />
+        </ErrorBoundary>
 
         <main className="main" id="main" tabIndex={-1}>
           {/* Per-section error boundaries: a crash in the hero (sparkline,
@@ -303,13 +334,15 @@ function AppInner() {
           <ErrorBoundary name="hero">
             <SectionHero view={view} cat={cat} head={head} />
           </ErrorBoundary>
-          <Toolbar
-            count={filtered.length}
-            tags={tags}
-            query={query}
-            sort={sort}
-            onReplace={replacePatch}
-          />
+          <ErrorBoundary name="toolbar">
+            <Toolbar
+              count={filtered.length}
+              tags={tags}
+              query={query}
+              sort={sort}
+              onReplace={replacePatch}
+            />
+          </ErrorBoundary>
           {/* FeaturedRow promotes a hero case at the top of certain
               section landings. Excluded from sections where the
               uniform catalog grid is the primary mental model:
@@ -327,7 +360,14 @@ function AppInner() {
             !cat &&
             tags.length === 0 &&
             !query.trim() && (
-              <FeaturedRow cases={scopedCases} favs={favs} onOpen={onCardOpen} onFav={toggleFav} />
+              <ErrorBoundary name="featured">
+                <FeaturedRow
+                  cases={scopedCases}
+                  favs={favs}
+                  onOpen={onCardOpen}
+                  onFav={toggleFav}
+                />
+              </ErrorBoundary>
             )}
           <ErrorBoundary name="grid">
             <MainGrid
