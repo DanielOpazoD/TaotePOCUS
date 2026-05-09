@@ -33,7 +33,8 @@ export type SyncTopic =
   | "user-cases"
   | "categories"
   | "section-visibility"
-  | "language";
+  | "language"
+  | "saved-views";
 
 /**
  * Message envelope. `actorId` is a per-tab random string (set in

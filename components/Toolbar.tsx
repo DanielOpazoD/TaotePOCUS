@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { SortOrder } from "@/lib/url";
+import SavedViewsMenu from "./chrome/SavedViewsMenu";
+import type { SortOrder, ViewState } from "@/lib/url";
 import { useLanguage } from "@/hooks/useLanguage";
 
 interface Props {
@@ -15,6 +16,14 @@ interface Props {
   sort: SortOrder;
   /** Patch the URL with new filter values (replace, not push). */
   onReplace: (patch: Partial<{ tags: string[]; query: string; sort: SortOrder }>) => void;
+  /** Full ViewState — needed by the saved-views menu so "Save current"
+   *  can capture every filter (path / cat / tags / query / sort / page)
+   *  rather than just the toolbar's local slice. Optional so older
+   *  callers / tests still mount a basic toolbar. */
+  viewState?: ViewState;
+  /** Toast surface for "Vista guardada" / "Vista eliminada"
+   *  feedback. Wired in App.tsx to `showToast`. */
+  notify?: (msg: string) => void;
 }
 
 /**
@@ -27,7 +36,7 @@ interface Props {
  * change reaches the URL via `onReplace`, which the parent maps to
  * `replacePatch`.
  */
-export default function Toolbar({ count, tags, query, sort, onReplace }: Props) {
+export default function Toolbar({ count, tags, query, sort, onReplace, viewState, notify }: Props) {
   const { t } = useLanguage();
   const [clearShaking, setClearShaking] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -82,6 +91,11 @@ export default function Toolbar({ count, tags, query, sort, onReplace }: Props) 
         </div>
       )}
       <div className="toolbar-right">
+        {/* Saved-views dropdown sits left of the sort select so the
+            cluster reads as "your shortcuts → ordering". Only mount
+            when the parent threads the full ViewState through; older
+            callers (focused tests) opt out by omitting the prop. */}
+        {viewState && <SavedViewsMenu state={viewState} notify={notify} />}
         <label htmlFor="sort-select" className="toolbar-label">
           {t("toolbar.sortLabel")}
         </label>

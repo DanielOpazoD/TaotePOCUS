@@ -1,0 +1,268 @@
+/* =================== SAVED VIEWS =================== */
+/*
+ * Compact dropdown that lives inside the toolbar above the case
+ * grid. The trigger is a small button with a star glyph + a
+ * "Vistas" word + a count chip when the user has saved any. The
+ * popover slides down with the same 120ms cadence as the language
+ * switcher so the cluster of overlay menus feels coherent.
+ *
+ * The menu itself is wider than the language switcher because it
+ * carries an editable input + a list — kept under 320px so it
+ * doesn't run off the right edge on narrow tablets.
+ */
+
+.saved-views {
+  position: relative;
+  display: inline-flex;
+}
+
+.saved-views-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  /* Match the toolbar's other controls (sort select, clear-button)
+     so this lives in the same visual band, not above or below. */
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md, 10px);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.saved-views-trigger svg {
+  width: 14px;
+  height: 14px;
+}
+
+.saved-views-trigger:hover,
+.saved-views-trigger:focus-visible {
+  background: var(--bg-soft);
+  border-color: color-mix(in oklch, var(--ink-mute) 30%, var(--rule));
+  color: var(--ink);
+  outline: none;
+}
+
+.saved-views-trigger-label {
+  /* Hidden on the very narrow toolbar layouts (< 480px) so the
+     star glyph alone carries the affordance. The aria-label still
+     reads the full string for screen readers. */
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 479px) {
+  .saved-views-trigger-label {
+    display: none;
+  }
+}
+
+.saved-views-trigger-count {
+  /* Tiny count chip to the right of the label. Uses the same
+     numeric pill styling as the favorites count in the header. */
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  padding: 1px 6px;
+  background: color-mix(in oklch, var(--ink-mute) 10%, transparent);
+  border-radius: var(--radius-pill, 999px);
+  font-variant-numeric: tabular-nums;
+}
+
+.saved-views-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  /* Anchor right so the menu doesn't overflow the toolbar's left
+     edge on narrow layouts. */
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: var(--shadow-2);
+  z-index: var(--z-presentation);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: savedViewsMenuIn 120ms var(--ease-emphasized);
+  transform-origin: top right;
+}
+
+.saved-views-heading {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.saved-views-empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-mute);
+}
+
+.saved-views-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Cap the list height so saving 30 views doesn't make the menu
+     taller than the viewport on a small laptop. Past the cap
+     scrolls. */
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.saved-views-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-sm, 6px);
+}
+
+.saved-views-row:hover {
+  background: var(--bg-soft);
+}
+
+.saved-views-row-apply {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  min-width: 0;
+}
+
+.saved-views-row-apply:focus-visible {
+  outline: 2px solid var(--accent-ink, var(--ink));
+  outline-offset: 1px;
+}
+
+.saved-views-row-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  /* Truncate long names so the dropdown width stays bounded. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-views-row-href {
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--ink-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-views-row-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-right: 4px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--ink-mute);
+  cursor: pointer;
+  /* Hidden by default; revealed on row hover so a quiet list
+     stays quiet. Keyboard focus also reveals it. */
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    background var(--duration-fast) ease;
+}
+
+.saved-views-row:hover .saved-views-row-delete,
+.saved-views-row-delete:focus-visible {
+  opacity: 1;
+}
+
+.saved-views-row-delete:hover,
+.saved-views-row-delete:focus-visible {
+  color: var(--danger-ink, oklch(0.55 0.18 25));
+  background: color-mix(in oklch, var(--ink-mute) 10%, transparent);
+  outline: none;
+}
+
+.saved-views-row-delete svg {
+  width: 14px;
+  height: 14px;
+}
+
+.saved-views-save {
+  display: flex;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+
+.saved-views-save-input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--ink);
+}
+
+.saved-views-save-input:focus {
+  outline: 2px solid var(--accent-ink, var(--ink));
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.saved-views-save-submit {
+  font-size: 12px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+@keyframes savedViewsMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saved-views-menu {
+    animation: none;
+  }
+}

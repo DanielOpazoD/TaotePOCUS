@@ -96,6 +96,23 @@ export const DICT_ES = {
   "toolbar.sort.featured": "Destacados",
   "toolbar.sort.title": "Alfabético",
 
+  // ─── Saved views (filter presets) ──────────────────────────────
+  "savedViews.trigger.aria": "Vistas guardadas",
+  "savedViews.trigger.title": "Vistas guardadas — atajos a tus filtros",
+  "savedViews.trigger.label": "Vistas",
+  "savedViews.menu.aria": "Menú de vistas guardadas",
+  "savedViews.heading": "Vistas guardadas",
+  "savedViews.empty":
+    "Aún no has guardado ninguna vista. Configura los filtros que uses seguido y guárdalos para volver con un click.",
+  "savedViews.save.aria": "Guardar la vista actual",
+  "savedViews.save.placeholder": 'Nombre de la vista (ej. "Cardíaco sin revisar")',
+  "savedViews.save.submit": "Guardar vista actual",
+  "savedViews.row.apply": "Aplicar vista {name}",
+  "savedViews.row.delete": "Eliminar vista {name}",
+  "savedViews.toast.saved": 'Vista "{name}" guardada',
+  "savedViews.toast.removed": "Vista eliminada",
+  "savedViews.toast.invalidName": "El nombre no puede estar vacío",
+
   // ─── Bilingual case content fallback ───────────────────────────
   // Shown as a tooltip on the small "ES" badge that appears next to
   // a case title / body when the user picked English but the admin

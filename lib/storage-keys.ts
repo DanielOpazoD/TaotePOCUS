@@ -109,6 +109,13 @@ export const STORAGE_KEYS = {
    *  keep both spellings aligned if the key is renamed. */
   lang: "pocus_lang",
 
+  /** Saved-view presets — named bundles of filter state (path +
+   *  search params) the user can recall with one click. Persisted as
+   *  `SavedView[]` (see `lib/saved-views.ts`). Per-browser (no
+   *  email scoping today); cross-tab synced via the "saved-views"
+   *  topic. Surfaces in `<SavedViewsMenu>` next to the search bar. */
+  savedViews: "pocus_saved_views",
+
   /** Persisted schema version of the localStorage payload. Bumped
    *  by `lib/storage-migrations.ts` on each breaking shape change.
    *  When the persisted version is below the latest known, the

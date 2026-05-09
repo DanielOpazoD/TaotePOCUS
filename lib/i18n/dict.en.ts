@@ -95,6 +95,23 @@ export const DICT_EN: Dict = {
   "toolbar.sort.featured": "Featured",
   "toolbar.sort.title": "Alphabetical",
 
+  // ─── Saved views (filter presets) ──────────────────────────────
+  "savedViews.trigger.aria": "Saved views",
+  "savedViews.trigger.title": "Saved views — shortcuts to your filters",
+  "savedViews.trigger.label": "Views",
+  "savedViews.menu.aria": "Saved views menu",
+  "savedViews.heading": "Saved views",
+  "savedViews.empty":
+    "You haven't saved any views yet. Set up the filters you use often and save them to return with one click.",
+  "savedViews.save.aria": "Save the current view",
+  "savedViews.save.placeholder": 'View name (e.g. "Cardiac unreviewed")',
+  "savedViews.save.submit": "Save current view",
+  "savedViews.row.apply": "Apply view {name}",
+  "savedViews.row.delete": "Delete view {name}",
+  "savedViews.toast.saved": 'View "{name}" saved',
+  "savedViews.toast.removed": "View deleted",
+  "savedViews.toast.invalidName": "The name can't be empty",
+
   // ─── Bilingual case content fallback ───────────────────────────
   "case.fallback.badge": "ES",
   "case.fallback.title": "Translation pending — showing the Spanish original",

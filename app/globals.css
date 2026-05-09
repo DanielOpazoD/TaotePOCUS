@@ -61,5 +61,8 @@
 /* Bilingual-content fallback badge ("ES" pill on partially-translated cases) */
 @import "./styles/fallback-badge.css";
 
+/* Saved views — toolbar dropdown of named filter presets */
+@import "./styles/saved-views.css";
+
 /* Print last so it overrides everything via @media print */
 @import "./styles/print.css";

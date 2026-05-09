@@ -341,6 +341,23 @@ function AppInner() {
               query={query}
               sort={sort}
               onReplace={replacePatch}
+              // Full ViewState so the saved-views menu can capture
+              // every filter (cat, tags, query, sort, page) under a
+              // single named preset. The notify channel is the
+              // shared toast surface so "Vista guardada" / "Vista
+              // eliminada" lands in the same place as every other
+              // admin / public toast.
+              viewState={{
+                view,
+                cat,
+                tags,
+                query,
+                sort,
+                caso: openCaseId,
+                presenting: presentingId,
+                page,
+              }}
+              notify={showToast}
             />
           </ErrorBoundary>
           {/* FeaturedRow promotes a hero case at the top of certain
