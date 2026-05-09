@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { BulkEditEditableText } from "@/components/admin/bulk-edit/cells/EditableText";
+import { renderWithLanguage as render } from "./test-utils";
 
 describe("BulkEditEditableText", () => {
   beforeEach(() => {

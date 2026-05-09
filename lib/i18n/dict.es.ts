@@ -283,6 +283,7 @@ export const DICT_ES = {
   "bulk.row.openFull": "Abrir modal completo",
   "bulk.row.delete": "Eliminar caso",
   "bulk.cell.editHint": "{label} (click para editar)",
+  "bulk.cell.empty": "— vacío —",
   "bulk.row.checkbox.select": "Seleccionar {title}",
   "bulk.row.category.aria": "Categoría de {title}",
   "bulk.row.reviewed.toggleOn": "{title}: marcar revisado",

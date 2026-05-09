@@ -71,9 +71,6 @@ const WHITELIST = new Set<string>([
   // casos pendientes, aparecerán acá.") and a couple of inline
   // titles. Follow-up.
   "components/admin/ClassifierBoard.tsx",
-  // BulkEdit cells — "— vacío —" placeholder rendered inside the
-  // inline EditableText cell. Trivial swap; follow-up.
-  "components/admin/bulk-edit/cells/EditableText.tsx",
 ]);
 
 /**

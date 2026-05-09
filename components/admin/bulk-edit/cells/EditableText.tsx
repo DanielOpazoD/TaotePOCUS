@@ -20,6 +20,7 @@
 // parent's toast layer.
 
 import { useEffect, useState } from "react";
+import { useT } from "@/hooks/useLanguage";
 
 interface Props {
   value: string;
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function BulkEditEditableText({ value, ariaLabel, multiline, onSave }: Props) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
@@ -71,10 +73,10 @@ export function BulkEditEditableText({ value, ariaLabel, multiline, onSave }: Pr
           (multiline ? " is-multiline" : "") +
           (savedFlash ? " is-saved-flash" : "")
         }
-        aria-label={`${ariaLabel} (click para editar)`}
+        aria-label={t("bulk.cell.editHint", { label: ariaLabel })}
         onClick={() => setEditing(true)}
       >
-        {value || <span className="bulk-edit-cell-empty">— vacío —</span>}
+        {value || <span className="bulk-edit-cell-empty">{t("bulk.cell.empty")}</span>}
       </button>
     );
   }

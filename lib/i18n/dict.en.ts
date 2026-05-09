@@ -273,6 +273,7 @@ export const DICT_EN: Dict = {
   "bulk.row.openFull": "Open full modal",
   "bulk.row.delete": "Delete case",
   "bulk.cell.editHint": "{label} (click to edit)",
+  "bulk.cell.empty": "— empty —",
   "bulk.row.checkbox.select": "Select {title}",
   "bulk.row.category.aria": "Category of {title}",
   "bulk.row.reviewed.toggleOn": "{title}: mark reviewed",
