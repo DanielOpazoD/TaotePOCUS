@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
-import { CATEGORIES, SECTIONS } from "@/lib/data";
+import { CATEGORIES, IMPORT_MARKER_TAG, SECTIONS } from "@/lib/data";
 import { getDescription } from "@/lib/case-description";
 import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -52,8 +52,9 @@ const ANY = "__any__";
  *   - Click the thumbnail → opens the full edit form
  *
  * Filters at the top narrow the queue to the cases that still need
- * work ("Sin clasificar" — the import default-classified queue;
- * "Sin revisar" — anything without the editorial-review checkmark).
+ * work (`IMPORT_MARKER_TAG` queue — the cases the import script
+ * left for human classification; "unreviewed" — anything without
+ * the editorial-review checkmark).
  *
  * The panel is independent of the public catalog routes so the
  * admin can plough through 326 cases without leaving the page.
@@ -90,7 +91,7 @@ export default function ClassifierBoard({
   const drag = useClassifierDrag({ cases, onPatch });
 
   // Compose all four filters with AND. The classification-state pill
-  // (Sin clasificar / Sin revisar / Todos) is the coarsest cut; the
+  // (unclassified / unreviewed / all) is the coarsest cut; the
   // search / section / category filters narrow further. We keep this
   // pipeline pure inside the memo so each change re-derives without
   // touching component state — easier to reason about than effect-based
@@ -99,10 +100,12 @@ export default function ClassifierBoard({
     let pool: CaseRecord[];
     switch (filter) {
       case "unclassified":
-        // The "Sin clasificar" marker is bilingual at the data layer
-        // (it can land in either tag list during import) but we only
-        // need to check the ES slot — the importer always writes there.
-        pool = cases.filter((c) => c.tags.es.includes("Sin clasificar"));
+        // The import marker (`IMPORT_MARKER_TAG`) is data, not UI
+        // copy — it lives in the ES slot because the importer
+        // always writes there. The pill label that says "Sin
+        // clasificar" / "Unclassified" is a separate concern routed
+        // through the i18n dictionary.
+        pool = cases.filter((c) => c.tags.es.includes(IMPORT_MARKER_TAG));
         break;
       case "unreviewed":
         pool = cases.filter((c) => !c.reviewed);
@@ -140,7 +143,7 @@ export default function ClassifierBoard({
   const counts = useMemo(
     () => ({
       all: cases.length,
-      unclassified: cases.filter((c) => c.tags.es.includes("Sin clasificar")).length,
+      unclassified: cases.filter((c) => c.tags.es.includes(IMPORT_MARKER_TAG)).length,
       unreviewed: cases.filter((c) => !c.reviewed).length,
     }),
     [cases],
@@ -216,8 +219,9 @@ export default function ClassifierBoard({
 
   // Drop the selection whenever the visible queue's identity set
   // changes substantially (filter/search change). Otherwise a
-  // selection from "Sin clasificar" survives a switch to "Todos"
-  // and the bulk bar reports counts the user can no longer see.
+  // selection made under the unclassified filter would survive a
+  // switch to "all" and the bulk bar would report counts the user
+  // can no longer see.
   useEffect(() => {
     if (selected.size === 0) return;
     const visibleIds = new Set(visible.map((c) => c.id));

@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/lib/icons";
-import { SECTIONS } from "@/lib/data";
+import { IMPORT_MARKER_TAG, SECTIONS } from "@/lib/data";
 import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category } from "@/lib/types";
 
@@ -293,8 +293,8 @@ function ReclassifyInline({
     // The marker is bilingual because we want the classifier to clean
     // up both lists in one move; the EN list (if present) gets the
     // same filter pass.
-    const cleanedEs = caso.tags.es.filter((t) => t !== "Sin clasificar");
-    const cleanedEn = caso.tags.en?.filter((t) => t !== "Sin clasificar");
+    const cleanedEs = caso.tags.es.filter((t) => t !== IMPORT_MARKER_TAG);
+    const cleanedEn = caso.tags.en?.filter((t) => t !== IMPORT_MARKER_TAG);
     const nextTags: CaseRecord["tags"] =
       cleanedEn && cleanedEn.length > 0 ? { es: cleanedEs, en: cleanedEn } : { es: cleanedEs };
     onPatch(caso.id, { ...patch, tags: nextTags });

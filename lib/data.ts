@@ -63,3 +63,28 @@ export const COMMON_TAGS = [
 // load it via `lib/seed-cases.ts > loadSeedCases()` (async) or
 // `hooks/useSeedCases` (React bridge). See the file header for
 // rationale.
+
+/**
+ * Tag value the Twitter import script writes onto every case it
+ * brings in, so the admin classifier can find them under "Sin
+ * clasificar / Unclassified" and route them to the right section
+ * + category.
+ *
+ * The literal value `"Sin clasificar"` is **data, not UI copy**:
+ *   - It lands inside `CaseRecord.tags.es` at import time (see
+ *     `scripts/apply-twitter-import.mjs`).
+ *   - Every classification action (drag-drop, reclassify menu,
+ *     bulk patch) STRIPS this tag from the case so it disappears
+ *     from the queue.
+ *   - The classifier filter pill that says "Sin clasificar" /
+ *     "Unclassified" comes from the i18n dictionary
+ *     (`classifier.tab.unclassified`) — a separate concern from
+ *     this marker. Their values happen to coincide in Spanish
+ *     because the marker was authored in Spanish; that's a string-
+ *     comparison detail, not a translation contract.
+ *
+ * Centralising the literal as a constant prevents the marker logic
+ * from coupling to the UI language and lets us rename / migrate it
+ * in one place if the import script ever changes its convention.
+ */
+export const IMPORT_MARKER_TAG = "Sin clasificar";
