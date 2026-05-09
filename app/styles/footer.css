@@ -48,7 +48,9 @@
 }
 .page-footer .colophon-mark {
   color: var(--ink-mute);
-  opacity: 0.78;
+  /* No opacity: `--ink-mute` already supplies the muted feel at
+     WCAG-AA contrast. The previous 0.78 multiplier rendered the
+     text at ~3.5:1 (Lighthouse flag). */
 }
 
 @media (max-width: 720px) {
