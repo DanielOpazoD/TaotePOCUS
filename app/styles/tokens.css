@@ -19,7 +19,13 @@
   --ink: oklch(0.198 0.005 254);
   --ink-hover: oklch(0.298 0.008 254);
   --ink-soft: oklch(0.453 0.007 254);
-  --ink-mute: oklch(0.655 0.005 254);
+  /* Darkened from oklch(0.655) → 0.500 to clear WCAG AA 4.5:1 against
+     `--bg`. Lighthouse measured the previous value at 3.02:1 (#8f9194
+     on #fafaf7) and flagged 30+ instances across `.case-byline`,
+     `.toolbar-label`, `.section-head p`, `.crumb`, `.results`. The new
+     value renders ~4.7:1; the muted feel is preserved because the
+     chroma stays low (0.005) — only the L drops. */
+  --ink-mute: oklch(0.5 0.005 254);
   --hairline: oklch(0.922 0.006 90);
   --hairline-strong: oklch(0.853 0.008 90);
   --accent: oklch(0.52 0.08 220);
