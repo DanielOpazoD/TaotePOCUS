@@ -64,9 +64,6 @@ const WHITELIST = new Set<string>([
   // Sections editor — "Restaurar" reset button + cancel button
   // in the bilingual rename row. Follow-up.
   "components/admin/SectionsEditor.tsx",
-  // Bulk action bar — "Quitar revisado" button label + title
-  // attribute. Follow-up.
-  "components/admin/classifier/BulkActionBar.tsx",
 ]);
 
 /**
