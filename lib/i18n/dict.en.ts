@@ -382,6 +382,18 @@ export const DICT_EN: Dict = {
   "sections.row.toggleHidden": "Hide {label} from the menu",
   "sections.row.toggleVisible.title": "Hidden from the public menu — click to show",
   "sections.row.toggleHidden.title": "Visible in the public menu — click to hide",
+  "sections.row.rename.es.aria": "Rename {label} in Spanish",
+  "sections.row.rename.en.aria": "Rename {label} in English",
+  "sections.row.rename.placeholder.en": "English (optional)",
+  "sections.row.rename.tooltip": "Rename (ES + EN)",
+  "sections.row.translation.title": "English translation",
+  "sections.row.rename.aria": "Rename {label}",
+  "sections.row.cases.one": "{count} case",
+  "sections.row.cases.many": "{count} cases",
+  "sections.row.save": "Save",
+  "sections.row.save.title": "Save (Enter)",
+  "sections.row.cancel": "Cancel",
+  "sections.row.cancel.title": "Cancel (Esc)",
 
   // ─── Admin panel — CaseForm chrome ─────────────────────────────
   "form.head.edit": "Edit case",

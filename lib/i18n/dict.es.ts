@@ -394,6 +394,18 @@ export const DICT_ES = {
   "sections.row.toggleHidden": "Ocultar {label} del menú",
   "sections.row.toggleVisible.title": "Oculta en el menú público — click para mostrar",
   "sections.row.toggleHidden.title": "Visible en el menú público — click para ocultar",
+  "sections.row.rename.es.aria": "Renombrar {label} en español",
+  "sections.row.rename.en.aria": "Renombrar {label} en inglés",
+  "sections.row.rename.placeholder.en": "English (opcional)",
+  "sections.row.rename.tooltip": "Renombrar (ES + EN)",
+  "sections.row.translation.title": "Traducción al inglés",
+  "sections.row.rename.aria": "Renombrar {label}",
+  "sections.row.cases.one": "{count} caso",
+  "sections.row.cases.many": "{count} casos",
+  "sections.row.save": "Guardar",
+  "sections.row.save.title": "Guardar (Enter)",
+  "sections.row.cancel": "Cancelar",
+  "sections.row.cancel.title": "Cancelar (Esc)",
 
   // ─── Admin panel — CaseForm chrome ─────────────────────────────
   "form.head.edit": "Editar caso",

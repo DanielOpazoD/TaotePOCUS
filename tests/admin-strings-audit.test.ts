@@ -56,9 +56,6 @@ const WHITELIST = new Set<string>([
   // shipped, but the page heading + add-row placeholder + a
   // couple of action buttons stayed Spanish. Follow-up.
   "components/admin/CategoriesEditor.tsx",
-  // Sections editor — "Restaurar" reset button + cancel button
-  // in the bilingual rename row. Follow-up.
-  "components/admin/SectionsEditor.tsx",
 ]);
 
 /**
