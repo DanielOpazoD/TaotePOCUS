@@ -13,6 +13,8 @@ import {
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { dbBulkImport } from "@/app/actions/db";
+import { useLanguage, useT } from "@/hooks/useLanguage";
+import { localeOf } from "@/lib/i18n";
 
 interface Props {
   /** Email of the current admin (best-effort tag inside the bundle). */
@@ -25,18 +27,6 @@ interface Props {
 const LAST_BACKUP_KEY = STORAGE_KEYS.lastBackupAt;
 const STALE_DAYS = 7;
 
-function formatRelative(iso: string | null): string {
-  if (!iso) return "nunca";
-  const t = new Date(iso).getTime();
-  if (Number.isNaN(t)) return "nunca";
-  const diffMs = Date.now() - t;
-  const days = Math.floor(diffMs / (24 * 3600 * 1000));
-  if (days < 1) return "hoy";
-  if (days === 1) return "ayer";
-  if (days < 30) return `hace ${days} días`;
-  return new Date(iso).toLocaleDateString("es");
-}
-
 /**
  * Backup / restore tab. Read-only export + REPLACE-on-import.
  *
@@ -47,6 +37,8 @@ function formatRelative(iso: string | null): string {
  * each consumer manually.
  */
 export default function BackupPanel({ currentEmail, notify }: Props) {
+  const t = useT();
+  const { lang } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
   const [pendingRestore, setPendingRestore] = useState<BackupEnvelope | null>(null);
@@ -56,6 +48,19 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
   const [dbBusy, setDbBusy] = useState(false);
   const [dbConfirm, setDbConfirm] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
+
+  /** Format a "last backup" timestamp as a localized relative string. */
+  const formatRelative = (iso: string | null): string => {
+    if (!iso) return t("backup.relative.never");
+    const ts = new Date(iso).getTime();
+    if (Number.isNaN(ts)) return t("backup.relative.never");
+    const diffMs = Date.now() - ts;
+    const days = Math.floor(diffMs / (24 * 3600 * 1000));
+    if (days < 1) return t("backup.relative.today");
+    if (days === 1) return t("backup.relative.yesterday");
+    if (days < 30) return t("backup.relative.daysAgo", { days });
+    return new Date(iso).toLocaleDateString(localeOf(lang));
+  };
 
   // Read the last-backup-at timestamp once on mount and after each
   // successful export. Stored separately from the bundle itself so a
@@ -89,7 +94,11 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
       /* ignore — the download still happened */
     }
     notify(
-      `Backup descargado · ${env.summary.overrides} reclasificaciones, ${env.summary.customCategories} categorías, ${env.summary.userCases} casos propios`,
+      t("backup.toast.exported", {
+        overrides: env.summary.overrides,
+        categories: env.summary.customCategories,
+        userCases: env.summary.userCases,
+      }),
     );
   };
 
@@ -101,21 +110,19 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
       try {
         parsed = JSON.parse(text);
       } catch {
-        setRestoreError("El archivo no es JSON válido.");
+        setRestoreError(t("backup.error.invalidJson"));
         return;
       }
       const env = parseBackup(parsed);
       if (!env) {
-        setRestoreError(
-          "El archivo no parece un backup válido (versión incorrecta o estructura distinta).",
-        );
+        setRestoreError(t("backup.error.invalidEnvelope"));
         return;
       }
       // Stage the envelope for confirm — the actual write happens
       // only after the admin confirms the dialog below.
       setPendingRestore(env);
     } catch {
-      setRestoreError("No se pudo leer el archivo.");
+      setRestoreError(t("backup.error.read"));
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -127,14 +134,17 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
     if (!result.ok) {
       setRestoreError(
         result.reason === "write-failed"
-          ? "Falló la escritura en localStorage (¿espacio agotado?)."
-          : "No se pudo restaurar — revisa la consola.",
+          ? t("backup.error.writeFailed")
+          : t("backup.error.restoreUnknown"),
       );
       setPendingRestore(null);
       return;
     }
     notify(
-      `Backup restaurado · ${result.counts!.overrides} reclasificaciones, ${result.counts!.customCategories} categorías. Recargando…`,
+      t("backup.toast.restored", {
+        overrides: result.counts!.overrides,
+        categories: result.counts!.customCategories,
+      }),
     );
     // Reload so every hook re-hydrates from the new localStorage. A
     // tiny delay lets the toast paint before the navigation.
@@ -166,18 +176,23 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
         currentEmail,
       );
       if (!result.ok) {
-        setDbError(
-          "No se pudo subir a la base de datos. Revisá los logs de Netlify Functions para el detalle.",
-        );
+        setDbError(t("backup.db.error"));
         return;
       }
       const c = result.counts!;
       notify(
-        `Subido a DB · ${c.overrides} reclasificaciones, ${c.categories} categorías, ${c.userCases} casos propios, ${c.favs} favoritos`,
+        t("backup.db.toast", {
+          overrides: c.overrides ?? 0,
+          categories: c.categories ?? 0,
+          userCases: c.userCases ?? 0,
+          favs: c.favs ?? 0,
+        }),
       );
     } catch (err) {
       setDbError(
-        err instanceof Error ? `Error: ${err.message}` : "Error desconocido durante la subida.",
+        err instanceof Error
+          ? t("backup.db.error.exception", { message: err.message })
+          : t("backup.db.error.unknown"),
       );
     } finally {
       setDbBusy(false);
@@ -198,58 +213,54 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
   return (
     <div className="backup-panel">
       <div className="backup-intro">
-        <h2>Backup</h2>
-        <p>
-          Exportá un archivo JSON con todo lo que has hecho desde admin: reclasificaciones,
-          categorías personalizadas, casos propios y favoritos. Guardalo en Drive / Dropbox / iCloud
-          — es tu única red contra perder los datos del navegador, cambiar de máquina o reinstalar.
-        </p>
+        <h2>{t("backup.intro.title")}</h2>
+        <p>{t("backup.intro.body")}</p>
       </div>
 
       <div className={`backup-status${isStale ? " is-stale" : ""}`}>
         <div className="backup-status-row">
-          <span className="backup-status-label">Último backup</span>
+          <span className="backup-status-label">{t("backup.status.label")}</span>
           <span className="backup-status-value">{formatRelative(lastBackupAt)}</span>
         </div>
         {isStale && (
           <p className="backup-status-warn">
             {lastBackupAt
-              ? `Hace más de ${STALE_DAYS} días — descargá uno nuevo si has clasificado casos desde entonces.`
-              : "Aún no has hecho un backup. Descargá uno antes de seguir clasificando."}
+              ? t("backup.status.warn.stale", { days: STALE_DAYS })
+              : t("backup.status.warn.never")}
           </p>
         )}
       </div>
 
       <section className="backup-section">
         <header className="backup-section-head">
-          <h3>Exportar</h3>
-          <p>Descarga un snapshot del estado actual.</p>
+          <h3>{t("backup.export.title")}</h3>
+          <p>{t("backup.export.body")}</p>
         </header>
         <ul className="backup-summary">
           <li>
-            <strong>{preview.summary.overrides}</strong> reclasificaciones
+            <strong>{preview.summary.overrides}</strong> {t("backup.summary.overrides")}
           </li>
           <li>
-            <strong>{preview.summary.customCategories}</strong> categorías personalizadas
+            <strong>{preview.summary.customCategories}</strong> {t("backup.summary.categories")}
           </li>
           <li>
-            <strong>{preview.summary.userCases}</strong> casos propios
+            <strong>{preview.summary.userCases}</strong> {t("backup.summary.userCases")}
           </li>
           <li>
-            <strong>{preview.summary.favorites}</strong> favoritos
+            <strong>{preview.summary.favorites}</strong> {t("backup.summary.favorites")}
           </li>
         </ul>
         <button type="button" className="btn-primary backup-action" onClick={handleExport}>
-          <Icon.download /> Exportar backup
+          <Icon.download /> {t("backup.export.action")}
         </button>
       </section>
 
       <section className="backup-section">
         <header className="backup-section-head">
-          <h3>Importar</h3>
+          <h3>{t("backup.import.title")}</h3>
           <p>
-            Reemplaza el estado actual con el contenido del archivo. Esta operación{" "}
-            <strong>sobrescribe</strong> tus datos locales — usa con cuidado.
+            {t("backup.import.body.prefix")} <strong>{t("backup.import.body.strong")}</strong>{" "}
+            {t("backup.import.body.suffix")}
           </p>
         </header>
         <input
@@ -267,7 +278,7 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
           className="btn-ghost backup-action"
           onClick={() => fileInputRef.current?.click()}
         >
-          <Icon.upload /> Elegir archivo JSON…
+          <Icon.upload /> {t("backup.import.action")}
         </button>
         {restoreError && (
           <p className="backup-error" role="alert">
@@ -282,25 +293,22 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
       {IS_NETLIFY_DB_ENABLED && (
         <section className="backup-section">
           <header className="backup-section-head">
-            <h3>Sincronizar con base de datos</h3>
-            <p>
-              Sube el estado actual de localStorage a Postgres (Netlify Database). La operación
-              reemplaza todos los datos en la DB con los locales — usar para la migración inicial o
-              para reconciliar drift después de un fallo de sincronización.
-            </p>
+            <h3>{t("backup.db.title")}</h3>
+            <p>{t("backup.db.body")}</p>
           </header>
           <ul className="backup-summary">
             <li>
-              <strong>{preview.summary.overrides}</strong> reclasificaciones
+              <strong>{preview.summary.overrides}</strong> {t("backup.summary.overrides")}
             </li>
             <li>
-              <strong>{preview.summary.customCategories}</strong> categorías
+              <strong>{preview.summary.customCategories}</strong>{" "}
+              {t("backup.summary.categoriesShort")}
             </li>
             <li>
-              <strong>{preview.summary.userCases}</strong> casos propios
+              <strong>{preview.summary.userCases}</strong> {t("backup.summary.userCases")}
             </li>
             <li>
-              <strong>{preview.summary.favorites}</strong> favoritos
+              <strong>{preview.summary.favorites}</strong> {t("backup.summary.favorites")}
             </li>
           </ul>
           <button
@@ -309,7 +317,7 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
             onClick={() => setDbConfirm(true)}
             disabled={dbBusy}
           >
-            <Icon.upload /> {dbBusy ? "Subiendo…" : "Subir a base de datos"}
+            <Icon.upload /> {dbBusy ? t("backup.db.action.busy") : t("backup.db.action")}
           </button>
           {dbError && (
             <p className="backup-error" role="alert">
@@ -322,15 +330,9 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
       {dbConfirm && (
         <div className="backup-confirm" role="alertdialog" aria-modal="true">
           <div className="backup-confirm-card">
-            <h3>¿Subir a la base de datos?</h3>
-            <p>
-              Se va a sobrescribir el contenido de Postgres con el estado actual de tu navegador.
-              Esta operación es atómica — todo o nada.
-            </p>
-            <p className="backup-confirm-warn">
-              Si trabajaste desde otro dispositivo y hay datos solo en la DB, vas a perderlos. Para
-              casos así, primero exportá un backup desde el otro dispositivo.
-            </p>
+            <h3>{t("backup.db.confirm.title")}</h3>
+            <p>{t("backup.db.confirm.body")}</p>
+            <p className="backup-confirm-warn">{t("backup.db.confirm.warn")}</p>
             <div className="backup-confirm-actions">
               <button
                 type="button"
@@ -338,7 +340,7 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
                 onClick={() => setDbConfirm(false)}
                 disabled={dbBusy}
               >
-                Cancelar
+                {t("backup.confirm.cancel")}
               </button>
               <button
                 type="button"
@@ -346,7 +348,7 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
                 onClick={handleDbUpload}
                 disabled={dbBusy}
               >
-                {dbBusy ? "Subiendo…" : "Subir y reemplazar"}
+                {dbBusy ? t("backup.db.action.busy") : t("backup.db.confirm.confirm")}
               </button>
             </div>
           </div>
@@ -356,36 +358,40 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
       {pendingRestore && (
         <div className="backup-confirm" role="alertdialog" aria-modal="true">
           <div className="backup-confirm-card">
-            <h3>¿Reemplazar tus datos locales?</h3>
+            <h3>{t("backup.confirm.restore.title")}</h3>
             <p>
-              Vas a sobrescribir el estado actual con este backup del{" "}
-              <strong>{new Date(pendingRestore.exportedAt).toLocaleString("es")}</strong>
-              {pendingRestore.exportedBy ? <> · {pendingRestore.exportedBy}</> : null}.
+              {/* Body has a `<strong>{date}</strong>` insert + an
+                  optional " · {exportedBy}" suffix; we render the
+                  three slots inline rather than concatenating in JS
+                  so the strong wrapper stays semantic. */}
+              {(() => {
+                const date = new Date(pendingRestore.exportedAt).toLocaleString(localeOf(lang));
+                const by = pendingRestore.exportedBy ? ` · ${pendingRestore.exportedBy}` : "";
+                return t("backup.confirm.restore.body", { date, by });
+              })()}
             </p>
             <ul className="backup-summary backup-summary--inline">
               <li>
-                <strong>{pendingRestore.summary.overrides}</strong> reclasificaciones
+                <strong>{pendingRestore.summary.overrides}</strong> {t("backup.summary.overrides")}
               </li>
               <li>
-                <strong>{pendingRestore.summary.customCategories}</strong> categorías
+                <strong>{pendingRestore.summary.customCategories}</strong>{" "}
+                {t("backup.summary.categoriesShort")}
               </li>
               <li>
-                <strong>{pendingRestore.summary.userCases}</strong> casos propios
+                <strong>{pendingRestore.summary.userCases}</strong> {t("backup.summary.userCases")}
               </li>
               <li>
-                <strong>{pendingRestore.summary.favorites}</strong> favoritos
+                <strong>{pendingRestore.summary.favorites}</strong> {t("backup.summary.favorites")}
               </li>
             </ul>
-            <p className="backup-confirm-warn">
-              Tus datos actuales se perderán. Si tenés cambios sin exportar, cancelá y descargá un
-              backup nuevo primero.
-            </p>
+            <p className="backup-confirm-warn">{t("backup.confirm.restore.warn")}</p>
             <div className="backup-confirm-actions">
               <button type="button" className="btn-ghost" onClick={cancelRestore}>
-                Cancelar
+                {t("backup.confirm.cancel")}
               </button>
               <button type="button" className="btn-primary btn-danger" onClick={confirmRestore}>
-                Reemplazar y recargar
+                {t("backup.confirm.restore.confirm")}
               </button>
             </div>
           </div>

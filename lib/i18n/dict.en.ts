@@ -501,6 +501,67 @@ export const DICT_EN: Dict = {
   "auth.alt.toLogin": "Already have an account? ",
   "auth.demo.title": "Demo admin:",
 
+  // ─── Admin panel — Backup ─────────────────────────────────────
+  "backup.intro.title": "Backup",
+  "backup.intro.body":
+    "Export a JSON file with everything you've done from admin: reclassifications, custom categories, your own cases and favorites. Save it to Drive / Dropbox / iCloud — it's your only safety net against losing browser data, switching machines, or reinstalling.",
+  "backup.relative.never": "never",
+  "backup.relative.today": "today",
+  "backup.relative.yesterday": "yesterday",
+  "backup.relative.daysAgo": "{days} days ago",
+  "backup.status.label": "Last backup",
+  "backup.status.warn.stale":
+    "More than {days} days ago — download a new one if you've classified cases since then.",
+  "backup.status.warn.never":
+    "You haven't taken a backup yet. Download one before classifying further.",
+  "backup.export.title": "Export",
+  "backup.export.body": "Download a snapshot of the current state.",
+  "backup.summary.overrides": "reclassifications",
+  "backup.summary.categories": "custom categories",
+  "backup.summary.categoriesShort": "categories",
+  "backup.summary.userCases": "your own cases",
+  "backup.summary.favorites": "favorites",
+  "backup.export.action": "Export backup",
+  "backup.toast.exported":
+    "Backup downloaded · {overrides} reclassifications, {categories} categories, {userCases} own cases",
+  "backup.import.title": "Import",
+  "backup.import.body.prefix": "Replace the current state with the file's contents. This operation",
+  "backup.import.body.strong": "overwrites",
+  "backup.import.body.suffix": "your local data — use with care.",
+  "backup.import.action": "Pick JSON file…",
+  "backup.error.invalidJson": "The file isn't valid JSON.",
+  "backup.error.invalidEnvelope":
+    "The file doesn't look like a valid backup (wrong version or different structure).",
+  "backup.error.read": "Couldn't read the file.",
+  "backup.error.writeFailed": "localStorage write failed (out of space?).",
+  "backup.error.restoreUnknown": "Couldn't restore — check the console.",
+  "backup.toast.restored":
+    "Backup restored · {overrides} reclassifications, {categories} categories. Reloading…",
+  "backup.confirm.restore.title": "Replace your local data?",
+  "backup.confirm.restore.body":
+    "You're about to overwrite the current state with this backup from {date}{by}.",
+  "backup.confirm.restore.warn":
+    "Your current data will be lost. If you have unexported changes, cancel and download a fresh backup first.",
+  "backup.confirm.restore.confirm": "Replace and reload",
+  "backup.confirm.cancel": "Cancel",
+  "backup.db.title": "Sync with the database",
+  "backup.db.body":
+    "Upload the current localStorage state to Postgres (Netlify Database). The operation replaces all data in the DB with the local one — use for the initial migration or to reconcile drift after a sync failure.",
+  "backup.db.action": "Upload to the database",
+  "backup.db.action.busy": "Uploading…",
+  "backup.db.error":
+    "Couldn't upload to the database. Check the Netlify Functions logs for details.",
+  "backup.db.error.exception": "Error: {message}",
+  "backup.db.error.unknown": "Unknown error during upload.",
+  "backup.db.toast":
+    "Uploaded to DB · {overrides} reclassifications, {categories} categories, {userCases} own cases, {favs} favorites",
+  "backup.db.confirm.title": "Upload to the database?",
+  "backup.db.confirm.body":
+    "Postgres contents will be overwritten with the current state of your browser. This operation is atomic — all or nothing.",
+  "backup.db.confirm.warn":
+    "If you've worked from another device and there's data only in the DB, you'll lose it. For those cases, export a backup from the other device first.",
+  "backup.db.confirm.confirm": "Upload and replace",
+
   // ─── Admin panel — Activity feed ──────────────────────────────
   "activity.intro.title": "Activity",
   "activity.intro.body":

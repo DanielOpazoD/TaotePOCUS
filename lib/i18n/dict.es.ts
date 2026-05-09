@@ -519,6 +519,68 @@ export const DICT_ES = {
   "auth.alt.toLogin": "¿Ya tienes cuenta? ",
   "auth.demo.title": "Demo admin:",
 
+  // ─── Admin panel — Backup ─────────────────────────────────────
+  "backup.intro.title": "Backup",
+  "backup.intro.body":
+    "Exportá un archivo JSON con todo lo que has hecho desde admin: reclasificaciones, categorías personalizadas, casos propios y favoritos. Guardalo en Drive / Dropbox / iCloud — es tu única red contra perder los datos del navegador, cambiar de máquina o reinstalar.",
+  "backup.relative.never": "nunca",
+  "backup.relative.today": "hoy",
+  "backup.relative.yesterday": "ayer",
+  "backup.relative.daysAgo": "hace {days} días",
+  "backup.status.label": "Último backup",
+  "backup.status.warn.stale":
+    "Hace más de {days} días — descargá uno nuevo si has clasificado casos desde entonces.",
+  "backup.status.warn.never":
+    "Aún no has hecho un backup. Descargá uno antes de seguir clasificando.",
+  "backup.export.title": "Exportar",
+  "backup.export.body": "Descarga un snapshot del estado actual.",
+  "backup.summary.overrides": "reclasificaciones",
+  "backup.summary.categories": "categorías personalizadas",
+  "backup.summary.categoriesShort": "categorías",
+  "backup.summary.userCases": "casos propios",
+  "backup.summary.favorites": "favoritos",
+  "backup.export.action": "Exportar backup",
+  "backup.toast.exported":
+    "Backup descargado · {overrides} reclasificaciones, {categories} categorías, {userCases} casos propios",
+  "backup.import.title": "Importar",
+  "backup.import.body.prefix":
+    "Reemplaza el estado actual con el contenido del archivo. Esta operación",
+  "backup.import.body.strong": "sobrescribe",
+  "backup.import.body.suffix": "tus datos locales — usa con cuidado.",
+  "backup.import.action": "Elegir archivo JSON…",
+  "backup.error.invalidJson": "El archivo no es JSON válido.",
+  "backup.error.invalidEnvelope":
+    "El archivo no parece un backup válido (versión incorrecta o estructura distinta).",
+  "backup.error.read": "No se pudo leer el archivo.",
+  "backup.error.writeFailed": "Falló la escritura en localStorage (¿espacio agotado?).",
+  "backup.error.restoreUnknown": "No se pudo restaurar — revisa la consola.",
+  "backup.toast.restored":
+    "Backup restaurado · {overrides} reclasificaciones, {categories} categorías. Recargando…",
+  "backup.confirm.restore.title": "¿Reemplazar tus datos locales?",
+  "backup.confirm.restore.body":
+    "Vas a sobrescribir el estado actual con este backup del {date}{by}.",
+  "backup.confirm.restore.warn":
+    "Tus datos actuales se perderán. Si tenés cambios sin exportar, cancelá y descargá un backup nuevo primero.",
+  "backup.confirm.restore.confirm": "Reemplazar y recargar",
+  "backup.confirm.cancel": "Cancelar",
+  "backup.db.title": "Sincronizar con base de datos",
+  "backup.db.body":
+    "Sube el estado actual de localStorage a Postgres (Netlify Database). La operación reemplaza todos los datos en la DB con los locales — usar para la migración inicial o para reconciliar drift después de un fallo de sincronización.",
+  "backup.db.action": "Subir a base de datos",
+  "backup.db.action.busy": "Subiendo…",
+  "backup.db.error":
+    "No se pudo subir a la base de datos. Revisá los logs de Netlify Functions para el detalle.",
+  "backup.db.error.exception": "Error: {message}",
+  "backup.db.error.unknown": "Error desconocido durante la subida.",
+  "backup.db.toast":
+    "Subido a DB · {overrides} reclasificaciones, {categories} categorías, {userCases} casos propios, {favs} favoritos",
+  "backup.db.confirm.title": "¿Subir a la base de datos?",
+  "backup.db.confirm.body":
+    "Se va a sobrescribir el contenido de Postgres con el estado actual de tu navegador. Esta operación es atómica — todo o nada.",
+  "backup.db.confirm.warn":
+    "Si trabajaste desde otro dispositivo y hay datos solo en la DB, vas a perderlos. Para casos así, primero exportá un backup desde el otro dispositivo.",
+  "backup.db.confirm.confirm": "Subir y reemplazar",
+
   // ─── Admin panel — Activity feed ──────────────────────────────
   "activity.intro.title": "Actividad",
   "activity.intro.body":

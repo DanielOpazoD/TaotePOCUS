@@ -40,14 +40,11 @@ const ROOT = join(__dirname, "..");
  * a translation already shipped, the entry should be REMOVED, not
  * left as a no-op.
  *
- * Today's debt — scheduled for a follow-up branch
- * (`codex/admin-i18n-residuals`):
+ * The original Phase-3 follow-up (`codex/admin-i18n-residuals`)
+ * cleared every entry; the set stays here as the seam where a new
+ * pending residue would land.
  */
-const WHITELIST = new Set<string>([
-  // Backup panel — `<button>Cancelar</button>` in two confirm
-  // flows + a couple of inline status strings. Pending follow-up.
-  "components/admin/BackupPanel.tsx",
-]);
+const WHITELIST = new Set<string>();
 
 /**
  * Folders we walk. Keep narrow on purpose — the audit is about
