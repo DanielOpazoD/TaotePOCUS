@@ -235,9 +235,17 @@ export default function MainGrid({
 
   // Atlas landing falls through to the uniform `case-grid` below —
   // the Bento hero was removed in May-2026 (see file header).
+  //
+  // `priority` flag goes onto the first 6 cards (roughly above-the-fold
+  // on a 5-col Atlas grid, or 3 rows on a 2-col mobile grid). The flag
+  // forwards to `<Image fetchPriority="high" loading="eager">` inside
+  // the card's CineLoop, which boosts the LCP candidate so the user
+  // sees thumbnails sooner on a fresh page load. Cards beyond the
+  // first 6 stay lazy / low priority — they're below the fold and
+  // shouldn't compete with the LCP cards for bandwidth.
   return (
     <div className="case-grid">
-      {filtered.map((c) => (
+      {filtered.map((c, i) => (
         <CaseCard
           key={c.id}
           caso={c}
@@ -248,6 +256,13 @@ export default function MainGrid({
           onPurge={cardOnPurge}
           onPatch={cardOnPatch}
           categories={cardCategories}
+          priority={i < 6}
+          // Pass the trimmed query through so the card can wrap
+          // matches in <mark>. The string is empty-or-stable per
+          // render so React.memo keeps short-circuiting unaffected
+          // cards (only cards whose `query` actually changed
+          // re-render — same set affected by the filter anyway).
+          searchQuery={query.trim() || undefined}
         />
       ))}
     </div>

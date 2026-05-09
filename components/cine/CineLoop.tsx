@@ -37,6 +37,14 @@ interface Props {
    * zoom). Has no effect on the synthetic-loop canvas renderer.
    */
   focus?: { x?: number; y?: number; scale?: number };
+  /**
+   * When true, the underlying `<Image>` is rendered with
+   * `priority` (eager loading + `fetchPriority="high"`) so the
+   * browser pulls the asset ahead of below-the-fold cards. Reserve
+   * for the first ~6 cards in the grid — those above the fold and
+   * candidates for LCP.
+   */
+  priority?: boolean;
 }
 
 export default function CineLoop({
@@ -49,6 +57,7 @@ export default function CineLoop({
   quality = "thumb",
   preserveNativeAspect = false,
   focus,
+  priority = false,
 }: Props) {
   // Resolve focus values once. Defaults match the no-override case
   // (centered, no zoom), so passing focus={undefined} is identical to
@@ -326,6 +335,13 @@ export default function CineLoop({
           }
           quality={quality === "full" ? 90 : 70}
           unoptimized={/\.gif(\?|$)/i.test(src)}
+          // `priority` flips Next.js's <Image> from lazy to eager
+          // and sets fetchPriority="high" on the underlying tag.
+          // Used by the first ~6 cards in the grid (LCP boost) and
+          // for full-screen surfaces (modal, presentation). Below
+          // the fold stays lazy by default so the eager batch
+          // doesn't fight the LCP cards for bandwidth.
+          priority={priority || quality === "full"}
           className="cine-video"
           style={mediaStyle}
           onLoad={(e) => {

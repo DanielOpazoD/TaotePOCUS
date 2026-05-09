@@ -17,6 +17,13 @@
 //   - **Media thumbnails** (`/api/media/*`): CacheFirst with a 30-
 //     day expiration and a 200-entry cap. Once you've viewed a
 //     case, its image is yours forever (or until cap eviction).
+//   - **Next.js optimizer images** (`/_next/image*`): CacheFirst
+//     too — the URLs are content-addressable (the params encode
+//     the source + width + quality so a different render is a
+//     different URL).
+//   - **Cases corpus JSON** (`/data/imported-cases.json`): SWR
+//     so the user always sees fresh data when online but the
+//     catalog still loads from cache when the network blips.
 //   - **Media videos**: NetworkOnly. Big files we don't want
 //     filling the cache.
 //   - **External (Clerk, Sentry, fonts)**: NetworkOnly + the SW's
@@ -30,7 +37,7 @@
 
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist } from "serwist";
+import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist, StaleWhileRevalidate } from "serwist";
 
 // The Serwist toolbox installs `__SW_MANIFEST` on the global scope at
 // build time. Augmenting the type so TS doesn't complain.
@@ -75,6 +82,48 @@ const customRuntimeCaching = [
     matcher: ({ url }: { url: URL }) =>
       /^\/api\/media\//.test(url.pathname) && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url.pathname),
     handler: new NetworkOnly(),
+  },
+  // Next.js Image optimizer route. URLs are content-addressable
+  // (parameters encode the source URL + width + quality, so a
+  // different render lives at a different URL); CacheFirst is
+  // safe and dramatically faster on repeat catalog visits.
+  // 7-day TTL because the actual asset behind the optimizer
+  // could be replaced (admin re-uploads media for a case); a
+  // shorter TTL than the source-blob cache (30 days) accepts a
+  // small lag in exchange for not serving a stale optimized
+  // variant for a month.
+  {
+    matcher: ({ url }: { url: URL }) => /^\/_next\/image/.test(url.pathname),
+    handler: new CacheFirst({
+      cacheName: "pocus-next-images",
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 300,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+          purgeOnQuotaError: true,
+        }),
+      ],
+    }),
+  },
+  // Cases corpus JSON. StaleWhileRevalidate gives the best of
+  // both worlds: instant load from cache (the corpus is always
+  // ready, even before the network responds) AND a background
+  // revalidate so updates land on the next interaction. If the
+  // network is down, the cached copy is the answer. The corpus
+  // is ~133 KB minified — well under the cache budget. We cache
+  // both the main file and the audit sidecar with the same rule.
+  {
+    matcher: ({ url }: { url: URL }) => /^\/data\/.*\.json$/.test(url.pathname),
+    handler: new StaleWhileRevalidate({
+      cacheName: "pocus-data",
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 10,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+          purgeOnQuotaError: true,
+        }),
+      ],
+    }),
   },
   // Server Action POSTs — never cache (they mutate state).
   {

@@ -43,12 +43,17 @@ function FeaturedCard({
       }}
     >
       <div className="featured-thumb">
+        {/* Hero is the largest above-the-fold image on sections that
+            mount FeaturedRow (ECG, Casos clínicos), so it's the LCP
+            candidate. `priority` boosts its fetch priority and disables
+            lazy loading. The two side cards stay default-priority. */}
         <CineLoop
           kind={caso.loop}
           aspect={variant === "hero" ? "16/10" : "16/10"}
           speed={0.8}
           showChrome={true}
           media={caso.media}
+          priority={variant === "hero"}
         />
         <div className="case-thumb-overlay"></div>
         <button

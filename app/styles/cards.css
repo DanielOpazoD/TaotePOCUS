@@ -1065,3 +1065,23 @@
     transform: none;
   }
 }
+
+/* ─── Search match highlight ─────────────────────────────────────
+ * Wraps the substrings inside CaseCard's title / description /
+ * tags that match the active text query. The browser's default
+ * `<mark>` rendering is yellow + black which fights every theme;
+ * we override to a soft accent tint that reads as "this matched"
+ * without screaming. The default text color stays inherited so
+ * the matched word still reads in flow. */
+.case-title mark.search-match,
+.case-summary mark.search-match,
+.case-tag-mini mark.search-match {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+  /* Tighter boundary — the mark sits inside running text and the
+     2px padding can otherwise nudge surrounding glyphs off baseline. */
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}

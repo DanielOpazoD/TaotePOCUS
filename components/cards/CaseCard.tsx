@@ -7,6 +7,7 @@ import { Icon, CategoryGlyph, CustomCategoryGlyph } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getDescription } from "@/lib/case-description";
+import { highlight } from "@/lib/highlight";
 import type { CaseRecord, Category } from "@/lib/types";
 
 // Callbacks receive the `caso` themselves rather than being closed
@@ -37,6 +38,16 @@ interface Props {
   /** Categories list (built-in + custom). Required if `onPatch` is
    *  passed — without it the popover would only show sections. */
   categories?: Category[];
+  /** When true, hint the browser to fetch this card's media with
+   *  high priority (eager loading + fetchPriority="high"). Use only
+   *  for the first ~6 cards in the grid — those above the fold,
+   *  which are LCP candidates. The rest stay lazy. */
+  priority?: boolean;
+  /** Active text query — when non-empty, the title / description /
+   *  tag text gets matched substrings wrapped in `<mark>` so the
+   *  user sees WHY a card landed in the result set. Empty / undefined
+   *  renders the text plain. */
+  searchQuery?: string;
 }
 
 function CaseCardImpl({
@@ -48,6 +59,8 @@ function CaseCardImpl({
   onPurge,
   onPatch,
   categories,
+  priority = false,
+  searchQuery,
 }: Props) {
   // Live-preview focus while the FocusEditor is open. Falls back to
   // the persisted `caso.focus` when the editor is closed (or never
@@ -130,6 +143,7 @@ function CaseCardImpl({
           showChrome={true}
           media={caso.media}
           focus={effectiveFocus}
+          priority={priority}
         />
         <div className="case-thumb-overlay"></div>
         <div className="case-thumb-preview">
@@ -178,10 +192,17 @@ function CaseCardImpl({
           </span>
           <span>{cat?.label}</span>
         </div>
-        <h3 className="case-title">{caso.title}</h3>
+        <h3 className="case-title">
+          {searchQuery ? highlight(caso.title, searchQuery) : caso.title}
+        </h3>
         {/* Short blurb under the title — also pulls from the canonical
             description rather than the legacy `summary` slot. */}
-        <p className="case-summary">{getDescription(caso)}</p>
+        <p className="case-summary">
+          {(() => {
+            const desc = getDescription(caso);
+            return searchQuery ? highlight(desc, searchQuery) : desc;
+          })()}
+        </p>
         <div className="case-byline">
           <span>{caso.author}</span>
           <span className="dot"></span>
@@ -192,7 +213,7 @@ function CaseCardImpl({
         <div className="case-tags">
           {caso.tags.slice(0, 3).map((t) => (
             <span key={t} className="case-tag-mini">
-              {t}
+              {searchQuery ? highlight(t, searchQuery) : t}
             </span>
           ))}
         </div>
