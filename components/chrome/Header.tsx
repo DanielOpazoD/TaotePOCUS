@@ -118,7 +118,13 @@ export default function Header({
         >
           {Icon.menu()}
         </button>
-        <TransitionLink className="brand" href="/" aria-label={t("brand.aria.home")}>
+        {/* No `aria-label` here: WCAG SC 2.5.3 (Label in Name) flags
+            the mismatch between the visible text ("Taote POCUS ES")
+            and the dict-resolved aria-label ("Taote POCUS — home").
+            The visible text is self-describing — let it become the
+            accessible name. The lang tag is `aria-hidden` below so
+            "ES"/"EN" doesn't pollute the name for screen readers. */}
+        <TransitionLink className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
               {/* Outer ring: ultrasound field. `pathLength={100}`
@@ -150,8 +156,14 @@ export default function Header({
           </span>
           {/* Brand tag mirrors the active language so the wordmark
               stays self-describing. The interactive switcher in the
-              right cluster is what changes it. */}
-          <span className="brand-tag">{lang.toUpperCase()}</span>
+              right cluster is what changes it. `aria-hidden` because
+              this tag is decorative — the brand link's accessible
+              name is "Taote POCUS" (computed from the wordmark span
+              above), and adding "ES"/"EN" would be noisy + would
+              shift between languages. */}
+          <span className="brand-tag" aria-hidden="true">
+            {lang.toUpperCase()}
+          </span>
         </TransitionLink>
         <nav className="nav" aria-label={t("nav.aria.sections")}>
           {sections.map((s) => {

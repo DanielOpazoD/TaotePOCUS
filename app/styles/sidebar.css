@@ -282,7 +282,9 @@
   letter-spacing: 0;
   color: var(--ink-mute);
   text-transform: none;
-  opacity: 0.7;
+  /* No opacity dampening: `--ink-mute` already provides the muted
+     effect at WCAG-AA contrast (≥4.5:1). Adding 0.7 opacity dropped
+     the effective contrast back to ~3.0:1 (Lighthouse flag). */
   margin-left: auto;
 }
 .side-section-chevron {
@@ -323,15 +325,21 @@
   transition: all var(--duration-fast);
   font-family: var(--sans);
 }
-/* Sidebar variant: ultra-compact chips so all 14 fit in the rail
-   without wrapping into a tall block. The cloud reads as a dense
-   keyword index, not as a row of buttons. */
+/* Sidebar variant: compact chips so all 14 fit in the rail without
+   wrapping into a tall block. The cloud reads as a dense keyword
+   index, not as a row of buttons. WCAG SC 2.5.5 requires interactive
+   targets ≥24px on the smallest dimension; we use min-height + flex
+   centering to keep the visual density tight while satisfying the
+   rule (Lighthouse `target-size`). */
 .tags-cloud .tag-chip {
   font-size: 10px;
   padding: 1.5px 6px;
   letter-spacing: 0.01em;
   line-height: 1.5;
   border-radius: var(--radius-pill);
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
 }
 /* Tag prefix on the sidebar tag cloud — visual cue that they're
    filterable tokens. Skipped on inactive chips elsewhere (modal,
