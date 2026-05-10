@@ -33,6 +33,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Supply-chain check: fails the build only on `high` or
+      # `critical` advisories. `moderate` and `low` are surfaced as
+      # output (visible in the job log + Dependabot inbox) but don't
+      # block — they're acceptable while a fix lands. Tighten to
+      # `--audit-level=moderate` once the dev-only `@lhci/cli` chain
+      # ships a non-breaking patch (currently locked at 4 low vulns
+      # that require a `--force` major bump).
+      - name: Security audit
+        run: npm audit --audit-level=high
+
       - name: Format check
         run: npm run format:check
 

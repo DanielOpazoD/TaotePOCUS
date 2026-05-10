@@ -78,6 +78,20 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
+  // Cross-origin isolation: keep the document in its own browsing-
+  // context group so a malicious cross-origin opener can't read state.
+  // `same-origin-allow-popups` (rather than the stricter
+  // `same-origin`) keeps Clerk's SSO popup flow alive — when a user
+  // picks Google / GitHub on the sign-in modal, Clerk opens a popup
+  // to the IdP and reads the auth result back. The strict variant
+  // would null the popup's `window.opener` and break the round-trip.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+  // Prevents Spectre-style cross-origin reads. `same-origin` is safe
+  // because every asset on the page (chunks, images via /api/media,
+  // fonts) is same-origin or has explicit CORS headers from its CDN.
+  // Promote to `cross-origin` only if a broken external resource needs
+  // it.
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   // HSTS only after you serve over HTTPS in production. Disabled locally.
   ...(process.env.NODE_ENV === "production"
     ? [

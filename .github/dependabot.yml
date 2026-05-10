@@ -1,0 +1,56 @@
+# Dependabot — supply-chain monitoring for the repo.
+#
+# Config rationale:
+#
+#   - npm: weekly cadence. Daily would create PR noise; monthly misses
+#     security updates by too long. Weekly is the standard sweet spot
+#     for most projects.
+#   - GitHub Actions: same cadence. Action versions don't change often
+#     but pinning matters for CI integrity.
+#   - Grouping: minor + patch updates per ecosystem ship as ONE PR
+#     per week rather than N. Major version bumps still arrive as
+#     individual PRs because they often need manual intervention.
+#   - `assignees` / `reviewers` left empty intentionally — the repo
+#     has one maintainer; Dependabot's default behaviour (no assignee)
+#     keeps the PR notifications visible without flooding inboxes.
+#   - `open-pull-requests-limit: 5`: prevents Dependabot from opening
+#     50 PRs after a long gap. Five is enough for the maintainer to
+#     triage in one sitting; lingering security ones get bumped first.
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 5
+    groups:
+      # Minor + patch bumps batched into one weekly PR per ecosystem.
+      # Majors (potentially breaking) still come as individual PRs.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+      include: "scope"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci(deps)"
