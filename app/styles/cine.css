@@ -152,3 +152,16 @@
   pointer-events: none;
   z-index: 2;
 }
+/* Icon variant — used by the modifier to mark a video / still asset
+   without the verbose "POCUS · REAL" text. The chrome stays in the
+   same corner; the SVG stroke inherits the same translucent white
+   from the parent (`color: rgba(255, 255, 255, 0.7)` above), so the
+   glyph reads as a subtle watermark instead of a label. */
+.cine-chrome--icon {
+  width: 14px;
+  height: 14px;
+}
+.cine-chrome--icon svg {
+  width: 100%;
+  height: 100%;
+}

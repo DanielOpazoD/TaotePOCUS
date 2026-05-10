@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "@/lib/icons";
 import type { Media } from "@/lib/types";
 import { drawScene, drawChrome } from "./cineScenes";
 
@@ -284,7 +285,15 @@ export default function CineLoop({
             onLoadedData={() => setLoaded(true)}
           />
           {!loaded && <div className="cine-skeleton" aria-hidden="true" />}
-          {showChrome && <div className="cine-chrome">POCUS · {media.modality || "REAL"}</div>}
+          {showChrome && (
+            <div
+              className="cine-chrome cine-chrome--icon"
+              role="img"
+              aria-label={media.modality || "Video"}
+            >
+              {Icon.video()}
+            </div>
+          )}
         </div>
       );
     }
@@ -363,7 +372,15 @@ export default function CineLoop({
           }}
         />
         {!loaded && <div className="cine-skeleton" aria-hidden="true" />}
-        {showChrome && <div className="cine-chrome">POCUS · {media.modality || "STILL"}</div>}
+        {showChrome && (
+          <div
+            className="cine-chrome cine-chrome--icon"
+            role="img"
+            aria-label={media.modality || "Imagen"}
+          >
+            {Icon.photo()}
+          </div>
+        )}
       </div>
     );
   }

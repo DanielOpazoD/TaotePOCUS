@@ -86,6 +86,24 @@ export const Icon = {
       <rect x="14" y="4" width="4" height="16" />
     </svg>
   ),
+  // Video camera silhouette — used by `<CineLoop>` chrome to mark a
+  // moving asset (video / animated GIF / cine canvas). Replaces the
+  // verbose "POCUS · REAL" text label so the chrome stays subtle.
+  video: (): ReactElement => (
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+      <path d="M22 8 16 12 22 16Z" />
+    </svg>
+  ),
+  // Photo / still frame — used by `<CineLoop>` chrome to mark a
+  // static-image asset. Picture frame with a small mountain + sun.
+  photo: (): ReactElement => (
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
+    </svg>
+  ),
   user: (): ReactElement => (
     <svg viewBox="0 0 24 24" {...stroke}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
