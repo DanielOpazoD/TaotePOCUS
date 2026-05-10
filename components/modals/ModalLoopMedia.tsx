@@ -91,7 +91,7 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
         {mediaList.map((m, i) => (
           <div
             className="modal-loop-slide"
-            key={`${m.src}-${i}`}
+            key={m.src}
             aria-roledescription="slide"
             aria-label={`Imagen ${i + 1} de ${mediaList.length}`}
           >
@@ -127,9 +127,9 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
         {Icon.arrowRight()}
       </button>
       <div className="modal-loop-dots" role="tablist" aria-label="Seleccionar imagen del caso">
-        {mediaList.map((_, i) => (
+        {mediaList.map((m, i) => (
           <button
-            key={i}
+            key={m.src}
             type="button"
             role="tab"
             aria-selected={i === active}

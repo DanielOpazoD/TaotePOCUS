@@ -186,7 +186,7 @@ export function MediaPanel({
           {form.mediaExtra && form.mediaExtra.length > 0 && (
             <ul className="admin-media-extra-list">
               {form.mediaExtra.map((m, i) => (
-                <li key={`${m.src}-${i}`} className="admin-media-extra-item">
+                <li key={m.src} className="admin-media-extra-item">
                   {m.kind === "video" ? (
                     <video
                       src={m.src}

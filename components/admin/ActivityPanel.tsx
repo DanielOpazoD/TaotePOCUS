@@ -64,6 +64,10 @@ function ActivitySkeleton({ ariaLabel }: { ariaLabel: string }) {
   return (
     <div aria-busy="true" aria-label={ariaLabel}>
       {Array.from({ length: 6 }, (_, i) => (
+        // Static skeleton with no semantic identity per row — the
+        // index IS the only stable identifier. Suppressing the
+        // array-index-as-key rule for this single legitimate case.
+        // react-doctor-disable-next-line react-doctor/no-array-index-as-key
         <div key={i} className="skeleton-table-row is-narrow">
           <span className="skeleton-line" style={{ width: "100%" }} />
           <span className="skeleton-line" style={{ width: "70%" }} />
