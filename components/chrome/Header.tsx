@@ -189,10 +189,12 @@ export default function Header({
           {isAdmin && (
             <TransitionLink
               href={viewToPath({ kind: "admin" })}
-              className={view.kind === "admin" ? "active" : ""}
+              className={`nav-admin-icon${view.kind === "admin" ? " active" : ""}`}
               aria-current={view.kind === "admin" ? "page" : undefined}
+              aria-label={t("nav.administrar.aria")}
+              title={t("nav.administrar")}
             >
-              {t("nav.administrar")}
+              {Icon.gear()}
             </TransitionLink>
           )}
         </nav>

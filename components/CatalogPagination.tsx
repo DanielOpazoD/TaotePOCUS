@@ -2,8 +2,8 @@
 
 // Pagination control for the public catalog grid. Sits below the
 // `case-grid` and surfaces:
-//   - "Mostrando X–Y de Z" copy.
-//   - Page indicator ("Página 3 de 11").
+//   - "Showing X–Y of Z" copy.
+//   - Page indicator ("Page 3 of 11").
 //   - Prev / Next buttons.
 //   - First / Last shortcuts when total pages > 5.
 //
@@ -13,6 +13,13 @@
 // State lives in the parent (URL via useViewState). This component
 // is purely presentational + wires button clicks to the
 // `onPageChange` callback.
+//
+// i18n: the copy is dictionary-driven (`pagination.*`). The summary
+// + indicator strings are stitched from connector words so the bold
+// numeric values can sit between them in either language order
+// ("Mostrando 1–30 de 64" / "Showing 1–30 of 64").
+
+import { useT } from "@/hooks/useLanguage";
 
 interface Props {
   /** 0-indexed current page. */
@@ -20,7 +27,7 @@ interface Props {
   /** Total number of pages (>= 1). */
   totalPages: number;
   /** Total number of items across all pages — drives the
-   *  "Mostrando X–Y de Z" copy. */
+   *  "Showing X–Y of Z" copy. */
   total: number;
   /** Items per page — used by the same copy. */
   pageSize: number;
@@ -31,10 +38,11 @@ interface Props {
 }
 
 export function CatalogPagination({ page, totalPages, total, pageSize, onPageChange }: Props) {
+  const t = useT();
   if (totalPages <= 1) return null;
 
   // Clamp the displayed range to the actual count so the last
-  // page reads "Mostrando 301–326 de 326" instead of overshooting.
+  // page reads "Showing 301–326 of 326" instead of overshooting.
   const start = page * pageSize + 1;
   const end = Math.min((page + 1) * pageSize, total);
 
@@ -53,9 +61,11 @@ export function CatalogPagination({ page, totalPages, total, pageSize, onPageCha
   const showJumps = totalPages > 5;
 
   return (
-    <nav className="catalog-pagination" aria-label="Paginación del catálogo">
+    <nav className="catalog-pagination" aria-label={t("pagination.aria.label")}>
       <span className="catalog-pagination-summary">
-        Mostrando <strong>{start}</strong>–<strong>{end}</strong> de <strong>{total}</strong>
+        {t("pagination.summary.showing")} <strong>{start}</strong>
+        {t("pagination.summary.range")}
+        <strong>{end}</strong> {t("pagination.summary.of")} <strong>{total}</strong>
       </span>
       <div className="catalog-pagination-controls">
         {showJumps && (
@@ -64,7 +74,7 @@ export function CatalogPagination({ page, totalPages, total, pageSize, onPageCha
             className="catalog-pagination-btn"
             onClick={onFirst}
             disabled={page === 0}
-            aria-label="Primera página"
+            aria-label={t("pagination.aria.first")}
           >
             «
           </button>
@@ -74,21 +84,22 @@ export function CatalogPagination({ page, totalPages, total, pageSize, onPageCha
           className="catalog-pagination-btn"
           onClick={onPrev}
           disabled={page === 0}
-          aria-label="Página anterior"
+          aria-label={t("pagination.aria.prev")}
         >
-          ‹ Anterior
+          {t("pagination.prev")}
         </button>
         <span className="catalog-pagination-indicator" aria-live="polite">
-          Página <strong>{page + 1}</strong> de <strong>{totalPages}</strong>
+          {t("pagination.indicator.page")} <strong>{page + 1}</strong>{" "}
+          {t("pagination.indicator.of")} <strong>{totalPages}</strong>
         </span>
         <button
           type="button"
           className="catalog-pagination-btn"
           onClick={onNext}
           disabled={page >= totalPages - 1}
-          aria-label="Página siguiente"
+          aria-label={t("pagination.aria.next")}
         >
-          Siguiente ›
+          {t("pagination.next")}
         </button>
         {showJumps && (
           <button
@@ -96,7 +107,7 @@ export function CatalogPagination({ page, totalPages, total, pageSize, onPageCha
             className="catalog-pagination-btn"
             onClick={onLast}
             disabled={page >= totalPages - 1}
-            aria-label="Última página"
+            aria-label={t("pagination.aria.last")}
           >
             »
           </button>

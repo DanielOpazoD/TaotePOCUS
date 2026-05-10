@@ -26,11 +26,26 @@ export const DICT_EN: Dict = {
   "nav.aria.sections": "Sections",
   "nav.favoritos": "Favorites",
   "nav.administrar": "Admin",
+  "nav.administrar.aria": "Admin",
   "nav.entrar": "Sign in",
   "nav.salir": "Sign out",
   "nav.menu.open": "Open menu",
   "nav.menu.close": "Close menu",
   "nav.menu.aria": "Navigation menu",
+
+  // ─── Catalog pagination ────────────────────────────────────────
+  "pagination.aria.label": "Catalog pagination",
+  "pagination.summary.showing": "Showing",
+  "pagination.summary.range": "–",
+  "pagination.summary.of": "of",
+  "pagination.indicator.page": "Page",
+  "pagination.indicator.of": "of",
+  "pagination.aria.first": "First page",
+  "pagination.aria.last": "Last page",
+  "pagination.aria.prev": "Previous page",
+  "pagination.aria.next": "Next page",
+  "pagination.prev": "‹ Previous",
+  "pagination.next": "Next ›",
 
   // ─── Search ────────────────────────────────────────────────────
   "search.placeholder": "Search cases, findings, tags…",
