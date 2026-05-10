@@ -1625,3 +1625,71 @@ textarea.admin-input {
   background: var(--crit-soft);
   border-color: var(--crit);
 }
+
+/* ─── Focus defaults panel ───────────────────────────────────────
+   The "Foco" admin tab — see `components/admin/FocusDefaultsPanel`.
+   Three sections (global / per-section / per-category) of collapsible
+   rows. The shared `.focus-editor-*` widget styles live in cards.css
+   and are reused inside each row body. */
+.focus-defaults-panel {
+  max-width: 720px;
+}
+.focus-defaults-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: var(--space-3) 0;
+}
+.focus-defaults-section,
+.focus-defaults-row {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+}
+.focus-defaults-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.focus-defaults-row-head {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto 24px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 13px;
+}
+.focus-defaults-row-head:hover {
+  background: var(--surface-2);
+}
+.focus-defaults-row-head:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.focus-defaults-row-title {
+  font-weight: 500;
+}
+.focus-defaults-row-summary {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-align: right;
+}
+.focus-defaults-row-chevron {
+  font-size: 16px;
+  color: var(--ink-mute);
+  text-align: center;
+  font-family: var(--mono);
+}
+.focus-defaults-row-body {
+  padding: var(--space-3);
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-2);
+}

@@ -244,11 +244,49 @@ export interface CaseRecord {
    * All three are optional; omitting any leaves the default. The
    * external container (the grid cell, the modal pane) is not touched.
    */
-  focus?: {
-    x?: number;
-    y?: number;
-    scale?: number;
-  };
+  focus?: FocusValue;
+}
+
+/**
+ * Thumbnail focal-point + zoom. Used inline on `CaseRecord.focus` for
+ * per-case overrides AND on the admin-wide `FocusDefaults` for
+ * scope-level defaults (global / section / category).
+ *
+ *   - `x` / `y`: 0–100, percentages applied via `object-position`.
+ *     Default 50/50 (centered).
+ *   - `scale`: zoom multiplier. Range 0.5–3, default 1.
+ *
+ * Resolution at render time: `caso.focus` → category default →
+ * section default → global default → hard-coded `{ x:50, y:50, scale:1 }`.
+ * See `lib/focus.ts → resolveFocus()`.
+ */
+export interface FocusValue {
+  x?: number;
+  y?: number;
+  scale?: number;
+}
+
+/**
+ * Admin-wide default focus values, scoped from broadest (global) to
+ * narrowest (per-category). Shipped through `useFocusDefaults` and
+ * persisted in localStorage. The resolver in `lib/focus.ts` walks
+ * narrowest → broadest at read time.
+ *
+ * Empty/undefined slots fall through to the next layer. A category
+ * slot supersedes a section slot, which supersedes the global slot.
+ * All three layers are bypassed entirely whenever the case carries
+ * its own `caso.focus` (per-case override stays the most specific).
+ */
+export interface FocusDefaults {
+  /** Applies to every case in every section / category unless a
+   *  more specific slot overrides it. */
+  global?: FocusValue;
+  /** Per-section overrides keyed by `SectionId`. */
+  sections?: Partial<Record<SectionId, FocusValue>>;
+  /** Per-category overrides keyed by category id (built-in or
+   *  custom). Custom category ids are runtime-defined; the resolver
+   *  treats unknown ids as a no-op (falls through to section). */
+  categories?: Record<string, FocusValue>;
 }
 
 export interface User {

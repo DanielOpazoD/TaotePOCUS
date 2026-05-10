@@ -203,6 +203,35 @@ export const DICT_ES = {
   "admin.tab.activity": "Actividad",
   "admin.tab.activity.title": "Registro append-only de acciones admin",
   "admin.tab.backup": "Backup",
+  "admin.tab.focus": "Foco",
+  "admin.tab.focus.title":
+    "Configurar foco y zoom por defecto a nivel global, por sección o por categoría",
+
+  // ─── Focus editor (shared widget) ──────────────────────────────
+  "focus.editor.foco": "FOCO",
+  "focus.editor.zoom": "ZOOM",
+  "focus.editor.reset": "Reset",
+  "focus.editor.save": "Guardar",
+  "focus.editor.back": "Atrás",
+  "focus.editor.aria.up": "Subir",
+  "focus.editor.aria.down": "Bajar",
+  "focus.editor.aria.left": "Izquierda",
+  "focus.editor.aria.right": "Derecha",
+  "focus.editor.aria.center": "Centrar",
+  "focus.editor.aria.zoomIn": "Aumentar zoom",
+  "focus.editor.aria.zoomOut": "Reducir zoom",
+
+  // ─── Focus defaults panel (Foco admin tab) ─────────────────────
+  "focus.defaults.title": "Foco y zoom por defecto",
+  "focus.defaults.intro":
+    "Define el encuadre de las miniaturas para cuando un caso no tenga su propio override. La precedencia es: caso individual → categoría → sección → global. Tocar una miniatura desde el menú admin sigue ganando siempre — esto solo aplica cuando el caso no tiene foco propio.",
+  "focus.defaults.usingDefault": "Por defecto (centrado, 100%)",
+  "focus.defaults.global.label": "Global (todas las secciones)",
+  "focus.defaults.sections.label": "Por sección",
+  "focus.defaults.categories.label": "Por categoría",
+  "focus.defaults.resetAll": "Reset todo",
+  "focus.defaults.confirmResetAll":
+    "Vas a borrar todos los defaults de foco (global, por sección y por categoría). Los overrides por caso individual no se tocan. ¿Continuar?",
 
   // ─── Admin panel — Mine tab ────────────────────────────────────
   "admin.mine.stats.total": "Casos totales",

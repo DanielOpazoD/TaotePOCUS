@@ -5,7 +5,15 @@ import { useMemo } from "react";
 import { CaseCard } from "./cards";
 import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
-import type { CaseRecord, Category, LocalizedString, SectionId, View } from "@/lib/types";
+import type {
+  CaseRecord,
+  Category,
+  FocusDefaults,
+  FocusValue,
+  LocalizedString,
+  SectionId,
+  View,
+} from "@/lib/types";
 
 // AdminPanel is admin-only chrome; lazy-load so its tree stays out of
 // the public-route bundles.
@@ -112,6 +120,22 @@ interface Props {
   page: number;
   /** Patch the URL's `page` param. Used by the pagination control. */
   onPageChange: (page: number) => void;
+  /** Admin-managed thumbnail focus defaults (global / per-section /
+   *  per-category). Forwarded to every `<CaseCard>` so the card can
+   *  resolve the effective focus per case. Forwarded to AdminPanel
+   *  too so the focus-defaults editor can read + write the same blob.
+   *  Optional — when absent the cards use only `caso.focus`. */
+  focusDefaults?: FocusDefaults;
+  /** Setter wired to `useFocusDefaults().setGlobal` — the AdminPanel
+   *  surfaces a dedicated tab for editing this. Optional alongside
+   *  the read-only `focusDefaults`. */
+  onSetFocusGlobal?: (value: FocusValue | undefined) => void;
+  /** Setter wired to `useFocusDefaults().setSection`. */
+  onSetFocusSection?: (id: SectionId, value: FocusValue | undefined) => void;
+  /** Setter wired to `useFocusDefaults().setCategory`. */
+  onSetFocusCategory?: (id: string, value: FocusValue | undefined) => void;
+  /** Wipe every focus-default slot (global + sections + categories). */
+  onResetFocusDefaults?: () => void;
 }
 
 /** How many cases per page in the public catalog grid. Hardcoded
@@ -180,6 +204,11 @@ export default function MainGrid({
   onBulkSoftDelete,
   page,
   onPageChange,
+  focusDefaults,
+  onSetFocusGlobal,
+  onSetFocusSection,
+  onSetFocusCategory,
+  onResetFocusDefaults,
 }: Props) {
   // Hooks first — Rules of Hooks. The early returns for the admin /
   // empty branches don't render the grid below, but `useMemo` still
@@ -225,6 +254,11 @@ export default function MainGrid({
         onPatch={onPatch}
         onBulkPatch={onBulkPatch}
         onBulkSoftDelete={onBulkSoftDelete}
+        focusDefaults={focusDefaults}
+        onSetFocusGlobal={onSetFocusGlobal}
+        onSetFocusSection={onSetFocusSection}
+        onSetFocusCategory={onSetFocusCategory}
+        onResetFocusDefaults={onResetFocusDefaults}
       />
     );
   }
@@ -295,6 +329,7 @@ export default function MainGrid({
             // cards (only cards whose `query` actually changed
             // re-render — same set affected by the filter anyway).
             searchQuery={query.trim() || undefined}
+            focusDefaults={focusDefaults}
           />
         ))}
       </div>

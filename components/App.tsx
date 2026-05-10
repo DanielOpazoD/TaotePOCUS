@@ -29,6 +29,7 @@ import { useCatalogConfig } from "@/hooks/useCatalogConfig";
 import { useCatalogDerivations } from "@/hooks/useCatalogDerivations";
 import { useCardCallbacks } from "@/hooks/useCardCallbacks";
 import { useCaseSaver } from "@/hooks/useCaseSaver";
+import { useFocusDefaults } from "@/hooks/useFocusDefaults";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { runStorageMigrations } from "@/lib/storage-migrations";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
@@ -160,6 +161,10 @@ function AppInner() {
   // `<LanguageProvider>` wraps `<AppInner>` at the top of the tree.
   const { lang } = useLanguage();
   const config = useCatalogConfig({ showToast, lang });
+  // Admin-managed thumbnail focus defaults. Lives at the App level so
+  // the same blob feeds (a) every `<CaseCard>` for resolution at
+  // render and (b) the AdminPanel's editor tab.
+  const focusDefaults = useFocusDefaults();
 
   // Catalog derivation (allCases / trashedImports / categoryCaseCounts).
   // Lives in `useMergedCatalog` so the merge + filter rules have one
@@ -428,6 +433,11 @@ function AppInner() {
               onBulkSoftDelete={isAdmin ? adminActions.onBulkSoftDelete : undefined}
               page={page}
               onPageChange={(p) => replacePatch({ page: p })}
+              focusDefaults={focusDefaults.defaults}
+              onSetFocusGlobal={isAdmin ? focusDefaults.setGlobal : undefined}
+              onSetFocusSection={isAdmin ? focusDefaults.setSection : undefined}
+              onSetFocusCategory={isAdmin ? focusDefaults.setCategory : undefined}
+              onResetFocusDefaults={isAdmin ? focusDefaults.reset : undefined}
             />
           </ErrorBoundary>
         </main>

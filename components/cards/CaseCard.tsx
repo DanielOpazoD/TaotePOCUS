@@ -11,7 +11,8 @@ import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-locali
 import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import { highlight } from "@/lib/highlight";
-import type { CaseRecord, Category } from "@/lib/types";
+import { resolveFocus } from "@/lib/focus";
+import type { CaseRecord, Category, FocusDefaults } from "@/lib/types";
 
 // Callbacks receive the `caso` themselves rather than being closed
 // over by the parent. This is the SINGLE biggest perf win on the
@@ -51,6 +52,11 @@ interface Props {
    *  user sees WHY a card landed in the result set. Empty / undefined
    *  renders the text plain. */
   searchQuery?: string;
+  /** Admin-managed focus defaults (global / per-section / per-category).
+   *  Resolved against `caso.focus` at render: a per-case override
+   *  always wins. Optional — when omitted the renderer uses only
+   *  `caso.focus` (legacy behaviour, fine for tests). */
+  focusDefaults?: FocusDefaults;
 }
 
 function CaseCardImpl({
@@ -64,6 +70,7 @@ function CaseCardImpl({
   categories,
   priority = false,
   searchQuery,
+  focusDefaults,
 }: Props) {
   const { lang } = useLanguage();
   // Resolve every translatable field once per render; reuse below.
@@ -74,13 +81,14 @@ function CaseCardImpl({
   const descRead = getCaseDescription(caso, lang);
   const tagsRead = getCaseTags(caso, lang);
   // Live-preview focus while the FocusEditor is open. Falls back to
-  // the persisted `caso.focus` when the editor is closed (or never
-  // opened). The CineLoop reads the resolved focus directly — no
-  // CSS injection, just a normal prop.
+  // the resolved focus (per-case override → category default →
+  // section default → global default → undefined / hardcoded
+  // center). See `lib/focus.ts → resolveFocus`.
   const [draftFocus, setDraftFocus] = useState<{ x: number; y: number; scale: number } | undefined>(
     undefined,
   );
-  const effectiveFocus = draftFocus ?? caso.focus;
+  const resolvedFocus = focusDefaults ? resolveFocus(caso, focusDefaults) : caso.focus;
+  const effectiveFocus = draftFocus ?? resolvedFocus;
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   // The "Crítico" red pulsing badge was removed in May-2026 — see the
   // file header for the rationale and the CSS comment in cards.css

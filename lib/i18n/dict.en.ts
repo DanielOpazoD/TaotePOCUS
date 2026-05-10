@@ -194,6 +194,35 @@ export const DICT_EN: Dict = {
   "admin.tab.activity": "Activity",
   "admin.tab.activity.title": "Append-only log of admin actions",
   "admin.tab.backup": "Backup",
+  "admin.tab.focus": "Focus",
+  "admin.tab.focus.title":
+    "Configure default focus and zoom globally, per section, or per category",
+
+  // ─── Focus editor (shared widget) ──────────────────────────────
+  "focus.editor.foco": "FOCUS",
+  "focus.editor.zoom": "ZOOM",
+  "focus.editor.reset": "Reset",
+  "focus.editor.save": "Save",
+  "focus.editor.back": "Back",
+  "focus.editor.aria.up": "Up",
+  "focus.editor.aria.down": "Down",
+  "focus.editor.aria.left": "Left",
+  "focus.editor.aria.right": "Right",
+  "focus.editor.aria.center": "Center",
+  "focus.editor.aria.zoomIn": "Zoom in",
+  "focus.editor.aria.zoomOut": "Zoom out",
+
+  // ─── Focus defaults panel (Focus admin tab) ────────────────────
+  "focus.defaults.title": "Default focus & zoom",
+  "focus.defaults.intro":
+    "Define the framing for thumbnails when a case has no per-case override. Precedence: per-case → category → section → global. Editing a thumbnail through the admin menu still wins — this only applies when the case has no focus of its own.",
+  "focus.defaults.usingDefault": "Default (centered, 100%)",
+  "focus.defaults.global.label": "Global (all sections)",
+  "focus.defaults.sections.label": "Per section",
+  "focus.defaults.categories.label": "Per category",
+  "focus.defaults.resetAll": "Reset all",
+  "focus.defaults.confirmResetAll":
+    "This will clear every focus default (global, per section and per category). Per-case overrides are NOT touched. Continue?",
 
   // ─── Admin panel — Mine tab ────────────────────────────────────
   "admin.mine.stats.total": "Total cases",
