@@ -44,7 +44,10 @@ export default function Footer({ extraCases = 0 }: { extraCases?: number }) {
         <p className="colophon">
           <span>
             {composedParts.map((part, i) => (
-              <Fragment key={i}>
+              // Static template split — using the part text as the
+              // key (with a sentinel for empty splits) gives a stable
+              // identifier that doesn't reorder.
+              <Fragment key={part || `__composed_empty_${i}`}>
                 {part}
                 {i < composedParts.length - 1 && <em>Newsreader</em>}
               </Fragment>

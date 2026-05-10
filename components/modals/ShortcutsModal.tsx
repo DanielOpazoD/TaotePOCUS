@@ -73,7 +73,7 @@ export default function ShortcutsModal({ open, onClose }: Props) {
             <li key={s.label}>
               <span className="shortcuts-keys">
                 {s.keys.map((k, i) => (
-                  <span key={i}>
+                  <span key={`${s.label}-${k}`}>
                     {i > 0 && <span className="shortcuts-then">luego</span>}
                     <kbd>{k}</kbd>
                   </span>

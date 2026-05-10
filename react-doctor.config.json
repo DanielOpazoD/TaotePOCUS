@@ -1,0 +1,32 @@
+{
+  "_comment": "React Doctor scope-overrides. See https://react.doctor for the full rule list. The `ignore.overrides` array suppresses individual rules in surfaces where the pattern is intentional and safe.",
+  "ignore": {
+    "overrides": [
+      {
+        "_why": "Inline theme script — pre-paint flash prevention. The HTML is built from a static template literal at build time (no user input), so no XSS surface.",
+        "files": ["app/layout.tsx"],
+        "rules": ["react/no-danger"]
+      },
+      {
+        "_why": "JSON-LD structured-data injection. The payload is `JSON.stringify(jsonLd)` of a typed object — not user HTML. SEO surface convention.",
+        "files": ["components/modals/CaseModal.tsx"],
+        "rules": ["react/no-danger"]
+      },
+      {
+        "_why": "Server actions are authorized through the `withAdmin` / `withAuth` / `withDbRead` decorators in `app/actions/db/_authz.ts` and `lib/server/session.ts`. The static analyzer doesn't recognize that pattern and reports a false positive on every action body.",
+        "files": ["app/actions/**/*.ts"],
+        "rules": ["react-doctor/server-auth-actions"]
+      },
+      {
+        "_why": "`autoFocus` is intentional UX inside modals + click-to-edit cells: when the surface opens, focus jumps to the first/active input. WCAG 2.5.3 isn't violated because the modal is itself an explicit user action (the open event focuses the input the user just summoned).",
+        "files": [
+          "components/modals/**/*.tsx",
+          "components/admin/CategoriesEditor.tsx",
+          "components/admin/SectionsEditor.tsx",
+          "components/admin/bulk-edit/**/*.tsx"
+        ],
+        "rules": ["jsx-a11y/no-autofocus"]
+      }
+    ]
+  }
+}
