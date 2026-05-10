@@ -102,8 +102,8 @@ export async function GET(req: Request) {
     const payload: HealthPayload = {
       ok: true,
       build: {
-        commit: process.env.COMMIT_REF ?? null,
-        deployedAt: process.env.NEXT_PUBLIC_BUILD_DATE ?? null,
+        commit: process.env.COMMIT_REF || null,
+        deployedAt: process.env.NEXT_PUBLIC_BUILD_DATE || null,
       },
       checks: {
         db: { ok: true },
@@ -123,8 +123,8 @@ export async function GET(req: Request) {
   const payload: HealthPayload = {
     ok: db.ok && blobs.ok,
     build: {
-      commit: process.env.COMMIT_REF ?? null,
-      deployedAt: process.env.NEXT_PUBLIC_BUILD_DATE ?? null,
+      commit: process.env.COMMIT_REF || null,
+      deployedAt: process.env.NEXT_PUBLIC_BUILD_DATE || null,
     },
     checks: { db, blobs },
     ts: new Date().toISOString(),

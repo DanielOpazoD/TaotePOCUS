@@ -39,6 +39,11 @@
           "jsx-a11y/click-events-have-key-events",
           "jsx-a11y/no-static-element-interactions"
         ]
+      },
+      {
+        "_why": "Tests use `localStorage.setItem` to set up synthetic per-test fixtures — they're not real user data that ever migrates across schema versions. The 'bake a version into the key' guidance applies to production storage, not test isolation. The real production migration path lives in `lib/storage-migrations.ts` (schema version + runner pattern).",
+        "files": ["tests/**/*.{ts,tsx}"],
+        "rules": ["react-doctor/client-localstorage-no-version"]
       }
     ]
   }
