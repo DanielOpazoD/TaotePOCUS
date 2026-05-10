@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { CATEGORIES } from "@/lib/data";
 import { compareTitles, getCaseTags, searchHaystack } from "@/lib/case-localized";
 import { useLanguage } from "./useLanguage";
-import type { CaseRecord, CategoryWithCount, View } from "@/lib/types";
+import type { CaseRecord, Category, CategoryWithCount, View } from "@/lib/types";
 import type { SortOrder } from "@/lib/url";
 
 interface Args {
@@ -22,6 +22,14 @@ interface Args {
   query: string;
   /** Sort order applied at the end of the pipeline. */
   sort: SortOrder;
+  /** Categories list (built-in + admin-managed custom). Optional —
+   *  defaults to the built-in `CATEGORIES`. The list defines which
+   *  ids are eligible for the sidebar's facet rail. Passing the
+   *  merged list lets a fresh custom category ("ocular", "vía aérea")
+   *  appear next to the built-ins as soon as a single case carries
+   *  it; without this, custom ids were silently dropped from the
+   *  facet computation. */
+  categories?: Category[];
 }
 
 interface Result {
@@ -56,8 +64,18 @@ interface Result {
  *   });
  *   return <Grid cases={filtered} />;
  */
-export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }: Args): Result {
+export function useCaseFilters({
+  allCases,
+  favs,
+  view,
+  cat,
+  tags,
+  query,
+  sort,
+  categories,
+}: Args): Result {
   const { lang } = useLanguage();
+  const categoryUniverse = categories ?? CATEGORIES;
 
   // Indirection: only use `favs` as a memo dep when the view actually
   // depends on it. Without this gate, every fav toggle (a hot path —
@@ -87,11 +105,17 @@ export function useCaseFilters({ allCases, favs, view, cat, tags, query, sort }:
     scopedCases.forEach((c) => {
       counts[c.category] = (counts[c.category] ?? 0) + 1;
     });
-    return CATEGORIES.filter((c) => (counts[c.id] ?? 0) > 0).map((c) => ({
-      ...c,
-      count: counts[c.id] ?? 0,
-    }));
-  }, [scopedCases]);
+    // Walk the FULL category universe (built-ins + custom) so a
+    // newly-created admin category surfaces in the sidebar as soon as
+    // a case is assigned to it. The previous implementation walked
+    // only `CATEGORIES` (built-in 8) and dropped every custom id.
+    return categoryUniverse
+      .filter((c) => (counts[c.id] ?? 0) > 0)
+      .map((c) => ({
+        ...c,
+        count: counts[c.id] ?? 0,
+      }));
+  }, [scopedCases, categoryUniverse]);
 
   const sectionTags = useMemo(() => {
     // Frequency map of tags in the active language (with ES fallback
