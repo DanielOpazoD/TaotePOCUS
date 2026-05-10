@@ -187,6 +187,11 @@ function AppInner() {
     tags,
     query,
     sort,
+    // Pass the merged (built-in + admin custom) category list so a
+    // freshly-created custom category ("ocular") shows up in the
+    // sidebar as soon as a case is assigned to it. Without this, the
+    // hook fell back to the built-in 8 and silently dropped customs.
+    categories: config.categories,
   });
 
   // Derived projections off the merged catalog: filter sectionCategories
@@ -303,7 +308,9 @@ function AppInner() {
         categories={sectionCategories}
         activeCat={cat}
         setActiveCat={(c) => {
-          if (view.kind === "favs")
+          // Same redirect rule as the desktop Sidebar: from any
+          // non-section view, picking a category navigates to /atlas.
+          if (view.kind !== "section")
             replacePatch({ view: { kind: "section", section: "atlas" }, cat: c });
           else replacePatch({ cat: c });
         }}
@@ -315,7 +322,12 @@ function AppInner() {
           <Sidebar
             activeCat={cat}
             setActiveCat={(c) => {
-              if (view.kind === "favs")
+              // From any non-section view (favs / admin) the sidebar's
+              // category click navigates to /atlas with that category
+              // applied. Without this, picking "Cardiac" from inside
+              // /admin only patched `?cat=...` and stayed on the admin
+              // panel — the grid never rendered, looking like a no-op.
+              if (view.kind !== "section")
                 replacePatch({ view: { kind: "section", section: "atlas" }, cat: c });
               else replacePatch({ cat: c });
             }}
