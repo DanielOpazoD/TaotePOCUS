@@ -57,10 +57,6 @@ public/sw.js
 public/sw.js.map
 public/swe-worker-*.js
 
-# Sample Next.js scaffold from `npx clerk@latest dev` — kept locally
-# for reference but not part of the app tree. ESLint ignores it too.
-clerk-nextjs/
-
 # Lighthouse CI report dump — populated by `npm run lighthouse` and
 # uploaded to temporary public storage (see .lighthouserc.json).
 # The HTML / JSON files are reports for that single run, not source.
