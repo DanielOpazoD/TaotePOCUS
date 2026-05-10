@@ -9,13 +9,16 @@ import { IS_CLERK_ENABLED } from "@/lib/env";
 // `<link rel="stylesheet" href="https://fonts.googleapis.com/...">`
 // that produced render-blocking 3rd-party requests + font-swap CLS.
 //
-// `display: "optional"` tells the browser to use the fallback if the
-// web font isn't ready by the threshold (~100ms). That collapses the
-// font-swap layout shift to zero in cases where the fallback wins
-// the race; users on slow connections see the fallback for the whole
-// session but never feel a jolt mid-page. With `next/font`'s built-in
-// size-adjust metrics, the fallback already mimics the web font's
-// metrics, so the visual difference is minimal.
+// `display: "swap"` is the right balance here. The original PR (#27)
+// shipped `display: "optional"` aiming to kill CLS entirely — but on
+// users with cold cache + slow networks, the threshold (~100ms) is
+// missed and the page sticks with the fallback (Times New Roman /
+// system) for the WHOLE session. Visually unacceptable for an
+// editorial-typography product like this — the user reported it
+// looking "ugly like Times New Roman". `swap` always loads the real
+// font; the CLS risk it reintroduces is small because next/font's
+// built-in `size-adjust` metrics make the fallback's character box
+// match the real font's box, so the swap moment barely shifts layout.
 //
 // Each font exports a `.variable` CSS class that sets a custom
 // property; `tokens.css` references those props in `--serif` /
@@ -30,19 +33,19 @@ import { IS_CLERK_ENABLED } from "@/lib/env";
 const newsreader = Newsreader({
   subsets: ["latin"],
   style: ["normal", "italic"],
-  display: "optional",
+  display: "swap",
   variable: "--font-newsreader",
 });
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  display: "optional",
+  display: "swap",
   variable: "--font-plex-sans",
 });
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
-  display: "optional",
+  display: "swap",
   variable: "--font-plex-mono",
 });
 
