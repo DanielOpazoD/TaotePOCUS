@@ -1,8 +1,50 @@
 import type { Metadata, Viewport } from "next";
+import { Newsreader, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { esES } from "@clerk/localizations";
 import "./globals.css";
 import { IS_CLERK_ENABLED } from "@/lib/env";
+
+// Self-hosted Google Fonts via `next/font` — replaces the legacy
+// `<link rel="stylesheet" href="https://fonts.googleapis.com/...">`
+// that produced render-blocking 3rd-party requests + font-swap CLS.
+//
+// `display: "optional"` tells the browser to use the fallback if the
+// web font isn't ready by the threshold (~100ms). That collapses the
+// font-swap layout shift to zero in cases where the fallback wins
+// the race; users on slow connections see the fallback for the whole
+// session but never feel a jolt mid-page. With `next/font`'s built-in
+// size-adjust metrics, the fallback already mimics the web font's
+// metrics, so the visual difference is minimal.
+//
+// Each font exports a `.variable` CSS class that sets a custom
+// property; `tokens.css` references those props in `--serif` /
+// `--sans` / `--mono` so every `font-family` declaration in the app
+// flows through these.
+// Newsreader is loaded WITHOUT explicit `weight` so we get the full
+// variable font (wght 200-800 + opsz 6-72). `tokens.css` drives the
+// optical-size axis via `font-variation-settings` per heading rank
+// (`--serif-display`, `--serif-h1`, …); a fixed weight array would
+// turn this into static subsets and the opsz axis would no longer
+// resolve.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "optional",
+  variable: "--font-newsreader",
+});
+const plexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "optional",
+  variable: "--font-plex-sans",
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "optional",
+  variable: "--font-plex-mono",
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -111,12 +153,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
-        />
       </head>
-      <body>{body}</body>
+      <body className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}>
+        {body}
+      </body>
     </html>
   );
 }

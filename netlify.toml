@@ -37,6 +37,11 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    # `same-origin-allow-popups` (rather than `same-origin`) keeps
+    # Clerk's SSO popup flow alive — the IdP popup needs window.opener
+    # to read the auth result back.
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    Cross-Origin-Resource-Policy = "same-origin"
 
 # ─── Redirects ──────────────────────────────────────────────────────────────
 # Old query-param URLs from earlier iterations redirect to the new

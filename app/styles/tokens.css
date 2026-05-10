@@ -60,9 +60,14 @@
     oklch(0.93 0.005 90) 100%
   );
 
-  --serif: "Newsreader", Georgia, serif;
-  --sans: "IBM Plex Sans", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Font stacks — the `--font-*` vars come from `next/font/google` in
+     `app/layout.tsx`. Falling back to the literal family names keeps
+     the page legible if the variable isn't set (e.g. server render
+     before the font loads). System fonts close the chain so layouts
+     never crash on a missing web font. */
+  --serif: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --sans: var(--font-plex-sans), "IBM Plex Sans", system-ui, sans-serif;
+  --mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
   /* Variable-font axis presets for Newsreader. The font ships an
      `opsz` (optical size) axis from 6 to 72 and a `wght` axis from
