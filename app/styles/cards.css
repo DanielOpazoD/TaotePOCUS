@@ -495,6 +495,14 @@
      the structure, the hover state adds the lift cue. */
   transition: box-shadow var(--duration-base);
 }
+/* 90%-scaled media inside the thumbnail. The wrapper keeps the full
+   click target; only the visible content shrinks, leaving a deep-ink
+   matte on every side. See `--thumb-media-scale` in tokens.css. */
+.case-thumb .cine-wrap,
+.featured-thumb .cine-wrap {
+  transform: scale(var(--thumb-media-scale));
+  transform-origin: center center;
+}
 .case-thumb-overlay {
   position: absolute;
   inset: 0;
