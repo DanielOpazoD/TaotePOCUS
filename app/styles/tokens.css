@@ -33,7 +33,12 @@
   --accent-ink: oklch(0.32 0.08 220);
   --crit: oklch(0.55 0.15 25);
   --crit-soft: oklch(0.96 0.03 25);
-  --signal: oklch(0.62 0.12 145); /* verde señal — ECG */
+  /* `--signal` darkened from oklch(0.62) → 0.45 to clear WCAG AA on
+     `--bg` (#fafaf7). Lighthouse measured the previous value at 2.91-3.3:1
+     when used for breadcrumbs / counters in `/ecg`; the new value renders
+     ~5:1. The hue (145°) and chroma (0.12) stay identical so the green
+     identity of the ECG section is preserved — only the lightness drops. */
+  --signal: oklch(0.45 0.12 145); /* verde señal — ECG */
   --editorial: oklch(0.55 0.1 35); /* cálido editorial — casos */
   --poster: oklch(0.5 0.1 285); /* índigo — infografías */
   --xray: oklch(0.55 0.06 240); /* azul-grisáceo radiológico — rayos */
