@@ -327,6 +327,10 @@ select.classifier-aux-input {
 }
 .classifier-thumb .cine-wrap {
   border-radius: var(--radius-sm);
+  /* 90%-scaled media — same matte treatment as the catalog cards.
+     See `--thumb-media-scale` in tokens.css. */
+  transform: scale(var(--thumb-media-scale));
+  transform-origin: center center;
 }
 .classifier-card-meta {
   padding: 0 4px;

@@ -110,6 +110,16 @@
   --max-page: 1480px;
   --max-modal: 1100px;
 
+  /* Thumbnail media scale. Visual content (cine canvas / video / img)
+     inside catalog cards, the featured row, the admin classifier and
+     the admin tables is scaled to this fraction of its container. The
+     small inset reads as a "matted" thumbnail — medical-imaging
+     convention — and gives the hairline / hover ring of the parent
+     card room to breathe. Click targets stay at the full container
+     bounds; only the visible content shrinks. Modal viewers are
+     deliberately exempt (they fill their frame). */
+  --thumb-media-scale: 0.9;
+
   /* Animation tokens. Durations should match across the UI so
      transitions feel coherent — pick from these, don't invent. */
   --duration-fast: 0.12s;
