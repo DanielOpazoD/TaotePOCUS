@@ -71,6 +71,8 @@ export { dbCheckMigrations } from "./db/migrations";
 
 export { dbListAdminActions } from "./db/audit";
 
+export { dbGetFocusDefaults, dbSetFocusDefaults } from "./db/focus-defaults";
+
 // Type-only re-exports. The barrel is `"use server"` so runtime
 // exports must be async functions; types are erased at compile time
 // and so are safe via `export type`. Consumers (e.g. ActivityPanel)
