@@ -8,7 +8,7 @@
 //   - SSR / no-BroadcastChannel: degrades to no-op.
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { __resetCrossTabSyncForTests, useCrossTabSync } from "@/hooks/useCrossTabSync";
 
 afterEach(() => {
@@ -30,11 +30,14 @@ describe("useCrossTabSync", () => {
     remote.postMessage({ topic: "favs", actorId: "remote-actor-1" });
     remote.close();
 
-    // Microtask flush so the message-event handler runs.
-    await Promise.resolve();
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(onA).toHaveBeenCalled();
+    // `BroadcastChannel.postMessage` dispatches asynchronously and
+    // the exact tick when the listener fires isn't deterministic
+    // (happy-dom + Node event loop varies between local + CI). A
+    // single `setTimeout(0)` raced against the message event on
+    // slower CI runners — the test was a known flake. `waitFor`
+    // retries the assertion until it holds or hits the 1s timeout,
+    // which is exactly the semantics we want here.
+    await waitFor(() => expect(onA).toHaveBeenCalled());
   });
 
   it("ignores self-published messages (no echo loop)", async () => {

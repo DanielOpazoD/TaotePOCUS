@@ -103,6 +103,18 @@ export default function CaseForm({
     };
   }, []);
 
+  // Escape closes the modal — keyboard equivalent for the backdrop
+  // click. Without this the only keyboard escape was Tab + Enter on
+  // the Cancelar button, which fails WCAG SC 2.1.1 "Keyboard"
+  // (every operation reachable by mouse must have a keyboard path).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
   const update = (patch: Partial<CaseRecord>) => setForm((f) => ({ ...f, ...patch }));
 
   const submit = (e: React.FormEvent) => {
@@ -123,10 +135,23 @@ export default function CaseForm({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    // Backdrop click closes — keyboard equivalent is the Escape
+    // listener wired above. The wrapper is a custom backdrop, not a
+    // native `<dialog>`, so the a11y plumbing lives in this file.
+    <div
+      className="modal-backdrop"
+      onClick={onCancel}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Editor de caso"
+    >
+      {/* Inner panel's onClick is purely defensive (stop propagation
+          to the backdrop). It's not a real interaction, so it carries
+          `role="presentation"` to tell ARIA it's structural chrome. */}
       <div
         className="modal admin-form-modal"
         onClick={(e) => e.stopPropagation()}
+        role="presentation"
         style={{ position: "relative" }}
       >
         <button className="modal-close" onClick={onCancel} type="button">
