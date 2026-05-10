@@ -213,6 +213,29 @@
   background: var(--surface-2);
 }
 
+/* Admin entry — icon-only (gear). Square hit-target, no text label;
+   the accessible name + tooltip carry "Administrar". The active
+   state uses a surface tint rather than the text underline (a 14px-
+   inset bar under a 18px icon would be a sliver). */
+.nav-admin-icon {
+  padding: 8px;
+  width: 36px;
+  justify-content: center;
+}
+.nav-admin-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.nav-admin-icon.active {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+/* Suppress the inherited `.nav a.active::after` underline — the
+   icon variant signals "active" via the surface tint above. */
+.nav-admin-icon.active::after {
+  display: none;
+}
+
 .header-search {
   flex: 1;
   max-width: 480px;

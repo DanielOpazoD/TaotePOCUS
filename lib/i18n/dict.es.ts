@@ -24,12 +24,35 @@ export const DICT_ES = {
   // ─── Navigation ────────────────────────────────────────────────
   "nav.aria.sections": "Secciones",
   "nav.favoritos": "Favoritos",
+  // The admin entry surfaces as a gear icon (no visible text) so we
+  // keep the user-facing label only as the aria-label for screen
+  // readers. Tooltip uses the same string via `title`.
   "nav.administrar": "Administrar",
+  "nav.administrar.aria": "Administrar",
   "nav.entrar": "Entrar",
   "nav.salir": "Salir",
   "nav.menu.open": "Abrir menú",
   "nav.menu.close": "Cerrar menú",
   "nav.menu.aria": "Menú de navegación",
+
+  // ─── Catalog pagination ────────────────────────────────────────
+  // The summary string ("Mostrando X–Y de Z") is rendered with three
+  // bold numeric values interleaved between fixed words. Splitting
+  // the dictionary into the three connectors lets each language
+  // reorder them freely without losing the bold styling — EN inverts
+  // the article ("Showing 1-30 of 64") with the same shape.
+  "pagination.aria.label": "Paginación del catálogo",
+  "pagination.summary.showing": "Mostrando",
+  "pagination.summary.range": "–",
+  "pagination.summary.of": "de",
+  "pagination.indicator.page": "Página",
+  "pagination.indicator.of": "de",
+  "pagination.aria.first": "Primera página",
+  "pagination.aria.last": "Última página",
+  "pagination.aria.prev": "Página anterior",
+  "pagination.aria.next": "Página siguiente",
+  "pagination.prev": "‹ Anterior",
+  "pagination.next": "Siguiente ›",
 
   // ─── Search ────────────────────────────────────────────────────
   "search.placeholder": "Buscar casos, hallazgos, etiquetas…",
