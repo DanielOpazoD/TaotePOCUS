@@ -107,6 +107,17 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Bake build metadata into the bundle. Netlify exposes
+  // `COMMIT_REF` + friends ONLY at build time (Functions runtime
+  // doesn't see them); we capture them here so `/api/health` and
+  // the footer can surface the active deploy without an extra Netlify
+  // API round-trip. The vars are read on next build evaluation, so
+  // the values are pinned per deploy. Falling back to `null` when
+  // unset (local `npm run build`, or a CI without the Netlify env).
+  env: {
+    COMMIT_REF: process.env.COMMIT_REF || "",
+    NEXT_PUBLIC_BUILD_DATE: process.env.NEXT_PUBLIC_BUILD_DATE || new Date().toISOString(),
+  },
   // ── Image optimization ──────────────────────────────────────────────
   // Catalog thumbnails are the heaviest payload on first paint —
   // ~330 imported cases each with a multi-MB raw image/video. Going
