@@ -93,12 +93,22 @@
      color on the second word) belonged to the magazine-cover phase
      of the project; with the catalog unified it competed with itself
      for attention. The serif still distinguishes the brand from
-     the sans-serif chrome around it; no extra styling needed. */
+     the sans-serif chrome around it; no extra styling needed.
+
+     `font-variation-settings` applies the display optical-size axis
+     (opsz=60). Without this the brand renders Newsreader at its
+     default text optical size (~14), which has chunkier serifs +
+     stronger contrast — appropriate for body text but reads
+     "literary / Times-like" at the wordmark's 22px. The display
+     preset (opsz=60, wght=480) thins the strokes + softens the
+     terminals to the elegant editorial feel Newsreader was designed
+     for at large sizes. */
   display: inline-flex;
   align-items: baseline;
   gap: 0.35ch;
   letter-spacing: -0.018em;
   font-feature-settings: "ss01" 1;
+  font-variation-settings: var(--serif-display);
 }
 .brand-wordmark em {
   /* `<em>` is kept on the markup for semantic emphasis but visually
