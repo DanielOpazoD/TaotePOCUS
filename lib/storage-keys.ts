@@ -83,6 +83,13 @@ export const STORAGE_KEYS = {
    *  (sitemap, OG metadata) keep using the static defaults. */
   sectionLabelOverrides: "sectionLabelOverrides",
 
+  /** Admin-wide thumbnail focus defaults (`FocusDefaults`). Scoped
+   *  global → per-section → per-category. Resolved against
+   *  `caso.focus` at render time (`lib/focus.ts → resolveFocus`):
+   *  the per-case override wins, the defaults only kick in when a
+   *  case has no own focus set. Survives backup. */
+  focusDefaults: "pocus_focus_defaults",
+
   // ─── UI prefs (NOT in backup bundle — per-device) ──────────────
 
   /** Theme preference (`"light" | "dark"`). Initial render is

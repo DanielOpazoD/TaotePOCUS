@@ -20,6 +20,7 @@ describe("storage-keys", () => {
       {
         "caseOverrides": "pocus_case_overrides",
         "customCategories": "customCategories",
+        "focusDefaults": "pocus_focus_defaults",
         "hiddenCategoryIds": "hiddenCategoryIds",
         "hiddenSectionIds": "hiddenSectionIds",
         "lang": "pocus_lang",

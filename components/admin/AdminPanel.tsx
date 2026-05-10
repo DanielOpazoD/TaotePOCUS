@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { CATEGORIES, IMPORT_MARKER_TAG } from "@/lib/data";
 import { useT } from "@/hooks/useLanguage";
-import type { CaseRecord, Category, LocalizedString, SectionId } from "@/lib/types";
+import type {
+  CaseRecord,
+  Category,
+  FocusDefaults,
+  FocusValue,
+  LocalizedString,
+  SectionId,
+} from "@/lib/types";
 import ClassifierBoard from "./ClassifierBoard";
 import CategoriesEditor from "./CategoriesEditor";
 import SectionsEditor from "./SectionsEditor";
@@ -11,6 +18,7 @@ import BackupPanel from "./BackupPanel";
 import BulkEditTable, { BulkEditTagSuggestions } from "./BulkEditTable";
 import ActivityPanel from "./ActivityPanel";
 import { MinePanel } from "./MinePanel";
+import FocusDefaultsPanel from "./FocusDefaultsPanel";
 
 interface Props {
   allCases: CaseRecord[];
@@ -83,9 +91,26 @@ interface Props {
   currentEmail?: string | null;
   /** Toast surface for backup feedback ("Exportado · 47 cambios"). */
   notify?: (msg: string) => void;
+  /** Admin-managed thumbnail focus defaults. When provided alongside
+   *  the four setters, the "Foco" tab renders an editor that lets the
+   *  admin set a global default + per-section + per-category overrides
+   *  in one place instead of touching each thumbnail. */
+  focusDefaults?: FocusDefaults;
+  onSetFocusGlobal?: (value: FocusValue | undefined) => void;
+  onSetFocusSection?: (id: SectionId, value: FocusValue | undefined) => void;
+  onSetFocusCategory?: (id: string, value: FocusValue | undefined) => void;
+  onResetFocusDefaults?: () => void;
 }
 
-type Tab = "mine" | "classify" | "edit" | "categories" | "sections" | "activity" | "backup";
+type Tab =
+  | "mine"
+  | "classify"
+  | "edit"
+  | "categories"
+  | "sections"
+  | "focus"
+  | "activity"
+  | "backup";
 
 export default function AdminPanel({
   allCases,
@@ -118,6 +143,11 @@ export default function AdminPanel({
   sectionCaseCounts,
   currentEmail,
   notify,
+  focusDefaults,
+  onSetFocusGlobal,
+  onSetFocusSection,
+  onSetFocusCategory,
+  onResetFocusDefaults,
 }: Props) {
   // Falls back to built-in CATEGORIES when the parent doesn't pass a
   // managed list (older callers, focused tests). The classifier still
@@ -127,6 +157,9 @@ export default function AdminPanel({
     onAddCategory && onRenameCategory && onRemoveCategory && isCustomCategory,
   );
   const canEditSections = Boolean(isSectionHidden && onSetSectionHidden);
+  const canEditFocusDefaults = Boolean(
+    focusDefaults && onSetFocusGlobal && onSetFocusSection && onSetFocusCategory,
+  );
   // Tab state: defaults to "Mis casos" so the existing flow is the
   // landing page; the classifier is one click away. State is local —
   // this isn't worth pushing into the URL.
@@ -195,6 +228,17 @@ export default function AdminPanel({
             {t("admin.tab.sections")}
           </button>
         )}
+        {canEditFocusDefaults && (
+          <button
+            role="tab"
+            aria-selected={tab === "focus"}
+            className={`admin-tab${tab === "focus" ? " is-active" : ""}`}
+            onClick={() => setTab("focus")}
+            title={t("admin.tab.focus.title")}
+          >
+            {t("admin.tab.focus")}
+          </button>
+        )}
         <button
           role="tab"
           aria-selected={tab === "activity"}
@@ -257,6 +301,15 @@ export default function AdminPanel({
           setLabel={onSetSectionLabel ?? (() => undefined)}
           caseCounts={sectionCaseCounts ?? {}}
           overrides={sectionLabelOverrides}
+        />
+      ) : tab === "focus" && canEditFocusDefaults ? (
+        <FocusDefaultsPanel
+          defaults={focusDefaults!}
+          categories={resolvedCategories}
+          onSetGlobal={onSetFocusGlobal!}
+          onSetSection={onSetFocusSection!}
+          onSetCategory={onSetFocusCategory!}
+          onResetAll={onResetFocusDefaults}
         />
       ) : tab === "activity" ? (
         <ActivityPanel />
