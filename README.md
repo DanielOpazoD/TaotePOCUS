@@ -2,7 +2,7 @@
 
 Atlas público educativo de **POCUS** (Point-of-Care Ultrasound), **ECG**, **casos clínicos** e **infografías**, en español. Pensado para residentes y especialistas.
 
-> **Estado:** prototipo funcional con auth mock y persistencia en `localStorage`. Apto para demos y prueba interna. **No apto para uso clínico real** hasta que se complete la migración a backend con autenticación de servidor.
+> **Estado:** producción en [taote-pocus.netlify.app](https://taote-pocus.netlify.app). Auth via Clerk, persistencia dual-write (localStorage primario + Netlify Database como source-of-truth — ver [ADR-0006](./docs/adr/0006-netlify-database-dual-write.md)). Bilingüe ES/EN. Observabilidad via Sentry — ver [`docs/observability.md`](./docs/observability.md). **Educativo, no apto para uso clínico real**.
 
 ---
 
@@ -41,15 +41,21 @@ npm run test:coverage  # Vitest con cobertura
 npm run test:e2e       # Playwright (build + start + chromium)
 
 npm run analyze        # Bundle analyzer
+npm run lighthouse     # Lighthouse CI local (build + start + audit)
+npm run size:check     # Bundle size budget gate
 ```
 
 ## Stack
 
-- **Next.js 16** App Router, **React 18**, **TypeScript** estricto
-- **Vitest** (unit) + **Playwright** (e2e)
+- **Next.js 16** App Router, **React 18**, **TypeScript** estricto + `noUncheckedIndexedAccess`
+- **Auth:** [Clerk](https://clerk.com) en producción; localStorage fallback en desarrollo (gated por `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`)
+- **Persistencia:** Netlify Database (Postgres via Neon) + localStorage como cache. Dual-write con DB-first reads — ver [ADR-0006](./docs/adr/0006-netlify-database-dual-write.md)
+- **Storage de medios:** Netlify Blobs (gated por binding del Function context)
+- **Vitest** (unit, 800+ tests, threshold enforced en `lib/` 92/84/95/95) + **Playwright** (e2e + visual snapshots Linux/Darwin)
 - **ESLint** flat config + **Prettier** + **Husky** pre-commit
-- **CSS** plano con design tokens (sin Tailwind)
-- Persistencia hoy: `localStorage`. Mañana: Firebase / Supabase / etc. (ver [ADR-0001](./docs/adr/0001-mock-auth-with-localstorage.md))
+- **CSS** plano con design tokens (sin Tailwind), tokens en `app/styles/tokens.css`
+- **i18n** ES/EN con dictionary type-safe (`lib/i18n/`) — URL-driven via `?lang=`
+- **Observabilidad:** Sentry + `/api/health` endpoint — ver [`docs/observability.md`](./docs/observability.md)
 
 ## Estructura del proyecto
 
@@ -67,12 +73,18 @@ npm run analyze        # Bundle analyzer
 │   ├── Sidebar.tsx       # Categories + collapsible tag cloud
 │   ├── SectionHero.tsx   # Per-section hero (atlas / ecg / cases / info)
 │   ├── EmptyState.tsx    # Illustrated empty state w/ optional CTA
-│   ├── Skeleton.tsx      # Typographic loading placeholders
 │   ├── chrome/           # Header, MobileDrawer, ThemeToggle, Footer, TransitionLink
 │   ├── cards/            # CaseCard, FeaturedRow, BentoGrid, QuoteCard
-│   ├── modals/           # CaseModal, AuthModal, ConfirmDialog, ShortcutsModal
+│   ├── modals/           # CaseModal, AuthModal, ConfirmDialog, ShortcutsModal, ModalLoopMedia
 │   ├── cine/             # CineLoop + scenes + PresentationMode
-│   └── admin/            # AdminPanel, CaseForm
+│   └── admin/            # AdminPanel + 7 tabs:
+│                         #   - MinePanel (mis casos)
+│                         #   - ClassifierBoard (clasificación drag-drop)
+│                         #   - BulkEditTable (edición en lote)
+│                         #   - CategoriesEditor / SectionsEditor
+│                         #   - FocusDefaultsPanel (defaults de foco/zoom)
+│                         #   - ActivityPanel (audit log)
+│                         #   - BackupPanel (export / restore / DB sync)
 ├── lib/                  # Pure modules (no React)
 │   ├── data.ts           # Seed cases, sections, categories, tags
 │   ├── types.ts          # Shared domain types
@@ -210,7 +222,9 @@ Sesiones expiran:
 
 La sesión se re-valida cuando la pestaña recibe foco. Si expiró, se cierra sesión con toast.
 
-> ⚠️ La autenticación actual es **mock**. Un usuario que conozca la implementación puede editar `localStorage` directamente y forjarse rol admin. **Esto se resuelve con backend real** — ver [ADR-0001](./docs/adr/0001-mock-auth-with-localstorage.md).
+**Autenticación en producción** se hace via Clerk. La sesión vive en una cookie HttpOnly + un objeto en `localStorage` que las hooks (`useSession`) reconcilian. El rol admin se resuelve a partir de `ADMIN_EMAILS` (env var, server-only) — ver [`lib/server/session.ts`](./lib/server/session.ts) + [ADR-0007](./docs/adr/0007-server-side-session.md).
+
+**En desarrollo sin Clerk** (sin `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` configurado), el repo cae al path mock — útil para tests + clones frescos. Ver [ADR-0001](./docs/adr/0001-mock-auth-with-localstorage.md).
 
 ## Convenciones
 
@@ -224,10 +238,14 @@ La sesión se re-valida cuando la pestaña recibe foco. Si expiró, se cierra se
 
 ## Testing
 
-- **Unit (Vitest, happy-dom):** módulos puros (`lib/url`, `lib/headers`, `lib/repo`, `lib/store`). Cobertura ≥ 80% en `lib/`.
-- **E2E (Playwright, chromium):** flujos críticos sobre el build de producción — render del grid, navegación entre secciones, abrir/cerrar modal, login admin/usuario, error de password, deep-links.
+- **Unit (Vitest, happy-dom):** 800+ tests. Cobertura enforced via `vitest.config.ts > thresholds`:
+  - `lib/`: 92% statements / 84% branches / 95% functions / 95% lines
+  - `hooks/`: 55% / 45% / 55% / 60% (más bajo a propósito — la mayoría se ejerce en e2e)
+- **E2E (Playwright, chromium-linux + chromium-darwin):** flujos críticos + visual snapshots por OS. Snapshots Linux se regeneran via `gh workflow run regenerate-visual-snapshots.yml`.
+- **Lighthouse CI:** corre solo en push a `main`, gate en perf ≥ 0.85, a11y ≥ 0.95, best-practices ≥ 0.9, SEO ≥ 0.95.
+- **Audits estáticos custom:** `tests/admin-strings-audit.test.ts` previene strings hardcoded en español dentro de admin chrome.
 
-Ambos corren en CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) en cada push y PR a `main`.
+Ambos (unit + e2e) corren en CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) en cada push y PR a `main`. El `verify` aggregate gate es el único required check para branch protection.
 
 ## Despliegue
 
@@ -257,8 +275,11 @@ Variables de entorno: configurar `NEXT_PUBLIC_SITE_URL` con la URL pública. Ver
 ## Documentación adicional
 
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — capas, contratos, flujo de datos
-- [`docs/adr/`](./docs/adr/) — Architecture Decision Records
-- [`CHANGELOG.md`](./CHANGELOG.md) — historial versionado
+- [`docs/DATA-MODEL.md`](./docs/DATA-MODEL.md) — schema de cases, overrides, custom categories
+- [`docs/PERSISTENCE.md`](./docs/PERSISTENCE.md) — repo facade + dual-write semantics
+- [`docs/observability.md`](./docs/observability.md) — SLOs, dashboards, source-map upload chain
+- [`docs/runbooks/`](./docs/runbooks/) — incident response + migration tracker recovery
+- [`docs/adr/`](./docs/adr/) — 14 Architecture Decision Records
 
 ## Licencia
 
