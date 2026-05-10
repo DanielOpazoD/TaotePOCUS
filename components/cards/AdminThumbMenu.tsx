@@ -126,11 +126,15 @@ export default function AdminThumbMenu({
   // directly inside the menu portal so the user sees one popover at
   // a time.
   return (
+    // Outer wrapper's handlers are purely defensive (stop propagation
+    // to the parent thumbnail's `onClick={onOpen}`). Not a real
+    // interaction → role="presentation" tells ARIA it's chrome.
     <div
       className="admin-thumb-menu"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
+      role="presentation"
     >
       <button
         ref={triggerRef}
@@ -152,7 +156,12 @@ export default function AdminThumbMenu({
               role="menu"
               aria-label="Acciones de la miniatura"
               style={{ top: coords.top, left: coords.left }}
+              // Stop-propagation handlers are defensive — the menu's
+              // semantics live in `role="menu"` + the inner button
+              // children. The keydown counterpart is bound above on
+              // the wrapper + the document Escape listener.
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >
               {view === "menu" && (

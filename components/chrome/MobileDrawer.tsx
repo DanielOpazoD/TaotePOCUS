@@ -105,7 +105,15 @@ export default function MobileDrawer({
       aria-modal="true"
       aria-label={t("nav.menu.aria")}
     >
-      <div className="drawer" onClick={(e) => e.stopPropagation()} ref={trapRef}>
+      {/* Inner panel's onClick is purely defensive (stop propagation
+          to the backdrop). Not a real interaction → role="presentation"
+          tells ARIA it's structural chrome. */}
+      <div
+        className="drawer"
+        onClick={(e) => e.stopPropagation()}
+        role="presentation"
+        ref={trapRef}
+      >
         <div className="drawer-head">
           <div className="brand" style={{ fontSize: 18 }}>
             <span className="brand-mark" aria-hidden="true">
