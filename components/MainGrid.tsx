@@ -270,17 +270,26 @@ export default function MainGrid({
   }
 
   // While the seed-cases chunk is loading, the public catalog views
-  // (atlas / ecg / cases / info / rayos) render skeleton placeholders
-  // INSTEAD of falling into the empty-state branch below. This
-  // reserves the layout space the real cards will occupy → the chunk
-  // landing replaces skeletons in-place rather than growing a 0px
-  // grid to ~2900px, which was the dominant CLS contributor.
+  // render skeleton placeholders INSTEAD of falling into the
+  // empty-state branch below. This reserves the layout space the
+  // real cards will occupy → the chunk landing replaces skeletons
+  // in-place rather than growing the 0px grid to ~2900px (the
+  // dominant CLS contributor before this).
   //
-  // Only applies on section views with no user-applied filters/search;
-  // those scenarios are genuinely "no results" cases that should
-  // show the empty state regardless of seed loading.
+  // **Section gate**: only for sections the imported corpus actually
+  // fills (atlas + ecg). /cases and /info historically ship empty
+  // (their content is editorial, not imported); their EmptyState
+  // illustration IS the real render. Showing 30 skeletons mid-load
+  // just to collapse to EmptyState would cause a WORSE CLS than no
+  // skeletons at all (~7000px shrink shift). /rayos same posture.
+  //
+  // No filters / search active either — those are genuinely "no
+  // results" cases that should show the empty state regardless of
+  // seed-loading state.
   const isPlainSectionView = view.kind === "section" && !cat && tags.length === 0 && !query.trim();
-  if (seedLoading && isPlainSectionView && filtered.length === 0) {
+  const sectionLikelyHasContent =
+    view.kind === "section" && (view.section === "atlas" || view.section === "ecg");
+  if (seedLoading && isPlainSectionView && sectionLikelyHasContent && filtered.length === 0) {
     // Render CATALOG_PAGE_SIZE skeletons (= one full page worth)
     // so the grid's height matches the eventual real grid exactly,
     // regardless of section. /ecg uses a 2-column layout (15 rows
