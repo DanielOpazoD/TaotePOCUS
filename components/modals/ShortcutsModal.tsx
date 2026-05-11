@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Icon } from "@/lib/icons";
 import { SHORTCUTS } from "@/hooks/useShortcuts";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useT } from "@/hooks/useLanguage";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,7 @@ interface Props {
 export default function ShortcutsModal({ open, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(open);
+  const t = useT();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -61,27 +63,30 @@ export default function ShortcutsModal({ open, onClose }: Props) {
           type="button"
           className="modal-close"
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label={t("shortcuts.close.aria")}
           style={{ top: 16, right: 16 }}
         >
           {Icon.close()}
         </button>
-        <h2 id="shortcuts-title">Atajos de teclado</h2>
-        <p>Navega y filtra sin tocar el ratón.</p>
+        <h2 id="shortcuts-title">{t("shortcuts.title")}</h2>
+        <p>{t("shortcuts.intro")}</p>
         <ul className="shortcuts-list">
-          {SHORTCUTS.map((s) => (
-            <li key={s.label}>
-              <span className="shortcuts-keys">
-                {s.keys.map((k, i) => (
-                  <span key={`${s.label}-${k}`}>
-                    {i > 0 && <span className="shortcuts-then">luego</span>}
-                    <kbd>{k}</kbd>
-                  </span>
-                ))}
-              </span>
-              <span className="shortcuts-label">{s.label}</span>
-            </li>
-          ))}
+          {SHORTCUTS.map((s) => {
+            const label = t(s.labelKey);
+            return (
+              <li key={s.labelKey}>
+                <span className="shortcuts-keys">
+                  {s.keys.map((k, i) => (
+                    <span key={`${s.labelKey}-${k}`}>
+                      {i > 0 && <span className="shortcuts-then">{t("shortcuts.then")}</span>}
+                      <kbd>{k}</kbd>
+                    </span>
+                  ))}
+                </span>
+                <span className="shortcuts-label">{label}</span>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </dialog>

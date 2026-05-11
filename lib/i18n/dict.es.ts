@@ -157,6 +157,64 @@ export const DICT_ES = {
   // ─── Featured row ──────────────────────────────────────────────
   "featured.title": "Destacados",
 
+  // ─── Keyboard shortcuts modal (`?` help) ───────────────────────
+  // `SHORTCUTS` in `hooks/useShortcuts.ts` references the `.label.*`
+  // keys by id rather than carrying raw Spanish — that way the EN
+  // dictionary swap below is the single source of truth and a new
+  // shortcut requires both ES + EN to typecheck.
+  "shortcuts.title": "Atajos de teclado",
+  "shortcuts.intro": "Navega y filtra sin tocar el ratón.",
+  "shortcuts.then": "luego",
+  "shortcuts.close.aria": "Cerrar",
+  "shortcuts.label.search": "Buscar",
+  "shortcuts.label.help": "Mostrar atajos",
+  "shortcuts.label.nextCase": "Caso siguiente",
+  "shortcuts.label.prevCase": "Caso anterior",
+  "shortcuts.label.below": "Caso debajo (salta una fila del grid)",
+  "shortcuts.label.above": "Caso encima (salta una fila del grid)",
+  "shortcuts.label.first": "Primer caso",
+  "shortcuts.label.last": "Último caso",
+  "shortcuts.label.goAtlas": "Ir a Atlas POCUS",
+  "shortcuts.label.goEcg": "Ir a ECG",
+  "shortcuts.label.goCases": "Ir a Casos clínicos",
+  "shortcuts.label.goInfo": "Ir a Infografías",
+  "shortcuts.label.goFavs": "Ir a Favoritos",
+  "shortcuts.label.close": "Cerrar modal / volver",
+
+  // ─── Presentation mode (fullscreen cinema) ─────────────────────
+  // Surfaces a speaker sees while presenting. The case title +
+  // description go through `getCaseTitle`/`getCaseDescription` so
+  // they follow the speaker's chosen language already; only the
+  // chrome (exit / nav / help line) needs dict routing.
+  "presentation.exit": "Salir",
+  "presentation.exit.aria": "Salir (Esc)",
+  "presentation.prev.aria": "Anterior (←)",
+  "presentation.next.aria": "Siguiente (→)",
+  "presentation.help.navigate": "navegar",
+  "presentation.help.pause": "pausa",
+  "presentation.help.exit": "salir",
+
+  // ─── Case modal — media carousel (multi-image cases) ──────────
+  // Aria copy for the multi-slide carousel inside CaseModal. The
+  // {index} / {total} placeholders are interpolated via the `t()`
+  // helper so the English phrasing reorders ("Image 2 of 5") without
+  // touching the call site.
+  "modalLoop.aria.region": "Galería del caso",
+  "modalLoop.aria.slide": "Imagen {index} de {total}",
+  "modalLoop.aria.prev": "Imagen anterior",
+  "modalLoop.aria.next": "Imagen siguiente",
+  "modalLoop.aria.dots": "Seleccionar imagen del caso",
+  "modalLoop.aria.goto": "Ir a imagen {index}",
+
+  // ─── Modal error boundary fallback ─────────────────────────────
+  // Surfaces when CaseModal's subtree throws — any user can see this
+  // (the dialog crashes equally for visitors and admins). Kept
+  // separate from `modal.*` so the wording can evolve without
+  // colliding with the normal modal chrome keys above.
+  "modal.boundary.title": "El caso no pudo abrirse",
+  "modal.boundary.detailsLabel": "Detalles",
+  "modal.boundary.close": "Cerrar",
+
   // ─── Case modal chrome (close, play/pause, sections, actions) ──
   "modal.close.aria": "Cerrar caso",
   "modal.close.title": "Cerrar (Esc)",

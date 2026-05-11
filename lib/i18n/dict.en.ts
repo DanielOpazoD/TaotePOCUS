@@ -145,6 +145,48 @@ export const DICT_EN: Dict = {
   // ─── Featured row ──────────────────────────────────────────────
   "featured.title": "Featured",
 
+  // ─── Keyboard shortcuts modal (`?` help) ───────────────────────
+  "shortcuts.title": "Keyboard shortcuts",
+  "shortcuts.intro": "Browse and filter without leaving the keyboard.",
+  "shortcuts.then": "then",
+  "shortcuts.close.aria": "Close",
+  "shortcuts.label.search": "Search",
+  "shortcuts.label.help": "Show shortcuts",
+  "shortcuts.label.nextCase": "Next case",
+  "shortcuts.label.prevCase": "Previous case",
+  "shortcuts.label.below": "Case below (jumps one grid row)",
+  "shortcuts.label.above": "Case above (jumps one grid row)",
+  "shortcuts.label.first": "First case",
+  "shortcuts.label.last": "Last case",
+  "shortcuts.label.goAtlas": "Go to POCUS Atlas",
+  "shortcuts.label.goEcg": "Go to ECG",
+  "shortcuts.label.goCases": "Go to Clinical cases",
+  "shortcuts.label.goInfo": "Go to Infographics",
+  "shortcuts.label.goFavs": "Go to Favourites",
+  "shortcuts.label.close": "Close modal / back",
+
+  // ─── Presentation mode (fullscreen cinema) ─────────────────────
+  "presentation.exit": "Exit",
+  "presentation.exit.aria": "Exit (Esc)",
+  "presentation.prev.aria": "Previous (←)",
+  "presentation.next.aria": "Next (→)",
+  "presentation.help.navigate": "navigate",
+  "presentation.help.pause": "pause",
+  "presentation.help.exit": "exit",
+
+  // ─── Case modal — media carousel (multi-image cases) ──────────
+  "modalLoop.aria.region": "Case gallery",
+  "modalLoop.aria.slide": "Image {index} of {total}",
+  "modalLoop.aria.prev": "Previous image",
+  "modalLoop.aria.next": "Next image",
+  "modalLoop.aria.dots": "Pick an image from this case",
+  "modalLoop.aria.goto": "Go to image {index}",
+
+  // ─── Modal error boundary fallback ─────────────────────────────
+  "modal.boundary.title": "This case couldn't open",
+  "modal.boundary.detailsLabel": "Details",
+  "modal.boundary.close": "Close",
+
   // ─── Case modal chrome (close, play/pause, sections, actions) ──
   "modal.close.aria": "Close case",
   "modal.close.title": "Close (Esc)",

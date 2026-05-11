@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { DictKey } from "@/lib/i18n";
 
 /**
  * Returns true while the user is typing in a form field or contenteditable.
@@ -210,22 +211,31 @@ function focusGrid(direction: GridDirection): boolean {
   return true;
 }
 
-/** Public: list of shortcuts to render in the help modal. */
-export const SHORTCUTS: { keys: string[]; label: string }[] = [
-  { keys: ["/"], label: "Buscar" },
-  { keys: ["?"], label: "Mostrar atajos" },
-  { keys: ["j", "→"], label: "Caso siguiente" },
-  { keys: ["k", "←"], label: "Caso anterior" },
-  { keys: ["↓"], label: "Caso debajo (salta una fila del grid)" },
-  { keys: ["↑"], label: "Caso encima (salta una fila del grid)" },
-  { keys: ["Home"], label: "Primer caso" },
-  { keys: ["End"], label: "Último caso" },
-  { keys: ["g", "a"], label: "Ir a Atlas POCUS" },
-  { keys: ["g", "e"], label: "Ir a ECG" },
-  { keys: ["g", "c"], label: "Ir a Casos clínicos" },
-  { keys: ["g", "i"], label: "Ir a Infografías" },
-  { keys: ["g", "f"], label: "Ir a Favoritos" },
-  { keys: ["Esc"], label: "Cerrar modal / volver" },
+/**
+ * Public: list of shortcuts to render in the help modal.
+ *
+ * Each entry stores a `labelKey` (a `DictKey` in the i18n dictionary)
+ * rather than a raw string — the help modal resolves it via `t()` at
+ * render time so the same array drives both Spanish and English UIs.
+ * TypeScript enforces that every key here also exists in both
+ * `dict.es.ts` and `dict.en.ts`, so a typo or missing translation is
+ * a compile error rather than a "Spanish in EN mode" bug at runtime.
+ */
+export const SHORTCUTS: { keys: string[]; labelKey: DictKey }[] = [
+  { keys: ["/"], labelKey: "shortcuts.label.search" },
+  { keys: ["?"], labelKey: "shortcuts.label.help" },
+  { keys: ["j", "→"], labelKey: "shortcuts.label.nextCase" },
+  { keys: ["k", "←"], labelKey: "shortcuts.label.prevCase" },
+  { keys: ["↓"], labelKey: "shortcuts.label.below" },
+  { keys: ["↑"], labelKey: "shortcuts.label.above" },
+  { keys: ["Home"], labelKey: "shortcuts.label.first" },
+  { keys: ["End"], labelKey: "shortcuts.label.last" },
+  { keys: ["g", "a"], labelKey: "shortcuts.label.goAtlas" },
+  { keys: ["g", "e"], labelKey: "shortcuts.label.goEcg" },
+  { keys: ["g", "c"], labelKey: "shortcuts.label.goCases" },
+  { keys: ["g", "i"], labelKey: "shortcuts.label.goInfo" },
+  { keys: ["g", "f"], labelKey: "shortcuts.label.goFavs" },
+  { keys: ["Esc"], labelKey: "shortcuts.label.close" },
 ];
 
 interface State {

@@ -21,6 +21,7 @@
 import dynamic from "next/dynamic";
 import ErrorBoundary from "./ErrorBoundary";
 import { CaseModal } from "./modals";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import type { AuthErrorCode } from "@/lib/errors";
 
@@ -88,6 +89,7 @@ interface Props {
 }
 
 export default function AppModals(props: Props) {
+  const t = useT();
   const {
     openCase,
     isFav,
@@ -126,10 +128,12 @@ export default function AppModals(props: Props) {
           fallback={(error) => (
             <div className="boundary-fallback boundary-fallback--floating" role="alertdialog">
               <div className="boundary-fallback-inner">
-                <h3>El caso no pudo abrirse</h3>
-                <p>Detalles: {error.message}</p>
+                <h3>{t("modal.boundary.title")}</h3>
+                <p>
+                  {t("modal.boundary.detailsLabel")}: {error.message}
+                </p>
                 <button type="button" className="boundary-fallback-retry" onClick={onCloseCase}>
-                  Cerrar
+                  {t("modal.boundary.close")}
                 </button>
               </div>
             </div>
