@@ -19,11 +19,16 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Next inlines small chunks at build time; we keep 'unsafe-inline' for
-      // styles (CSS-in-JS would otherwise need nonces) and for the tiny
-      // pre-paint theme script. Replace with nonces if you tighten this.
+      // 'unsafe-inline' stays for the pre-paint theme script and
+      // for Next.js's small inline bootstrappers. Replacing it with
+      // nonces would require middleware on EVERY response (kills
+      // static optimization on a primarily-static site). Tightened
+      // by dropping 'unsafe-eval': Next.js prod builds don't need
+      // it, our deps (Sentry, Clerk, Firebase, Serwist) don't use
+      // eval/new Function() at runtime. Reduces the JIT-injection
+      // attack surface without breaking anything.
       [
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "script-src 'self' 'unsafe-inline'",
         // Clerk JS bundles + per-instance subdomains (dev / staging / prod
         // all share the same wildcard).
         "https://*.clerk.com",
@@ -38,9 +43,21 @@ const securityHeaders = [
       ].join(" "),
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      // Clerk avatar CDN sits at images.clerk.com.
-      "img-src 'self' data: blob: https:",
-      "media-src 'self' data: blob: https:",
+      // Tightened img-src: was `https:` (any HTTPS host). The actual
+      // image sources are: same-origin (`/api/media/*`), Clerk avatar
+      // CDN (images.clerk.com), Sentry user-feedback screenshots
+      // (sentry.io), the Next/Image optimizer (proxies same-origin
+      // → so still `self`). Wildcard `https:` allowed images from
+      // ANY external host; tightening forces a config update when
+      // we want to add a new image source — better than silent
+      // image-tag exfiltration of session data.
+      [
+        "img-src 'self' data: blob:",
+        "https://*.clerk.com",
+        "https://images.clerk.com",
+        "https://*.sentry.io",
+      ].join(" "),
+      "media-src 'self' data: blob:",
       [
         "connect-src 'self'",
         // Firebase
