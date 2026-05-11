@@ -20,7 +20,7 @@
 
 import dynamic from "next/dynamic";
 import ErrorBoundary from "./ErrorBoundary";
-import { CaseModal, AuthModal } from "./modals";
+import { CaseModal } from "./modals";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import type { AuthErrorCode } from "@/lib/errors";
 
@@ -33,6 +33,10 @@ const PresentationMode = dynamic(() => import("./cine/PresentationMode"), { ssr:
 const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: false });
 const ShortcutsModal = dynamic(() => import("./modals/ShortcutsModal"), { ssr: false });
 const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
+// AuthModal embeds Clerk's `<SignIn />` widget which pulls a ~120KB
+// chunk of the Clerk SDK. Most catalog visitors never click "Entrar"
+// — keep the widget out of the initial bundle and code-split it.
+const AuthModal = dynamic(() => import("./modals/AuthModal"), { ssr: false });
 
 interface AdminPipeline {
   pendingDelete: CaseRecord | null;
