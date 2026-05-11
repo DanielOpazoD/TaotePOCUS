@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { CaseCard } from "./cards";
+import { CaseCardSkeleton } from "./CaseCardSkeleton";
 import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
 import type {
@@ -136,6 +137,10 @@ interface Props {
   onSetFocusCategory?: (id: string, value: FocusValue | undefined) => void;
   /** Wipe every focus-default slot (global + sections + categories). */
   onResetFocusDefaults?: () => void;
+  /** `true` while the async seed-cases chunk is still loading.
+   *  Drives the skeleton-grid render path that reserves the right
+   *  layout space so the chunk landing doesn't trigger CLS. */
+  seedLoading?: boolean;
 }
 
 /** How many cases per page in the public catalog grid. Hardcoded
@@ -209,6 +214,7 @@ export default function MainGrid({
   onSetFocusSection,
   onSetFocusCategory,
   onResetFocusDefaults,
+  seedLoading,
 }: Props) {
   // Hooks first — Rules of Hooks. The early returns for the admin /
   // empty branches don't render the grid below, but `useMemo` still
@@ -260,6 +266,30 @@ export default function MainGrid({
         onSetFocusCategory={onSetFocusCategory}
         onResetFocusDefaults={onResetFocusDefaults}
       />
+    );
+  }
+
+  // While the seed-cases chunk is loading, the public catalog views
+  // (atlas / ecg / cases / info / rayos) render skeleton placeholders
+  // INSTEAD of falling into the empty-state branch below. This
+  // reserves the layout space the real cards will occupy → the chunk
+  // landing replaces skeletons in-place rather than growing a 0px
+  // grid to ~2900px, which was the dominant CLS contributor.
+  //
+  // Only applies on section views with no user-applied filters/search;
+  // those scenarios are genuinely "no results" cases that should
+  // show the empty state regardless of seed loading.
+  const isPlainSectionView = view.kind === "section" && !cat && tags.length === 0 && !query.trim();
+  if (seedLoading && isPlainSectionView && filtered.length === 0) {
+    // 12 skeletons ≈ 4 rows × 3 columns on desktop. Enough to fill
+    // above-the-fold + a little below; cheaper than rendering all 30.
+    return (
+      <div className="case-grid">
+        {Array.from({ length: 12 }, (_, i) => (
+          // react-doctor-disable-next-line react-doctor/no-array-index-as-key
+          <CaseCardSkeleton key={i} />
+        ))}
+      </div>
     );
   }
 
