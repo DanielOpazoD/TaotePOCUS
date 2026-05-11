@@ -1155,3 +1155,18 @@
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+/* ─── Skeleton placeholder ─────────────────────────────────────────
+   Matches `<CaseCardSkeleton>` (the grid pre-hydration placeholder).
+   Reserves exact-same layout space as a real `.case-card` so the
+   chunk landing replaces skeleton → real in-place (no CLS). */
+.case-card--skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+.case-thumb--skeleton {
+  background: var(--surface-2);
+}
+.case-cat--skeleton {
+  visibility: hidden;
+}

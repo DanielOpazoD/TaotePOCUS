@@ -169,7 +169,7 @@ function AppInner() {
   // Catalog derivation (allCases / trashedImports / categoryCaseCounts).
   // Lives in `useMergedCatalog` so the merge + filter rules have one
   // home and App.tsx isn't directly hosting three side-by-side memos.
-  const { allCases, trashedImports, categoryCaseCounts } = useMergedCatalog({
+  const { allCases, trashedImports, categoryCaseCounts, seedLoading } = useMergedCatalog({
     userCasesLive: userCases.live,
     overrides,
   });
@@ -450,6 +450,7 @@ function AppInner() {
               onSetFocusSection={isAdmin ? focusDefaults.setSection : undefined}
               onSetFocusCategory={isAdmin ? focusDefaults.setCategory : undefined}
               onResetFocusDefaults={isAdmin ? focusDefaults.reset : undefined}
+              seedLoading={seedLoading}
             />
           </ErrorBoundary>
         </main>

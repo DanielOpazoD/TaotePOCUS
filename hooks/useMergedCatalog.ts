@@ -22,6 +22,11 @@ interface Result {
   /** Cases per category id, computed off `allCases`. Feeds the
    *  Categories editor's "in use" badge and deletion guard. */
   categoryCaseCounts: Record<string, number>;
+  /** `true` while the async seed-cases chunk is still loading. The
+   *  catalog grid uses this to render skeleton placeholders that
+   *  reserve the right layout space, eliminating the CLS shift when
+   *  the chunk lands and ~325 cards suddenly appear below the fold. */
+  seedLoading: boolean;
 }
 
 /**
@@ -48,7 +53,7 @@ export function useMergedCatalog({ userCasesLive, overrides }: Args): Result {
   // sees only their own cases for a few ms until the chunk lands,
   // then the catalog completes. The atlas grid handles the empty
   // intermediate state via its existing skeleton path.
-  const { seed } = useSeedCases();
+  const { seed, loading: seedLoading } = useSeedCases();
 
   const allCases = useMemo<CaseRecord[]>(
     () =>
@@ -71,5 +76,5 @@ export function useMergedCatalog({ userCasesLive, overrides }: Args): Result {
     return counts;
   }, [allCases]);
 
-  return { allCases, trashedImports, categoryCaseCounts };
+  return { allCases, trashedImports, categoryCaseCounts, seedLoading };
 }
