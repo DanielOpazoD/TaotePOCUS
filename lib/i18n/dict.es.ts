@@ -797,6 +797,13 @@ export const DICT_ES = {
   "toast.case.restored": "Caso restaurado",
   "toast.case.saved": "Caso guardado",
   "toast.case.edited": "Caso editado · puedes descartar desde el modal",
+  // Title-aware variants for the destructive flows — the bare-form
+  // toasts above lose context ("which case was deleted?"). These
+  // interpolate {title} so the admin sees which case they just
+  // acted on. Used by `useAdminPipeline`.
+  "toast.case.deletedTitled": '"{title}" movido a papelera',
+  "toast.case.purgedTitled": '"{title}" eliminado permanentemente',
+  "toast.case.purgeFailed": "No se pudo eliminar — revisa la consola",
   "toast.action.undo": "Deshacer",
   "toast.category.added": 'Categoría "{label}" agregada',
   "toast.category.renamed": "Categoría renombrada",

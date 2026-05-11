@@ -10,6 +10,8 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
+import { LanguageProvider } from "@/hooks/useLanguage";
 
 // The action result mirrors `WriteResult` from `lib/store.ts`. We
 // type the mock explicitly so `mockResolvedValueOnce` can return
@@ -54,15 +56,25 @@ function setup({ openCaseId = null as string | null } = {}) {
   const userCases = { live: [userOwned], remove, restore };
   const user = adminFactory();
 
-  const { result } = renderHook(() =>
-    useAdminPipeline({
-      user,
-      userCases,
-      setOverride,
-      showToast,
-      openCaseId,
-      closeOpenCase,
-    }),
+  // `useAdminPipeline` calls `useLanguage()` for the toast copy +
+  // `getCaseTitle(c, lang)` resolution — wrap the hook in a
+  // LanguageProvider so the context is available. Default to `es`
+  // to match the assertions below ("papelera", "Caso restaurado").
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <LanguageProvider initialLang="es">{children}</LanguageProvider>
+  );
+
+  const { result } = renderHook(
+    () =>
+      useAdminPipeline({
+        user,
+        userCases,
+        setOverride,
+        showToast,
+        openCaseId,
+        closeOpenCase,
+      }),
+    { wrapper },
   );
 
   return { result, setOverride, remove, restore, showToast, closeOpenCase };
