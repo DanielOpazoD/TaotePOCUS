@@ -312,6 +312,21 @@ export const DICT_ES = {
   // an EN-mode screen reader.
   "cine.fallbackAria": "Imagen",
 
+  // ─── Synthetic-loop canvas labels ──────────────────────────────
+  // `components/cine/cineScenes.ts` paints these as actual pixels on
+  // the canvas (via `ctx.fillText`). It lives outside React, so the
+  // strings travel through the `drawScene(opts.labels)` parameter —
+  // CineLoop resolves them via `t()` and threads them in. Keep the
+  // ECG labels uppercase to match the existing visual identity (the
+  // canvas does NOT re-uppercase them); the info subtitles stay
+  // title-case here and the scene calls `.toUpperCase()` at paint.
+  "scene.ecg.stemi": "STEMI INFERIOR",
+  "scene.ecg.afib": "FIBRILACIÓN AURICULAR",
+  "scene.ecg.bav": "BAV COMPLETO",
+  "scene.info.blue.sub": "Disnea aguda · algoritmo",
+  "scene.info.rush.sub": "Shock indiferenciado · 3 pasos",
+  "scene.info.fast.sub": "Trauma · 8 puntos",
+
   // ─── New-case button ───────────────────────────────────────────
   "newCase.aria": "Nuevo caso",
   "newCase.label": "Nuevo caso",

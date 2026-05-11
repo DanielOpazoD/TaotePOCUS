@@ -1,10 +1,41 @@
 // Canvas drawing routines for synthetic ultrasound cine-loops.
 // Ported verbatim from the design prototype (cine-loop.jsx).
+//
+// i18n note: this module lives outside React (it's a pure canvas
+// drawing routine, called from CineLoop's animation loop). The
+// scenes that paint clinical labels via `ctx.fillText` (ECG strip,
+// info card subtitle) accept a `labels` field on `DrawOpts` so the
+// React caller can resolve dict keys via `useT()` and thread the
+// translated strings in. Hardcoded Spanish strings are kept as
+// fallbacks — for tests and any non-React consumer the visual
+// stays unchanged.
 
 type Ctx = CanvasRenderingContext2D;
 
+/**
+ * Optional translated labels for scenes that paint clinical text.
+ * The shape mirrors the canvas-rendered strings inside `scEcg` and
+ * `scInfo`; if omitted, the routines fall back to the Spanish-
+ * baseline strings preserved at the callsite below.
+ */
+export interface SceneLabels {
+  /** ECG strip caption — one of three based on `kind`. */
+  ecg?: {
+    stemi: string;
+    afib: string;
+    bav: string;
+  };
+  /** Info-card subtitle — one of three based on `kind`. */
+  info?: {
+    blue: string;
+    rush: string;
+    fast: string;
+  };
+}
+
 interface DrawOpts {
   refreshSpeckle?: boolean;
+  labels?: SceneLabels;
 }
 
 // Module-level switch consumed by speckle() on the current frame. Set by
@@ -168,11 +199,11 @@ export function drawScene(
     case "ecg-stemi":
     case "ecg-afib":
     case "ecg-block":
-      return scECG(ctx, W, H, t, kind);
+      return scECG(ctx, W, H, t, kind, opts.labels?.ecg);
     case "info-blue":
     case "info-rush":
     case "info-fast":
-      return scInfo(ctx, W, H, t, kind);
+      return scInfo(ctx, W, H, t, kind, opts.labels?.info);
     default:
       return scBlines(ctx, W, H, t);
   }
@@ -730,7 +761,14 @@ function scGallstone(ctx: Ctx, W: number, H: number, t: number) {
   ctx.restore();
 }
 
-function scECG(ctx: Ctx, W: number, H: number, t: number, kind: string) {
+function scECG(
+  ctx: Ctx,
+  W: number,
+  H: number,
+  t: number,
+  kind: string,
+  labels?: SceneLabels["ecg"],
+) {
   ctx.fillStyle = "#0a0a0a";
   ctx.fillRect(0, 0, W, H);
 
@@ -787,16 +825,26 @@ function scECG(ctx: Ctx, W: number, H: number, t: number, kind: string) {
 
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.font = "10px ui-monospace, Menlo, monospace";
+  // Use the translated labels when the React caller provided them
+  // via `drawScene(... { labels: { ecg } })`; fall back to the
+  // Spanish baseline for tests and any non-React consumer.
   const label =
     kind === "ecg-stemi"
-      ? "STEMI INFERIOR"
+      ? (labels?.stemi ?? "STEMI INFERIOR")
       : kind === "ecg-afib"
-        ? "FIBRILACIÓN AURICULAR"
-        : "BAV COMPLETO";
+        ? (labels?.afib ?? "FIBRILACIÓN AURICULAR")
+        : (labels?.bav ?? "BAV COMPLETO");
   ctx.fillText(label, 12, 18);
 }
 
-function scInfo(ctx: Ctx, W: number, H: number, t: number, kind: string) {
+function scInfo(
+  ctx: Ctx,
+  W: number,
+  H: number,
+  t: number,
+  kind: string,
+  labels?: SceneLabels["info"],
+) {
   ctx.fillStyle = "#0c0d10";
   ctx.fillRect(0, 0, W, H);
 
@@ -810,13 +858,18 @@ function scInfo(ctx: Ctx, W: number, H: number, t: number, kind: string) {
     ctx.stroke();
   }
 
+  // `title` ("BLUE" / "RUSH" / "E-FAST") is a protocol acronym that
+  // doesn't translate — kept inline. The `sub` line is editorial
+  // prose that DOES translate; route through the dict when the
+  // React caller threaded labels via `drawScene(opts.labels.info)`,
+  // fall back to the Spanish baseline otherwise.
   const title = kind === "info-blue" ? "BLUE" : kind === "info-rush" ? "RUSH" : "E-FAST";
   const sub =
     kind === "info-blue"
-      ? "Disnea aguda · algoritmo"
+      ? (labels?.blue ?? "Disnea aguda · algoritmo")
       : kind === "info-rush"
-        ? "Shock indiferenciado · 3 pasos"
-        : "Trauma · 8 puntos";
+        ? (labels?.rush ?? "Shock indiferenciado · 3 pasos")
+        : (labels?.fast ?? "Trauma · 8 puntos");
 
   // Decorative blocks
   const pulse = 0.5 + 0.5 * Math.sin(t * 1.5);

@@ -259,6 +259,17 @@ export const DICT_EN: Dict = {
   // ─── CineLoop chrome ──────────────────────────────────────────
   "cine.fallbackAria": "Image",
 
+  // ─── Synthetic-loop canvas labels ──────────────────────────────
+  // ECG labels keep the universal POCUS abbreviations: STEMI is the
+  // same in both languages; "AFib" / "AV block" are the standard
+  // English forms used in ultrasound / cardiology training material.
+  "scene.ecg.stemi": "INFERIOR STEMI",
+  "scene.ecg.afib": "ATRIAL FIBRILLATION",
+  "scene.ecg.bav": "COMPLETE AV BLOCK",
+  "scene.info.blue.sub": "Acute dyspnea · algorithm",
+  "scene.info.rush.sub": "Undifferentiated shock · 3 steps",
+  "scene.info.fast.sub": "Trauma · 8 points",
+
   // ─── New-case button ───────────────────────────────────────────
   "newCase.aria": "New case",
   "newCase.label": "New case",

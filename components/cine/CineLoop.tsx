@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { useT } from "@/hooks/useLanguage";
 import type { Media } from "@/lib/types";
-import { drawScene, drawChrome } from "./cineScenes";
+import { drawScene, drawChrome, type SceneLabels } from "./cineScenes";
 
 interface Props {
   kind?: string;
@@ -62,6 +62,28 @@ export default function CineLoop({
   priority = false,
 }: Props) {
   const t = useT();
+  // Resolve all synthetic-scene labels once per language change.
+  // The `drawScene` call below runs inside the animation loop —
+  // recomputing the object every frame would allocate ~6 strings ×
+  // 60 fps × every CineLoop on the page. `useMemo` keyed on `t`
+  // (which is itself memoized by language change inside
+  // `LanguageProvider`) makes this a one-allocation-per-language-
+  // switch cost.
+  const sceneLabels = useMemo<SceneLabels>(
+    () => ({
+      ecg: {
+        stemi: t("scene.ecg.stemi"),
+        afib: t("scene.ecg.afib"),
+        bav: t("scene.ecg.bav"),
+      },
+      info: {
+        blue: t("scene.info.blue.sub"),
+        rush: t("scene.info.rush.sub"),
+        fast: t("scene.info.fast.sub"),
+      },
+    }),
+    [t],
+  );
   // Resolve focus values once. Defaults match the no-override case
   // (centered, no zoom), so passing focus={undefined} is identical to
   // not passing it.
@@ -213,7 +235,7 @@ export default function CineLoop({
       // we update it every 3rd frame; the eye doesn't catch the difference
       // but CPU drops by ~60%. Full quality runs every frame.
       const refreshSpeckle = quality === "full" || frame % 3 === 0;
-      drawScene(ctx, W, H, t, kind, { refreshSpeckle });
+      drawScene(ctx, W, H, t, kind, { refreshSpeckle, labels: sceneLabels });
       if (showChrome) drawChrome(ctx, W, H, dpr, kind);
       frame++;
       // Reduced-motion users: render exactly one frame and stop.
@@ -225,7 +247,22 @@ export default function CineLoop({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       ro.disconnect();
     };
-  }, [kind, speed, paused, showChrome, media, visible, tabVisible, quality, reducedMotion]);
+    // `sceneLabels` is memoized on language change (see useMemo above)
+    // — without including it the animation loop never re-renders the
+    // ECG / info scenes when the user toggles language while a synthetic
+    // loop is on screen.
+  }, [
+    kind,
+    speed,
+    paused,
+    showChrome,
+    media,
+    visible,
+    tabVisible,
+    quality,
+    reducedMotion,
+    sceneLabels,
+  ]);
 
   if (media && (media.kind === "video" || media.kind === "image" || media.kind === "gif")) {
     // Pick the right renderer based on the actual file extension, not
