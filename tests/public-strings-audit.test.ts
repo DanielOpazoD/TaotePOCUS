@@ -13,16 +13,23 @@
 //   2. JSX text nodes that occupy their OWN line between a tag-open
 //      ending on the previous line and a tag-close on the next line
 //      (catches button labels split across lines for legibility).
-//   3. `placeholder="..."` attribute values.
-//   4. `aria-label="..."` and `title="..."` literal attribute values.
-//      Unlike the admin audit (which deliberately skips these because
-//      admin productivity surfaces sometimes embed `c.title.es`),
-//      public chrome never embeds case content in static labels —
-//      so a literal aria-label IS a residue worth flagging.
+//   3. Any double-quoted or single-quoted JS string literal on the
+//      line — captures attribute literals (`placeholder="…"`,
+//      `aria-label="…"`, `title="…"`), object-property literals
+//      (`{ label: "…", defaultTitle: "…" }`), and any other quoted
+//      Spanish copy a future contributor might park outside JSX.
+//      This is the audit's most aggressive heuristic — it's the
+//      reason a residue inside `pickContent()` or `EmptyState`
+//      defaults gets caught even though it never appears as JSX text.
 //
 // Matches use Spanish-marker words OR letters with diacritics. The
 // match is loose by design: false positives go on the WHITELIST below
 // with a one-line comment.
+//
+// Lines that already contain a `t("…")` or `t(\`…\`)` call are skipped
+// — the literals reflected back from the dictionary live on those
+// lines by accident, not as hardcoded copy. Same for `import` /
+// `export` / `require` lines (module specifiers + symbol names).
 //
 // Out of scope:
 //   - `components/admin/**` — covered by `admin-strings-audit.test.ts`.
@@ -67,6 +74,7 @@ const TARGET_FILES = [
   "components/CatalogPagination.tsx",
   "components/CaseCardSkeleton.tsx",
   "components/EmptyState.tsx",
+  "components/ErrorBoundary.tsx",
   "components/MainGrid.tsx",
   "components/SectionHero.tsx",
   "components/Sidebar.tsx",
@@ -121,6 +129,17 @@ const SPANISH_MARKER_WORDS: ReadonlyArray<string> = [
   "navegar",
   "pausa",
   "salir",
+  "Explorar",
+  "Papelera",
+  "Sin publicaciones",
+  "Sin historias",
+  "Sin estudios",
+  "Sin resultados",
+  "Sin infografías",
+  "Toca",
+  "Prueba",
+  "Cuando",
+  "Ningún",
 ];
 
 /** Diacritic regex — anything with `á é í ó ú ñ`. */
@@ -143,17 +162,23 @@ const JSX_TEXT_PATTERN = />([^<>{}\n]+)</;
  */
 const JSX_TEXT_ALONE = /^\s*([^<>{}\n][^<>{}\n]*?)\s*$/;
 
-/** `placeholder="..."` literal value. */
-const PLACEHOLDER_PATTERN = /placeholder="([^"]+)"/;
-
 /**
- * `aria-label="..."` / `title="..."` literal values. Unlike the
- * admin audit (which skips these because admin productivity surfaces
- * sometimes embed `c.title.es` in labels), public chrome doesn't
- * embed case content in static labels, so a literal here IS a residue.
+ * Generic JS string-literal scanner. Catches every double- and
+ * single-quoted run on the line, so it covers:
+ *
+ *   - Attribute literals: `aria-label="Cerrar"`, `title="…"`,
+ *     `placeholder="…"`.
+ *   - Object/property literals: `defaultTitle: "Aún no has guardado"`,
+ *     `{ label: "Limpiar filtros", onClick }`.
+ *   - Free-standing strings: `confirmLabel="Eliminar"`,
+ *     `cancelLabel="Cancelar"`.
+ *
+ * Use the `g` flag so a single line with multiple string literals
+ * (common when several props are inlined) reports each match
+ * independently. The pattern is run on lines that don't contain
+ * `t("…")` / `t(\`…\`)` and don't look like module-system statements.
  */
-const ARIA_LABEL_PATTERN = /aria-label="([^"]+)"/;
-const TITLE_ATTR_PATTERN = /\btitle="([^"]+)"/;
+const JS_STRING_LITERAL = /"([^"\\]*(?:\\.[^"\\]*)*)"|'([^'\\]*(?:\\.[^'\\]*)*)'/g;
 
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
@@ -190,7 +215,7 @@ function looksSpanish(s: string): boolean {
 interface Hit {
   file: string;
   line: number;
-  kind: "jsx-text" | "jsx-text-alone" | "placeholder" | "aria-label" | "title";
+  kind: "jsx-text" | "jsx-text-alone" | "js-string";
   match: string;
 }
 
@@ -264,31 +289,21 @@ function scanFile(file: string, rel: string, hits: Hit[]) {
       }
     }
 
-    // 3-5. Attribute literals. Skip when the line already contains
-    // a `t(` call — those literals are dictionary values reflected
-    // here through the helper, not hardcoded copy.
+    // 3. Generic JS-string-literal scan. Skip when the line is a
+    // module statement (imports / exports are symbol names + paths,
+    // never user-visible copy) or already routes through `t()`.
+    if (/^(import|export)\b/.test(line.trim())) return;
     if (line.includes('t("') || line.includes("t(`")) return;
-    const placeholderMatch = line.match(PLACEHOLDER_PATTERN);
-    if (placeholderMatch && placeholderMatch[1]) {
-      const text = placeholderMatch[1];
-      if (text.length > 1 && looksSpanish(text)) {
-        hits.push({ file: rel, line: idx + 1, kind: "placeholder", match: text });
-      }
-    }
-
-    const ariaMatch = line.match(ARIA_LABEL_PATTERN);
-    if (ariaMatch && ariaMatch[1]) {
-      const text = ariaMatch[1];
-      if (text.length > 1 && looksSpanish(text)) {
-        hits.push({ file: rel, line: idx + 1, kind: "aria-label", match: text });
-      }
-    }
-
-    const titleMatch = line.match(TITLE_ATTR_PATTERN);
-    if (titleMatch && titleMatch[1]) {
-      const text = titleMatch[1];
-      if (text.length > 1 && looksSpanish(text)) {
-        hits.push({ file: rel, line: idx + 1, kind: "title", match: text });
+    JS_STRING_LITERAL.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    const seenOnLine = new Set<string>();
+    while ((m = JS_STRING_LITERAL.exec(line)) !== null) {
+      const text = m[1] ?? m[2];
+      if (!text || text.length < 3) continue;
+      if (seenOnLine.has(text)) continue;
+      seenOnLine.add(text);
+      if (looksSpanish(text)) {
+        hits.push({ file: rel, line: idx + 1, kind: "js-string", match: text });
       }
     }
   });

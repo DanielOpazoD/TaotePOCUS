@@ -2,6 +2,7 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { log } from "@/lib/log";
+import { useT } from "@/hooks/useLanguage";
 
 interface Props {
   /** Identifier for the boundary — used in logs and the fallback copy. */
@@ -87,24 +88,23 @@ function DefaultFallback({
   error: Error;
   onReset: () => void;
 }) {
+  const t = useT();
   return (
     <div className="boundary-fallback" role="alert">
       <div className="boundary-fallback-inner">
-        <h3>Algo no funcionó en esta sección</h3>
+        <h3>{t("boundary.title")}</h3>
         <p>
-          {name === "modal"
-            ? "El caso no pudo abrirse correctamente. "
-            : "Esta parte de la página falló al cargar. "}
-          Puedes reintentar o recargar la pestaña si persiste.
+          {name === "modal" ? t("boundary.body.modal") : t("boundary.body.generic")}{" "}
+          {t("boundary.body.suffix")}
         </p>
         <details>
-          <summary>Detalles técnicos</summary>
+          <summary>{t("boundary.details.summary")}</summary>
           <pre>
             {error.name}: {error.message}
           </pre>
         </details>
         <button type="button" className="boundary-fallback-retry" onClick={onReset}>
-          Reintentar
+          {t("boundary.retry")}
         </button>
       </div>
     </div>

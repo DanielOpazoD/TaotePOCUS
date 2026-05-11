@@ -187,6 +187,14 @@ export const DICT_EN: Dict = {
   "modal.boundary.detailsLabel": "Details",
   "modal.boundary.close": "Close",
 
+  // ─── Generic ErrorBoundary fallback (DefaultFallback) ──────────
+  "boundary.title": "Something went wrong in this section",
+  "boundary.body.modal": "The case couldn't open correctly.",
+  "boundary.body.generic": "This part of the page failed to load.",
+  "boundary.body.suffix": "You can retry or reload the tab if it persists.",
+  "boundary.details.summary": "Technical details",
+  "boundary.retry": "Retry",
+
   // ─── Case modal chrome (close, play/pause, sections, actions) ──
   "modal.close.aria": "Close case",
   "modal.close.title": "Close (Esc)",
@@ -217,6 +225,39 @@ export const DICT_EN: Dict = {
   "page.fallback.title": "Taote POCUS",
   "page.fallback.sub": "Clinical cases contributed by the community.",
   "page.fallback.crumb": "Home",
+
+  // ─── Empty-state defaults (no results / no favs / per section) ─
+  "empty.favs.title": "No saved cases yet",
+  "empty.favs.message": "Tap the heart on any case to add it to your collection.",
+  "empty.admin.title": "Nothing published",
+  "empty.admin.message": "Your first uploaded case will show up here.",
+  "empty.ecg.title": "Flatline",
+  "empty.ecg.message": "No ECG matches these filters. Try adjusting the search.",
+  "empty.cases.title": "No stories",
+  "empty.cases.message": "No clinical cases for that combination. Clear filters and try again.",
+  "empty.info.title": "No infographics",
+  "empty.info.message": "No visual references match those criteria.",
+  "empty.rayos.title": "No studies",
+  "empty.rayos.message": "No radiograph or CT matches. Clear filters or try a different keyword.",
+  "empty.default.title": "No results",
+  "empty.default.message": "Try clearing the filters or searching for a different keyword.",
+  "empty.action.exploreAtlas": "Explore the atlas",
+  "empty.action.clearFilters": "Clear filters",
+
+  // ─── Admin confirm dialogs (delete + permanent purge) ──────────
+  "confirm.delete.title": 'Delete "{title}"?',
+  "confirm.delete.message":
+    "The case moves to the Trash and you can restore it from the admin panel.",
+  "confirm.delete.confirm": "Delete",
+  "confirm.delete.cancel": "Cancel",
+  "confirm.purge.title": 'Permanently delete "{title}"?',
+  "confirm.purge.message":
+    "This erases the case and its media file (image / video) for good. It does NOT go to the trash and cannot be restored from the app — the only way back would be to import a previous JSON backup. Continue?",
+  "confirm.purge.confirm": "Delete forever",
+  "confirm.purge.cancel": "Cancel",
+
+  // ─── CineLoop chrome ──────────────────────────────────────────
+  "cine.fallbackAria": "Image",
 
   // ─── New-case button ───────────────────────────────────────────
   "newCase.aria": "New case",

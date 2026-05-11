@@ -6,6 +6,7 @@ import { CaseCard } from "./cards";
 import { CaseCardSkeleton } from "./CaseCardSkeleton";
 import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
+import { useT } from "@/hooks/useLanguage";
 import type {
   CaseRecord,
   Category,
@@ -225,6 +226,7 @@ export default function MainGrid({
   // render; the Set form is ~300. The Set is rebuilt only when the
   // favs list itself changes identity (toggling a heart), not on
   // category navigation.
+  const t = useT();
   const favSet = useMemo(() => new Set(favs), [favs]);
 
   if (view.kind === "admin" && isAdmin) {
@@ -314,9 +316,9 @@ export default function MainGrid({
     // useful action otherwise — empty state is a graceful dead end.
     const action =
       view.kind === "favs"
-        ? { label: "Explorar el atlas", onClick: onExploreAtlas }
+        ? { label: t("empty.action.exploreAtlas"), onClick: onExploreAtlas }
         : cat || tags.length > 0 || query.trim()
-          ? { label: "Limpiar filtros", onClick: onClearFilters }
+          ? { label: t("empty.action.clearFilters"), onClick: onClearFilters }
           : undefined;
     return <EmptyState view={view} action={action} />;
   }

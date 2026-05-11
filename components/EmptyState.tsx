@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactElement } from "react";
+import { useT } from "@/hooks/useLanguage";
+import type { DictKey } from "@/lib/i18n";
 import type { View } from "@/lib/types";
 
 interface EmptyAction {
@@ -30,14 +32,15 @@ interface Props {
  * semantic content.
  */
 export default function EmptyState({ view, title, message, action }: Props) {
-  const { glyph, defaultTitle, defaultMessage } = pickContent(view);
+  const t = useT();
+  const { glyph, titleKey, messageKey } = pickContent(view);
   return (
     <div className="empty empty--illustrated" role="status">
       <div className="empty-glyph" aria-hidden="true">
         {glyph}
       </div>
-      <h3>{title ?? defaultTitle}</h3>
-      <p>{message ?? defaultMessage}</p>
+      <h3>{title ?? t(titleKey)}</h3>
+      <p>{message ?? t(messageKey)}</p>
       {action && (
         <button type="button" className="empty-action" onClick={action.onClick}>
           {action.label}
@@ -47,56 +50,64 @@ export default function EmptyState({ view, title, message, action }: Props) {
   );
 }
 
+/**
+ * Resolve the right glyph + dict-key pair for the current view.
+ *
+ * Returning `DictKey`s (not pre-translated strings) keeps this helper
+ * pure and free of React-context dependencies — the calling component
+ * runs the `t()` lookup once it has the active language. Same pattern
+ * `useShortcuts.SHORTCUTS` uses: data carries the dictionary handle,
+ * the render site does the translation.
+ */
 function pickContent(view: View): {
   glyph: ReactElement;
-  defaultTitle: string;
-  defaultMessage: string;
+  titleKey: DictKey;
+  messageKey: DictKey;
 } {
   if (view.kind === "favs") {
     return {
       glyph: <HeartGlyph />,
-      defaultTitle: "Aún no has guardado casos",
-      defaultMessage: "Toca el corazón en cualquier caso para añadirlo a tu colección.",
+      titleKey: "empty.favs.title",
+      messageKey: "empty.favs.message",
     };
   }
   if (view.kind === "admin") {
     return {
       glyph: <BookGlyph />,
-      defaultTitle: "Sin publicaciones",
-      defaultMessage: "Cuando subas tu primer caso aparecerá aquí.",
+      titleKey: "empty.admin.title",
+      messageKey: "empty.admin.message",
     };
   }
   switch (view.section) {
     case "ecg":
       return {
         glyph: <FlatlineGlyph />,
-        defaultTitle: "Trazado plano",
-        defaultMessage: "Ningún ECG coincide con esos filtros. Prueba ajustar la búsqueda.",
+        titleKey: "empty.ecg.title",
+        messageKey: "empty.ecg.message",
       };
     case "cases":
       return {
         glyph: <BookGlyph />,
-        defaultTitle: "Sin historias",
-        defaultMessage: "No hay casos clínicos para esa combinación. Limpia filtros y reintenta.",
+        titleKey: "empty.cases.title",
+        messageKey: "empty.cases.message",
       };
     case "info":
       return {
         glyph: <PosterGlyph />,
-        defaultTitle: "Sin infografías",
-        defaultMessage: "No encontramos piezas visuales con esos criterios.",
+        titleKey: "empty.info.title",
+        messageKey: "empty.info.message",
       };
     case "rayos":
       return {
         glyph: <RibcageGlyph />,
-        defaultTitle: "Sin estudios",
-        defaultMessage:
-          "Ninguna radiografía o TAC coincide. Quita filtros o busca por otra palabra.",
+        titleKey: "empty.rayos.title",
+        messageKey: "empty.rayos.message",
       };
     default:
       return {
         glyph: <ProbeGlyph />,
-        defaultTitle: "Sin resultados",
-        defaultMessage: "Prueba quitando filtros o buscando por otra palabra.",
+        titleKey: "empty.default.title",
+        messageKey: "empty.default.message",
       };
   }
 }

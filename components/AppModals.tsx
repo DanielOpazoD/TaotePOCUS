@@ -21,7 +21,8 @@
 import dynamic from "next/dynamic";
 import ErrorBoundary from "./ErrorBoundary";
 import { CaseModal } from "./modals";
-import { useT } from "@/hooks/useLanguage";
+import { useLanguage } from "@/hooks/useLanguage";
+import { getCaseTitle } from "@/lib/case-localized";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import type { AuthErrorCode } from "@/lib/errors";
 
@@ -89,7 +90,7 @@ interface Props {
 }
 
 export default function AppModals(props: Props) {
-  const t = useT();
+  const { lang, t } = useLanguage();
   const {
     openCase,
     isFav,
@@ -174,11 +175,15 @@ export default function AppModals(props: Props) {
       <ConfirmDialog
         open={!!adminPipeline.pendingDelete}
         title={
-          adminPipeline.pendingDelete ? `¿Eliminar "${adminPipeline.pendingDelete.title}"?` : ""
+          adminPipeline.pendingDelete
+            ? t("confirm.delete.title", {
+                title: getCaseTitle(adminPipeline.pendingDelete, lang).value,
+              })
+            : ""
         }
-        message="El caso se mueve a la Papelera y puedes restaurarlo desde el panel admin."
-        confirmLabel="Eliminar"
-        cancelLabel="Cancelar"
+        message={t("confirm.delete.message")}
+        confirmLabel={t("confirm.delete.confirm")}
+        cancelLabel={t("confirm.delete.cancel")}
         destructive
         onConfirm={adminPipeline.confirmDelete}
         onCancel={adminPipeline.cancelDelete}
@@ -188,16 +193,14 @@ export default function AppModals(props: Props) {
         open={!!adminPipeline.pendingPurge}
         title={
           adminPipeline.pendingPurge
-            ? `¿Eliminar permanentemente "${adminPipeline.pendingPurge.title}"?`
+            ? t("confirm.purge.title", {
+                title: getCaseTitle(adminPipeline.pendingPurge, lang).value,
+              })
             : ""
         }
-        message={
-          "Esto borra el caso y su archivo de media (imagen / video) de forma definitiva. " +
-          "No aparece en la papelera ni se puede restaurar desde la app — la única forma de " +
-          "recuperarlo sería importar un backup JSON anterior. ¿Continuar?"
-        }
-        confirmLabel="Eliminar para siempre"
-        cancelLabel="Cancelar"
+        message={t("confirm.purge.message")}
+        confirmLabel={t("confirm.purge.confirm")}
+        cancelLabel={t("confirm.purge.cancel")}
         destructive
         onConfirm={adminPipeline.confirmPurge}
         onCancel={adminPipeline.cancelPurge}

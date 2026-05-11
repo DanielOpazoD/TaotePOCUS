@@ -215,6 +215,19 @@ export const DICT_ES = {
   "modal.boundary.detailsLabel": "Detalles",
   "modal.boundary.close": "Cerrar",
 
+  // ─── Generic ErrorBoundary fallback (DefaultFallback) ──────────
+  // Triggered when any non-modal boundary catches a render error
+  // (grid, drawer, footer, etc.). Modal crashes use the dedicated
+  // `modal.boundary.*` keys above. The {context} placeholder swaps
+  // between modal and generic copy at the call site so the same
+  // structure works for both.
+  "boundary.title": "Algo no funcionó en esta sección",
+  "boundary.body.modal": "El caso no pudo abrirse correctamente.",
+  "boundary.body.generic": "Esta parte de la página falló al cargar.",
+  "boundary.body.suffix": "Puedes reintentar o recargar la pestaña si persiste.",
+  "boundary.details.summary": "Detalles técnicos",
+  "boundary.retry": "Reintentar",
+
   // ─── Case modal chrome (close, play/pause, sections, actions) ──
   "modal.close.aria": "Cerrar caso",
   "modal.close.title": "Cerrar (Esc)",
@@ -248,6 +261,56 @@ export const DICT_ES = {
   "page.fallback.title": "Taote POCUS",
   "page.fallback.sub": "Casos clínicos contribuidos por la comunidad.",
   "page.fallback.crumb": "Inicio",
+
+  // ─── Empty-state defaults (no results / no favs / per section) ─
+  // Title + message strings rendered by `<EmptyState>` when the
+  // active section is empty or the filter set yields zero hits.
+  // Lookup is keyed on `view.kind` (favs / admin) or `view.section`
+  // (atlas / ecg / cases / info / rayos) inside `EmptyState.tsx`.
+  "empty.favs.title": "Aún no has guardado casos",
+  "empty.favs.message": "Toca el corazón en cualquier caso para añadirlo a tu colección.",
+  "empty.admin.title": "Sin publicaciones",
+  "empty.admin.message": "Cuando subas tu primer caso aparecerá aquí.",
+  "empty.ecg.title": "Trazado plano",
+  "empty.ecg.message": "Ningún ECG coincide con esos filtros. Prueba ajustar la búsqueda.",
+  "empty.cases.title": "Sin historias",
+  "empty.cases.message": "No hay casos clínicos para esa combinación. Limpia filtros y reintenta.",
+  "empty.info.title": "Sin infografías",
+  "empty.info.message": "No encontramos piezas visuales con esos criterios.",
+  "empty.rayos.title": "Sin estudios",
+  "empty.rayos.message":
+    "Ninguna radiografía o TAC coincide. Quita filtros o busca por otra palabra.",
+  "empty.default.title": "Sin resultados",
+  "empty.default.message": "Prueba quitando filtros o buscando por otra palabra.",
+  // CTA buttons rendered below the message. The favs view sends the
+  // user to the atlas; the generic-filtered view offers to clear
+  // the filters so they can see anything at all.
+  "empty.action.exploreAtlas": "Explorar el atlas",
+  "empty.action.clearFilters": "Limpiar filtros",
+
+  // ─── Admin confirm dialogs (delete + permanent purge) ──────────
+  // These are admin-triggered flows, but the dialog itself reads
+  // through the public language (an admin in EN mode shouldn't see
+  // a Spanish-only confirm). The {title} placeholder is the case's
+  // canonical Spanish title — by design, the editor works against
+  // the ES baseline so the prompt mentions the real filename.
+  "confirm.delete.title": '¿Eliminar "{title}"?',
+  "confirm.delete.message":
+    "El caso se mueve a la Papelera y puedes restaurarlo desde el panel admin.",
+  "confirm.delete.confirm": "Eliminar",
+  "confirm.delete.cancel": "Cancelar",
+  "confirm.purge.title": '¿Eliminar permanentemente "{title}"?',
+  "confirm.purge.message":
+    "Esto borra el caso y su archivo de media (imagen / video) de forma definitiva. No aparece en la papelera ni se puede restaurar desde la app — la única forma de recuperarlo sería importar un backup JSON anterior. ¿Continuar?",
+  "confirm.purge.confirm": "Eliminar para siempre",
+  "confirm.purge.cancel": "Cancelar",
+
+  // ─── CineLoop chrome ──────────────────────────────────────────
+  // Fallback aria-label when a media item ships without an explicit
+  // `modality` tag (most do — this only fires on legacy / partial
+  // imports). The accent-free "Imagen" otherwise leaks Spanish to
+  // an EN-mode screen reader.
+  "cine.fallbackAria": "Imagen",
 
   // ─── New-case button ───────────────────────────────────────────
   "newCase.aria": "Nuevo caso",
