@@ -281,11 +281,17 @@ export default function MainGrid({
   // show the empty state regardless of seed loading.
   const isPlainSectionView = view.kind === "section" && !cat && tags.length === 0 && !query.trim();
   if (seedLoading && isPlainSectionView && filtered.length === 0) {
-    // 12 skeletons ≈ 4 rows × 3 columns on desktop. Enough to fill
-    // above-the-fold + a little below; cheaper than rendering all 30.
+    // Render CATALOG_PAGE_SIZE skeletons (= one full page worth)
+    // so the grid's height matches the eventual real grid exactly,
+    // regardless of section. /ecg uses a 2-column layout (15 rows
+    // per page); /info uses 3-column (10 rows); /atlas uses 5-col
+    // (6 rows). 12 skeletons covered Atlas's above-the-fold but
+    // not the others — real cards growing from 12 to 30 produced
+    // CLS = 0.3+ on /ecg, /cases, /info. Empty divs are cheap;
+    // matching the full page eliminates the shift on every section.
     return (
       <div className="case-grid">
-        {Array.from({ length: 12 }, (_, i) => (
+        {Array.from({ length: CATALOG_PAGE_SIZE }, (_, i) => (
           // react-doctor-disable-next-line react-doctor/no-array-index-as-key
           <CaseCardSkeleton key={i} />
         ))}
