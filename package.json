@@ -53,6 +53,7 @@
     "not IE 11"
   ],
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^9.39.4",
     "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "^16.2.4",
