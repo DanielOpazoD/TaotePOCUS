@@ -43,14 +43,19 @@
   text-align: left;
   font-family: inherit;
   transition: transform var(--duration-base) var(--ease-standard);
+  /* Positioning context for the anchor-cover `::after` (same pattern
+     `.case-card` uses). The `<article>` element used to be a
+     non-positioned `<div role="button">`; now the title `<a>` owns
+     the click surface via its pseudo-element, which has to be
+     contained here. */
+  position: relative;
 }
 .featured-card:hover {
   transform: translateY(var(--hover-lift));
 }
-.featured-card:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
-}
+/* No `.featured-card:focus-visible` rule — the article is no longer
+   focusable. The title link inside picks up the global a11y focus
+   ring via `a:focus-visible` (see `a11y.css`). */
 .featured-thumb {
   position: relative;
   background: oklch(0.05 0 0);
@@ -342,6 +347,12 @@
   flex-direction: column;
   gap: var(--space-3);
   cursor: pointer;
+  /* Positioning context for `.case-card-link::after`, the stretched
+     pseudo-element that turns the whole card into the click target
+     of the title anchor (anchor-cover pattern). Without `position:
+     relative` here the cover would escape to the nearest positioned
+     ancestor (the grid cell) and bleed over neighbouring cards. */
+  position: relative;
   /* Hover treatment is intentionally quiet — a 1px lift on a calm
      cubic ease, no spring overshoot. The previous design used the
      spring on every card, which read as fussy at scale (~330 cards
@@ -391,6 +402,30 @@
    * the full scaling story. */
   content-visibility: auto;
   contain-intrinsic-size: auto 380px;
+}
+
+/* Anchor-cover pattern (see `components/cards/CaseCard.tsx`). The
+   title anchor itself only wraps the title text; its `::after`
+   pseudo-element stretches across the entire card to capture clicks
+   anywhere on the surface. The interactive controls inside the
+   thumb (.case-thumb-fav z-index:3, .admin-thumb-menu z-index:5)
+   already sit above z-index:1, so they receive their own clicks
+   instead of falling through to the cover.
+
+   Color/decoration: the anchor inherits color from `.case-title`
+   so the title doesn't suddenly turn into the browser default
+   blue underline. Focus ring is the global `:focus-visible` style
+   from `a11y.css` — the small outline around the title text reads
+   as the natural focus indicator for the keyboard-activated card. */
+.case-card-link {
+  color: inherit;
+  text-decoration: inherit;
+}
+.case-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 /* Wide container: horizontal "long-read" layout with image on the left

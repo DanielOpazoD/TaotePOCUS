@@ -149,7 +149,21 @@ type GridDirection = "next" | "prev" | "down" | "up" | "first" | "last";
  * identically across grid implementations.
  */
 function focusGrid(direction: GridDirection): boolean {
-  const cards = Array.from(document.querySelectorAll<HTMLElement>(".case-card"));
+  // Anchor-cover refactor (May-2026): `<CaseCard>` is now an
+  // `<article>` (non-focusable) and the open-case action lives on a
+  // `<a class="case-card-link">` inside the title. The grid-nav
+  // shortcuts focus the LINK so Enter activates the case immediately,
+  // and the `:focus-visible` ring on the anchor reads as the
+  // card-level focus indicator (since the link's `::after` covers
+  // the card and the global a11y ring picks up `a:focus-visible`).
+  //
+  // Falls back to `.case-card` selection if no anchor is found —
+  // the test fixtures in `tests/useShortcuts.test.tsx` seed synthetic
+  // `<button class="case-card">` elements directly and rely on this
+  // behavior; production cards never trip the fallback.
+  const links = Array.from(document.querySelectorAll<HTMLElement>(".case-card-link"));
+  const cards =
+    links.length > 0 ? links : Array.from(document.querySelectorAll<HTMLElement>(".case-card"));
   if (cards.length === 0) return false;
 
   const active = document.activeElement;

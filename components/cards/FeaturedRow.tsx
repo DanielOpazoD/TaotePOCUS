@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { CineLoop } from "../cine";
 import FallbackBadge from "./FallbackBadge";
 import { Icon } from "@/lib/icons";
@@ -35,19 +36,46 @@ function FeaturedCard({
   const descRead = getCaseDescription(caso, lang);
   // The "Crítico" red badge was removed in May-2026 — see CaseCard.tsx
   // for the rationale.
+  const handleAnchorClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Same anchor-cover handler as CaseCard — modifier-key clicks
+      // fall through to native anchor behavior (open in new tab),
+      // unmodified left-click opens the in-page modal. See
+      // CaseCard.tsx for the full rationale.
+      if (
+        e.defaultPrevented ||
+        e.button !== 0 ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey
+      ) {
+        return;
+      }
+      e.preventDefault();
+      onOpen();
+    },
+    [onOpen],
+  );
+  const handleAnchorKey = useCallback(
+    (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+      // Re-bind Space to mirror the prior `<div role="button">`
+      // (anchors only activate on Enter natively).
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        onOpen();
+      }
+    },
+    [onOpen],
+  );
   return (
-    <div
-      className={`featured-card featured-${variant}`}
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-    >
+    // Anchor-cover pattern (May-2026): `<article>` semantic wrapper +
+    // real `<a>` inside the title for the open-case action. Same
+    // shape as `CaseCard`, so the same `.case-card-link` CSS rules
+    // give the title link's `::after` pseudo-element the full-card
+    // click coverage. The fav button (z-index: 3) sits above the
+    // cover. Eliminates the prior `nested-interactive` violation.
+    <article className={`featured-card featured-${variant}`}>
       <div className="featured-thumb">
         {/* Hero is the largest above-the-fold image on sections that
             mount FeaturedRow (ECG, Casos clínicos), so it's the LCP
@@ -79,7 +107,14 @@ function FeaturedCard({
         {/* h2 (not h3) — same heading-order discipline as `CaseCard`.
             The page ships only h1 chrome, so cards must be h2. */}
         <h2 className="featured-title">
-          {titleRead.value}
+          <a
+            href={`?caso=${encodeURIComponent(caso.id)}`}
+            className="case-card-link"
+            onClick={handleAnchorClick}
+            onKeyDown={handleAnchorKey}
+          >
+            {titleRead.value}
+          </a>
           {titleRead.isFallback && <FallbackBadge read={titleRead} />}
         </h2>
         {variant === "hero" && (
@@ -94,7 +129,7 @@ function FeaturedCard({
           <span>{caso.role}</span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 

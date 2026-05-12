@@ -50,19 +50,14 @@ test.beforeEach(async ({ page }) => {
 // not regressions that should turn a PR red. When CI is green, the
 // app meets WCAG 2.1 AA for the rules axe ships at those tiers.
 //
-// Rules currently disabled:
-//   - `nested-interactive` — `<CaseCard>` is `<div role="button">`
-//     wrapping a `<button class="case-thumb-fav">`. Both are
-//     focusable, which axe flags as a keyboard-trap risk. The right
-//     fix is the "anchor-cover" pattern (the card is just an article,
-//     a stretched `::after` link element covers it for the open-case
-//     action, the fav button stays as a real button at a higher
-//     z-index). That's a bigger UX refactor than this branch can
-//     absorb — landing the gate now means future REGRESSIONS get
-//     caught even though the pre-existing one is whitelisted.
-//     Follow-up: <link to issue> — when CaseCard is refactored,
-//     remove this entry and let the rule run.
-const DISABLED_RULES: ReadonlyArray<string> = ["nested-interactive"];
+// Rules currently disabled: none. The previous `nested-interactive`
+// entry (focusable `<button class="case-thumb-fav">` inside focusable
+// `<div role="button">`) was cleared when CaseCard adopted the
+// anchor-cover pattern — the card is now an `<article>` (non-
+// focusable) and the open-case action lives on a real `<a>` inside
+// the title. Fav and the link are siblings in the focus order, not
+// nested.
+const DISABLED_RULES: ReadonlyArray<string> = [];
 
 // Routes to scan. The set mirrors `en-mode.spec.ts` so a11y + i18n
 // stay aligned: every surface a visitor reaches goes through both

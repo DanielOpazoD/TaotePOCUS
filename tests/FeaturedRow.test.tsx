@@ -68,7 +68,10 @@ describe("FeaturedRow", () => {
     expect(screen.queryByText("Should be ignored")).toBeNull();
   });
 
-  it("invokes onOpen with the clicked case", () => {
+  it("invokes onOpen when the title link is clicked", () => {
+    // Anchor-cover refactor (May-2026): the card is now an
+    // `<article>` and the open-case surface is a real `<a>` inside
+    // the title. Same shape as `CaseCard`.
     const onOpen = vi.fn();
     render(
       <FeaturedRow
@@ -78,7 +81,7 @@ describe("FeaturedRow", () => {
         onFav={vi.fn()}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Hero/ }));
+    fireEvent.click(screen.getByRole("link", { name: /Hero/ }));
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "h" }));
   });
 

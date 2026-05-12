@@ -160,9 +160,17 @@ test.describe("EN-mode public chrome", () => {
     await page.waitForLoadState("networkidle");
     // `useShortcuts` ignores the `?` keypress when focus is in an
     // input — and several public surfaces (the search box, the auth
-    // forms when admin) autofocus on mount. Move focus to `body`
-    // first so the global handler runs.
-    await page.locator("body").click({ position: { x: 5, y: 200 } });
+    // forms when admin) autofocus on mount. Drop focus on the body
+    // directly via JS so the global handler runs. We can't `click()`
+    // a coordinate because after the May-2026 CaseCard anchor-cover
+    // refactor the link's `::after` cover claims the entire card
+    // area, and a body-coordinate click can land on a card and
+    // trigger `?caso=` instead of the focus drop we wanted.
+    await page.evaluate(() => {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement) active.blur();
+      document.body.focus();
+    });
     // The shortcuts modal lives off the global `?` keypress. The
     // entire modal — heading, intro, and the 14 shortcut labels —
     // routes through `shortcuts.*` dict keys (PR #42). Open it and
