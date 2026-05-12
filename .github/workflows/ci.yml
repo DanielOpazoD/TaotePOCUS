@@ -21,6 +21,15 @@ jobs:
     name: Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    # Default permissions are `contents: read` only. The coverage-report
+    # step (below) needs `pull-requests: write` to upsert a sticky
+    # comment via the github-script API. `issues: write` is the right
+    # grant here because the GitHub API treats PRs as a subclass of
+    # Issues for the comments endpoint.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
 
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +87,161 @@ jobs:
               }
             " >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # Sticky PR comment with the coverage breakdown. Useful because:
+      #   1. Reviewers see the % without opening the build log.
+      #   2. The per-glob block makes it obvious when an edit lands
+      #      in `lib/**` (where the threshold is high) vs `hooks/**`
+      #      (where the bar is intentionally lower — most surface
+      #      is exercised through e2e).
+      #
+      # The step is gated on `pull_request` events so the workflow
+      # doesn't try to comment on push-to-main runs (no PR to attach
+      # to → API 404). `always()` keeps the comment posted even when
+      # an upstream step failed (e.g., the build) so a contributor
+      # can still see what their unit tests covered.
+      - name: Coverage report on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+            const summaryPath = "coverage/coverage-summary.json";
+            if (!fs.existsSync(summaryPath)) {
+              core.info("No coverage-summary.json — skipping PR comment.");
+              return;
+            }
+            const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+
+            // Aggregate per-glob (lib/** vs hooks/**) by re-walking the
+            // file entries. This mirrors the per-glob threshold in
+            // `vitest.config.ts` so the comment shows the same blocks
+            // a regression would fail on.
+            function aggregate(predicate) {
+              const totals = {
+                statements: { total: 0, covered: 0 },
+                branches: { total: 0, covered: 0 },
+                functions: { total: 0, covered: 0 },
+                lines: { total: 0, covered: 0 },
+              };
+              for (const [file, entry] of Object.entries(summary)) {
+                if (file === "total") continue;
+                if (!predicate(file)) continue;
+                for (const k of Object.keys(totals)) {
+                  totals[k].total += entry[k].total;
+                  totals[k].covered += entry[k].covered;
+                }
+              }
+              const out = {};
+              for (const [k, v] of Object.entries(totals)) {
+                out[k] = {
+                  ...v,
+                  pct: v.total === 0 ? 100 : (v.covered / v.total) * 100,
+                };
+              }
+              return out;
+            }
+
+            // File paths in the summary are absolute (workspace-rooted).
+            // Match by the `/lib/` and `/hooks/` segment to avoid
+            // collisions with the workspace name.
+            const libCov = aggregate((f) => f.includes("/lib/"));
+            const hooksCov = aggregate((f) => f.includes("/hooks/"));
+            const total = summary.total;
+
+            // Per-glob thresholds, kept in sync with `vitest.config.ts`.
+            // If a future PR loosens or tightens them, update both
+            // places — there's no programmatic source of truth for the
+            // numbers (the vitest config is TypeScript so we'd have to
+            // parse / import it from the workflow, which adds churn).
+            const THRESHOLDS = {
+              "lib/**":   { statements: 92, branches: 84, functions: 95, lines: 95 },
+              "hooks/**": { statements: 55, branches: 45, functions: 55, lines: 60 },
+            };
+
+            const fmt = (m) => `${m.pct.toFixed(2)}% (${m.covered}/${m.total})`;
+            const mark = (pct, threshold) =>
+              pct >= threshold ? "✅" : pct >= threshold - 2 ? "⚠️" : "❌";
+
+            function block(name, cov, thresholds) {
+              const rows = ["statements", "branches", "functions", "lines"]
+                .map((k) => {
+                  const t = thresholds[k];
+                  return `| ${k} | ${fmt(cov[k])} | ${t}% | ${mark(cov[k].pct, t)} |`;
+                })
+                .join("\n");
+              return [
+                `### \`${name}\``,
+                "",
+                "| Metric | Coverage | Threshold | Status |",
+                "|---|---|---|---|",
+                rows,
+                "",
+              ].join("\n");
+            }
+
+            // Overall block — no threshold gate, just visibility. The
+            // gating happens on the per-glob blocks above (these are
+            // what vitest fails on).
+            const overall = [
+              "### Overall (all included files)",
+              "",
+              "| Metric | Coverage |",
+              "|---|---|",
+              ...["statements", "branches", "functions", "lines"].map(
+                (k) => `| ${k} | ${fmt(total[k])} |`,
+              ),
+              "",
+            ].join("\n");
+
+            const body = [
+              "## ☂️ Coverage report",
+              "",
+              "Per-glob breakdown matches the thresholds enforced by Vitest in `vitest.config.ts`.",
+              "✅ above threshold · ⚠️ within 2pp · ❌ below.",
+              "",
+              block("lib/**", libCov, THRESHOLDS["lib/**"]),
+              block("hooks/**", hooksCov, THRESHOLDS["hooks/**"]),
+              overall,
+              "<sub>Posted by CI · re-runs replace this comment.</sub>",
+            ].join("\n");
+
+            // Sticky-comment upsert: find a previous comment by this
+            // bot that starts with our marker heading and update it in
+            // place. Avoids the long history of stale coverage comments
+            // a naked `createComment` would produce on every push.
+            const STICKY_MARKER = "## ☂️ Coverage report";
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existing = comments.find(
+              (c) =>
+                c.user &&
+                c.user.type === "Bot" &&
+                typeof c.body === "string" &&
+                c.body.startsWith(STICKY_MARKER),
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+              core.info(`Updated existing coverage comment #${existing.id}.`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+              core.info("Created new coverage comment.");
+            }
 
       - name: Build
         run: npm run build
