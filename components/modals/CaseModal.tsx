@@ -176,8 +176,26 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                   {s}×
                 </button>
               ))}
-              <span style={{ opacity: 0.5 }}>·</span>
-              <span style={{ fontSize: 10, opacity: 0.7 }}>CINE-LOOP</span>
+              <span style={{ color: "var(--ink-mute)" }} aria-hidden="true">
+                ·
+              </span>
+              {/*
+                Decorative chrome label inside the modal speed-controls
+                row — mimics the corner overlay an ultrasound machine
+                paints on cine loops. Uses `--ink-mute` (≈ 50% lightness
+                gray) so the foreground meets WCAG AA contrast against
+                the modal's near-white background; the previous
+                `opacity: 0.7` over `#fdfdfc` rendered at 1.02:1.
+                `aria-hidden` keeps it out of the screen-reader output
+                — the surrounding speed buttons + the cine canvas
+                itself carry the semantic meaning.
+              */}
+              <span
+                style={{ fontSize: 10, color: "var(--ink-mute)", letterSpacing: "0.05em" }}
+                aria-hidden="true"
+              >
+                CINE-LOOP
+              </span>
             </div>
           </div>
           <div className="modal-body" ref={bodyRef}>
