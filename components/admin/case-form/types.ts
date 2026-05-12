@@ -5,7 +5,7 @@
 import type { CaseRecord } from "@/lib/types";
 
 /**
- * The three panels of the case form, surfaced as tabs:
+ * The four panels of the case form, surfaced as tabs:
  *
  *   - `metadata` — title, category, modality, author, role, date,
  *     description, tags. The most-frequently-edited fields. Default
@@ -14,8 +14,11 @@ import type { CaseRecord } from "@/lib/types";
  *     loop fallback synthesizer. Larger surface, less common edit.
  *   - `advanced` — section selector + featured flag. Structural
  *     decisions an admin sets once and rarely revisits.
+ *   - `ai`       — translation suggestions (Gemini / OpenAI /
+ *     DeepSeek / stub) for the EN ↔ ES slots. Optional flow; the
+ *     ES baseline can be saved without ever visiting this tab.
  */
-export type CaseFormTab = "metadata" | "media" | "advanced";
+export type CaseFormTab = "metadata" | "media" | "advanced" | "ai";
 
 // localStorage caps at ~5 MB across all keys (per origin in most
 // browsers). dataURL adds ~33% over the binary size due to base64.

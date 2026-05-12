@@ -544,6 +544,7 @@ export const DICT_EN: Dict = {
   "form.tab.metadata": "Metadata",
   "form.tab.media": "Media",
   "form.tab.advanced": "Advanced",
+  "form.tab.ai": "AI",
   "form.action.cancel": "Cancel",
   "form.action.save": "Save changes",
   "form.action.publish": "Publish case",

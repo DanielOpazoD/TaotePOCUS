@@ -606,6 +606,7 @@ export const DICT_ES = {
   "form.tab.metadata": "Metadatos",
   "form.tab.media": "Media",
   "form.tab.advanced": "Avanzado",
+  "form.tab.ai": "IA",
   "form.action.cancel": "Cancelar",
   "form.action.save": "Guardar cambios",
   "form.action.publish": "Publicar caso",

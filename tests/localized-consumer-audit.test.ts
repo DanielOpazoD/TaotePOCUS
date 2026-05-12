@@ -83,6 +83,16 @@ const WHITELIST = new Set<string>([
   // surface stays read-from-ES too — admin productivity, not
   // public display.
   "components/App.tsx",
+
+  // AI suggestions panel reads from a specific slot (es OR en) to
+  // produce the OTHER slot. By design — the whole purpose is to
+  // translate FROM one language TO the other, so the
+  // `getCaseTitle(c, lang)` helper (which abstracts away which
+  // slot is being read) doesn't fit. The translation request
+  // shape carries plain strings, not LocalizedString, so the
+  // downstream provider never sees the bilingual object —
+  // there's no `[object Object]` risk here.
+  "components/admin/ai/AISuggestionsPanel.tsx",
 ]);
 
 /**
