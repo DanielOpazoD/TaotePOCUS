@@ -506,10 +506,18 @@
   }
 }
 .case-card:hover .case-thumb {
-  /* Single soft shadow on hover — was a 3-layer stack. The added
-     light gives a subtle lift cue against the page; we don't need
-     to simulate physical light falloff at this scale. */
-  box-shadow: var(--shadow-1);
+  /* Single soft shadow on hover + a 1px section-accent ring. The
+     shadow gives a subtle lift cue against the page; the ring turns
+     the hover from "generic lift" into "section-specific
+     interactive surface" — Atlas reads in cool accent, ECG green,
+     Cases warm, Info indigo, Rayos blue-grey — without any per-
+     section CSS branches. `color-mix` falls through token
+     resolution: when `--section-accent` is unset (admin / favs /
+     etc.) it lands on `--accent`, so cards there still get a
+     treatment rather than dropping to transparent. */
+  box-shadow:
+    var(--shadow-1),
+    0 0 0 1px color-mix(in oklch, var(--section-accent, var(--accent)) 28%, transparent);
 }
 .case-card:hover .case-thumb-overlay {
   opacity: 1;
@@ -1201,6 +1209,37 @@
 }
 .case-thumb--skeleton {
   background: var(--surface-2);
+  /* Mirror the shimmer pattern from `.skeleton-line` and
+     `.skeleton-thumb` (skeleton.css) — a 1.6s linear sweep gives the
+     1:1 placeholder the same "in progress" cue as the meta lines
+     below. The original skeleton was static because the comment on
+     `CaseCardSkeleton.tsx` reasoned that the chunk lands in a
+     frame or two — but the measured window is 100-500ms on
+     slow networks, plenty for the 1.6s loop to read as
+     deliberate. `overflow: hidden` to clip the sweep at the thumb's
+     rounded corners (inherited from `.case-thumb`). */
+  position: relative;
+  overflow: hidden;
+}
+.case-thumb--skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ink) 4%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-thumb--skeleton::after {
+    animation: none;
+    opacity: 0.5;
+    transform: none;
+  }
 }
 .case-cat--skeleton {
   visibility: hidden;
