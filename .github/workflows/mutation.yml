@@ -1,0 +1,99 @@
+# Stryker mutation-testing runs. Opt-in only:
+#
+#   - `schedule` weekly Sunday 03:00 UTC — picks up drift while the
+#     project is quiet. Stryker's incremental cache (committed
+#     to the workflow's cache) speeds up successive runs.
+#   - `workflow_dispatch` — manual trigger from the Actions UI for
+#     ad-hoc runs (e.g., after a big refactor on `lib/`).
+#
+# Mutation testing is intentionally NOT a PR gate. Even on a
+# narrow scope a full run takes minutes; on a PR job that's a
+# tempo killer with marginal incremental signal. We get the signal
+# weekly + on-demand and act on it as a follow-up commit.
+
+name: Mutation testing (Stryker)
+
+on:
+  schedule:
+    # Sunday at 03:00 UTC = a quiet window across most time zones.
+    # Cron syntax: min hour day-of-month month day-of-week.
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Override the `mutate` glob (optional, e.g. lib/case-localized.ts)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Stryker (mutation score)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Stryker's `incremental` mode caches per-mutant test results
+      # in `.stryker-tmp/incremental.json`. Caching it across runs
+      # means subsequent weekly runs only re-test mutants in files
+      # that changed since the last run — dropping a full 10+ minute
+      # cycle to a couple of minutes when the codebase is stable.
+      - name: Cache Stryker incremental state
+        uses: actions/cache@v4
+        with:
+          path: .stryker-tmp
+          key: stryker-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('lib/**/*.ts', 'hooks/**/*.ts', 'tests/**/*.ts', 'tests/**/*.tsx') }}
+          restore-keys: |
+            stryker-${{ runner.os }}-${{ github.ref }}-
+            stryker-${{ runner.os }}-
+
+      - name: Run Stryker
+        run: |
+          if [ -n "${{ github.event.inputs.scope }}" ]; then
+            # The override path lets a maintainer narrow a manual
+            # run to a single file ("does this PR's new code kill
+            # mutants?") without touching the committed config.
+            npx stryker run --mutate "${{ github.event.inputs.scope }}"
+          else
+            npx stryker run
+          fi
+
+      # The HTML report is the most actionable artefact: each
+      # surviving mutant is shown with its diff + the tests that
+      # ran but failed to detect it. Worth keeping for review even
+      # when the run is green.
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 30
+
+      - name: Surface score in job summary
+        if: always()
+        run: |
+          # Stryker writes the mutation score as the LAST table row
+          # of its clear-text reporter on stdout. Re-run with
+          # `--reporters json` would give us a parseable file, but
+          # we already have the HTML report — just point at it.
+          echo "## Mutation testing" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "See the **mutation-report** artifact for the full HTML report." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Thresholds (per \`stryker.conf.mjs\`):" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ✅ high: ≥ 90" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ⚠️ low: 75 – 90" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ❌ break: < 65 (fails the job)" >> "$GITHUB_STEP_SUMMARY"
