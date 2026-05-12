@@ -366,6 +366,17 @@ jobs:
       # bot comment with our marker heading and replace it, otherwise
       # create a new one. The marker is unique to this report so it
       # doesn't collide with coverage / a11y comments.
+      #
+      # We parse `.lighthouseci/lhr-*.json` directly (the per-run
+      # Lighthouse Result files) instead of `manifest.json`. Why:
+      # `manifest.json` is ONLY written by LHCI's `filesystem` upload
+      # target (see `node_modules/@lhci/cli/src/upload/upload.js >
+      # runFilesystemTarget`). Our config uses
+      # `upload.target: "temporary-public-storage"`, which uploads
+      # reports to anonymous URLs but DOES NOT write manifest.json
+      # locally. The per-URL `lhr-<timestamp>.json` files are always
+      # written during `collect`, regardless of upload target — so
+      # they're a stable source of truth.
       - name: Lighthouse report on PR
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
@@ -373,26 +384,55 @@ jobs:
           script: |
             const fs = require("fs");
             const path = require("path");
-            const manifestPath = ".lighthouseci/manifest.json";
-            if (!fs.existsSync(manifestPath)) {
-              core.info("No .lighthouseci/manifest.json — skipping PR comment (LHCI step may have failed before producing output).");
+            const LHCI_DIR = ".lighthouseci";
+            if (!fs.existsSync(LHCI_DIR)) {
+              core.info("No .lighthouseci/ directory — skipping PR comment (LHCI step did not run).");
               return;
             }
 
-            // Manifest shape (LHCI v0.15): an array of runs, each
-            // entry has { url, summary: { performance, accessibility,
-            // 'best-practices', seo, pwa }, jsonPath, htmlPath,
-            // isRepresentativeRun }. With `numberOfRuns: 3` we get
-            // 3 entries per URL; one of them is marked
-            // `isRepresentativeRun=true` (LHCI picks the median).
-            const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-            const reps = manifest.filter((r) => r.isRepresentativeRun);
-            if (reps.length === 0) {
-              core.warning("No representative runs in manifest — falling back to first run per URL.");
-              const seen = new Map();
-              for (const r of manifest) if (!seen.has(r.url)) seen.set(r.url, r);
-              reps.push(...seen.values());
+            // Collect every per-run LHR. File pattern is
+            // `lhr-<timestamp>.json` (per `node_modules/@lhci/utils/
+            // src/saved-reports.js > LHR_REGEX`). For `numberOfRuns: 3`
+            // × 4 URLs we expect 12 files.
+            const LHR_REGEX = /^lhr-\d+\.json$/;
+            const lhrFiles = fs.readdirSync(LHCI_DIR).filter((f) => LHR_REGEX.test(f));
+            if (lhrFiles.length === 0) {
+              core.warning("No lhr-*.json files in .lighthouseci/ — LHCI may have failed before producing reports.");
+              return;
             }
+
+            // Group runs by URL. Compute per-category MEDIAN across
+            // the 3 runs per URL. Simpler than LHCI's representative-
+            // run algorithm (which sorts by FCP + TTI proximity) and
+            // gives equivalent signal at our 3-runs scale.
+            const runsByUrl = new Map();
+            for (const file of lhrFiles) {
+              const lhr = JSON.parse(fs.readFileSync(path.join(LHCI_DIR, file), "utf8"));
+              if (!runsByUrl.has(lhr.requestedUrl)) runsByUrl.set(lhr.requestedUrl, []);
+              runsByUrl.get(lhr.requestedUrl).push(lhr);
+            }
+
+            function medianScore(runs, category) {
+              const scores = runs
+                .map((r) => r.categories?.[category]?.score)
+                .filter((s) => typeof s === "number")
+                .sort((a, b) => a - b);
+              if (scores.length === 0) return null;
+              return scores[Math.floor(scores.length / 2)];
+            }
+
+            // Shape per URL to mirror the original `manifest`-style
+            // entry the comment rendering expects: { url, summary: {
+            // performance, accessibility, "best-practices", seo } }.
+            const reps = Array.from(runsByUrl.entries()).map(([url, runs]) => ({
+              url,
+              summary: {
+                performance: medianScore(runs, "performance"),
+                accessibility: medianScore(runs, "accessibility"),
+                "best-practices": medianScore(runs, "best-practices"),
+                seo: medianScore(runs, "seo"),
+              },
+            }));
 
             // Thresholds in `.lighthouserc.json`. Kept in sync here so
             // the comment's ✅/⚠️/❌ markers match what the CI gate
@@ -424,7 +464,8 @@ jobs:
             const rows = reps
               .map((r) => {
                 const s = r.summary;
-                const cell = (key) => `${pct(s[key])} ${mark(s[key], THRESHOLDS[key])}`;
+                const cell = (key) =>
+                  s[key] == null ? "—" : `${pct(s[key])} ${mark(s[key], THRESHOLDS[key])}`;
                 return `| \`${labelOf(r.url)}\` | ${cell("performance")} | ${cell("accessibility")} | ${cell("best-practices")} | ${cell("seo")} |`;
               })
               .join("\n");
@@ -436,8 +477,8 @@ jobs:
             const body = [
               "## 💡 Lighthouse report",
               "",
-              "Median across 3 runs per URL (LHCI representative-run selection).",
-              `Thresholds: ${thresholdsList}. ✅ pass · ⚠️ within 5pp · ❌ below.`,
+              `Median per category across ${lhrFiles.length} runs over ${reps.length} URL(s) — parsed from \`.lighthouseci/lhr-*.json\`.`,
+              `Thresholds: ${thresholdsList}. ✅ pass · ⚠️ within 5pp · ❌ below · — no data.`,
               "",
               header,
               rows,
