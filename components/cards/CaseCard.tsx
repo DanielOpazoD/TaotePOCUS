@@ -119,6 +119,48 @@ function CaseCardImpl({
   // (`onFav`, `onOpen`, etc. from the parent) are now stable, so
   // React.memo below sees unchanged props on category changes.
   const handleOpen = useCallback(() => onOpen(caso), [onOpen, caso]);
+  const handleAnchorClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Anchor-cover pattern: the `<a>` has a real `href` (`?caso=<id>`)
+      // so the card is a navigable, keyboard-activatable, copy-link-
+      // shareable surface even without JS. With JS, preventDefault +
+      // `onOpen` swaps the navigation for the in-page modal mount,
+      // which matches the prior `<div role="button">` behavior.
+      //
+      // Modifier keys (Cmd / Ctrl / Shift / Alt / middle-click) let
+      // the native anchor behavior run — power users get
+      // open-in-new-tab back, which the prior `<div role="button">`
+      // could never offer.
+      if (
+        e.defaultPrevented ||
+        e.button !== 0 ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey
+      ) {
+        return;
+      }
+      e.preventDefault();
+      handleOpen();
+    },
+    [handleOpen],
+  );
+  const handleAnchorKey = useCallback(
+    (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+      // Native anchors activate on Enter (browser fires a synthetic
+      // click), but NOT on Space. The prior `<div role="button">`
+      // activated on both — we preserve that here so users who built
+      // muscle memory around Space-to-open don't regress on the
+      // refactor. Enter passes through to the native click path so
+      // we don't double-trigger.
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        handleOpen();
+      }
+    },
+    [handleOpen],
+  );
   const handleFavClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -142,18 +184,23 @@ function CaseCardImpl({
   const handleDelete = onDelete ? () => onDelete(caso) : undefined;
   const handlePurge = onPurge ? () => onPurge(caso) : undefined;
   return (
-    <div
-      className="case-card"
-      role="button"
-      tabIndex={0}
-      onClick={handleOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleOpen();
-        }
-      }}
-    >
+    // Anchor-cover pattern. The card is an `<article>` (landmark
+    // semantic — screen readers announce it as a region with the
+    // h2 title as its accessible name), NOT a focusable `<button>`.
+    // The actual open-case action lives on a real `<a>` inside the
+    // h2 below, whose `::after` pseudo-element stretches across the
+    // whole card (`.case-card-link::after { position: absolute; inset: 0; }`).
+    // This eliminates the prior nested-interactive a11y violation
+    // (focusable `<button class="case-thumb-fav">` inside focusable
+    // `<div role="button">`) — now the fav button and the link are
+    // SIBLINGS in the focus order, not nested, and the link is the
+    // only Tab stop for "open this case".
+    //
+    // The anchor's `href="?caso=<id>"` is also genuinely navigable:
+    // copy-link works, open-in-new-tab works (the click handler
+    // bails on modifier keys), and JS-disabled visitors still land
+    // on the modal-open URL state.
+    <article className="case-card">
       <div className="case-thumb">
         <CineLoop
           kind={caso.loop}
@@ -222,7 +269,14 @@ function CaseCardImpl({
             with h3 here because there's no intervening h2 between the
             page h1 and these card titles. */}
         <h2 className="case-title">
-          {searchQuery ? highlight(titleRead.value, searchQuery) : titleRead.value}
+          <a
+            href={`?caso=${encodeURIComponent(caso.id)}`}
+            className="case-card-link"
+            onClick={handleAnchorClick}
+            onKeyDown={handleAnchorKey}
+          >
+            {searchQuery ? highlight(titleRead.value, searchQuery) : titleRead.value}
+          </a>
           {titleRead.isFallback && <FallbackBadge read={titleRead} />}
         </h2>
         {/* Short blurb under the title in the active language. */}
@@ -248,7 +302,7 @@ function CaseCardImpl({
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 

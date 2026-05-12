@@ -48,20 +48,63 @@ describe("CaseCard", () => {
     expect(container.querySelector(".case-thumb-crit")).toBeNull();
   });
 
-  it("invokes onOpen when the card is clicked", () => {
+  it("invokes onOpen when the title link is clicked", () => {
+    // Anchor-cover pattern (May-2026): the card is an `<article>` and
+    // the open-case surface is a real `<a href="?caso=…">` inside the
+    // h2 title. Clicking the link bubbles through `handleAnchorClick`,
+    // which preventDefault()s the navigation and invokes `onOpen`.
     const onOpen = vi.fn();
     render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={onOpen} />);
-    fireEvent.click(screen.getByRole("button", { name: /B-líneas confluentes/ }));
+    fireEvent.click(screen.getByRole("link", { name: /B-líneas confluentes/ }));
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
-  it("invokes onOpen on Enter and Space when card is focused", () => {
+  it("uses a real ?caso= href on the title link so copy-link / new-tab work", () => {
+    // The anchor-cover pattern preserves the option of opening the
+    // case in a new tab (Cmd-click / Ctrl-click). That ONLY works
+    // when the anchor has a real `href` the browser can follow —
+    // verify the URL shape stays stable for shareability.
+    render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={vi.fn()} />);
+    const link = screen.getByRole("link", { name: /B-líneas confluentes/ }) as HTMLAnchorElement;
+    // jsdom normalizes the href against the document base URL — match
+    // the search-param suffix rather than the absolute string.
+    expect(link.getAttribute("href")).toBe("?caso=c-test");
+  });
+
+  it("does NOT invoke onOpen on a modifier-key click (so Cmd/Ctrl-click open in a new tab)", () => {
+    // Modifier-key clicks must fall through to the browser's native
+    // anchor behavior — preserves the power-user feature the prior
+    // `<div role="button">` could never offer.
     const onOpen = vi.fn();
     render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={onOpen} />);
-    const card = screen.getByRole("button", { name: /B-líneas confluentes/ });
-    fireEvent.keyDown(card, { key: "Enter" });
-    fireEvent.keyDown(card, { key: " " });
-    expect(onOpen).toHaveBeenCalledTimes(2);
+    const link = screen.getByRole("link", { name: /B-líneas confluentes/ });
+    fireEvent.click(link, { metaKey: true });
+    fireEvent.click(link, { ctrlKey: true });
+    fireEvent.click(link, { shiftKey: true });
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("invokes onOpen on Enter when the title link is focused", () => {
+    // Native anchors activate on Enter (the browser fires a synthetic
+    // click). happy-dom doesn't perform that translation, so we fire
+    // the click directly to mirror the post-translation event — the
+    // assertion is that handleOpen gets called once per activation.
+    const onOpen = vi.fn();
+    render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={onOpen} />);
+    const link = screen.getByRole("link", { name: /B-líneas confluentes/ });
+    fireEvent.click(link);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it("invokes onOpen on Space when the title link is focused", () => {
+    // Native anchors don't activate on Space; we re-bind that key on
+    // the link so the prior `<div role="button">` muscle memory is
+    // preserved post-refactor.
+    const onOpen = vi.fn();
+    render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={onOpen} />);
+    const link = screen.getByRole("link", { name: /B-líneas confluentes/ });
+    fireEvent.keyDown(link, { key: " " });
+    expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
   it("invokes onFav when the heart button is clicked, without triggering onOpen", () => {
