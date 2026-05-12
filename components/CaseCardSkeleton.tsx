@@ -18,8 +18,14 @@
 // swap still trips the gate.
 //
 // Visual: deep-ink thumb (matches `.case-thumb` background) +
-// two skeleton-line bars in the meta area. No animation — the
-// chunk lands within a frame or two so a shimmer would only flicker.
+// two skeleton-line bars in the meta area. Both the thumb and the
+// meta lines carry a 1.6s linear shimmer sweep (`@keyframes
+// skeleton-shimmer` — see `app/styles/skeleton.css` and
+// `app/styles/cards.css > .case-thumb--skeleton`). The measured
+// chunk-load window is 100-500ms on slow networks, plenty for the
+// loop to read as deliberate; on fast networks the skeleton
+// disappears before the first sweep completes and the user just
+// sees a smooth swap. Respects `prefers-reduced-motion`.
 
 export function CaseCardSkeleton() {
   return (

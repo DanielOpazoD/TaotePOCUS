@@ -44,6 +44,25 @@
   margin: 0 0 2px;
   line-height: 1.1;
 }
+/* Section-identity bar above the h1. Tokens already carry a per-
+   section accent (`--section-accent` is set by `.layout[data-section]`
+   in `layout.css` — signal/editorial/poster/xray). Surfacing it as
+   a 32×3 px rule turns the otherwise-uniform CompactHead into a
+   visibly section-specific surface at first glance, without a
+   single character of microcopy or chrome added. Tinted to 70%
+   alpha so it sits as a confident accent, not a banner. */
+.section-head h1::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 3px;
+  margin-bottom: var(--space-3);
+  border-radius: 1.5px;
+  background: color-mix(in oklch, var(--section-accent, var(--ink)) 70%, transparent);
+  /* The crumb above already announces the section in mono caps; the
+     bar is purely visual. `aria-hidden` via display rules — the
+     pseudo-element is non-text and outside the AT tree by default. */
+}
 .section-head p {
   margin: 0;
   color: var(--ink-mute);
