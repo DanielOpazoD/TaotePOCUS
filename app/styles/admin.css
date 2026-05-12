@@ -1681,3 +1681,169 @@ textarea.admin-input {
   border-top: 1px solid var(--hairline);
   background: var(--surface-2);
 }
+
+/* ─── AI Suggestions Panel ──────────────────────────────────────
+   Fourth tab in `<CaseForm>`. Renders the AI provider selector,
+   translate action buttons, and a side-by-side diff once a
+   suggestion comes back. Styling stays plain (matches the
+   information-dense admin convention — this isn't editorial
+   chrome, it's an operator tool).
+*/
+.ai-suggestions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ai-suggestions-header h3 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+}
+.ai-suggestions-intro {
+  margin: 0 0 var(--space-3);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.ai-suggestions-intro code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 1px 5px;
+  background: var(--surface-2);
+  border-radius: 3px;
+}
+
+/* Provider selector — `<label>` wrapping a `<select>`. Inline so it
+   fits in the panel header next to the title. */
+.ai-provider-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+}
+.ai-provider-selector-label {
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ai-provider-selector-select {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+.ai-provider-selector-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.ai-provider-selector-status {
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
+.ai-suggestions-actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.ai-suggestions-error {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--crit-soft);
+  color: var(--crit);
+  font-size: 13px;
+}
+
+.ai-suggestions-diff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.ai-suggestions-meta {
+  display: flex;
+  gap: var(--space-4);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.03em;
+}
+.ai-suggestions-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ai-suggestions-field-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.ai-suggestions-field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+@media (max-width: 720px) {
+  .ai-suggestions-field-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.ai-suggestions-field-side {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ai-suggestions-field-tag {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.ai-suggestions-field-text {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+  min-height: 1.5em;
+}
+.ai-suggestions-field-text em {
+  color: var(--ink-mute);
+  font-style: italic;
+}
+.ai-suggestions-field-input {
+  padding: var(--space-2) var(--space-3);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--ink);
+}
+textarea.ai-suggestions-field-input {
+  resize: vertical;
+}
+.ai-suggestions-commit {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}

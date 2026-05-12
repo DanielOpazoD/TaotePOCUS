@@ -32,6 +32,7 @@ import type { CaseRecord, Category, User } from "@/lib/types";
 import { MetadataPanel } from "./case-form/MetadataPanel";
 import { MediaPanel } from "./case-form/MediaPanel";
 import { AdvancedPanel } from "./case-form/AdvancedPanel";
+import { AISuggestionsPanel } from "./ai/AISuggestionsPanel";
 import type { CaseFormTab } from "./case-form/types";
 
 interface Props {
@@ -71,6 +72,7 @@ export default function CaseForm({
     { id: "metadata", label: t("form.tab.metadata") },
     { id: "media", label: t("form.tab.media") },
     { id: "advanced", label: t("form.tab.advanced") },
+    { id: "ai", label: t("form.tab.ai") },
   ];
   // New cases start with empty bilingual slots — the admin types the
   // ES content first (mandatory baseline) and optionally fills the
@@ -205,6 +207,7 @@ export default function CaseForm({
               />
             )}
             {tab === "advanced" && <AdvancedPanel form={form} update={update} />}
+            {tab === "ai" && <AISuggestionsPanel form={form} update={update} />}
           </div>
 
           <div className="admin-form-actions">
