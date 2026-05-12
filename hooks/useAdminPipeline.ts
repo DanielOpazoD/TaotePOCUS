@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { repo } from "@/lib/repo";
 import { mediaKeyFromSrc } from "@/lib/media-url";
+import { useLanguage } from "./useLanguage";
+import { getCaseTitle } from "@/lib/case-localized";
 import type { ShowToast } from "./useToast";
 import type { CaseRecord, User } from "@/lib/types";
 
@@ -79,6 +81,7 @@ export function useAdminPipeline({
   openCaseId,
   closeOpenCase,
 }: Args): Pipeline {
+  const { lang, t } = useLanguage();
   const [pendingDelete, setPendingDelete] = useState<CaseRecord | null>(null);
   const [pendingPurge, setPendingPurge] = useState<CaseRecord | null>(null);
 
@@ -88,11 +91,15 @@ export function useAdminPipeline({
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     const target = pendingDelete;
+    // Resolve once, in the active language, so a seed case with no
+    // EN slot falls back to the ES baseline (LocalizedRead.fallback)
+    // and an EN-mode admin gets the EN title when it exists.
+    const titleText = getCaseTitle(target, lang).value;
     const isUserOwned = userCases.live.some((c) => c.id === target.id);
     if (isUserOwned) {
       const ok = await userCases.remove(target);
       if (ok) {
-        showToast(`"${target.title}" movido a papelera`, {
+        showToast(t("toast.case.deletedTitled", { title: titleText }), {
           undo: () => userCases.restore(target),
         });
       }
@@ -106,7 +113,7 @@ export function useAdminPipeline({
         // override fields. Other override fields (category, focus,
         // reviewed) survive — the undo only reverses what this call
         // set.
-        showToast(`"${target.title}" movido a papelera`, {
+        showToast(t("toast.case.deletedTitled", { title: titleText }), {
           undo: () =>
             setOverride(target.id, {
               deletedAt: undefined,
@@ -128,12 +135,13 @@ export function useAdminPipeline({
     // Close the case modal if it's the one being purged so the toast
     // is visible above the layout instead of stuck behind the dialog.
     if (openCaseId === c.id) closeOpenCase();
+    const titleText = getCaseTitle(c, lang).value;
     const mediaKey = mediaKeyFromSrc(c.media?.src);
     const ok = await repo.cases.purgeImported(c.id, mediaKey);
     if (ok.ok) {
-      showToast(`"${c.title}" eliminado permanentemente`);
+      showToast(t("toast.case.purgedTitled", { title: titleText }));
     } else {
-      showToast("No se pudo eliminar — revisa la consola");
+      showToast(t("toast.case.purgeFailed"));
     }
   };
 
@@ -143,7 +151,7 @@ export function useAdminPipeline({
       deletedAt: undefined,
       deletedBy: undefined,
     });
-    if (ok) showToast("Caso restaurado");
+    if (ok) showToast(t("toast.case.restored"));
   };
 
   return {
