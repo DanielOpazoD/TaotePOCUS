@@ -44,7 +44,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Need write access to push the regenerated PNGs back to the
           # branch the workflow was dispatched from.
