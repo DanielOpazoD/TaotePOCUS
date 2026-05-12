@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { CineLoop } from "../cine";
 import { Icon } from "@/lib/icons";
+import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Media } from "@/lib/types";
 
 /**
@@ -42,6 +43,7 @@ export interface ModalLoopMediaProps {
 export default function ModalLoopMedia({ caso, mediaList, speed, paused }: ModalLoopMediaProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
+  const t = useT();
 
   const isMulti = mediaList.length > 1;
 
@@ -86,14 +88,14 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
   }
 
   return (
-    <div className="modal-loop-carousel" role="region" aria-label="Galería del caso">
+    <div className="modal-loop-carousel" role="region" aria-label={t("modalLoop.aria.region")}>
       <div className="modal-loop-track" ref={trackRef}>
         {mediaList.map((m, i) => (
           <div
             className="modal-loop-slide"
             key={m.src}
             aria-roledescription="slide"
-            aria-label={`Imagen ${i + 1} de ${mediaList.length}`}
+            aria-label={t("modalLoop.aria.slide", { index: i + 1, total: mediaList.length })}
           >
             <CineLoop
               kind={caso.loop}
@@ -113,7 +115,7 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
         className="modal-loop-nav modal-loop-nav--prev"
         onClick={() => goTo(Math.max(0, active - 1))}
         disabled={active === 0}
-        aria-label="Imagen anterior"
+        aria-label={t("modalLoop.aria.prev")}
       >
         {Icon.arrowLeft()}
       </button>
@@ -122,18 +124,18 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
         className="modal-loop-nav modal-loop-nav--next"
         onClick={() => goTo(Math.min(mediaList.length - 1, active + 1))}
         disabled={active === mediaList.length - 1}
-        aria-label="Imagen siguiente"
+        aria-label={t("modalLoop.aria.next")}
       >
         {Icon.arrowRight()}
       </button>
-      <div className="modal-loop-dots" role="tablist" aria-label="Seleccionar imagen del caso">
+      <div className="modal-loop-dots" role="tablist" aria-label={t("modalLoop.aria.dots")}>
         {mediaList.map((m, i) => (
           <button
             key={m.src}
             type="button"
             role="tab"
             aria-selected={i === active}
-            aria-label={`Ir a imagen ${i + 1}`}
+            aria-label={t("modalLoop.aria.goto", { index: i + 1 })}
             className={`modal-loop-dot${i === active ? " active" : ""}`}
             onClick={() => goTo(i)}
           />

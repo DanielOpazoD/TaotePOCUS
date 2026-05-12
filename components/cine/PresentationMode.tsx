@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function PresentationMode({ cases, startId, onClose }: Props) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const startIdx = Math.max(
     0,
     cases.findIndex((c) => c.id === startId),
@@ -85,13 +85,21 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
           <span className="sep">·</span>
           <span className="cat">{cat ? categoryLabel(cat, lang) : ""}</span>
         </div>
-        <button className="presentation-exit" onClick={onClose} aria-label="Salir (Esc)">
-          {Icon.close()} <span>Salir</span>
+        <button
+          className="presentation-exit"
+          onClick={onClose}
+          aria-label={t("presentation.exit.aria")}
+        >
+          {Icon.close()} <span>{t("presentation.exit")}</span>
         </button>
       </div>
 
       <div className="presentation-stage">
-        <button className="presentation-nav left" onClick={prev} aria-label="Anterior (←)">
+        <button
+          className="presentation-nav left"
+          onClick={prev}
+          aria-label={t("presentation.prev.aria")}
+        >
           {Icon.arrowLeft()}
         </button>
 
@@ -107,7 +115,11 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
           />
         </div>
 
-        <button className="presentation-nav right" onClick={next} aria-label="Siguiente (→)">
+        <button
+          className="presentation-nav right"
+          onClick={next}
+          aria-label={t("presentation.next.aria")}
+        >
           {Icon.arrowRight()}
         </button>
       </div>
@@ -129,8 +141,8 @@ export default function PresentationMode({ cases, startId, onClose }: Props) {
       </div>
 
       <div className="presentation-help">
-        <kbd>←</kbd>/<kbd>→</kbd> navegar &nbsp;·&nbsp; <kbd>P</kbd> pausa &nbsp;·&nbsp;{" "}
-        <kbd>Esc</kbd> salir
+        <kbd>←</kbd>/<kbd>→</kbd> {t("presentation.help.navigate")} &nbsp;·&nbsp; <kbd>P</kbd>{" "}
+        {t("presentation.help.pause")} &nbsp;·&nbsp; <kbd>Esc</kbd> {t("presentation.help.exit")}
       </div>
     </div>
   );

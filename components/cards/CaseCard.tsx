@@ -72,7 +72,7 @@ function CaseCardImpl({
   searchQuery,
   focusDefaults,
 }: Props) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   // Resolve every translatable field once per render; reuse below.
   // The `isFallback` flag from each helper feeds the `<FallbackBadge>`
   // that renders next to the affected text when the user picked EN
@@ -177,7 +177,11 @@ function CaseCardImpl({
             `data-reviewed` attribute lets CSS hide it for non-admin
             users via a parent class on the layout. */}
         {caso.reviewed && (
-          <span className="case-thumb-reviewed" title="Caso revisado" aria-label="Revisado">
+          <span
+            className="case-thumb-reviewed"
+            title={t("card.reviewed.title")}
+            aria-label={t("card.reviewed.aria")}
+          >
             ✓
           </span>
         )}
@@ -198,7 +202,7 @@ function CaseCardImpl({
         <button
           className={`case-thumb-fav${isFav ? " active" : ""}${bursting ? " is-bursting" : ""}`}
           onClick={handleFavClick}
-          aria-label="Favorito"
+          aria-label={t("card.fav.aria")}
           aria-pressed={isFav}
         >
           {Icon.heart(isFav)}

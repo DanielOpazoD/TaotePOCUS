@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
+import { useT } from "@/hooks/useLanguage";
 import type { Media } from "@/lib/types";
 import { drawScene, drawChrome } from "./cineScenes";
 
@@ -60,6 +61,7 @@ export default function CineLoop({
   focus,
   priority = false,
 }: Props) {
+  const t = useT();
   // Resolve focus values once. Defaults match the no-override case
   // (centered, no zoom), so passing focus={undefined} is identical to
   // not passing it.
@@ -376,7 +378,7 @@ export default function CineLoop({
           <div
             className="cine-chrome cine-chrome--icon"
             role="img"
-            aria-label={media.modality || "Imagen"}
+            aria-label={media.modality || t("cine.fallbackAria")}
           >
             {Icon.photo()}
           </div>

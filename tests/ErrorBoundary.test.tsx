@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { renderWithLanguage as render } from "./test-utils";
 
 // Mock the central log so we can verify boundaries forward errors
 // without polluting test output. The real `log` module touches Sentry
