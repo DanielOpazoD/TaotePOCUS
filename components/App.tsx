@@ -11,6 +11,7 @@ import { Header, Footer } from "./chrome";
 import ToastHost from "./chrome/ToastHost";
 import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
+import { runWithViewTransition } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { usePersistedFilters } from "@/hooks/usePersistedFilters";
@@ -400,6 +401,7 @@ function AppInner() {
                   favs={favs}
                   onOpen={onCardOpen}
                   onFav={toggleFav}
+                  openCaseId={openCaseId}
                 />
               </ErrorBoundary>
             )}
@@ -451,6 +453,7 @@ function AppInner() {
               onSetFocusCategory={isAdmin ? focusDefaults.setCategory : undefined}
               onResetFocusDefaults={isAdmin ? focusDefaults.reset : undefined}
               seedLoading={seedLoading}
+              openCaseId={openCaseId}
             />
           </ErrorBoundary>
         </main>
@@ -463,7 +466,7 @@ function AppInner() {
       <AppModals
         openCase={openCase}
         isFav={openCase ? favs.includes(openCase.id) : false}
-        onCloseCase={() => replacePatch({ caso: null })}
+        onCloseCase={() => runWithViewTransition(() => replacePatch({ caso: null }))}
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}
         onPresent={() => openCase && replacePatch({ caso: null, presenting: openCase.id })}

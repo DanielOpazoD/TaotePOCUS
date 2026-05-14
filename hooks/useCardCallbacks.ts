@@ -15,6 +15,7 @@
 import { useCallback } from "react";
 import type { CaseRecord, View } from "@/lib/types";
 import type { ViewPatch } from "@/lib/url";
+import { runWithViewTransition } from "@/lib/view-transition";
 
 interface Args {
   pushPatch: (patch: ViewPatch) => void;
@@ -34,7 +35,18 @@ export interface CardCallbacks {
 }
 
 export function useCardCallbacks({ pushPatch, replacePatch, toggleFav }: Args): CardCallbacks {
-  const onCardOpen = useCallback((c: CaseRecord) => pushPatch({ caso: c.id }), [pushPatch]);
+  const onCardOpen = useCallback(
+    (c: CaseRecord) =>
+      // Wrap the URL-state change in a view transition. The browser
+      // captures snapshots of the matched `.case-thumb` (named
+      // `case-thumb-<id>`) BEFORE the modal mounts and the same
+      // name on the modal's hero AFTER it mounts, then morphs
+      // between them — the card "grows into" the modal. Falls
+      // through to a plain state change on browsers without the
+      // API or for users with `prefers-reduced-motion: reduce`.
+      runWithViewTransition(() => pushPatch({ caso: c.id })),
+    [pushPatch],
+  );
   const onCardToggleFav = useCallback((c: CaseRecord) => toggleFav(c.id), [toggleFav]);
   const onClearFiltersCb = useCallback(
     () => replacePatch({ cat: null, tags: [], query: "" }),
