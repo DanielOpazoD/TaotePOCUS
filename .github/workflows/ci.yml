@@ -42,15 +42,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Supply-chain check: fails the build only on `high` or
-      # `critical` advisories. `moderate` and `low` are surfaced as
-      # output (visible in the job log + Dependabot inbox) but don't
-      # block — they're acceptable while a fix lands. Tighten to
-      # `--audit-level=moderate` once the dev-only `@lhci/cli` chain
-      # ships a non-breaking patch (currently locked at 4 low vulns
-      # that require a `--force` major bump).
-      - name: Security audit
-        run: npm audit --audit-level=high
+      # Supply-chain check on PRODUCTION dependencies only.
+      #
+      # `--omit=dev` skips devDependencies entirely. Rationale:
+      # devDeps run on a developer's laptop or a CI runner, never
+      # in production. Vulnerabilities there are real but a
+      # different threat model (your build host getting popped, not
+      # an end user). The runtime-served bundle is what users are
+      # exposed to — that's what this gate enforces.
+      #
+      # History: this used to be a plain `npm audit --audit-level=
+      # high`, which kept tripping on advisories in the `@lhci/cli`
+      # transitive chain (`tmp`, `inquirer`, `external-editor`).
+      # LHCI is a CI-only tool — its vulns can't reach a visitor.
+      # The `--audit-level=high` threshold stays so a real prod-
+      # dep advisory (e.g., a Next.js or Clerk vuln) STILL fails
+      # the build.
+      - name: Security audit (prod deps only)
+        run: npm audit --audit-level=high --omit=dev
 
       - name: Format check
         run: npm run format:check

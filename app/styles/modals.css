@@ -689,3 +689,58 @@ button:hover > .kbd-hint {
 }
 /* Legacy rule removed in May-2026 with the modal action redesign;
    the icon-only chips above set their own SVG dimensions. */
+
+/* ─── View Transitions API tuning ───────────────────────────────────
+ *
+ * Programmatic `document.startViewTransition()` calls in
+ * `useCardCallbacks.onCardOpen` (open) and `App.tsx > onCloseCase`
+ * (close) capture two snapshots and morph between them. The browser
+ * targets elements with matching `view-transition-name`:
+ *
+ *   - `.case-thumb` on the originating `<CaseCard>` /
+ *     `<FeaturedCard>` carries `case-thumb-<id>` (suppressed to
+ *     `none` when the card's case is the one being opened, so the
+ *     name lives on a single element at any given snapshot).
+ *   - `.modal-loop` (inside `<CaseModal>`) carries the same name
+ *     when the modal is mounted.
+ *
+ * Defaults are good (300 ms cross-fade + position interpolation).
+ * The custom rules here:
+ *   - Tighten the duration to 250 ms — feels snappier on the
+ *     ~280 px → ~880 px scale-up.
+ *   - Soften the ease — `--ease-emphasized` matches the rest of
+ *     the app's micro-animations.
+ *   - Hide the OLD snapshot's accompanying body content (cards
+ *     around the originating one) during the morph so the eye
+ *     follows the lift cleanly. The NEW snapshot's body fades in
+ *     at 50% of the duration so the modal chrome is legible the
+ *     moment the morph completes.
+ *
+ * `prefers-reduced-motion: reduce` short-circuits at the JS layer
+ * (the helper in `lib/view-transition.ts` skips
+ * `startViewTransition` entirely). The CSS below is also wrapped
+ * in a motion-respecting media query as belt-and-suspenders.
+ */
+@media not (prefers-reduced-motion: reduce) {
+  /* Morph timing for the named pair (card thumb ↔ modal loop).
+     `*` selector covers every `case-thumb-<id>` instance — there's
+     exactly one named element at any snapshot, so the wildcard
+     applies the same easing to whichever id is morphing. */
+  ::view-transition-group(*) {
+    animation-duration: 250ms;
+    animation-timing-function: var(--ease-emphasized);
+  }
+
+  /* The OLD half (the card sitting in the grid) fades while the
+     NEW half (the modal frame) crossfades in. Slower fade-out on
+     the old keeps the visual focus pinned to the morphing element
+     rather than the background. */
+  ::view-transition-old(root) {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+  }
+  ::view-transition-new(root) {
+    animation-duration: 250ms;
+    animation-timing-function: var(--ease-emphasized);
+  }
+}

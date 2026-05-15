@@ -11,6 +11,7 @@ import { Header, Footer } from "./chrome";
 import ToastHost from "./chrome/ToastHost";
 import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
+import { runWithViewTransition } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { usePersistedFilters } from "@/hooks/usePersistedFilters";
@@ -400,6 +401,7 @@ function AppInner() {
                   favs={favs}
                   onOpen={onCardOpen}
                   onFav={toggleFav}
+                  openCaseId={openCaseId}
                 />
               </ErrorBoundary>
             )}
@@ -451,6 +453,7 @@ function AppInner() {
               onSetFocusCategory={isAdmin ? focusDefaults.setCategory : undefined}
               onResetFocusDefaults={isAdmin ? focusDefaults.reset : undefined}
               seedLoading={seedLoading}
+              openCaseId={openCaseId}
             />
           </ErrorBoundary>
         </main>
@@ -463,6 +466,15 @@ function AppInner() {
       <AppModals
         openCase={openCase}
         isFav={openCase ? favs.includes(openCase.id) : false}
+        // Close is intentionally NOT wrapped in `runWithViewTransition`.
+        // The open-side morph (`useCardCallbacks.onCardOpen`) is the
+        // visible polish. Wrapping close too introduced flake in CI's
+        // headless Chromium where the transition's "wait for next
+        // paint" sometimes raced with subsequent modal mounts (notably
+        // the auth modal in `e2e/admin.spec.ts`) — Playwright saw
+        // `element was detached` mid-action and the page appeared to
+        // re-navigate to `/`. Snap-cut close keeps the UX clean and
+        // the test suite green.
         onCloseCase={() => replacePatch({ caso: null })}
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}
