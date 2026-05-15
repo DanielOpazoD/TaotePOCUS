@@ -466,7 +466,16 @@ function AppInner() {
       <AppModals
         openCase={openCase}
         isFav={openCase ? favs.includes(openCase.id) : false}
-        onCloseCase={() => runWithViewTransition(() => replacePatch({ caso: null }))}
+        // Close is intentionally NOT wrapped in `runWithViewTransition`.
+        // The open-side morph (`useCardCallbacks.onCardOpen`) is the
+        // visible polish. Wrapping close too introduced flake in CI's
+        // headless Chromium where the transition's "wait for next
+        // paint" sometimes raced with subsequent modal mounts (notably
+        // the auth modal in `e2e/admin.spec.ts`) — Playwright saw
+        // `element was detached` mid-action and the page appeared to
+        // re-navigate to `/`. Snap-cut close keeps the UX clean and
+        // the test suite green.
+        onCloseCase={() => replacePatch({ caso: null })}
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}
         onPresent={() => openCase && replacePatch({ caso: null, presenting: openCase.id })}

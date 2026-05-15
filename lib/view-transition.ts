@@ -9,6 +9,17 @@
 // We use this to morph the clicked `.case-thumb` into the case
 // modal's hero loop — the card "grows into" the modal.
 //
+// Scope: currently used ONLY on the OPEN path
+// (`useCardCallbacks.onCardOpen`). The close path runs a plain
+// snap-cut state change. Closing the modal via the helper too was
+// originally implemented but introduced flake in CI headless
+// Chromium where the transition's "wait for next paint" raced with
+// subsequent modal mounts (notably the auth modal in
+// `e2e/admin.spec.ts`) — Playwright saw `element was detached`
+// mid-action. Re-enable on close once that race is understood and
+// addressed (probably a `transition.finished` await before allowing
+// the next user action).
+//
 // Why a helper instead of inline calls:
 //
 //   1. **Feature detection.** Firefox <138 / Safari <18 / old
