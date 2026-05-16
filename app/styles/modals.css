@@ -641,6 +641,63 @@ button:hover > .kbd-hint {
   flex-wrap: wrap;
   gap: 6px;
 }
+
+/* Related cases rail. Compact list of editorially-similar cases at
+   the bottom of the modal body, just above the action chips. Each
+   row is a quiet text link — no thumbnails, no chrome — so the rail
+   reads as "further reading" rather than another grid of cards. */
+.modal-related {
+  margin-top: var(--space-3);
+}
+.modal-related-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.modal-related-item {
+  margin: 0;
+}
+.modal-related-link {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.35;
+  transition: color var(--duration-fast) ease;
+}
+.modal-related-link:hover,
+.modal-related-link:focus-visible {
+  color: var(--accent-ink);
+}
+.modal-related-item:last-child .modal-related-link {
+  border-bottom: none;
+}
+.modal-related-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--serif);
+  font-variation-settings:
+    "opsz" 14,
+    "wght" 480;
+  letter-spacing: -0.005em;
+}
+.modal-related-cat {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .modal-actions {
   /* Three icon-only chips, left-aligned. Tighter than the previous
      full-width "fav | share | present" row (and the mixed admin

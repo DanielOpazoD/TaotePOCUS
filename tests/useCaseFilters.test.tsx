@@ -96,6 +96,74 @@ describe("useCaseFilters — sectionCategories facet", () => {
     expect(ids).toEqual(["cardiac"]);
   });
 
+  it("filters by difficulty (OR-combined; missing field defaults to intermediate)", () => {
+    const cases: CaseRecord[] = [
+      makeCase({ id: "a", difficulty: "basic" }),
+      makeCase({ id: "b", difficulty: "intermediate" }),
+      makeCase({ id: "c", difficulty: "advanced" }),
+      makeCase({ id: "d" /* no difficulty → treated as intermediate */ }),
+    ];
+
+    // Empty array = no filter, all 4 cases visible.
+    const all = renderHook(
+      () =>
+        useCaseFilters({
+          allCases: cases,
+          favs: [],
+          view: ATLAS_VIEW,
+          cat: null,
+          tags: [],
+          query: "",
+          sort: "recent",
+          difficulty: [],
+          categories: CATEGORIES,
+        }),
+      { wrapper },
+    );
+    expect(all.result.current.filtered.map((c) => c.id).sort()).toEqual(["a", "b", "c", "d"]);
+
+    // Single chip → only that level.
+    const onlyBasic = renderHook(
+      () =>
+        useCaseFilters({
+          allCases: cases,
+          favs: [],
+          view: ATLAS_VIEW,
+          cat: null,
+          tags: [],
+          query: "",
+          sort: "recent",
+          difficulty: ["basic"],
+          categories: CATEGORIES,
+        }),
+      { wrapper },
+    );
+    expect(onlyBasic.result.current.filtered.map((c) => c.id)).toEqual(["a"]);
+
+    // Two chips OR-combined — includes the case with no explicit
+    // difficulty under "intermediate".
+    const basicIntermediate = renderHook(
+      () =>
+        useCaseFilters({
+          allCases: cases,
+          favs: [],
+          view: ATLAS_VIEW,
+          cat: null,
+          tags: [],
+          query: "",
+          sort: "recent",
+          difficulty: ["basic", "intermediate"],
+          categories: CATEGORIES,
+        }),
+      { wrapper },
+    );
+    expect(basicIntermediate.result.current.filtered.map((c) => c.id).sort()).toEqual([
+      "a",
+      "b",
+      "d",
+    ]);
+  });
+
   it("falls back to built-in CATEGORIES when no `categories` arg is passed", () => {
     // Back-compat: the hook signature widened to accept a categories
     // list. Older tests that don't pass it should still work and see

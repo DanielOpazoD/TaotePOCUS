@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ModalLoopMedia from "./ModalLoopMedia";
+import RelatedCases from "./RelatedCases";
 import FallbackBadge from "../cards/FallbackBadge";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
@@ -31,6 +32,16 @@ interface Props {
   onFav: () => void;
   onShare: () => void;
   onPresent: () => void;
+  /** Top-N editorially-related cases (see `lib/related-cases.ts`).
+   *  Computed by the parent so the ranking is memoized off the
+   *  catalog identity. Empty array hides the rail. Optional so
+   *  focused tests can mount the modal without threading the full
+   *  catalog. */
+  relatedCases?: CaseRecord[];
+  /** Click handler for a related case. Same contract as the grid's
+   *  `onCardOpen` — pushPatch caso wrapped in a view transition.
+   *  Required only when `relatedCases` is non-empty. */
+  onOpenRelated?: (c: CaseRecord) => void;
   // Admin-only chrome (edit / restore / mark reviewed / soft-delete /
   // permanent-delete) used to live as text buttons in the modal
   // footer. They were removed in May-2026 because the footer was
@@ -41,7 +52,16 @@ interface Props {
   // menu or the "Edición" tab for everything else.
 }
 
-export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPresent }: Props) {
+export default function CaseModal({
+  caso,
+  onClose,
+  isFav,
+  onFav,
+  onShare,
+  onPresent,
+  relatedCases,
+  onOpenRelated,
+}: Props) {
   const { lang, t } = useLanguage();
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -272,6 +292,15 @@ export default function CaseModal({ caso, onClose, isFav, onFav, onShare, onPres
                 ))}
               </div>
             </div>
+            {/* Related cases rail — small list of editorially-similar
+                cases scored in `lib/related-cases.ts`. Renders
+                nothing when the list is empty. Click swaps the modal
+                content in place via the existing pushPatch caso
+                pipeline (View Transitions wraps the swap so it
+                crossfades smoothly). */}
+            {relatedCases && relatedCases.length > 0 && onOpenRelated && (
+              <RelatedCases cases={relatedCases} onOpen={onOpenRelated} />
+            )}
             {/* Footer actions — icon-only chip cluster. Three universal
                 affordances (favorite, share, presentation); admin
                 actions moved to the catalog's row ⋮ menu and the

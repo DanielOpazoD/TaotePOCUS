@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -11,6 +11,7 @@ import { Header, Footer } from "./chrome";
 import ToastHost from "./chrome/ToastHost";
 import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
+import { findRelatedCases } from "@/lib/related-cases";
 import { runWithViewTransition } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
@@ -87,6 +88,7 @@ function AppInner() {
     tags,
     query,
     sort,
+    difficulty,
     caso: openCaseId,
     presenting: presentingId,
     page,
@@ -132,7 +134,7 @@ function AppInner() {
   // for the current section, the hook re-applies them silently via
   // replacePatch. Per-section storage so a "Cardíaco" filter from
   // Atlas doesn't cross-contaminate ECG.
-  usePersistedFilters({ view, cat, tags, query, sort, replacePatch });
+  usePersistedFilters({ view, cat, tags, query, sort, difficulty, replacePatch });
 
   // The DB-mirror failure toast (`useMirrorFailureToast`) was
   // removed in ADR-0011. The previous fire-and-forget write path
@@ -188,6 +190,7 @@ function AppInner() {
     tags,
     query,
     sort,
+    difficulty,
     // Pass the merged (built-in + admin custom) category list so a
     // freshly-created custom category ("ocular") shows up in the
     // sidebar as soon as a case is assigned to it. Without this, the
@@ -206,6 +209,18 @@ function AppInner() {
     openCaseId,
     presentingId,
   });
+
+  // Top-N editorially-related cases for the open case modal. Pure
+  // scoring over category / tags / difficulty / section — see
+  // `lib/related-cases.ts`. Memoized at this level so the result
+  // identity stays stable across renders (the modal is a `dynamic`
+  // import boundary and changes in this list would otherwise force
+  // its memo to bust). Returns `[]` when no case is open; the modal
+  // hides the rail itself.
+  const relatedCases = useMemo(
+    () => (openCase ? findRelatedCases(openCase, allCases) : []),
+    [openCase, allCases],
+  );
 
   const onShare = (c: CaseRecord) => {
     const url = `${location.origin}${location.pathname}?caso=${c.id}`;
@@ -358,19 +373,21 @@ function AppInner() {
               tags={tags}
               query={query}
               sort={sort}
+              difficulty={difficulty}
               onReplace={replacePatch}
               // Full ViewState so the saved-views menu can capture
-              // every filter (cat, tags, query, sort, page) under a
-              // single named preset. The notify channel is the
-              // shared toast surface so "Vista guardada" / "Vista
-              // eliminada" lands in the same place as every other
-              // admin / public toast.
+              // every filter (cat, tags, query, sort, difficulty,
+              // page) under a single named preset. The notify channel
+              // is the shared toast surface so "Vista guardada" /
+              // "Vista eliminada" lands in the same place as every
+              // other admin / public toast.
               viewState={{
                 view,
                 cat,
                 tags,
                 query,
                 sort,
+                difficulty,
                 caso: openCaseId,
                 presenting: presentingId,
                 page,
@@ -394,7 +411,8 @@ function AppInner() {
             view.section !== "info" &&
             !cat &&
             tags.length === 0 &&
-            !query.trim() && (
+            !query.trim() &&
+            difficulty.length === 0 && (
               <ErrorBoundary name="featured">
                 <FeaturedRow
                   cases={scopedCases}
@@ -479,6 +497,11 @@ function AppInner() {
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}
         onPresent={() => openCase && replacePatch({ caso: null, presenting: openCase.id })}
+        relatedCases={relatedCases}
+        // Same callback the grid uses — wraps the URL patch in a
+        // view transition so the modal content morphs smoothly
+        // between the previous and the newly-selected case.
+        onOpenRelated={onCardOpen}
         presentingCase={presentingCase}
         // When no filter narrows the catalog we present the full set;
         // otherwise the cinema is scoped to whatever the user was

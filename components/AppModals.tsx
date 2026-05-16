@@ -57,6 +57,13 @@ interface Props {
   onFav: () => void;
   onShare: () => void;
   onPresent: () => void;
+  /** Top-N related cases for the open case. Computed in App.tsx
+   *  off `findRelatedCases(openCase, allCases)`. Empty when no case
+   *  is open. */
+  relatedCases: CaseRecord[];
+  /** Open a related case from inside the modal. Same as the grid's
+   *  card-open handler — wraps the URL patch in a view transition. */
+  onOpenRelated: (c: CaseRecord) => void;
 
   // Presentation
   presentingCase: CaseRecord | null;
@@ -98,6 +105,8 @@ export default function AppModals(props: Props) {
     onFav,
     onShare,
     onPresent,
+    relatedCases,
+    onOpenRelated,
     presentingCase,
     presentationCases,
     onClosePresentation,
@@ -147,6 +156,8 @@ export default function AppModals(props: Props) {
             onFav={onFav}
             onShare={onShare}
             onPresent={onPresent}
+            relatedCases={relatedCases}
+            onOpenRelated={onOpenRelated}
           />
         </ErrorBoundary>
       )}
