@@ -210,7 +210,6 @@ export const DICT_EN: Dict = {
   "modal.updated": "Updated",
   "modal.section.description": "Description",
   "modal.section.tags": "Tags",
-  "modal.section.related": "Related cases",
   "modal.fav.aria": "Save to favorites",
   "modal.fav.title": "Save to favorites (F)",
   "modal.unfav.aria": "Remove from favorites",
