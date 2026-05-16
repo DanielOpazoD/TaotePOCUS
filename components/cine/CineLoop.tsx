@@ -127,6 +127,14 @@ export default function CineLoop({
   // Synthetic-canvas loops skip this entirely (RAF paints the first
   // frame on the next tick, so there's no perceptible blank window).
   const [loaded, setLoaded] = useState(false);
+  // Two-stage video loading: `metadataLoaded` flips when the browser
+  // has the first frame painted (cheap, via `preload="metadata"`);
+  // `loaded` flips when there's enough buffer to start playing. The
+  // gap between the two is where we replace the shimmer skeleton
+  // with a spinner overlay on top of the visible first frame — so
+  // the reader sees a real preview of the case content + a clear
+  // "still loading" cue, instead of a generic gray block.
+  const [metadataLoaded, setMetadataLoaded] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -284,7 +292,14 @@ export default function CineLoop({
           className="cine-wrap"
           style={{ aspectRatio: resolvedAspect }}
           ref={wrapRef}
-          data-loaded={loaded}
+          // For videos `data-loaded` flips at metadata-load time (NOT
+          // at full data-load) so the existing CSS fades the first
+          // frame in as soon as it's available. The spinner overlay
+          // below carries the "still buffering" cue from there until
+          // the data buffer is ready. Image / GIF branches stay on
+          // the original semantics — `data-loaded` = "paint complete"
+          // — see the `<Image>` block below for that branch's flag.
+          data-loaded={metadataLoaded}
         >
           <video
             ref={videoRef}
@@ -317,13 +332,34 @@ export default function CineLoop({
               if (preserveNativeAspect && v.videoWidth > 0 && v.videoHeight > 0) {
                 setNativeAspect(`${v.videoWidth} / ${v.videoHeight}`);
               }
+              // First frame is now available — flip the skeleton off
+              // so the user sees what the case content actually looks
+              // like, and let the spinner overlay below carry the
+              // "still loading" signal until `onLoadedData` fires.
+              setMetadataLoaded(true);
             }}
-            // First frame painted: hide the skeleton, fade the video
-            // in. `loadeddata` fires earlier than `canplay` and
-            // matches when there's actually a picture to show.
+            // First frame painted AND enough buffer to start playing.
+            // `loadeddata` fires earlier than `canplay` and matches
+            // when there's actually a picture to show. Flips `loaded`
+            // which removes the spinner overlay entirely.
             onLoadedData={() => setLoaded(true)}
           />
-          {!loaded && <div className="cine-skeleton" aria-hidden="true" />}
+          {/* Three-stage overlay:
+              1. Skeleton — shown while metadata hasn't loaded (no
+                 first frame yet, the <video> is a black rectangle).
+              2. Spinner — shown after metadata loads but before the
+                 buffer is ready. The video's first frame is visible
+                 underneath; the spinner sits on top so the reader
+                 sees real preview content plus a clear "loading"
+                 cue, which is what they asked for.
+              3. Nothing — once `loaded` flips, both overlays unmount
+                 and the video plays unobstructed. */}
+          {!metadataLoaded && <div className="cine-skeleton" aria-hidden="true" />}
+          {metadataLoaded && !loaded && (
+            <div className="cine-spinner" role="status" aria-label={t("cine.loadingAria")}>
+              <span className="cine-spinner-dot" aria-hidden="true" />
+            </div>
+          )}
           {showChrome && (
             <div
               className="cine-chrome cine-chrome--icon"
