@@ -99,6 +99,11 @@ interface Props {
   /** Open a related case from inside the modal. Same as the grid's
    *  card-open handler — wraps the URL patch in a view transition. */
   onOpenRelated: (c: CaseRecord) => void;
+  /** Active text query — passed through to `<CaseModal>` so the
+   *  matched substrings in title / description get the same `<mark>`
+   *  treatment the grid cards already apply. Empty / undefined
+   *  renders the modal text plain. */
+  searchQuery: string;
 
   // Presentation
   presentingCase: CaseRecord | null;
@@ -167,6 +172,7 @@ export default function AppModals(props: Props) {
     onPresent,
     relatedCases,
     onOpenRelated,
+    searchQuery,
     presentingCase,
     presentationCases,
     onClosePresentation,
@@ -218,6 +224,7 @@ export default function AppModals(props: Props) {
             onPresent={onPresent}
             relatedCases={relatedCases}
             onOpenRelated={onOpenRelated}
+            searchQuery={searchQuery}
           />
         </ErrorBoundary>
       )}

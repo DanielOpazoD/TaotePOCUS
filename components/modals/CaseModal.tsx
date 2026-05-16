@@ -14,6 +14,7 @@ import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { useModalShortcuts } from "@/hooks/useModalShortcuts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { caseThumbViewTransitionName } from "@/lib/view-transition";
+import { highlight } from "@/lib/highlight";
 import {
   difficultyLabel,
   getCaseMedia,
@@ -42,6 +43,13 @@ interface Props {
    *  `onCardOpen` — pushPatch caso wrapped in a view transition.
    *  Required only when `relatedCases` is non-empty. */
   onOpenRelated?: (c: CaseRecord) => void;
+  /** Active text query — when non-empty, the modal title +
+   *  description get matched substrings wrapped in `<mark>`, same
+   *  treatment the grid cards already apply. Empty / undefined
+   *  renders the text plain. Useful when the user deep-linked from
+   *  a search result and opened the modal: the highlight makes it
+   *  obvious WHY the case was in the result set. */
+  searchQuery?: string;
   // Admin-only chrome (edit / restore / mark reviewed / soft-delete /
   // permanent-delete) used to live as text buttons in the modal
   // footer. They were removed in May-2026 because the footer was
@@ -61,6 +69,7 @@ export default function CaseModal({
   onPresent,
   relatedCases,
   onOpenRelated,
+  searchQuery,
 }: Props) {
   const { lang, t } = useLanguage();
   const [paused, setPaused] = useState(false);
@@ -232,7 +241,7 @@ export default function CaseModal({
           <div className="modal-body" ref={bodyRef}>
             <div className="case-cat">{cat ? categoryLabel(cat, lang) : ""}</div>
             <h2 id="case-modal-title">
-              {titleRead.value}
+              {searchQuery ? highlight(titleRead.value, searchQuery) : titleRead.value}
               {titleRead.isFallback && <FallbackBadge read={titleRead} />}
             </h2>
             <div className="modal-meta-pills">
@@ -275,7 +284,9 @@ export default function CaseModal({
                   ::first-letter CSS, applied through the parent
                   `modal-section--lede` class. Kept as a plain `<p>` so
                   screen readers read the first letter normally. */}
-              <p id="case-modal-description">{descRead.value}</p>
+              <p id="case-modal-description">
+                {searchQuery ? highlight(descRead.value, searchQuery) : descRead.value}
+              </p>
             </div>
             <div className="modal-section">
               <h5>
