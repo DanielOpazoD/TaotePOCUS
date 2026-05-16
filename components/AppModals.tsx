@@ -133,30 +133,26 @@ interface Props {
 
 export default function AppModals(props: Props) {
   const { lang, t } = useLanguage();
-  // Warm the lazy-modal chunks during idle so the first open isn't
-  // a network round-trip. See `preloadLazyModals` for the why.
+  // Warm the lazy-modal chunks immediately after mount. Earlier
+  // revisions deferred this to `requestIdleCallback` / a 1.5s timer
+  // to avoid stealing bandwidth from the initial paint, but that
+  // window turned out to be too narrow: Playwright in CI clicks the
+  // header "Entrar" button ~0.5s after page-load — before idle fires
+  // — and hits the wrapper while the chunk is still streaming in.
+  // The wrapper renders nothing during that gap and the test sees
+  // a missing dialog.
+  //
+  // Firing the import() right after mount widens the cache window:
+  // by the time any human realistically clicks anything, the chunk
+  // is already cached. The download runs in the background and
+  // shouldn't compete with the first paint since `useEffect` only
+  // runs after React commits — the LCP card grid is already on
+  // screen at that point. Worst case is ~10 KB of speculative work
+  // for users who never open a modal, which is the same trade we
+  // already accepted; we just stopped delaying it.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const idleApi = (
-      window as Window & {
-        requestIdleCallback?: (cb: IdleRequestCallback, opts?: IdleRequestOptions) => number;
-        cancelIdleCallback?: (handle: number) => void;
-      }
-    ).requestIdleCallback;
-    if (typeof idleApi === "function") {
-      // 2s deadline so a perpetually busy main thread still preloads.
-      const id = idleApi(() => preloadLazyModals(), { timeout: 2000 });
-      return () => {
-        const cancel = (window as Window & { cancelIdleCallback?: (handle: number) => void })
-          .cancelIdleCallback;
-        if (typeof cancel === "function") cancel(id);
-      };
-    }
-    // Safari < 17 fallback: post-paint timer. 1.5s gives the home
-    // grid time to fully render its 30 cards + featured row before
-    // we pay the chunk download.
-    const timer = setTimeout(() => preloadLazyModals(), 1500);
-    return () => clearTimeout(timer);
+    preloadLazyModals();
   }, []);
   const {
     openCase,
