@@ -248,6 +248,13 @@ export const DICT_EN: Dict = {
   "empty.default.message": "Try clearing the filters or searching for a different keyword.",
   "empty.action.exploreAtlas": "Explore the atlas",
   "empty.action.clearFilters": "Clear filters",
+  "empty.suggestions.aria": "Filter relaxation suggestions",
+  "empty.suggestions.lede": "Try loosening one:",
+  "empty.suggestions.count": "{count} cases",
+  "empty.suggestions.dropCat": "Any category",
+  "empty.suggestions.dropTag": "Remove {tag}",
+  "empty.suggestions.dropDifficulty": "Remove {level}",
+  "empty.suggestions.dropQuery": "Clear “{query}”",
 
   // ─── Admin confirm dialogs (delete + permanent purge) ──────────
   "confirm.delete.title": 'Delete "{title}"?',

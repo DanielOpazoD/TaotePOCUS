@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -11,6 +11,7 @@ import { Header, Footer } from "./chrome";
 import ToastHost from "./chrome/ToastHost";
 import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
+import { computeRelaxationSuggestions } from "@/lib/filter-suggestions";
 import { runWithViewTransition } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
@@ -210,6 +211,29 @@ function AppInner() {
     openCaseId,
     presentingId,
   });
+
+  // Per-filter relaxation suggestions for the EmptyState chip rail.
+  // Computed lazily — we only invoke the pipeline (which iterates
+  // through `scopedCases` once per active filter) when the user is
+  // actually staring at zero results AND has at least one active
+  // filter, so the cost is paid exactly when the suggestion is
+  // useful. Empty array otherwise: MainGrid falls back to the
+  // existing "Clear all filters" CTA.
+  const filterSuggestions = useMemo(() => {
+    if (filtered.length > 0) return [];
+    const hasActiveFilter =
+      cat !== null || tags.length > 0 || query.trim() !== "" || difficulty.length > 0;
+    if (!hasActiveFilter) return [];
+    return computeRelaxationSuggestions({
+      scopedCases,
+      cat,
+      tags,
+      query,
+      sort,
+      difficulty,
+      lang,
+    });
+  }, [filtered.length, scopedCases, cat, tags, query, sort, difficulty, lang]);
 
   // Recently-viewed trail. Renders as a horizontal rail above the
   // favorites grid so a reader who hasn't favorited anything yet
@@ -481,6 +505,11 @@ function AppInner() {
               onNew={onNewCase}
               onClearFilters={onClearFiltersCb}
               onExploreAtlas={onExploreAtlasCb}
+              suggestions={filterSuggestions}
+              // Threading `replacePatch` directly — the suggestion's
+              // patch is shaped to be a valid `ViewPatch` so the
+              // chip's onClick can apply it without translation.
+              onApplySuggestion={replacePatch}
               onPatch={isAdmin ? adminActions.onPatch : undefined}
               onBulkPatch={isAdmin ? adminActions.onBulkPatch : undefined}
               onBulkSoftDelete={isAdmin ? adminActions.onBulkSoftDelete : undefined}

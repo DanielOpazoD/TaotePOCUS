@@ -297,6 +297,21 @@ export const DICT_ES = {
   "empty.action.exploreAtlas": "Explorar el atlas",
   "empty.action.clearFilters": "Limpiar filtros",
 
+  // ─── Relax-this-filter chip rail (EmptyState quick-fixes) ─────
+  // Shown above the generic "Clear filters" CTA when at least one
+  // single-filter relaxation would yield > 0 cases. Each chip reads
+  // as a verb+target+count so the user sees the trade at a glance
+  // ("Quitar Crítico → 12 casos"). The {count} placeholder uses the
+  // plural form of the case noun via the same lookup the toolbar
+  // already uses.
+  "empty.suggestions.aria": "Sugerencias para relajar el filtro",
+  "empty.suggestions.lede": "Probá aflojar uno:",
+  "empty.suggestions.count": "{count} casos",
+  "empty.suggestions.dropCat": "Sin categoría",
+  "empty.suggestions.dropTag": "Quitar {tag}",
+  "empty.suggestions.dropDifficulty": "Quitar {level}",
+  "empty.suggestions.dropQuery": "Limpiar “{query}”",
+
   // ─── Admin confirm dialogs (delete + permanent purge) ──────────
   // These are admin-triggered flows, but the dialog itself reads
   // through the public language (an admin in EN mode shouldn't see

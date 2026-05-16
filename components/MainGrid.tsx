@@ -7,6 +7,7 @@ import { CaseCardSkeleton } from "./CaseCardSkeleton";
 import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
 import { useT } from "@/hooks/useLanguage";
+import type { RelaxationSuggestion } from "@/lib/filter-suggestions";
 import type {
   CaseRecord,
   Category,
@@ -16,6 +17,7 @@ import type {
   SectionId,
   View,
 } from "@/lib/types";
+import type { ViewPatch } from "@/lib/url";
 
 // AdminPanel is admin-only chrome; lazy-load so its tree stays out of
 // the public-route bundles.
@@ -106,6 +108,14 @@ interface Props {
   onClearFilters: () => void;
   /** Send the user to /atlas — used by the favs empty-state CTA. */
   onExploreAtlas: () => void;
+  /** Per-filter relaxation suggestions, computed by the parent when
+   *  the filtered set is empty. Each carries the count of cases the
+   *  relaxation would yield + a patch the chip applies via
+   *  `onApplySuggestion`. Optional / empty → EmptyState falls back
+   *  to the plain "clear all filters" CTA. */
+  suggestions?: RelaxationSuggestion[];
+  /** Apply one suggestion's patch — routed to `replacePatch` upstream. */
+  onApplySuggestion?: (patch: ViewPatch) => void;
   /** Apply a partial override to a case — used by the AdminPanel's
    *  bulk classifier (drag a thumbnail onto a section/category). */
   onPatch?: (id: string, patch: Partial<CaseRecord>) => void;
@@ -211,6 +221,8 @@ export default function MainGrid({
   onDelete,
   onNew,
   onClearFilters,
+  suggestions,
+  onApplySuggestion,
   onExploreAtlas,
   onPatch,
   onBulkPatch,
@@ -299,6 +311,24 @@ export default function MainGrid({
   const isPlainSectionView = view.kind === "section" && !cat && tags.length === 0 && !query.trim();
   const sectionLikelyHasContent =
     view.kind === "section" && (view.section === "atlas" || view.section === "ecg");
+  // Favs view gets skeletons too while seed is loading IF the user
+  // has any favorites stored — `favs` lives in localStorage and is
+  // available before `allCases` is, so we KNOW there should be N
+  // cases on the page even before the seed corpus resolves. Without
+  // this branch the favs page would briefly flash the EmptyState
+  // "no favs yet" illustration during the seed-load window even for
+  // users who definitely have favs — confusing.
+  const favsViewWithSavedFavs = view.kind === "favs" && favs.length > 0 && filtered.length === 0;
+  if (seedLoading && favsViewWithSavedFavs) {
+    const skeletonCount = Math.min(favs.length, CATALOG_PAGE_SIZE);
+    return (
+      <div className="case-grid">
+        {Array.from({ length: skeletonCount }, (_, i) => (
+          <CaseCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
   if (seedLoading && isPlainSectionView && sectionLikelyHasContent && filtered.length === 0) {
     // Render CATALOG_PAGE_SIZE skeletons (= one full page worth)
     // so the grid's height matches the eventual real grid exactly,
@@ -328,7 +358,19 @@ export default function MainGrid({
         : cat || tags.length > 0 || query.trim()
           ? { label: t("empty.action.clearFilters"), onClick: onClearFilters }
           : undefined;
-    return <EmptyState view={view} action={action} />;
+    // Per-filter relaxation chips, computed upstream. The EmptyState
+    // renders them above the "Clear all" CTA so the user can see
+    // which single drop would unlock content — converts a dead-end
+    // into a discovery.
+    const safeSuggestions = suggestions ?? [];
+    return (
+      <EmptyState
+        view={view}
+        action={action}
+        suggestions={safeSuggestions.length > 0 ? safeSuggestions : undefined}
+        onApplySuggestion={onApplySuggestion}
+      />
+    );
   }
 
   // Conditionally bind the admin callbacks ONCE per parent render so
