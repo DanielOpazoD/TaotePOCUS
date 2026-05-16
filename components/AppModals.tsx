@@ -92,13 +92,6 @@ interface Props {
   onFav: () => void;
   onShare: () => void;
   onPresent: () => void;
-  /** Top-N related cases for the open case. Computed in App.tsx
-   *  off `findRelatedCases(openCase, allCases)`. Empty when no case
-   *  is open. */
-  relatedCases: CaseRecord[];
-  /** Open a related case from inside the modal. Same as the grid's
-   *  card-open handler — wraps the URL patch in a view transition. */
-  onOpenRelated: (c: CaseRecord) => void;
   /** Active text query — passed through to `<CaseModal>` so the
    *  matched substrings in title / description get the same `<mark>`
    *  treatment the grid cards already apply. Empty / undefined
@@ -170,8 +163,6 @@ export default function AppModals(props: Props) {
     onFav,
     onShare,
     onPresent,
-    relatedCases,
-    onOpenRelated,
     searchQuery,
     presentingCase,
     presentationCases,
@@ -222,8 +213,6 @@ export default function AppModals(props: Props) {
             onFav={onFav}
             onShare={onShare}
             onPresent={onPresent}
-            relatedCases={relatedCases}
-            onOpenRelated={onOpenRelated}
             searchQuery={searchQuery}
           />
         </ErrorBoundary>

@@ -247,7 +247,6 @@ export const DICT_ES = {
   "modal.updated": "Actualizado",
   "modal.section.description": "Descripción",
   "modal.section.tags": "Etiquetas",
-  "modal.section.related": "Casos relacionados",
   "modal.fav.aria": "Guardar en favoritos",
   "modal.fav.title": "Guardar en favoritos (F)",
   "modal.unfav.aria": "Quitar de favoritos",

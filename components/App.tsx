@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -11,7 +11,6 @@ import { Header, Footer } from "./chrome";
 import ToastHost from "./chrome/ToastHost";
 import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
-import { findRelatedCases } from "@/lib/related-cases";
 import { runWithViewTransition } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
@@ -211,18 +210,6 @@ function AppInner() {
     openCaseId,
     presentingId,
   });
-
-  // Top-N editorially-related cases for the open case modal. Pure
-  // scoring over category / tags / difficulty / section — see
-  // `lib/related-cases.ts`. Memoized at this level so the result
-  // identity stays stable across renders (the modal is a `dynamic`
-  // import boundary and changes in this list would otherwise force
-  // its memo to bust). Returns `[]` when no case is open; the modal
-  // hides the rail itself.
-  const relatedCases = useMemo(
-    () => (openCase ? findRelatedCases(openCase, allCases) : []),
-    [openCase, allCases],
-  );
 
   // Recently-viewed trail. Renders as a horizontal rail above the
   // favorites grid so a reader who hasn't favorited anything yet
@@ -531,11 +518,6 @@ function AppInner() {
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}
         onPresent={() => openCase && replacePatch({ caso: null, presenting: openCase.id })}
-        relatedCases={relatedCases}
-        // Same callback the grid uses — wraps the URL patch in a
-        // view transition so the modal content morphs smoothly
-        // between the previous and the newly-selected case.
-        onOpenRelated={onCardOpen}
         // Mirror the grid's search highlight inside the modal —
         // when the user deep-linked from a query, the matched
         // substrings in the case title + description get the same
