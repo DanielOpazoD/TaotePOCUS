@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -95,6 +95,26 @@ function AppInner() {
     pushPatch,
     replacePatch,
   } = useViewState();
+
+  // Marker for "the React tree has hydrated and effects are running."
+  // Sets `data-app-hydrated="1"` on the body so Playwright (and any
+  // future external probe) can wait for client-side interactivity
+  // before clicking SSR-painted buttons.
+  //
+  // Background: a button rendered on the server is visible the moment
+  // the HTML lands, but its `onClick` handler only attaches once React
+  // hydrates — which can lag by 100–300ms on a CI runner under load.
+  // Tests that click before hydration fire a no-op and then time out
+  // waiting for the modal to open (admin.spec was the chronic offender).
+  // useEffect runs after React commits, so by the time the attribute
+  // flips, every onClick on the page is wired. No-op for real users —
+  // the attribute is purely a probe surface.
+  useEffect(() => {
+    document.body.dataset.appHydrated = "1";
+    return () => {
+      delete document.body.dataset.appHydrated;
+    };
+  }, []);
 
   // Cross-cutting state owned by hooks. Each one is a small, named
   // responsibility — see `hooks/use*.ts` for behavior.
