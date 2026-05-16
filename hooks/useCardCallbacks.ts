@@ -15,7 +15,6 @@
 import { useCallback } from "react";
 import type { CaseRecord, View } from "@/lib/types";
 import type { ViewPatch } from "@/lib/url";
-import { runWithViewTransition } from "@/lib/view-transition";
 
 interface Args {
   pushPatch: (patch: ViewPatch) => void;
@@ -36,24 +35,26 @@ export interface CardCallbacks {
 
 export function useCardCallbacks({ pushPatch, replacePatch, toggleFav }: Args): CardCallbacks {
   const onCardOpen = useCallback(
-    (c: CaseRecord) =>
-      // Wrap the URL-state change in a view transition. The browser
-      // captures snapshots of the matched `.case-thumb` (named
-      // `case-thumb-<id>`) BEFORE the modal mounts and the same
-      // name on the modal's hero AFTER it mounts, then morphs
-      // between them — the card "grows into" the modal. Falls
-      // through to a plain state change on browsers without the
-      // API or for users with `prefers-reduced-motion: reduce`.
-      //
-      // `instantRoot: true` snaps the BACKGROUND root layer instead
-      // of cross-fading it. Without this, the OLD root snapshot
-      // (catalog grid visible) cross-faded into the NEW root
-      // snapshot (modal + backdrop) over ~250ms; during the
-      // overlap the user saw the catalog thumbnails bleeding
-      // through the modal's white background. The named-pair morph
-      // (card → modal hero) is still the smooth gesture; only the
-      // root layer behind it snap-cuts.
-      runWithViewTransition(() => pushPatch({ caso: c.id }), { instantRoot: true }),
+    // Plain state change — the modal opens via its own CSS
+    // entrance animations (`.modal` scale-in + `::backdrop` fade-
+    // in + `dialog[open]` fade-in). The View Transitions
+    // card→modal morph was originally wired here and gave a slick
+    // "card grows into the modal" gesture, BUT it caused a
+    // persistent visual flicker (the catalog row briefly visible
+    // overlapping the modal during the morph). Four separate
+    // fixes (decoupled OLD/NEW timing, `instantRoot` root snap-
+    // cut, suppressed modal entrance animations during the
+    // transition, `useLayoutEffect` so `showModal()` ran before
+    // the NEW snapshot) all failed to fully eliminate the flicker.
+    //
+    // Reverting to a plain CSS-only entrance is the reliable
+    // path: dialog fades in, modal scales in, backdrop fades.
+    // The slick morph is gone but the open is now visually
+    // predictable on every browser. If we ever revisit the
+    // morph, do it behind a feature flag and validate on real
+    // devices before shipping — theory-based debugging on this
+    // pattern has been fruitless.
+    (c: CaseRecord) => pushPatch({ caso: c.id }),
     [pushPatch],
   );
   const onCardToggleFav = useCallback((c: CaseRecord) => toggleFav(c.id), [toggleFav]);
