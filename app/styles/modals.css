@@ -813,6 +813,31 @@ button:hover > .kbd-hint {
   }
 }
 
+/* Suppress the modal's own scale-in + the backdrop's fadeIn while
+   the view-transition is running (vt-root-instant class set).
+   Without this, even with the root snap-cut above, the user STILL
+   saw a brief overlap: the NEW root snapshot captures the modal
+   AT THE START of its scale-in animation — meaning the modal is
+   at `opacity: 0` and the backdrop is at `opacity: 0`, so the
+   captured pixels are effectively "empty box". After the snap-cut
+   the live DOM continues these animations from frame 0, which is
+   when the user sees the catalog still visible underneath the
+   transparent backdrop for ~250ms while the dialog fades in.
+   Disabling these animations during the transition window means
+   the modal renders at its final state (opacity 1, scale 1) from
+   the moment it mounts — the named-pair morph from the card thumb
+   provides all the perceptual smoothness needed; the dialog's own
+   entrance animation is redundant with view-transitions.
+   Rules sit OUTSIDE the `@media not (reduced-motion)` block above
+   because they NEED to apply even when reduced motion is on if
+   somehow the class is still set — but in practice the helper
+   skips `startViewTransition` entirely under reduced motion, so
+   the class never gets added in that case. */
+html.vt-root-instant .modal,
+html.vt-root-instant dialog.case-modal-host::backdrop {
+  animation: none !important;
+}
+
 /* =================== COMMAND PALETTE (⌘K) ===================
  * Centred overlay, fixed near the top of the viewport (modal feel,
  * but biased upward so the user's gaze stays in reading rhythm
