@@ -123,6 +123,14 @@ export const STORAGE_KEYS = {
    *  topic. Surfaces in `<SavedViewsMenu>` next to the search bar. */
   savedViews: "pocus_saved_views",
 
+  /** Recently-viewed case ids (`string[]`, most-recent first, capped
+   *  at MAX_RECENTLY_VIEWED). Appended each time the case modal
+   *  opens. Per-browser, per-device. The favs page renders these as
+   *  a rail above the grid so a reader who hasn't favorited anything
+   *  still has a "continue where I left off" thread. Cleared from
+   *  the Backup tab along with the rest of the personal slots. */
+  recentlyViewed: "pocus_recently_viewed",
+
   /** Persisted schema version of the localStorage payload. Bumped
    *  by `lib/storage-migrations.ts` on each breaking shape change.
    *  When the persisted version is below the latest known, the
