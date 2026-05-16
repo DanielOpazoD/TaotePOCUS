@@ -146,6 +146,10 @@ export const DICT_EN: Dict = {
   // ─── Featured row ──────────────────────────────────────────────
   "featured.title": "Featured",
 
+  // ─── Recently-viewed rail ──────────────────────────────────────
+  "recently.title": "Recently viewed",
+  "recently.label": "Recently viewed cases",
+
   // ─── Keyboard shortcuts modal (`?` help) ───────────────────────
   "shortcuts.title": "Keyboard shortcuts",
   "shortcuts.intro": "Browse and filter without leaving the keyboard.",

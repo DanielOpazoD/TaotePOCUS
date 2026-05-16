@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -32,6 +32,7 @@ import { useCatalogDerivations } from "@/hooks/useCatalogDerivations";
 import { useCardCallbacks } from "@/hooks/useCardCallbacks";
 import { useCaseSaver } from "@/hooks/useCaseSaver";
 import { useFocusDefaults } from "@/hooks/useFocusDefaults";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { runStorageMigrations } from "@/lib/storage-migrations";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
@@ -43,6 +44,7 @@ import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
 // ShortcutsModal, PWAStatus, AuthModal) live inside `<AppModals>` so the
 // orchestrator's import surface stays lean.
 const FeaturedRow = dynamic(() => import("./cards/FeaturedRow"));
+const RecentlyViewedRail = dynamic(() => import("./cards/RecentlyViewedRail"));
 const MobileDrawer = dynamic(() => import("./chrome/MobileDrawer"), { ssr: false });
 
 /**
@@ -221,6 +223,24 @@ function AppInner() {
     () => (openCase ? findRelatedCases(openCase, allCases) : []),
     [openCase, allCases],
   );
+
+  // Recently-viewed trail. Renders as a horizontal rail above the
+  // favorites grid so a reader who hasn't favorited anything yet
+  // still has a "continue where I left off" thread. Tracks the case
+  // modal open path: every time `openCaseId` changes to a real id,
+  // we append the id to the trail. The effect below is the only
+  // write site; the hook itself just exposes resolved cases + an
+  // add() helper that the effect calls.
+  const recentlyViewed = useRecentlyViewed(allCases, openCaseId);
+  useEffect(() => {
+    if (openCaseId) recentlyViewed.add(openCaseId);
+    // Intentionally depend only on openCaseId — `recentlyViewed.add`
+    // is a stable useCallback identity from the hook, and adding it
+    // to the deps would fire the effect on every render of AppInner
+    // (which would still be a no-op since dedupe + cap protect us,
+    // but cleaner to leave the dep array minimal).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openCaseId]);
 
   const onShare = (c: CaseRecord) => {
     const url = `${location.origin}${location.pathname}?caso=${c.id}`;
@@ -423,6 +443,20 @@ function AppInner() {
                 />
               </ErrorBoundary>
             )}
+          {/* Recently-viewed rail on /favoritos only. Renders nothing
+              when the trail is empty, so a fresh visitor with no
+              history sees the existing layout untouched. Above the
+              grid because it reads as "continue where you left off"
+              context — the favs grid below is the destination. */}
+          {view.kind === "favs" && recentlyViewed.cases.length > 0 && (
+            <ErrorBoundary name="recently-viewed">
+              <RecentlyViewedRail
+                cases={recentlyViewed.cases}
+                onOpen={onCardOpen}
+                openCaseId={openCaseId}
+              />
+            </ErrorBoundary>
+          )}
           <ErrorBoundary name="grid">
             <MainGrid
               view={view}

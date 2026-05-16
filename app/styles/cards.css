@@ -1,3 +1,93 @@
+/* =================== RECENTLY VIEWED RAIL =================== */
+/* Horizontal scroll rail above the favoritos grid. Reuses the
+   featured-row's header rhythm (mono-uppercase h2 + hairline rule)
+   so the page reads as a single editorial column with distinct
+   sections, not a stack of competing modules. */
+.recently-viewed {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--hairline);
+}
+.recently-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: 14px;
+}
+.recently-head h2 {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0;
+}
+.recently-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+.recently-row {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 6px;
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  /* Hide the scrollbar on Firefox / Chrome — the rail communicates
+     swipeability through the cards bleeding off the right edge and
+     the natural touch-momentum scroll. On desktop, hovering reveals
+     the native scrollbar enough to find. */
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  /* Edge-to-edge breathing room so the first tile doesn't kiss the
+     section gutter. */
+  scroll-padding: 4px;
+}
+.recently-item {
+  flex: 0 0 180px;
+  scroll-snap-align: start;
+}
+.recently-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-md);
+  /* Subtle press feedback that doesn't clash with the global
+     tap-highlight removal. */
+  transition: transform var(--duration-fast) ease;
+}
+.recently-link:hover .recently-thumb {
+  border-color: var(--ink-mute);
+}
+.recently-link:active {
+  transform: scale(0.98);
+}
+.recently-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color var(--duration-fast) ease;
+}
+.recently-title {
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ink);
+  /* Clip to two lines so a long title doesn't push the next tile's
+     baseline. CSS line-clamp is widely supported in modern browsers
+     including Safari. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* =================== FEATURED ROW =================== */
 .featured-row {
   margin-bottom: 36px;

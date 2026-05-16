@@ -162,6 +162,10 @@ export const DICT_ES = {
   // ─── Featured row ──────────────────────────────────────────────
   "featured.title": "Destacados",
 
+  // ─── Recently-viewed rail (sits above the favoritos grid) ──────
+  "recently.title": "Vistos hace poco",
+  "recently.label": "Casos vistos hace poco",
+
   // ─── Keyboard shortcuts modal (`?` help) ───────────────────────
   // `SHORTCUTS` in `hooks/useShortcuts.ts` references the `.label.*`
   // keys by id rather than carrying raw Spanish — that way the EN
