@@ -292,7 +292,14 @@ export default function CineLoop({
           className="cine-wrap"
           style={{ aspectRatio: resolvedAspect }}
           ref={wrapRef}
-          data-loaded={loaded}
+          // For videos `data-loaded` flips at metadata-load time (NOT
+          // at full data-load) so the existing CSS fades the first
+          // frame in as soon as it's available. The spinner overlay
+          // below carries the "still buffering" cue from there until
+          // the data buffer is ready. Image / GIF branches stay on
+          // the original semantics — `data-loaded` = "paint complete"
+          // — see the `<Image>` block below for that branch's flag.
+          data-loaded={metadataLoaded}
         >
           <video
             ref={videoRef}
