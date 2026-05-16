@@ -344,21 +344,30 @@ export default function CineLoop({
             // which removes the spinner overlay entirely.
             onLoadedData={() => setLoaded(true)}
           />
-          {/* Three-stage overlay:
-              1. Skeleton — shown while metadata hasn't loaded (no
-                 first frame yet, the <video> is a black rectangle).
-              2. Spinner — shown after metadata loads but before the
-                 buffer is ready. The video's first frame is visible
-                 underneath; the spinner sits on top so the reader
-                 sees real preview content plus a clear "loading"
-                 cue, which is what they asked for.
-              3. Nothing — once `loaded` flips, both overlays unmount
-                 and the video plays unobstructed. */}
-          {!metadataLoaded && <div className="cine-skeleton" aria-hidden="true" />}
-          {metadataLoaded && !loaded && (
-            <div className="cine-spinner" role="status" aria-label={t("cine.loadingAria")}>
-              <span className="cine-spinner-dot" aria-hidden="true" />
-            </div>
+          {/* Loading overlay — spinner is visible THE ENTIRE TIME the
+              video is loading, never just during the metadata→data
+              window. The previous implementation flipped between
+              skeleton (pre-metadata) and spinner (post-metadata),
+              which meant the user spent the first ~300ms staring at
+              a generic shimmer with no clear "this is loading
+              specifically my card" cue. Now:
+                - 0 → onLoadedMetadata: static dark backdrop + spinner
+                  (no first frame yet — the <video> is a black box,
+                  the backdrop hides it).
+                - onLoadedMetadata → onLoadedData: backdrop unmounts,
+                  the video's first frame fades in, spinner stays on
+                  top as a clear "still buffering" cue.
+                - onLoadedData → playing: spinner unmounts, video
+                  plays unobstructed.
+              Both layers are aria-hidden; the spinner carries the
+              role="status" for screen-reader announcement. */}
+          {!loaded && (
+            <>
+              {!metadataLoaded && <div className="cine-skeleton" aria-hidden="true" />}
+              <div className="cine-spinner" role="status" aria-label={t("cine.loadingAria")}>
+                <span className="cine-spinner-dot" aria-hidden="true" />
+              </div>
+            </>
           )}
           {showChrome && (
             <div
@@ -446,7 +455,21 @@ export default function CineLoop({
             setLoaded(true);
           }}
         />
-        {!loaded && <div className="cine-skeleton" aria-hidden="true" />}
+        {/* Same loading-state pattern as the video branch above:
+            static dark backdrop + spinner while the asset streams in,
+            both unmount once `onLoad` flips `loaded` (or `onError`
+            short-circuits the same flag so the user isn't stuck
+            staring at the indicator forever). Without the spinner,
+            the previous skeleton was just a generic shimmer — the
+            new dot makes "this specific card is loading" obvious. */}
+        {!loaded && (
+          <>
+            <div className="cine-skeleton" aria-hidden="true" />
+            <div className="cine-spinner" role="status" aria-label={t("cine.loadingAria")}>
+              <span className="cine-spinner-dot" aria-hidden="true" />
+            </div>
+          </>
+        )}
         {showChrome && (
           <div
             className="cine-chrome cine-chrome--icon"
