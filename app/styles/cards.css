@@ -1064,6 +1064,77 @@
   padding: 4px 6px 6px;
   gap: 10px;
 }
+
+/* Quick-edit sub-panel: input fields + chip rail + action row.
+   Lives inside the same dropdown space as reclassify / focus, so it
+   inherits the panel width (240px) — the input widths flex to fill
+   that, the difficulty chips wrap at 3-across since each is short. */
+.admin-thumb-menu-quickedit {
+  padding: 4px 6px 8px;
+  gap: 4px;
+}
+.admin-thumb-menu-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--duration-fast) ease;
+}
+.admin-thumb-menu-input:focus {
+  /* Match the header-search focus glow so the quick-edit feels like
+     the same family of input. Softer than a full ring since the
+     panel itself is small and the user is already inside chrome. */
+  border-color: color-mix(in oklch, var(--accent) 50%, var(--hairline));
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--accent) 14%, transparent);
+}
+.admin-thumb-menu-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 2px 0;
+}
+.admin-thumb-menu-chip {
+  flex: 1 0 auto;
+  padding: 5px 9px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: var(--surface);
+  color: var(--ink-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.admin-thumb-menu-chip:hover {
+  border-color: var(--ink-mute);
+  color: var(--ink);
+}
+.admin-thumb-menu-chip.is-active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.admin-thumb-menu-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px solid var(--hairline);
+}
+.admin-thumb-menu-actions .btn-ghost,
+.admin-thumb-menu-actions .btn-primary {
+  padding: 5px 12px;
+  font-size: 12px;
+}
 .case-meta {
   display: flex;
   flex-direction: column;

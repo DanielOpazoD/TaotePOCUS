@@ -56,6 +56,20 @@ body {
   -webkit-font-smoothing: antialiased;
   font-size: 15px;
   line-height: 1.5;
+  /* Smooth theme transition. The `data-theme` swap re-resolves every
+     OKLCH token at once; a `transition: color, background-color` on
+     the body lets the change cross-fade over 220ms instead of
+     snapping. Limited to color tokens — transitioning `background`
+     shorthand would also animate background-image (paper grain
+     overlays etc.) which we don't want. */
+  transition:
+    color var(--duration-base) ease,
+    background-color var(--duration-base) ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }
 button {
   font-family: inherit;

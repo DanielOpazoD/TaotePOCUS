@@ -222,6 +222,49 @@ export default function BulkEditTable({
     clearSelection();
   };
 
+  // Per-tag bulk operations. Unlike section / category / reviewed
+  // (which apply the SAME patch to every selected case), tag
+  // add/remove needs PER-CASE patches because each case has a
+  // different current tag list. We iterate and call `onPatch` for
+  // each id whose case actually changes — skipping no-ops (e.g.
+  // "add tag X" to a case that already has X) keeps the override
+  // map minimal + the undo toast sane.
+  const tagFrequencies = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const id of selected) {
+      const c = cases.find((x) => x.id === id);
+      if (!c) continue;
+      for (const tag of c.tags.es) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [selected, cases]);
+
+  const applyBulkAddTag = (tag: string) => {
+    const trimmed = tag.trim();
+    if (!trimmed) return;
+    for (const id of selected) {
+      const c = cases.find((x) => x.id === id);
+      if (!c || c.tags.es.includes(trimmed)) continue;
+      const nextEs = [...c.tags.es, trimmed];
+      const nextTags =
+        c.tags.en && c.tags.en.length > 0 ? { es: nextEs, en: c.tags.en } : { es: nextEs };
+      void onPatch(id, { tags: nextTags });
+    }
+  };
+
+  const applyBulkRemoveTag = (tag: string) => {
+    for (const id of selected) {
+      const c = cases.find((x) => x.id === id);
+      if (!c || !c.tags.es.includes(tag)) continue;
+      const nextEs = c.tags.es.filter((t) => t !== tag);
+      const nextTags =
+        c.tags.en && c.tags.en.length > 0 ? { es: nextEs, en: c.tags.en } : { es: nextEs };
+      void onPatch(id, { tags: nextTags });
+    }
+  };
+
   // Keyboard navigation. j/k/↓/↑ move the active row cursor.
   // x toggles selection of the active row. Enter opens the full
   // modal. Suspended while focus is in any input/textarea/select.
@@ -406,6 +449,9 @@ export default function BulkEditTable({
           onApplyReviewed={(r) => void applyBulkReviewed(r)}
           onDelete={() => void applyBulkDelete()}
           onClear={clearSelection}
+          tagFrequencies={tagFrequencies}
+          onApplyAddTag={applyBulkAddTag}
+          onApplyRemoveTag={applyBulkRemoveTag}
         />
       )}
     </div>

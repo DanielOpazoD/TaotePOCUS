@@ -266,8 +266,14 @@
     box-shadow var(--duration-fast);
 }
 .header-search input:focus {
-  border-color: var(--ink-mute);
-  box-shadow: var(--focus-ring);
+  /* Soft accent glow on focus — more inviting than the default
+     ink-mute border. Pairs the brand accent with the existing
+     focus-ring token so keyboard users still see the standard
+     focus indicator (a11y), but with a richer color cue. */
+  border-color: color-mix(in oklch, var(--accent) 60%, var(--hairline));
+  box-shadow:
+    var(--focus-ring),
+    0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent);
 }
 .header-search svg {
   position: absolute;
