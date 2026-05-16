@@ -18,6 +18,7 @@
     "analyze": "cross-env ANALYZE=true next build",
     "size:check": "node scripts/bundle-budget.mjs",
     "size:update": "node scripts/bundle-budget.mjs --update",
+    "optimize:media": "node scripts/optimize-media.mjs",
     "lighthouse": "lhci autorun",
     "prepare": "husky"
   },
@@ -79,6 +80,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
+    "sharp": "^0.34.5",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.59.0",
     "vitest": "^4.1.5"
