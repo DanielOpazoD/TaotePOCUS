@@ -19,6 +19,7 @@
 // into a single component costs no runtime, gains a lot of clarity.
 
 import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import ErrorBoundary from "./ErrorBoundary";
 import { CaseModal } from "./modals";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -39,6 +40,40 @@ const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 // chunk of the Clerk SDK. Most catalog visitors never click "Entrar"
 // — keep the widget out of the initial bundle and code-split it.
 const AuthModal = dynamic(() => import("./modals/AuthModal"), { ssr: false });
+
+/**
+ * Warm the lazy modal chunks during browser idle. Without this, the
+ * first click on "Entrar" / `?` / a delete button triggers a network
+ * fetch for the chunk; the wrapper renders nothing while it waits,
+ * then mounts the dialog in a second frame. The brief gap between
+ * "wrapper renders" and "dialog DOM attached" is the race the
+ * Playwright admin specs hit (`element was detached from the DOM,
+ * retrying`) on slower CI runners — Chromium grabs the rendering
+ * intermediate frame before React finishes reconciling.
+ *
+ * Preloading on idle is fire-and-forget: the chunks fetch in the
+ * background after the first paint, never delay anything visible,
+ * and are already cached by the time the user clicks. For users
+ * who never open a modal it's a few KB of speculative download —
+ * cheap relative to the smoothness it buys.
+ *
+ * `requestIdleCallback` is the right primitive (only runs when the
+ * main thread is genuinely free); the `setTimeout` fallback handles
+ * Safari < 17 where it isn't yet exposed.
+ */
+function preloadLazyModals() {
+  // Bare `import()` calls trigger webpack to fetch + cache the same
+  // chunks the `dynamic()` wrappers consume above. Webpack dedupes
+  // by module identity, so when the user later triggers the actual
+  // dynamic mount the chunk is already cached and the dialog DOM
+  // attaches in the same frame as the wrapper render. The errors
+  // are swallowed because a chunk-load failure here would just
+  // mean the user pays the original on-demand cost — no worse
+  // than not preloading at all.
+  void import("./modals/AuthModal").catch(() => undefined);
+  void import("./modals/ConfirmDialog").catch(() => undefined);
+  void import("./modals/ShortcutsModal").catch(() => undefined);
+}
 
 interface AdminPipeline {
   pendingDelete: CaseRecord | null;
@@ -98,6 +133,31 @@ interface Props {
 
 export default function AppModals(props: Props) {
   const { lang, t } = useLanguage();
+  // Warm the lazy-modal chunks during idle so the first open isn't
+  // a network round-trip. See `preloadLazyModals` for the why.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const idleApi = (
+      window as Window & {
+        requestIdleCallback?: (cb: IdleRequestCallback, opts?: IdleRequestOptions) => number;
+        cancelIdleCallback?: (handle: number) => void;
+      }
+    ).requestIdleCallback;
+    if (typeof idleApi === "function") {
+      // 2s deadline so a perpetually busy main thread still preloads.
+      const id = idleApi(() => preloadLazyModals(), { timeout: 2000 });
+      return () => {
+        const cancel = (window as Window & { cancelIdleCallback?: (handle: number) => void })
+          .cancelIdleCallback;
+        if (typeof cancel === "function") cancel(id);
+      };
+    }
+    // Safari < 17 fallback: post-paint timer. 1.5s gives the home
+    // grid time to fully render its 30 cards + featured row before
+    // we pay the chunk download.
+    const timer = setTimeout(() => preloadLazyModals(), 1500);
+    return () => clearTimeout(timer);
+  }, []);
   const {
     openCase,
     isFav,

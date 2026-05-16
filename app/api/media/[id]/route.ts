@@ -19,21 +19,49 @@ interface Context {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * `@netlify/blobs > getStore()` throws `MissingBlobsEnvironmentError`
+ * when neither the implicit Netlify context (`NETLIFY_BLOBS_CONTEXT`)
+ * nor the explicit one (`NETLIFY_SITE_ID` + `NETLIFY_BLOBS_TOKEN`) is
+ * present. The throw includes a stack trace; logging every request
+ * floods stderr with hundreds of identical traces during local /
+ * e2e / dev runs where blobs intentionally aren't wired.
+ *
+ * Detect once at module load (env vars are static for the process)
+ * so the per-request hot path is a single boolean check. When blobs
+ * aren't configured we return 404 silently — the client treats this
+ * the same as "no such media" and falls back to the synthetic
+ * cine-loop, matching the broken-image error path.
+ */
+const BLOBS_AVAILABLE = !!(
+  process.env.NETLIFY_BLOBS_CONTEXT ||
+  (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_BLOBS_TOKEN)
+);
+
 export async function GET(_req: Request, { params }: Context) {
   const { id } = await params;
   if (!id || id.includes("/") || id.length > 256) {
     return new NextResponse("Bad request", { status: 400 });
   }
 
+  // Fast-path 404 when the blob backend isn't configured (local
+  // builds, GitHub Actions e2e, any non-Netlify deployment). The
+  // client falls back to the synthetic loop on a failed image
+  // load, so this is functionally identical to letting the store
+  // throw — but without the stack-trace spam that contends with
+  // hydration on slower CI runners.
+  if (!BLOBS_AVAILABLE) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   let blob: Blob | null;
   try {
     blob = await mediaStore().get(id, { type: "blob" });
   } catch (err) {
-    // The blob store can fail at runtime if the env isn't wired
-    // (e.g. NETLIFY_BLOBS_CONTEXT missing in a non-Netlify deploy).
-    // Surface a 500 with no detail so the consumer falls back to its
-    // synthetic loop instead of crashing — log via stderr for
-    // operators.
+    // Storage configured but the runtime call still failed (network
+    // hiccup, scoped permission, transient). Surface a 500 + log so
+    // operators can diagnose; the consumer's broken-image handler
+    // already falls back to the synthetic loop.
     console.error("[api/media] blob store error", err);
     return new NextResponse("Storage unavailable", { status: 500 });
   }
