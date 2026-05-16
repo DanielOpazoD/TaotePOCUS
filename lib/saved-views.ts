@@ -70,6 +70,7 @@ export function captureView(state: ViewState, name: string): SavedView {
     tags: state.tags,
     query: state.query,
     sort: state.sort,
+    difficulty: state.difficulty,
     // Modal slots (`caso`, `presenting`) are transient — saving
     // them would re-open a modal the user already closed.
     page: state.page,

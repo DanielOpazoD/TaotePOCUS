@@ -118,6 +118,11 @@ export const DICT_ES = {
   "toolbar.sort.recent": "Más recientes",
   "toolbar.sort.featured": "Destacados",
   "toolbar.sort.title": "Alfabético",
+  // Difficulty rail label (announced to screen readers as the
+  // grouping for the three Básico / Intermedio / Avanzado chips).
+  // The chip labels themselves reuse the existing
+  // `case.difficulty.*` keys.
+  "toolbar.difficulty.label": "Dificultad",
 
   // ─── Saved views (filter presets) ──────────────────────────────
   "savedViews.trigger.aria": "Vistas guardadas",
@@ -238,6 +243,7 @@ export const DICT_ES = {
   "modal.updated": "Actualizado",
   "modal.section.description": "Descripción",
   "modal.section.tags": "Etiquetas",
+  "modal.section.related": "Casos relacionados",
   "modal.fav.aria": "Guardar en favoritos",
   "modal.fav.title": "Guardar en favoritos (F)",
   "modal.unfav.aria": "Quitar de favoritos",

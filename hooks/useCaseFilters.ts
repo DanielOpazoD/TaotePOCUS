@@ -5,7 +5,7 @@ import { CATEGORIES } from "@/lib/data";
 import { compareTitles, getCaseTags, searchHaystack } from "@/lib/case-localized";
 import { useLanguage } from "./useLanguage";
 import type { CaseRecord, Category, CategoryWithCount, View } from "@/lib/types";
-import type { SortOrder } from "@/lib/url";
+import type { Difficulty, SortOrder } from "@/lib/url";
 
 interface Args {
   /** Full universe of cases. Pass `[...userCases.live, ...SEED_CASES]`. */
@@ -22,6 +22,10 @@ interface Args {
   query: string;
   /** Sort order applied at the end of the pipeline. */
   sort: SortOrder;
+  /** Active difficulty levels; OR-combined (any-of). Empty array means
+   *  "any difficulty". Cases missing the field default to
+   *  `"intermediate"` at filter time, matching the modal pill default. */
+  difficulty?: Difficulty[];
   /** Categories list (built-in + admin-managed custom). Optional —
    *  defaults to the built-in `CATEGORIES`. The list defines which
    *  ids are eligible for the sidebar's facet rail. Passing the
@@ -72,6 +76,7 @@ export function useCaseFilters({
   tags,
   query,
   sort,
+  difficulty,
   categories,
 }: Args): Result {
   const { lang } = useLanguage();
@@ -153,11 +158,19 @@ export function useCaseFilters({
       // only partially translated.
       list = list.filter((c) => searchHaystack(c).includes(q));
     }
+    if (difficulty && difficulty.length) {
+      // OR-combined (any-of) — multiple chips broaden the match rather
+      // than narrowing it, matching the user's mental model of "show me
+      // Basic + Intermediate". Cases without an explicit difficulty
+      // default to "intermediate", same as the modal pill.
+      const set = new Set(difficulty);
+      list = list.filter((c) => set.has(c.difficulty ?? "intermediate"));
+    }
     if (sort === "recent") list.sort((a, b) => b.date.localeCompare(a.date));
     if (sort === "title") list.sort((a, b) => compareTitles(a, b, lang));
     if (sort === "featured") list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     return list;
-  }, [scopedCases, cat, tags, query, sort, lang]);
+  }, [scopedCases, cat, tags, query, sort, difficulty, lang]);
 
   return { scopedCases, sectionCategories, sectionTags, filtered };
 }

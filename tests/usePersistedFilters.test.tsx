@@ -1,7 +1,7 @@
-// Tests for `usePersistedFilters`. The hook saves the active
-// filter set (cat / tags / query / sort) per-section to localStorage
-// and restores it the next time the URL lands "clean" on the same
-// section. The four contract bullets:
+// Tests for `usePersistedFilters`. The hook saves the active filter
+// set (cat / tags / query / sort / difficulty) per-section to
+// localStorage and restores it the next time the URL lands "clean"
+// on the same section. The four contract bullets:
 //
 //   1. Clean-URL mount with stored filters → replacePatch fires.
 //   2. Dirty-URL mount → no restore (URL deep-link wins).
@@ -25,7 +25,13 @@ describe("usePersistedFilters", () => {
   it("restores stored filters when the URL lands clean on the section", () => {
     localStorage.setItem(
       SECTION_KEY,
-      JSON.stringify({ cat: "cardiac", tags: ["B-líneas"], query: "tampon", sort: "title" }),
+      JSON.stringify({
+        cat: "cardiac",
+        tags: ["B-líneas"],
+        query: "tampon",
+        sort: "title",
+        difficulty: ["basic"],
+      }),
     );
     const replacePatch = vi.fn();
     renderHook(() =>
@@ -35,6 +41,7 @@ describe("usePersistedFilters", () => {
         tags: [],
         query: "",
         sort: "recent",
+        difficulty: [],
         replacePatch,
       }),
     );
@@ -44,13 +51,14 @@ describe("usePersistedFilters", () => {
       tags: ["B-líneas"],
       query: "tampon",
       sort: "title",
+      difficulty: ["basic"],
     });
   });
 
   it("does NOT restore when the URL already carries filters (deep-link wins)", () => {
     localStorage.setItem(
       SECTION_KEY,
-      JSON.stringify({ cat: "cardiac", tags: [], query: "", sort: "recent" }),
+      JSON.stringify({ cat: "cardiac", tags: [], query: "", sort: "recent", difficulty: [] }),
     );
     const replacePatch = vi.fn();
     renderHook(() =>
@@ -60,6 +68,7 @@ describe("usePersistedFilters", () => {
         tags: [],
         query: "",
         sort: "recent",
+        difficulty: [],
         replacePatch,
       }),
     );
@@ -77,6 +86,7 @@ describe("usePersistedFilters", () => {
           tags: [],
           query: "",
           sort: "recent",
+          difficulty: [],
           replacePatch,
         },
       },
@@ -88,6 +98,7 @@ describe("usePersistedFilters", () => {
       tags: ["B-líneas"],
       query: "",
       sort: "recent",
+      difficulty: ["basic", "intermediate"],
       replacePatch,
     });
     const stored = JSON.parse(localStorage.getItem(SECTION_KEY) ?? "null");
@@ -96,13 +107,14 @@ describe("usePersistedFilters", () => {
       tags: ["B-líneas"],
       query: "",
       sort: "recent",
+      difficulty: ["basic", "intermediate"],
     });
   });
 
   it("drops the storage slot when the user clears filters back to default", () => {
     localStorage.setItem(
       SECTION_KEY,
-      JSON.stringify({ cat: "cardiac", tags: [], query: "", sort: "recent" }),
+      JSON.stringify({ cat: "cardiac", tags: [], query: "", sort: "recent", difficulty: [] }),
     );
     const replacePatch = vi.fn();
     const { rerender } = renderHook(
@@ -114,6 +126,7 @@ describe("usePersistedFilters", () => {
           tags: [],
           query: "",
           sort: "recent",
+          difficulty: [],
           replacePatch,
         },
       },
@@ -126,6 +139,7 @@ describe("usePersistedFilters", () => {
       tags: [],
       query: "",
       sort: "recent",
+      difficulty: [],
       replacePatch,
     });
     expect(localStorage.getItem(SECTION_KEY)).toBeNull();
@@ -140,6 +154,7 @@ describe("usePersistedFilters", () => {
         tags: [],
         query: "",
         sort: "recent",
+        difficulty: [],
         replacePatch,
       }),
     );
@@ -157,10 +172,39 @@ describe("usePersistedFilters", () => {
         tags: [],
         query: "",
         sort: "recent",
+        difficulty: [],
         replacePatch,
       }),
     );
     // Doesn't throw; doesn't restore (parse failed → null → no patch).
     expect(replacePatch).not.toHaveBeenCalled();
+  });
+
+  it("back-compat: stored slot without a difficulty field restores cleanly", () => {
+    // Pre-Nov-2026 storage shape — no `difficulty` key. The hook
+    // should normalize it to [] rather than throwing or skipping.
+    localStorage.setItem(
+      SECTION_KEY,
+      JSON.stringify({ cat: "cardiac", tags: [], query: "", sort: "title" }),
+    );
+    const replacePatch = vi.fn();
+    renderHook(() =>
+      usePersistedFilters({
+        view: SECTION_VIEW,
+        cat: null,
+        tags: [],
+        query: "",
+        sort: "recent",
+        difficulty: [],
+        replacePatch,
+      }),
+    );
+    expect(replacePatch).toHaveBeenCalledWith({
+      cat: "cardiac",
+      tags: [],
+      query: "",
+      sort: "title",
+      difficulty: [],
+    });
   });
 });

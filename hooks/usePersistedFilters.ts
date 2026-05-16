@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { log } from "@/lib/log";
 import { filtersKey } from "@/lib/storage-keys";
-import type { SortOrder } from "@/lib/url";
+import type { Difficulty, SortOrder } from "@/lib/url";
 import type { View } from "@/lib/types";
 
 /**
@@ -34,6 +34,7 @@ interface FilterState {
   tags: string[];
   query: string;
   sort: SortOrder;
+  difficulty: Difficulty[];
 }
 
 // Persisted shape is currently identical to the in-memory one.
@@ -44,6 +45,7 @@ interface FilterState {
 type PersistedFilters = FilterState;
 
 const VALID_SORT: SortOrder[] = ["recent", "title", "featured"];
+const VALID_DIFFICULTY: Difficulty[] = ["basic", "intermediate", "advanced"];
 
 function storageKey(view: View): string | null {
   if (view.kind !== "section") return null;
@@ -52,7 +54,11 @@ function storageKey(view: View): string | null {
 
 function isClean(state: FilterState): boolean {
   return (
-    state.cat === null && state.tags.length === 0 && state.query === "" && state.sort === "recent"
+    state.cat === null &&
+    state.tags.length === 0 &&
+    state.query === "" &&
+    state.sort === "recent" &&
+    state.difficulty.length === 0
   );
 }
 
@@ -70,6 +76,15 @@ function readStored(key: string): PersistedFilters | null {
       tags: Array.isArray(parsed.tags) ? parsed.tags.filter((t) => typeof t === "string") : [],
       query: typeof parsed.query === "string" ? parsed.query : "",
       sort: VALID_SORT.includes(parsed.sort as SortOrder) ? (parsed.sort as SortOrder) : "recent",
+      // Difficulty was added Nov-2026. Older slots lack the field
+      // entirely; treat as empty (no filter). Defensive token filter
+      // mirrors the URL parser so stale storage with hand-edited
+      // strings doesn't poison the restore.
+      difficulty: Array.isArray(parsed.difficulty)
+        ? parsed.difficulty.filter((d): d is Difficulty =>
+            VALID_DIFFICULTY.includes(d as Difficulty),
+          )
+        : [],
     };
   } catch (err) {
     log.warn("filter-persistence read failed", { area: "filters" }, err);
@@ -100,10 +115,19 @@ interface Args extends FilterState {
     tags?: string[];
     query?: string;
     sort?: SortOrder;
+    difficulty?: Difficulty[];
   }) => void;
 }
 
-export function usePersistedFilters({ view, cat, tags, query, sort, replacePatch }: Args): void {
+export function usePersistedFilters({
+  view,
+  cat,
+  tags,
+  query,
+  sort,
+  difficulty,
+  replacePatch,
+}: Args): void {
   // Track whether we've already restored for the current section so
   // a navigation within it doesn't trigger a second restore.
   const restoredForRef = useRef<string | null>(null);
@@ -123,7 +147,7 @@ export function usePersistedFilters({ view, cat, tags, query, sort, replacePatch
     restoredForRef.current = key;
     // Only restore when the URL came in clean — never fight an
     // explicit deep-link.
-    const current: FilterState = { cat, tags, query, sort };
+    const current: FilterState = { cat, tags, query, sort, difficulty };
     if (!isClean(current)) return;
     const stored = readStored(key);
     if (!stored || isClean(stored)) return;
@@ -132,6 +156,7 @@ export function usePersistedFilters({ view, cat, tags, query, sort, replacePatch
       tags: stored.tags,
       query: stored.query,
       sort: stored.sort,
+      difficulty: stored.difficulty,
     });
     // We intentionally depend on `view` only for the section identity.
     // The state inputs are read once at the moment we'd restore; later
@@ -147,6 +172,6 @@ export function usePersistedFilters({ view, cat, tags, query, sort, replacePatch
     // clean AND we haven't restored yet, this would write an empty
     // state, clearing the storage we were about to read from.
     if (restoredForRef.current !== key) return;
-    writeStored(key, { cat, tags, query, sort });
-  }, [view, cat, tags, query, sort]);
+    writeStored(key, { cat, tags, query, sort, difficulty });
+  }, [view, cat, tags, query, sort, difficulty]);
 }

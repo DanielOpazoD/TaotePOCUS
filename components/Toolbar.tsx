@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import SavedViewsMenu from "./chrome/SavedViewsMenu";
-import type { SortOrder, ViewState } from "@/lib/url";
+import type { Difficulty, SortOrder, ViewState } from "@/lib/url";
 import { useLanguage } from "@/hooks/useLanguage";
+
+/** Difficulty options the rail renders. Kept in basic→advanced order
+ *  for a left-to-right "easier → harder" reading. */
+const DIFFICULTY_OPTIONS: readonly Difficulty[] = ["basic", "intermediate", "advanced"];
 
 interface Props {
   /** Number of results currently visible — drives the "N casos" copy. */
@@ -14,8 +18,19 @@ interface Props {
   query: string;
   /** Active sort order; the controlled value of the sort select. */
   sort: SortOrder;
+  /** Active difficulty levels; rendered as a toggle rail. Empty = no
+   *  filter. Multi-select / OR-combined (any-of) — matches the user's
+   *  mental model of "show me Basic OR Intermediate". */
+  difficulty: Difficulty[];
   /** Patch the URL with new filter values (replace, not push). */
-  onReplace: (patch: Partial<{ tags: string[]; query: string; sort: SortOrder }>) => void;
+  onReplace: (
+    patch: Partial<{
+      tags: string[];
+      query: string;
+      sort: SortOrder;
+      difficulty: Difficulty[];
+    }>,
+  ) => void;
   /** Full ViewState — needed by the saved-views menu so "Save current"
    *  can capture every filter (path / cat / tags / query / sort / page)
    *  rather than just the toolbar's local slice. Optional so older
@@ -36,11 +51,26 @@ interface Props {
  * change reaches the URL via `onReplace`, which the parent maps to
  * `replacePatch`.
  */
-export default function Toolbar({ count, tags, query, sort, onReplace, viewState, notify }: Props) {
+export default function Toolbar({
+  count,
+  tags,
+  query,
+  sort,
+  difficulty,
+  onReplace,
+  viewState,
+  notify,
+}: Props) {
   const { t } = useLanguage();
   const [clearShaking, setClearShaking] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasFilters = tags.length > 0 || !!query;
+  const hasFilters = tags.length > 0 || !!query || difficulty.length > 0;
+  const toggleDifficulty = (level: Difficulty) => {
+    const next = difficulty.includes(level)
+      ? difficulty.filter((d) => d !== level)
+      : [...difficulty, level];
+    onReplace({ difficulty: next });
+  };
 
   // Drop the shake timer if the component unmounts mid-wink so React
   // doesn't get a setState on an unmounted instance. A real concern
@@ -72,11 +102,32 @@ export default function Toolbar({ count, tags, query, sort, onReplace, viewState
             }, 400);
             return;
           }
-          onReplace({ tags: [], query: "" });
+          onReplace({ tags: [], query: "", difficulty: [] });
         }}
       >
         {t("toolbar.clearFilters")}
       </button>
+      {/* Difficulty chip rail. Three fixed options, toggleable as a
+          group — sits inline with the tag pills so the active filter
+          surface reads as one continuous row. Keep the role group
+          + accessible label so screen readers announce "Dificultad,
+          group" before the buttons. */}
+      <div className="toolbar-difficulty" role="group" aria-label={t("toolbar.difficulty.label")}>
+        {DIFFICULTY_OPTIONS.map((level) => {
+          const active = difficulty.includes(level);
+          return (
+            <button
+              key={level}
+              type="button"
+              className={`tag-chip diff-chip${active ? " active" : ""}`}
+              aria-pressed={active}
+              onClick={() => toggleDifficulty(level)}
+            >
+              {t(`case.difficulty.${level}`)}
+            </button>
+          );
+        })}
+      </div>
       {tags.length > 0 && (
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {tags.map((tag) => (

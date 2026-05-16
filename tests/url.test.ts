@@ -39,7 +39,19 @@ describe("parseViewState", () => {
     expect(s.tags).toEqual([]);
     expect(s.query).toBe("");
     expect(s.sort).toBe("recent");
+    expect(s.difficulty).toEqual([]);
     expect(s.caso).toBeNull();
+  });
+
+  it("parses difficulty as a comma-separated allow-list", () => {
+    const s = parseViewState("/", new URLSearchParams("difficulty=basic,advanced"));
+    expect(s.difficulty).toEqual(["basic", "advanced"]);
+  });
+
+  it("drops unknown difficulty tokens (defensive normalize)", () => {
+    // Hand-edited URLs / stale links shouldn't poison the filter.
+    const s = parseViewState("/", new URLSearchParams("difficulty=basic,foo,advanced"));
+    expect(s.difficulty).toEqual(["basic", "advanced"]);
   });
 
   it("respects the pathname for view", () => {
@@ -131,13 +143,25 @@ describe("applyViewPatch", () => {
     expect(applyViewPatch(new URLSearchParams(""), { page: 5 }).get("page")).toBe("6");
   });
 
-  it("auto-clears page when a filter changes (cat / tags / query / sort / view)", () => {
+  it("auto-clears page when a filter changes (cat / tags / query / sort / view / difficulty)", () => {
     const seed = new URLSearchParams("page=3");
     expect(applyViewPatch(seed, { cat: "lung" }).get("page")).toBeNull();
     expect(applyViewPatch(seed, { tags: ["Crítico"] }).get("page")).toBeNull();
     expect(applyViewPatch(seed, { query: "infarto" }).get("page")).toBeNull();
     expect(applyViewPatch(seed, { sort: "title" }).get("page")).toBeNull();
     expect(applyViewPatch(seed, { view: { kind: "favs" } }).get("page")).toBeNull();
+    expect(applyViewPatch(seed, { difficulty: ["basic"] }).get("page")).toBeNull();
+  });
+
+  it("encodes difficulty as a comma-separated list; empty drops the param", () => {
+    expect(
+      applyViewPatch(new URLSearchParams(""), { difficulty: ["basic", "advanced"] }).get(
+        "difficulty",
+      ),
+    ).toBe("basic,advanced");
+    expect(
+      applyViewPatch(new URLSearchParams("difficulty=basic"), { difficulty: [] }).get("difficulty"),
+    ).toBeNull();
   });
 
   it("KEEPS page when a non-filter patch happens (e.g. just opening a case)", () => {

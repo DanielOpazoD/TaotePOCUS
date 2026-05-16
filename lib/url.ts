@@ -12,6 +12,15 @@ import type { SectionId, View } from "./types";
 export type SortOrder = "recent" | "title" | "featured";
 
 /**
+ * Difficulty filter slot. Multi-select: empty array means "any
+ * difficulty" (no filter applied); a non-empty list keeps cases whose
+ * declared difficulty is in the set. Cases without an explicit
+ * `difficulty` field are treated as `"intermediate"` at filter time —
+ * matches the modal pill default in `lib/case-meta.ts > difficultyLabel`.
+ */
+export type Difficulty = "basic" | "intermediate" | "advanced";
+
+/**
  * Parsed view state for the current URL. The hook `useViewState` wraps
  * this with React glue; the pure shape lives here so server code and
  * tests can use it without importing React.
@@ -22,6 +31,9 @@ export interface ViewState {
   tags: string[];
   query: string;
   sort: SortOrder;
+  /** Difficulty levels currently active in the toolbar. Empty = no
+   *  filter. See {@link Difficulty}. */
+  difficulty: Difficulty[];
   caso: string | null;
   presenting: string | null;
   /** 0-indexed catalog page. The grid renders pageSize cases per
@@ -33,6 +45,7 @@ export interface ViewState {
 
 const VALID_SECTIONS: SectionId[] = ["atlas", "ecg", "cases", "info", "rayos"];
 const VALID_SORT: SortOrder[] = ["recent", "title", "featured"];
+const VALID_DIFFICULTY: Difficulty[] = ["basic", "intermediate", "advanced"];
 
 /** Map a pathname to a View. Anything unknown falls back to atlas. */
 export function pathToView(pathname: string): View {
@@ -71,6 +84,14 @@ export function parseViewState(pathname: string, params: URLSearchParams): ViewS
   const query = params.get("q") || "";
   const sortParam = params.get("sort") as SortOrder | null;
   const sort = sortParam && VALID_SORT.includes(sortParam) ? sortParam : "recent";
+  // Difficulty is comma-separated for shareable URLs. Each token is
+  // validated against the allow-list so a hand-edited `?difficulty=foo`
+  // is ignored instead of poisoning the filter (defensive; same
+  // discipline as the sort fallback above).
+  const difficulty = (params.get("difficulty") || "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t): t is Difficulty => VALID_DIFFICULTY.includes(t as Difficulty));
   const caso = params.get("caso") || null;
   const presenting = params.get("present") || null;
   // `page` is 1-indexed in the URL (`?page=2`) for human-readable
@@ -81,7 +102,7 @@ export function parseViewState(pathname: string, params: URLSearchParams): ViewS
   const pageParam = parseInt(params.get("page") || "1", 10);
   const page = Number.isFinite(pageParam) && pageParam > 1 ? pageParam - 1 : 0;
 
-  return { view, cat, tags, query, sort, caso, presenting, page };
+  return { view, cat, tags, query, sort, difficulty, caso, presenting, page };
 }
 
 export type ViewPatch = Partial<{
@@ -90,6 +111,7 @@ export type ViewPatch = Partial<{
   tags: string[];
   query: string;
   sort: SortOrder;
+  difficulty: Difficulty[];
   caso: string | null;
   presenting: string | null;
   /** 0-indexed page. Setting `0` removes the URL param (clean
@@ -125,6 +147,8 @@ export function applyViewPatch(prev: URLSearchParams, patch: ViewPatch): URLSear
   if (patch.tags !== undefined) set("tags", patch.tags.length ? patch.tags.join(",") : null);
   if (patch.query !== undefined) set("q", patch.query);
   if (patch.sort !== undefined) set("sort", patch.sort === "recent" ? null : patch.sort);
+  if (patch.difficulty !== undefined)
+    set("difficulty", patch.difficulty.length ? patch.difficulty.join(",") : null);
   if (patch.caso !== undefined) set("caso", patch.caso);
   if (patch.presenting !== undefined) set("present", patch.presenting);
 
@@ -135,7 +159,8 @@ export function applyViewPatch(prev: URLSearchParams, patch: ViewPatch): URLSear
     patch.cat !== undefined ||
     patch.tags !== undefined ||
     patch.query !== undefined ||
-    patch.sort !== undefined;
+    patch.sort !== undefined ||
+    patch.difficulty !== undefined;
   if (patch.page !== undefined) {
     // Page is 1-indexed in URLs (human-readable); 0 → no param.
     set("page", patch.page > 0 ? String(patch.page + 1) : null);

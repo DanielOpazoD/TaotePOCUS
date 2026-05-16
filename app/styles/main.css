@@ -247,6 +247,24 @@
   letter-spacing: 0.08em;
   cursor: pointer;
 }
+/* Difficulty chip rail in the toolbar. Three fixed buttons sitting
+   inline with the active-tag pills so the filter zone reads as one
+   continuous row. We reuse `.tag-chip` for the base look and only
+   layer on a hairline divider before the rail so the user reads the
+   group as "difficulty filter" rather than another tag. */
+.toolbar-difficulty {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.toolbar-difficulty .diff-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 4px 9px;
+  text-transform: none;
+}
 .sort-select {
   border: 1px solid var(--hairline);
   background: var(--surface);

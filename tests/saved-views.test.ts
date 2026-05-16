@@ -21,6 +21,7 @@ const baseState: ViewState = {
   tags: [],
   query: "",
   sort: "recent",
+  difficulty: [],
   caso: null,
   presenting: null,
   page: 0,
