@@ -23,6 +23,7 @@ import { categoryLabel, sectionLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import { viewToPath } from "@/lib/url";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useSwipeToClose } from "@/hooks/useSwipeToClose";
 import type { CategoryWithCount, Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -72,6 +73,16 @@ export default function MobileDrawer({
   totalCount = 0,
 }: Props) {
   const trapRef = useFocusTrap<HTMLDivElement>(open);
+  // Swipe-left-to-close on touch viewports. The drawer slides in from
+  // the left edge, so dragging it back toward the edge is the natural
+  // dismiss gesture — same shape iOS / Android nav drawers use.
+  // The shared hook also exposes a flick-velocity short-circuit so a
+  // quick wrist-flick closes even at lower distance.
+  const swipe = useSwipeToClose<HTMLDivElement>({
+    direction: "left",
+    onClose,
+    enabled: open,
+  });
   const { lang, t } = useLanguage();
   const isAdmin = user?.role === "admin";
 
@@ -107,12 +118,26 @@ export default function MobileDrawer({
     >
       {/* Inner panel's onClick is purely defensive (stop propagation
           to the backdrop). Not a real interaction → role="presentation"
-          tells ARIA it's structural chrome. */}
+          tells ARIA it's structural chrome.
+          The panel ref is forked into the focus trap AND the swipe
+          gesture — same pattern as the case modal. */}
       <div
-        className="drawer"
+        className={`drawer${swipe.dragging ? " is-dragging" : ""}`}
         onClick={(e) => e.stopPropagation()}
         role="presentation"
-        ref={trapRef}
+        ref={(el) => {
+          trapRef.current = el;
+          swipe.ref.current = el;
+        }}
+        style={{
+          // Drawer hugs the left edge; offset is the distance dragged
+          // toward the edge, which we apply as a negative translateX.
+          // The transition is removed while actively dragging so the
+          // panel follows the finger 1:1, and restored on release so
+          // it snaps back smoothly when the gesture is below threshold.
+          transform: swipe.offset ? `translateX(-${swipe.offset}px)` : undefined,
+          transition: swipe.dragging ? "none" : undefined,
+        }}
       >
         <div className="drawer-head">
           <div className="brand" style={{ fontSize: 18 }}>
