@@ -8,6 +8,7 @@ import { CATEGORIES } from "@/lib/data";
 import { getCaseDescription, getCaseTitle } from "@/lib/case-localized";
 import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import { caseThumbViewTransitionName } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 
@@ -40,6 +41,10 @@ function FeaturedCard({
   isViewTransitionTarget?: boolean;
 }) {
   const { lang, t } = useLanguage();
+  // Hover-prefetch the case media so a click on the featured tile
+  // opens the modal with the cine-loop already cached. See
+  // `hooks/useHoverPrefetch` for the timing rationale.
+  const prefetch = useHoverPrefetch(caso.media);
   const cat = CATEGORIES.find((c) => c.id === caso.category);
   const titleRead = getCaseTitle(caso, lang);
   const descRead = getCaseDescription(caso, lang);
@@ -84,7 +89,11 @@ function FeaturedCard({
     // give the title link's `::after` pseudo-element the full-card
     // click coverage. The fav button (z-index: 3) sits above the
     // cover. Eliminates the prior `nested-interactive` violation.
-    <article className={`featured-card featured-${variant}`}>
+    <article
+      className={`featured-card featured-${variant}`}
+      onPointerEnter={prefetch.onPointerEnter}
+      onPointerLeave={prefetch.onPointerLeave}
+    >
       <div
         className="featured-thumb"
         // Same view-transition target as `<CaseCard>`. Featured row

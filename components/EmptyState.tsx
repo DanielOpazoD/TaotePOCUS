@@ -3,7 +3,9 @@
 import type { ReactElement } from "react";
 import { useT } from "@/hooks/useLanguage";
 import type { DictKey } from "@/lib/i18n";
+import type { RelaxationSuggestion } from "@/lib/filter-suggestions";
 import type { View } from "@/lib/types";
+import type { ViewPatch } from "@/lib/url";
 
 interface EmptyAction {
   label: string;
@@ -19,6 +21,14 @@ interface Props {
    *  without an action are dead ends; with one, they become the
    *  start of a flow. */
   action?: EmptyAction;
+  /** Per-filter relaxation suggestions, computed upstream when the
+   *  filtered result is empty AND at least one filter is active.
+   *  Rendered as a chip rail ABOVE the generic action — single click
+   *  unlocks the next-best filter combination instead of forcing
+   *  the user to guess which filter to relax. */
+  suggestions?: RelaxationSuggestion[];
+  /** Applies one suggestion's patch via the parent's `replacePatch`. */
+  onApplySuggestion?: (patch: ViewPatch) => void;
 }
 
 /**
@@ -31,7 +41,14 @@ interface Props {
  * marked `aria-hidden` because the heading + message carry the
  * semantic content.
  */
-export default function EmptyState({ view, title, message, action }: Props) {
+export default function EmptyState({
+  view,
+  title,
+  message,
+  action,
+  suggestions,
+  onApplySuggestion,
+}: Props) {
   const t = useT();
   const { glyph, titleKey, messageKey } = pickContent(view);
   return (
@@ -41,6 +58,28 @@ export default function EmptyState({ view, title, message, action }: Props) {
       </div>
       <h3>{title ?? t(titleKey)}</h3>
       <p>{message ?? t(messageKey)}</p>
+      {suggestions && suggestions.length > 0 && onApplySuggestion && (
+        <div className="empty-suggestions" role="group" aria-label={t("empty.suggestions.aria")}>
+          {/* Friendlier framing than "Try removing X" — the count
+              after each chip carries the actual unlock ("4 cases"). */}
+          <p className="empty-suggestions-lede">{t("empty.suggestions.lede")}</p>
+          <div className="empty-suggestions-row">
+            {suggestions.map((s, i) => (
+              <button
+                key={`${s.kind}-${s.label}-${i}`}
+                type="button"
+                className="empty-suggestion"
+                onClick={() => onApplySuggestion(s.patch)}
+              >
+                <span className="empty-suggestion-label">{describeSuggestion(s, t)}</span>
+                <span className="empty-suggestion-count">
+                  {t("empty.suggestions.count", { count: s.count })}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {action && (
         <button type="button" className="empty-action" onClick={action.onClick}>
           {action.label}
@@ -48,6 +87,24 @@ export default function EmptyState({ view, title, message, action }: Props) {
       )}
     </div>
   );
+}
+
+/**
+ * Format a suggestion's label for display. The relax kind drives
+ * the verb ("Remove ...", "Clear ...") and the `label` field carries
+ * the user-visible target (the tag string, the difficulty level,
+ * the query). Difficulty levels are localized via `case.difficulty.*`
+ * so the chip reads consistently with the toolbar chips it mirrors.
+ */
+function describeSuggestion(s: RelaxationSuggestion, t: ReturnType<typeof useT>): string {
+  if (s.kind === "cat") return t("empty.suggestions.dropCat");
+  if (s.kind === "query") return t("empty.suggestions.dropQuery", { query: s.label });
+  if (s.kind === "difficulty") {
+    const difficultyLabel = t(`case.difficulty.${s.label}` as DictKey);
+    return t("empty.suggestions.dropDifficulty", { level: difficultyLabel });
+  }
+  // tags
+  return t("empty.suggestions.dropTag", { tag: s.label });
 }
 
 /**

@@ -1170,6 +1170,81 @@
    reads as "the next thing" without shouting. The empty-state is
    already low-attention; this button is the main reason the user
    would still interact with it. */
+/* Quick-fix chip rail above the generic CTA. Each chip is a single
+   filter relaxation the user can apply with one click; the count
+   on the right tells them exactly how many cases that drop would
+   unlock. Reads as "Here are 3 ways to find something — pick one"
+   instead of leaving the user to guess which filter is restrictive.
+
+   Layout mirrors the toolbar's tag chip rail so the visual language
+   is consistent ("these are toggleable filter actions"), but the
+   right-aligned count makes them feel like a unique surface, not a
+   duplicate of the toolbar. */
+.empty-suggestions {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.empty-suggestions-lede {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0;
+}
+.empty-suggestions-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 480px;
+}
+.empty-suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform 0.4s var(--ease-spring);
+}
+.empty-suggestion:hover,
+.empty-suggestion:focus-visible {
+  background: var(--surface-2);
+  border-color: var(--ink-mute);
+  transform: translateY(-1px);
+  outline: none;
+}
+.empty-suggestion-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  /* Hairline pill separator before the count so the chip reads as
+     "{label} · {count}" without an explicit middot character. */
+  padding-left: 8px;
+  border-left: 1px solid var(--hairline);
+}
+@media (prefers-reduced-motion: reduce) {
+  .empty-suggestion {
+    transition: background var(--duration-fast) ease;
+  }
+  .empty-suggestion:hover {
+    transform: none;
+  }
+}
+
 .empty-action {
   margin-top: var(--space-4);
   padding: 9px 18px;

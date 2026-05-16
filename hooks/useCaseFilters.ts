@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { applyCaseFilters } from "@/lib/case-filters";
 import { CATEGORIES } from "@/lib/data";
-import { compareTitles, getCaseTags, searchHaystack } from "@/lib/case-localized";
+import { getCaseTags } from "@/lib/case-localized";
 import { useLanguage } from "./useLanguage";
 import type { CaseRecord, Category, CategoryWithCount, View } from "@/lib/types";
 import type { Difficulty, SortOrder } from "@/lib/url";
@@ -137,40 +138,22 @@ export function useCaseFilters({
     return Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
   }, [scopedCases, lang]);
 
-  const filtered = useMemo(() => {
-    let list = scopedCases.slice();
-    if (cat) list = list.filter((c) => c.category === cat);
-    if (tags.length) {
-      list = list.filter((c) => {
-        // Active filter tags are matched against the current-language
-        // tag list (with EN→ES fallback). A user who applied "Cardiac"
-        // in EN mode keeps the same case scope when they flip to ES
-        // because the case's ES list contains the equivalent tag —
-        // the URL `?tags=` slot stays language-stable across toggles.
-        const caseTags = getCaseTags(c, lang).tags;
-        return tags.every((t) => caseTags.includes(t));
-      });
-    }
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      // `searchHaystack` concatenates ES + EN content + tags + author
-      // so a query in either language matches even when the case is
-      // only partially translated.
-      list = list.filter((c) => searchHaystack(c).includes(q));
-    }
-    if (difficulty && difficulty.length) {
-      // OR-combined (any-of) — multiple chips broaden the match rather
-      // than narrowing it, matching the user's mental model of "show me
-      // Basic + Intermediate". Cases without an explicit difficulty
-      // default to "intermediate", same as the modal pill.
-      const set = new Set(difficulty);
-      list = list.filter((c) => set.has(c.difficulty ?? "intermediate"));
-    }
-    if (sort === "recent") list.sort((a, b) => b.date.localeCompare(a.date));
-    if (sort === "title") list.sort((a, b) => compareTitles(a, b, lang));
-    if (sort === "featured") list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-    return list;
-  }, [scopedCases, cat, tags, query, sort, difficulty, lang]);
+  const filtered = useMemo(
+    // Delegate to the pure pipeline so the same logic feeds the
+    // EmptyState "relax this filter" suggestions in `lib/filter-
+    // suggestions.ts` without re-entering React. The historical
+    // commentary on each branch lives in `lib/case-filters.ts`.
+    () =>
+      applyCaseFilters(scopedCases, {
+        cat,
+        tags,
+        query,
+        sort,
+        difficulty: difficulty ?? [],
+        lang,
+      }),
+    [scopedCases, cat, tags, query, sort, difficulty, lang],
+  );
 
   return { scopedCases, sectionCategories, sectionTags, filtered };
 }

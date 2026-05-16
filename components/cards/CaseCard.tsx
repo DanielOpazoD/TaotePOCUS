@@ -10,6 +10,7 @@ import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
 import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import { caseThumbViewTransitionName } from "@/lib/view-transition";
 import { highlight } from "@/lib/highlight";
 import { resolveFocus } from "@/lib/focus";
@@ -83,6 +84,12 @@ function CaseCardImpl({
   isViewTransitionTarget = false,
 }: Props) {
   const { lang, t } = useLanguage();
+  // Pointer-enter handlers that kick off a background fetch of this
+  // case's media after 150ms of hover (the "intent" threshold). By
+  // the time the user actually clicks, the asset is in the HTTP cache
+  // so the modal mounts with the cine-loop ready to paint instead of
+  // showing the spinner. No-op when the case has no real media.
+  const prefetch = useHoverPrefetch(caso.media);
   // Resolve every translatable field once per render; reuse below.
   // The `isFallback` flag from each helper feeds the `<FallbackBadge>`
   // that renders next to the affected text when the user picked EN
@@ -210,7 +217,11 @@ function CaseCardImpl({
     // copy-link works, open-in-new-tab works (the click handler
     // bails on modifier keys), and JS-disabled visitors still land
     // on the modal-open URL state.
-    <article className="case-card">
+    <article
+      className="case-card"
+      onPointerEnter={prefetch.onPointerEnter}
+      onPointerLeave={prefetch.onPointerLeave}
+    >
       <div
         className="case-thumb"
         // View Transitions API morph target. Name suppressed when
