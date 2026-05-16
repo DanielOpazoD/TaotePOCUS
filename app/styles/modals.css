@@ -553,6 +553,18 @@ button:hover > .kbd-hint {
   line-height: 1.55;
   color: var(--ink);
 }
+.modal-section--lede p {
+  /* Body lede inside the modal — Newsreader's TEXT drawing at
+     opsz ~14 with a slightly lighter weight reads as editorial
+     prose rather than UI label copy. `font-variation-settings`
+     overrides the more general `--serif-body` token without
+     replacing it, in case other surfaces want to keep the
+     default body axis pairing. */
+  font-family: var(--serif);
+  font-variation-settings:
+    "opsz" 14,
+    "wght" 420;
+}
 
 /* Editorial drop cap on the case summary lede. Three lines tall,
    picks up the section accent so the page color narrative carries
@@ -743,5 +755,188 @@ button:hover > .kbd-hint {
   ::view-transition-new(root) {
     animation-duration: 250ms;
     animation-timing-function: var(--ease-emphasized);
+  }
+}
+
+/* =================== COMMAND PALETTE (⌘K) ===================
+ * Centred overlay, fixed near the top of the viewport (modal feel,
+ * but biased upward so the user's gaze stays in reading rhythm
+ * rather than at the dead-center). Width caps at 560px so dense
+ * search rows stay comfortable; on mobile the shell fills the
+ * viewport minus generous side gutters.
+ *
+ * Layer stack: backdrop (handled by <dialog>::backdrop), shell,
+ * input row, scrollable list, footer hint strip. The shell uses
+ * `--surface` so it sits one notch above the page in light mode
+ * and reads correctly in dark mode without explicit theme rules.
+ */
+.cmdk {
+  border: none;
+  padding: 0;
+  background: transparent;
+  /* Pin near the top instead of centre — the eye lands faster at
+     ~12vh than at 50vh because the input is the first thing the
+     user looks for. */
+  margin: 12vh auto auto auto;
+  max-height: 78vh;
+}
+.cmdk::backdrop {
+  background: rgba(15, 17, 20, 0.55);
+  backdrop-filter: blur(8px);
+}
+.cmdk-shell {
+  width: min(560px, 92vw);
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+.cmdk-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+.cmdk-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-mute);
+  flex: 0 0 auto;
+}
+.cmdk-glyph svg {
+  width: 18px;
+  height: 18px;
+}
+.cmdk-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.cmdk-input::placeholder {
+  color: var(--ink-mute);
+}
+.cmdk-esc {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.cmdk-empty {
+  margin: 0;
+  padding: 24px 16px 28px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+.cmdk-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  flex: 1;
+  overflow-y: auto;
+}
+.cmdk-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
+}
+.cmdk-row.is-selected {
+  background: color-mix(in oklch, var(--accent) 14%, transparent);
+}
+.cmdk-row-glyph {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-mute);
+}
+.cmdk-row.is-selected .cmdk-row-glyph {
+  color: var(--accent-ink);
+}
+.cmdk-row-glyph svg {
+  width: 16px;
+  height: 16px;
+}
+.cmdk-row-glyph--typographic {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.cmdk-row-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.cmdk-row-primary {
+  font-size: 14px;
+  color: var(--ink);
+  /* Clip long titles to a single line; the secondary line carries
+     extra context so a truncated title is never the full identity
+     of the row. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmdk-row-verb {
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.cmdk-row-secondary {
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+.cmdk-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: 8px 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+.cmdk-foot kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  margin-right: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmdk-row {
+    transition: none;
   }
 }

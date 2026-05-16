@@ -26,6 +26,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { getCaseTitle } from "@/lib/case-localized";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import type { AuthErrorCode } from "@/lib/errors";
+import type { Command as PaletteCommand } from "./modals/CommandPalette";
 
 // Lazy-loaded subtrees: each shows up only on a specific flag.
 // Keeping them out of the initial bundle preserves first-paint on
@@ -35,6 +36,7 @@ const CaseForm = dynamic(() => import("./admin/CaseForm"), { ssr: false });
 const PresentationMode = dynamic(() => import("./cine/PresentationMode"), { ssr: false });
 const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: false });
 const ShortcutsModal = dynamic(() => import("./modals/ShortcutsModal"), { ssr: false });
+const CommandPalette = dynamic(() => import("./modals/CommandPalette"), { ssr: false });
 const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 // AuthModal embeds Clerk's `<SignIn />` widget which pulls a ~120KB
 // chunk of the Clerk SDK. Most catalog visitors never click "Entrar"
@@ -127,6 +129,18 @@ interface Props {
   // Shortcuts modal
   shortcutsOpen: boolean;
   onCloseShortcuts: () => void;
+
+  // Command palette (Cmd+K)
+  paletteOpen: boolean;
+  onClosePalette: () => void;
+  /** Catalog of commands the palette can dispatch. Built upstream
+   *  in `App.tsx` because the call sites for each command (open
+   *  case, edit case, toggle theme, navigate) live there. */
+  paletteCommands: PaletteCommand[];
+  /** Dispatches a single command. Called when the user hits Enter
+   *  on a row or clicks an option. The palette closes itself after
+   *  delegating — the parent just needs to run the side effect. */
+  onRunPaletteCommand: (cmd: PaletteCommand) => void;
 }
 
 export default function AppModals(props: Props) {
@@ -180,6 +194,10 @@ export default function AppModals(props: Props) {
     adminPipeline,
     shortcutsOpen,
     onCloseShortcuts,
+    paletteOpen,
+    onClosePalette,
+    paletteCommands,
+    onRunPaletteCommand,
   } = props;
 
   return (
@@ -274,6 +292,19 @@ export default function AppModals(props: Props) {
       />
 
       <ShortcutsModal open={shortcutsOpen} onClose={onCloseShortcuts} />
+
+      {/* Cmd+K command palette. Mounts conditionally because the
+          lazy import shouldn't ship until the user actually opens
+          it, but stays in the modal layer so it shares the same
+          z-index / focus-trap conventions as the other dialogs. */}
+      {paletteOpen && (
+        <CommandPalette
+          open={paletteOpen}
+          onClose={onClosePalette}
+          commands={paletteCommands}
+          onRun={onRunPaletteCommand}
+        />
+      )}
 
       <PWAStatus />
     </>

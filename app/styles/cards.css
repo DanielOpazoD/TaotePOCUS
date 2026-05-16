@@ -20,13 +20,22 @@
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-mute);
+  /* Tinted with the section accent so editorial sub-section
+     headers ("Recently viewed", "Featured") read as section-
+     specific dividers rather than generic gray labels. The mix
+     keeps the rest of the ink palette as the dominant tone — the
+     accent only contributes 50% — so the chrome stays readable
+     against any theme. */
+  color: color-mix(in oklch, var(--section-accent-ink, var(--ink-mute)) 50%, var(--ink-mute));
   margin: 0;
 }
 .recently-rule {
   flex: 1;
   height: 1px;
-  background: var(--hairline);
+  /* Same accent-tinted hairline so the divider visually completes
+     the section-colored header. Falls through to the plain
+     hairline outside a section context. */
+  background: color-mix(in oklch, var(--section-accent, var(--hairline)) 30%, var(--hairline));
 }
 .recently-row {
   list-style: none;
@@ -106,13 +115,15 @@
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-mute);
+  /* Section-accent tint — matches `.recently-head h2`, see there
+     for the rationale. */
+  color: color-mix(in oklch, var(--section-accent-ink, var(--ink-mute)) 50%, var(--ink-mute));
   margin: 0;
 }
 .featured-rule {
   flex: 1;
   height: 1px;
-  background: var(--hairline);
+  background: color-mix(in oklch, var(--section-accent, var(--hairline)) 30%, var(--hairline));
 }
 .featured-grid {
   display: grid;
@@ -193,7 +204,7 @@
 }
 .featured-title {
   font-family: var(--serif);
-  font-weight: 500;
+  font-weight: 460;
   letter-spacing: -0.018em;
   color: var(--ink);
   margin: 0;
@@ -201,10 +212,23 @@
 .featured-hero .featured-title {
   font-size: 28px;
   line-height: 1.15;
+  /* Hero scale — pair the optical-size axis with the actual font-
+     size so Newsreader's display drawing kicks in cleanly (less
+     ink density per stroke, more elegant terminals). `wght: 460`
+     keeps it light enough to read as editorial, not banner. */
+  font-variation-settings:
+    "opsz" 30,
+    "wght" 460;
 }
 .featured-side .featured-title {
   font-size: 16px;
   line-height: 1.25;
+  /* Side cards are small + dense; text drawing reads better here
+     than display, and the slight extra weight (480) helps the
+     title hold its own next to the hero's larger title. */
+  font-variation-settings:
+    "opsz" 16,
+    "wght" 500;
 }
 .featured-abstract {
   font-size: 14px;
@@ -596,18 +620,21 @@
   }
 }
 .case-card:hover .case-thumb {
-  /* Single soft shadow on hover + a 1px section-accent ring. The
-     shadow gives a subtle lift cue against the page; the ring turns
-     the hover from "generic lift" into "section-specific
-     interactive surface" — Atlas reads in cool accent, ECG green,
-     Cases warm, Info indigo, Rayos blue-grey — without any per-
-     section CSS branches. `color-mix` falls through token
-     resolution: when `--section-accent` is unset (admin / favs /
-     etc.) it lands on `--accent`, so cards there still get a
-     treatment rather than dropping to transparent. */
+  /* Soft shadow on hover + a section-accent ring. The shadow gives
+     a subtle lift cue against the page; the ring turns the hover
+     from "generic lift" into "section-specific interactive
+     surface" — Atlas reads in cool accent, ECG green, Cases warm,
+     Info indigo, Rayos blue-grey — without any per-section CSS
+     branches. Ring opacity bumped from 28% → 55% (PR #section-
+     identity-palette) so the section identity is genuinely visible
+     on hover instead of being a near-imperceptible hairline.
+     `color-mix` falls through token resolution: when
+     `--section-accent` is unset (admin / favs / etc.) it lands on
+     `--accent`, so cards there still get a treatment rather than
+     dropping to transparent. */
   box-shadow:
     var(--shadow-1),
-    0 0 0 1px color-mix(in oklch, var(--section-accent, var(--accent)) 28%, transparent);
+    0 0 0 2px color-mix(in oklch, var(--section-accent, var(--accent)) 55%, transparent);
 }
 .case-card:hover .case-thumb-overlay {
   opacity: 1;
@@ -1075,7 +1102,15 @@
 }
 .case-title {
   font-family: var(--serif);
-  font-weight: 500;
+  font-weight: 480;
+  /* Card titles sit at 18px in the default grid layout — small
+     enough that Newsreader's TEXT drawing reads better than its
+     display drawing. `opsz: 18` pins the optical-size axis to the
+     rendered size (no auto-mapping mismatch), `wght: 480` gives a
+     touch more presence than 460 since the cell is dense. */
+  font-variation-settings:
+    "opsz" 18,
+    "wght" 480;
   font-size: 18px;
   line-height: 1.25;
   letter-spacing: -0.01em;

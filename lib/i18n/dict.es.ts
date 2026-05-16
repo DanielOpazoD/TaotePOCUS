@@ -166,6 +166,28 @@ export const DICT_ES = {
   "recently.title": "Vistos hace poco",
   "recently.label": "Casos vistos hace poco",
 
+  // ─── Command palette (⌘K / Ctrl+K overlay) ─────────────────────
+  // Single keyboard surface for every navigation + edit action in
+  // the app. Strings are short — the palette UI is dense.
+  "palette.placeholder": "Buscar casos, ir a, acciones…",
+  "palette.aria": "Buscar en la paleta de comandos",
+  "palette.empty": "Sin resultados",
+  "palette.foot.navigate": "Navegar",
+  "palette.foot.select": "Seleccionar",
+  "palette.foot.close": "Cerrar",
+  "palette.row.openVerb": "Abrir",
+  "palette.row.editVerb": "Editar",
+  "palette.command.favs": "Favoritos",
+  "palette.command.admin": "Administrar",
+  "palette.command.toggleTheme": "Cambiar tema (claro/oscuro)",
+  "palette.command.toggleLang": "Cambiar idioma",
+  // Reciprocal arrows for the language-toggle command — shown as
+  // the secondary line so the user sees both the current state and
+  // the destination at a glance.
+  "palette.command.toggleLang.toEN": "Español → English",
+  "palette.command.toggleLang.toES": "English → Español",
+  "palette.command.newCase": "Nuevo caso",
+
   // ─── Keyboard shortcuts modal (`?` help) ───────────────────────
   // `SHORTCUTS` in `hooks/useShortcuts.ts` references the `.label.*`
   // keys by id rather than carrying raw Spanish — that way the EN

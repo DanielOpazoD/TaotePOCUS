@@ -150,6 +150,23 @@ export const DICT_EN: Dict = {
   "recently.title": "Recently viewed",
   "recently.label": "Recently viewed cases",
 
+  // ─── Command palette (⌘K / Ctrl+K overlay) ─────────────────────
+  "palette.placeholder": "Search cases, jump to, actions…",
+  "palette.aria": "Search the command palette",
+  "palette.empty": "No results",
+  "palette.foot.navigate": "Navigate",
+  "palette.foot.select": "Select",
+  "palette.foot.close": "Close",
+  "palette.row.openVerb": "Open",
+  "palette.row.editVerb": "Edit",
+  "palette.command.favs": "Favorites",
+  "palette.command.admin": "Admin",
+  "palette.command.toggleTheme": "Toggle theme (light/dark)",
+  "palette.command.toggleLang": "Switch language",
+  "palette.command.toggleLang.toEN": "Español → English",
+  "palette.command.toggleLang.toES": "English → Español",
+  "palette.command.newCase": "New case",
+
   // ─── Keyboard shortcuts modal (`?` help) ───────────────────────
   "shortcuts.title": "Keyboard shortcuts",
   "shortcuts.intro": "Browse and filter without leaving the keyboard.",
