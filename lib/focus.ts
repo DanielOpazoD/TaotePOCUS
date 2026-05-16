@@ -20,7 +20,30 @@
 // is just the resolver, deliberately small so the unit test pins
 // behaviour without mocking storage.
 
-import type { CaseRecord, FocusDefaults, FocusValue } from "@/lib/types";
+import type { CaseRecord, FocusDefaults, FocusValue, SectionId } from "@/lib/types";
+
+/**
+ * Built-in section presets — a final fallback layer between the
+ * admin-managed `defaults.sections` and the global / hardcoded
+ * defaults. Use ONLY for shape-of-data fixes that the import
+ * pipeline can't address on its own, never for editorial overrides
+ * (those belong in the admin panel).
+ *
+ * `ecg`: every imported Twitter ECG ships with a ~40-50% black
+ * letterbox band on top (the tweet header / timestamp area) and the
+ * actual paper at the bottom. A 50/50 `object-position` on a 1:1
+ * card lands the cell squarely inside that black band — the
+ * thumbnail reads as "broken / empty" and the reader has to open
+ * the modal to confirm there's an ECG inside. Biasing the focal
+ * point down to y=85 lifts the paper into view; the slight
+ * scale=1.1 zoom trims the residual sliver at the top edge so the
+ * card is dominated by ECG instead of letterbox. Admin overrides
+ * (per-section or per-case) still win — this is just a sensible
+ * baseline for fresh installs.
+ */
+const SECTION_PRESETS: Partial<Record<SectionId, FocusValue>> = {
+  ecg: { y: 85, scale: 1.1 },
+};
 
 /**
  * Resolve the effective `FocusValue` for a case against the admin's
@@ -63,10 +86,18 @@ export function resolveFocus(
   const bySection = defaults.sections?.[caso.section];
   if (bySection) return bySection;
 
-  // 4. Global default.
+  // 4. Built-in section preset. Sits between admin section defaults
+  //    and the global layer so a section the import pipeline knows
+  //    needs a non-50/50 baseline (ECG today) gets one without an
+  //    admin having to configure every install. See SECTION_PRESETS
+  //    above for the per-section rationale.
+  const preset = SECTION_PRESETS[caso.section];
+  if (preset) return preset;
+
+  // 5. Global default.
   if (defaults.global) return defaults.global;
 
-  // 5. No hit — let the renderer apply its hard-coded defaults.
+  // 6. No hit — let the renderer apply its hard-coded defaults.
   return undefined;
 }
 
