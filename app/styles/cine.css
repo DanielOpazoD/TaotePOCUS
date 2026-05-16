@@ -99,6 +99,57 @@
   background: #1a1d24;
   overflow: hidden;
 }
+
+/* Video buffering spinner. Sits ABOVE the video's first frame
+   (which is now visible thanks to `preload="metadata"`) and BELOW
+   any chrome (z-index ladder: skeleton=1, spinner=2, chrome=3).
+   The first frame is the "image of what kind of video is coming";
+   the spinning dot is the "still loading" cue. Soft scrim on the
+   bottom half keeps the dot legible over light first-frames. */
+.cine-spinner {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  /* Subtle radial vignette so the dot stays readable against a
+     bright or busy first frame. Keep it light — the goal is to
+     surface the spinner, not obscure the preview. */
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
+}
+.cine-spinner-dot {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  animation: cine-spinner-rotate 0.85s linear infinite;
+  /* Pop slightly so the spinner reads as a foreground element. */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+@keyframes cine-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Pulse rather than rotate — same "still working" cue without the
+     constant spin that triggers vestibular sensitivity. */
+  .cine-spinner-dot {
+    animation: cine-spinner-pulse 1.4s ease-in-out infinite;
+    border-top-color: rgba(255, 255, 255, 0.6);
+  }
+  @keyframes cine-spinner-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
 .cine-skeleton::after {
   content: "";
   position: absolute;

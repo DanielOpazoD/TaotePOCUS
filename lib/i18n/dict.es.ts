@@ -321,6 +321,10 @@ export const DICT_ES = {
   // imports). The accent-free "Imagen" otherwise leaks Spanish to
   // an EN-mode screen reader.
   "cine.fallbackAria": "Imagen",
+  // Spinner overlay between video metadata-loaded and data-loaded
+  // — the user sees the first frame underneath; this label tells
+  // screen readers what the spinning indicator is doing.
+  "cine.loadingAria": "Cargando video",
 
   // ─── Synthetic-loop canvas labels ──────────────────────────────
   // `components/cine/cineScenes.ts` paints these as actual pixels on
