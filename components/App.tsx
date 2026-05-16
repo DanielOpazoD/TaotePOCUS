@@ -502,6 +502,11 @@ function AppInner() {
         // view transition so the modal content morphs smoothly
         // between the previous and the newly-selected case.
         onOpenRelated={onCardOpen}
+        // Mirror the grid's search highlight inside the modal —
+        // when the user deep-linked from a query, the matched
+        // substrings in the case title + description get the same
+        // `<mark>` treatment so they can spot the hit at a glance.
+        searchQuery={query}
         presentingCase={presentingCase}
         // When no filter narrows the catalog we present the full set;
         // otherwise the cinema is scoped to whatever the user was

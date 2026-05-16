@@ -1188,7 +1188,12 @@
  * the matched word still reads in flow. */
 .case-title mark.search-match,
 .case-summary mark.search-match,
-.case-tag-mini mark.search-match {
+.case-tag-mini mark.search-match,
+/* Modal also gets the highlight when the user deep-linked into a
+   case from a search result — title + description carry the same
+   `<mark>` markers as the grid cards. Scoped to the modal's body
+   so other `<mark>` use elsewhere isn't accidentally affected. */
+.modal-body mark.search-match {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: inherit;
   border-radius: 2px;
