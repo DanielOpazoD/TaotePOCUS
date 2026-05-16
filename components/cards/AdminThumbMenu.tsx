@@ -22,7 +22,7 @@ interface Props {
   onFocusDraftChange?: (draft: { x: number; y: number; scale: number } | undefined) => void;
 }
 
-type View = "menu" | "reclassify" | "focus";
+type View = "menu" | "reclassify" | "focus" | "quick-edit";
 
 /**
  * Single admin entry point on every thumbnail. Replaces the four
@@ -171,6 +171,20 @@ export default function AdminThumbMenu({
                       type="button"
                       role="menuitem"
                       className="admin-thumb-menu-item"
+                      onClick={() => setView("quick-edit")}
+                    >
+                      <span className="admin-thumb-menu-glyph" aria-hidden="true">
+                        ✎
+                      </span>
+                      Edición rápida
+                      <span className="admin-thumb-menu-meta">Título · dificultad · etiquetas</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="admin-thumb-menu-item"
                       onClick={() => setView("reclassify")}
                     >
                       <span className="admin-thumb-menu-glyph" aria-hidden="true">
@@ -261,6 +275,17 @@ export default function AdminThumbMenu({
                     closeAll();
                   }}
                   onDraftChange={onFocusDraftChange}
+                  onBack={() => setView("menu")}
+                />
+              )}
+
+              {view === "quick-edit" && (
+                <QuickEditInline
+                  caso={caso}
+                  onPatch={(id, patch) => {
+                    onPatch(id, patch);
+                    closeAll();
+                  }}
                   onBack={() => setView("menu")}
                 />
               )}
@@ -435,6 +460,127 @@ function FocusInline({
       <div className="focus-editor-actions">
         <button type="button" className="btn-ghost focus-editor-reset" onClick={reset}>
           Reset
+        </button>
+        <button type="button" className="btn-primary" onClick={save}>
+          Guardar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Inline quick-edit panel — the productivity shortcut for the most
+ * frequent admin edits (title typo, dificultad bump, add/remove a
+ * tag). Avoids the full CaseForm round-trip (~5 navigation steps)
+ * for routine touch-ups; the form is still the right surface for
+ * full case authoring + media uploads.
+ *
+ * Three fields, in the order the admin most often reaches for:
+ *
+ *   1. Title (ES) — the dominant editorial field. EN translation
+ *      stays untouched; full-edit-via-form for bilingual changes.
+ *   2. Difficulty — three-chip selector (basic/intermediate/
+ *      advanced), same vocabulary the toolbar filter uses.
+ *   3. Tags (ES) — comma-separated input, matches the existing
+ *      bulk-edit-tags-cell convention so the admin's muscle memory
+ *      carries over.
+ *
+ * Save commits a single `onPatch` call with all three fields the
+ * user touched; unmodified fields are omitted from the patch so the
+ * override map stays minimal and seed re-imports don't clobber the
+ * user's intent for fields they didn't change.
+ */
+function QuickEditInline({
+  caso,
+  onPatch,
+  onBack,
+}: {
+  caso: CaseRecord;
+  onPatch: (id: string, patch: Partial<CaseRecord>) => void;
+  onBack: () => void;
+}) {
+  // Initial state mirrors the case's current values. The diff against
+  // the original on save tells us which fields the admin actually
+  // touched — fields that match the source stay out of the patch.
+  const initialTitle = caso.title.es ?? "";
+  const initialTagsCsv = caso.tags.es.join(", ");
+  const initialDifficulty = caso.difficulty ?? "intermediate";
+  const [titleDraft, setTitleDraft] = useState(initialTitle);
+  const [tagsDraft, setTagsDraft] = useState(initialTagsCsv);
+  const [difficultyDraft, setDifficultyDraft] =
+    useState<NonNullable<CaseRecord["difficulty"]>>(initialDifficulty);
+
+  const save = () => {
+    const patch: Partial<CaseRecord> = {};
+    if (titleDraft !== initialTitle) {
+      // Preserve the EN slot if present — quick-edit only touches
+      // ES because that's the editorial baseline. Full bilingual
+      // edits go through the standard CaseForm.
+      patch.title = caso.title.en ? { es: titleDraft, en: caso.title.en } : { es: titleDraft };
+    }
+    if (tagsDraft !== initialTagsCsv) {
+      const nextEs = tagsDraft
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      patch.tags =
+        caso.tags.en && caso.tags.en.length > 0 ? { es: nextEs, en: caso.tags.en } : { es: nextEs };
+    }
+    if (difficultyDraft !== initialDifficulty) {
+      patch.difficulty = difficultyDraft;
+    }
+    // If the admin opened the panel and saved without touching
+    // anything, patch is empty — no-op rather than writing an empty
+    // override that the merge layer would still process.
+    if (Object.keys(patch).length === 0) {
+      onBack();
+      return;
+    }
+    onPatch(caso.id, patch);
+  };
+
+  return (
+    <div className="admin-thumb-menu-sub admin-thumb-menu-quickedit">
+      <button type="button" className="admin-thumb-menu-back" onClick={onBack}>
+        ← Atrás
+      </button>
+      <div className="admin-thumb-menu-group-label">Título (ES)</div>
+      <input
+        type="text"
+        className="admin-thumb-menu-input"
+        value={titleDraft}
+        onChange={(e) => setTitleDraft(e.target.value)}
+        autoFocus
+        aria-label="Título del caso en español"
+      />
+      <div className="admin-thumb-menu-group-label">Dificultad</div>
+      <div className="admin-thumb-menu-chip-row" role="radiogroup" aria-label="Dificultad">
+        {(["basic", "intermediate", "advanced"] as const).map((level) => (
+          <button
+            key={level}
+            type="button"
+            role="radio"
+            aria-checked={difficultyDraft === level}
+            className={`admin-thumb-menu-chip${difficultyDraft === level ? " is-active" : ""}`}
+            onClick={() => setDifficultyDraft(level)}
+          >
+            {level === "basic" ? "Básico" : level === "intermediate" ? "Intermedio" : "Avanzado"}
+          </button>
+        ))}
+      </div>
+      <div className="admin-thumb-menu-group-label">Etiquetas (ES) · separadas por coma</div>
+      <input
+        type="text"
+        className="admin-thumb-menu-input"
+        value={tagsDraft}
+        onChange={(e) => setTagsDraft(e.target.value)}
+        placeholder="Crítico, B-líneas, …"
+        aria-label="Etiquetas del caso en español, separadas por coma"
+      />
+      <div className="admin-thumb-menu-actions">
+        <button type="button" className="btn-ghost" onClick={onBack}>
+          Cancelar
         </button>
         <button type="button" className="btn-primary" onClick={save}>
           Guardar

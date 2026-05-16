@@ -495,6 +495,17 @@ export const DICT_ES = {
   "bulk.action.changeCategory.aria": "Cambiar categoría de seleccionados",
   "bulk.action.markReviewed": "✓ Marcar revisado",
   "bulk.action.unmarkReviewed": "✗ Sin marcar",
+  "bulk.action.tags": "Etiquetas…",
+  // Bulk tag panel — expanded surface below the action bar with the
+  // tag-frequency chip cloud + add-new input. Each chip click
+  // removes that tag from every selected case that carries it;
+  // submitting the input adds the typed tag to every selected case
+  // that doesn't already have it.
+  "bulk.tags.currentAria": "Etiquetas presentes en la selección — click para quitar",
+  "bulk.tags.removeTitle": 'Quitar "{tag}" de {count} caso(s) seleccionado(s)',
+  "bulk.tags.addPlaceholder": "Agregar etiqueta…",
+  "bulk.tags.addAria": "Agregar una etiqueta a los casos seleccionados",
+  "bulk.tags.addSubmit": "Agregar a {count}",
   "bulk.action.delete": "Eliminar",
   "bulk.action.moveTrash": "Mover a papelera",
   "bulk.action.confirmDelete.one": "Mover {count} caso a la papelera? La acción se puede deshacer.",
