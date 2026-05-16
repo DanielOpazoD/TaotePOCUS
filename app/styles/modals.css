@@ -744,6 +744,36 @@ button:hover > .kbd-hint {
     animation-timing-function: var(--ease-emphasized);
   }
 
+  /* OLD / NEW timing for the named case-thumb pair. Critical fix
+     for a flicker the user reported: at the END of the 250ms
+     position morph, the OLD captured card pixels would still be
+     ~30% opaque, briefly visible AT the modal's final spot
+     (stretched to modal size, sitting ON TOP of the real modal
+     that's just starting to paint). Looked like the thumbnail
+     glitched ON TOP of the modal for a microsecond.
+     The fix decouples the cross-fade from the position morph:
+       - OLD fades to 0 over 120ms (ease-out) — gone by the time
+         the morph is ~half-way to the modal position.
+       - NEW fades from 0 to 1 over 220ms — fully opaque before
+         the morph reaches its destination.
+     The position morph itself (the GROUP wrapper) still runs the
+     full 250ms, so the "card grows into modal" gesture stays.
+     The wildcard match covers every named pair; the root rules
+     below override specifically for the background root layer
+     where a slower cross-fade reads better. */
+  ::view-transition-old(*) {
+    animation-duration: 120ms;
+    animation-timing-function: ease-out;
+    /* `forwards` pins the final opacity (0) so the OLD doesn't
+       reappear at 100% if the morph runs slightly beyond its
+       declared duration (browser quirk on slow frames). */
+    animation-fill-mode: forwards;
+  }
+  ::view-transition-new(*) {
+    animation-duration: 220ms;
+    animation-timing-function: ease-out;
+  }
+
   /* The OLD half (the card sitting in the grid) fades while the
      NEW half (the modal frame) crossfades in. Slower fade-out on
      the old keeps the visual focus pinned to the morphing element
