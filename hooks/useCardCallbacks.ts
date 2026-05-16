@@ -44,7 +44,16 @@ export function useCardCallbacks({ pushPatch, replacePatch, toggleFav }: Args): 
       // between them — the card "grows into" the modal. Falls
       // through to a plain state change on browsers without the
       // API or for users with `prefers-reduced-motion: reduce`.
-      runWithViewTransition(() => pushPatch({ caso: c.id })),
+      //
+      // `instantRoot: true` snaps the BACKGROUND root layer instead
+      // of cross-fading it. Without this, the OLD root snapshot
+      // (catalog grid visible) cross-faded into the NEW root
+      // snapshot (modal + backdrop) over ~250ms; during the
+      // overlap the user saw the catalog thumbnails bleeding
+      // through the modal's white background. The named-pair morph
+      // (card → modal hero) is still the smooth gesture; only the
+      // root layer behind it snap-cuts.
+      runWithViewTransition(() => pushPatch({ caso: c.id }), { instantRoot: true }),
     [pushPatch],
   );
   const onCardToggleFav = useCallback((c: CaseRecord) => toggleFav(c.id), [toggleFav]);
