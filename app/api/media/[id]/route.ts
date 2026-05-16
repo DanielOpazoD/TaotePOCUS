@@ -71,25 +71,38 @@ export async function GET(req: Request, { params }: Context) {
   const store = mediaStore();
   let blob: Blob | null = null;
   let matchedKey = id;
+  let lastError: unknown = null;
   for (const candidate of candidates) {
     try {
       const found = await store.get(candidate, { type: "blob" });
       if (found) {
         blob = found;
         matchedKey = candidate;
+        lastError = null;
         break;
       }
     } catch (err) {
-      // Storage configured but the runtime call failed (network
-      // hiccup, scoped permission, transient). Surface a 500 +
-      // log so operators can diagnose; the consumer's broken-
-      // image handler already falls back to the synthetic loop.
-      console.error("[api/media] blob store error", err);
-      return new NextResponse("Storage unavailable", { status: 500 });
+      // Transient blob-store failure on this candidate (network
+      // hiccup, scoped permission, etc.). Log + remember it but
+      // KEEP WALKING the candidate list: a flaky AVIF probe
+      // shouldn't deny the request when the original JPG is
+      // sitting right there. We only 5xx if every candidate
+      // failed — `lastError` carries the most recent throw for
+      // the response body's diagnostic shape.
+      console.error("[api/media] blob store error on", candidate, err);
+      lastError = err;
     }
   }
 
   if (!blob) {
+    // If we walked the whole list and every probe threw, that's a
+    // genuine storage outage — return 5xx so the client's broken-
+    // image handler triggers a synthetic-loop fallback and our
+    // monitoring sees the failure rate. Otherwise the probes all
+    // returned null (no such key) → 404, same shape as before.
+    if (lastError) {
+      return new NextResponse("Storage unavailable", { status: 500 });
+    }
     return new NextResponse("Not found", { status: 404 });
   }
 
