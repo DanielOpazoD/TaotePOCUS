@@ -45,12 +45,26 @@ describe("resolveFocus", () => {
       y: 50,
       scale: 1.5,
     });
-    // Different section → falls back to global.
-    expect(resolveFocus(caso("ecg", "cardiac"), defaults)).toEqual({
+    // Different section without an admin default or a built-in
+    // preset → falls back to global. `rayos` is preset-free.
+    expect(resolveFocus(caso("rayos", "cardiac"), defaults)).toEqual({
       x: 30,
       y: 40,
       scale: 1.2,
     });
+  });
+
+  it("applies the ECG built-in preset between section defaults and global", () => {
+    // Imported Twitter ECGs ship with a ~50% black letterbox at the
+    // top; the preset biases the focal point downward so the paper
+    // dominates the thumbnail without admin intervention.
+    expect(resolveFocus(caso("ecg", "cardiac"), {})).toEqual({ y: 85, scale: 1.1 });
+    // Admin section default still wins over the preset.
+    expect(resolveFocus(caso("ecg", "cardiac"), { sections: { ecg: { y: 50 } } })).toEqual({
+      y: 50,
+    });
+    // Per-case override still wins over both.
+    expect(resolveFocus(caso("ecg", "cardiac", { x: 10, y: 10 }), {})).toEqual({ x: 10, y: 10 });
   });
 
   it("category default beats section default", () => {
