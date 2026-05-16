@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -12,8 +12,9 @@ import ToastHost from "./chrome/ToastHost";
 import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
 import { computeRelaxationSuggestions } from "@/lib/filter-suggestions";
+import type { Command as PaletteCommand } from "./modals/CommandPalette";
 import { runWithViewTransition } from "@/lib/view-transition";
-import type { CaseRecord } from "@/lib/types";
+import type { CaseRecord, View } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { usePersistedFilters } from "@/hooks/usePersistedFilters";
 import { useToast } from "@/hooks/useToast";
@@ -114,6 +115,11 @@ function AppInner() {
   const [formOpen, setFormOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // Cmd+K / Ctrl+K command palette — single keyboard shortcut for
+  // everything a power user reaches for. Bound via
+  // `useShortcuts({ onCommandPalette })` below; the actual command
+  // catalog is computed lower with `useMemo`.
+  const [paletteOpen, setPaletteOpen] = useState(false);
   // Sidebar collapse — persisted via usePersistedState. Compact "1"/"0"
   // serialization keeps the localStorage value short and grep-friendly.
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState(
@@ -129,7 +135,10 @@ function AppInner() {
   // Global keyboard shortcuts. The hook installs window listeners for
   // j/k, g+letter and `?`. The `/` shortcut for the search box lives
   // in the Header, co-located with the input it focuses.
-  useShortcuts({ onHelp: () => setShortcutsOpen(true) });
+  useShortcuts({
+    onHelp: () => setShortcutsOpen(true),
+    onCommandPalette: () => setPaletteOpen(true),
+  });
 
   // Filter persistence between sessions. When the URL comes back
   // clean (no cat / tags / query / sort) and storage has filters
@@ -164,7 +173,7 @@ function AppInner() {
   // override layer (section labels) resolves to the right slot for
   // the visible nav. Reading from `useLanguage` here is safe because
   // `<LanguageProvider>` wraps `<AppInner>` at the top of the tree.
-  const { lang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const config = useCatalogConfig({ showToast, lang });
   // Admin-managed thumbnail focus defaults. Lives at the App level so
   // the same blob feeds (a) every `<CaseCard>` for resolution at
@@ -282,14 +291,18 @@ function AppInner() {
     closeOpenCase: () => replacePatch({ caso: null }),
   });
 
-  const onNewCase = () => {
+  // useCallback-wrapped because both flow into the command palette's
+  // memo deps below. Without stable identity the palette catalog
+  // would invalidate on every render, throwing the user's query +
+  // selectedIndex.
+  const onNewCase = useCallback(() => {
     setEditingCase(null);
     setFormOpen(true);
-  };
-  const onEditCase = (c: CaseRecord) => {
+  }, []);
+  const onEditCase = useCallback((c: CaseRecord) => {
     setEditingCase(c);
     setFormOpen(true);
-  };
+  }, []);
 
   // Stable per-card callbacks for the catalog grid + FeaturedRow.
   // SAME function identity per render is the contract that lets
@@ -317,6 +330,113 @@ function AppInner() {
 
   // `lang` is already destructured above (threaded into useCatalogConfig).
   const head = derivePageHead(view, cat, config.sectionLabelOverrides, lang);
+
+  // Command palette catalog — every action `⌘K` can dispatch.
+  // Composed top-down so the most-frequent actions land at the top
+  // when the query is empty:
+  //   1. Navigate (5-7 items — quick "jump to /ecg")
+  //   2. Global actions (toggle theme/lang, new case for admin)
+  //   3. Cases (catalog-size — searched by title)
+  // Admin-only entries are gated behind `isAdmin` so the public list
+  // never leaks an "Editar" option to anonymous visitors.
+  const paletteCommands = useMemo<PaletteCommand[]>(() => {
+    const list: PaletteCommand[] = [];
+    // Navigate — top of the list because they're the cheapest hits.
+    for (const section of config.visibleSectionsWithLabels) {
+      list.push({
+        kind: "navigate",
+        label: section.label,
+        secondary: section.sub,
+        run: () => replacePatch({ view: { kind: "section", section: section.id } as View }),
+      });
+    }
+    list.push({
+      kind: "navigate",
+      label: t("palette.command.favs"),
+      secondary: "/favoritos",
+      run: () => replacePatch({ view: { kind: "favs" } as View }),
+    });
+    if (isAdmin) {
+      list.push({
+        kind: "navigate",
+        label: t("palette.command.admin"),
+        secondary: "/admin",
+        run: () => replacePatch({ view: { kind: "admin" } as View }),
+      });
+    }
+    // Actions — global toggles + admin shortcuts.
+    list.push({
+      kind: "action",
+      label: t("palette.command.toggleTheme"),
+      run: () => {
+        const next =
+          document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        try {
+          localStorage.setItem(STORAGE_KEYS.theme, next);
+        } catch {
+          // localStorage can throw in private mode / quota-exceeded;
+          // theme already swapped, persistence is best-effort.
+        }
+      },
+    });
+    list.push({
+      kind: "action",
+      label: t("palette.command.toggleLang"),
+      secondary: t(
+        lang === "es" ? "palette.command.toggleLang.toEN" : "palette.command.toggleLang.toES",
+      ),
+      run: () => setLang(lang === "es" ? "en" : "es"),
+    });
+    if (isAdmin) {
+      list.push({
+        kind: "action",
+        label: t("palette.command.newCase"),
+        run: onNewCase,
+      });
+    }
+    // Cases — searchable by title. Two entries per case when admin
+    // (open + edit) so editing is one keystroke away. The list is
+    // bounded by `MAX_VISIBLE` inside the palette renderer; we don't
+    // need to slice here, just hand the full set over.
+    for (const c of allCases) {
+      const catRecord = config.categories.find((cat) => cat.id === c.category);
+      const categoryLabel = catRecord ? catRecord.label.toString() : c.category;
+      list.push({ kind: "open-case", caso: c, categoryLabel });
+      if (isAdmin) {
+        list.push({ kind: "edit-case", caso: c, categoryLabel });
+      }
+    }
+    return list;
+  }, [
+    config.visibleSectionsWithLabels,
+    config.categories,
+    isAdmin,
+    allCases,
+    lang,
+    setLang,
+    replacePatch,
+    onNewCase,
+    t,
+  ]);
+
+  // Dispatch a palette command. Each `kind` knows what to do — the
+  // catalog is just data, the actual side-effects live here so the
+  // palette stays presentational and the call sites (onCardOpen,
+  // setEditingCase, etc.) remain co-located with the rest of the
+  // App's wiring.
+  const onRunPaletteCommand = useCallback(
+    (cmd: PaletteCommand) => {
+      if (cmd.kind === "open-case") {
+        onCardOpen(cmd.caso);
+      } else if (cmd.kind === "edit-case") {
+        onEditCase(cmd.caso);
+      } else {
+        cmd.run();
+      }
+    },
+    [onCardOpen, onEditCase],
+  );
 
   return (
     <>
@@ -581,6 +701,10 @@ function AppInner() {
         adminPipeline={adminPipeline}
         shortcutsOpen={shortcutsOpen}
         onCloseShortcuts={() => setShortcutsOpen(false)}
+        paletteOpen={paletteOpen}
+        onClosePalette={() => setPaletteOpen(false)}
+        paletteCommands={paletteCommands}
+        onRunPaletteCommand={onRunPaletteCommand}
       />
     </>
   );

@@ -31,11 +31,41 @@
   margin-bottom: var(--space-4);
   gap: var(--space-4);
   flex-wrap: wrap;
+  /* Faint section-accent wash behind the head, fading out to the
+     right. Below the h1::before bar (which is the primary identity
+     cue) but above the page background — turns the section landing
+     from "page with a label" into "page that belongs to a section."
+     Pseudo-element instead of a real div so we don't touch JSX. */
+  position: relative;
+  isolation: isolate;
+}
+.section-head::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--space-6) * -1) calc(var(--space-4) * -1) auto calc(var(--space-4) * -1);
+  height: 120px;
+  background: linear-gradient(
+    100deg,
+    color-mix(in oklch, var(--section-accent, var(--accent)) 9%, transparent) 0%,
+    transparent 65%
+  );
+  z-index: -1;
+  pointer-events: none;
+  border-radius: var(--radius-lg);
 }
 .section-head h1 {
   font-family: var(--serif);
-  font-weight: 500;
-  font-variation-settings: var(--serif-h2);
+  font-weight: 460;
+  /* Tighter Newsreader axis tuning: at the 24-30px hero scale the
+     `opsz: 26` setting paired with `wght: 460` lands on the
+     transition between Newsreader's text drawing and display
+     drawing — more elegant, less corporate than the previous
+     `--serif-h2` (which targets 26px+ headlines that need more
+     weight). `letter-spacing -0.02em` was already there and pairs
+     well with the new axis values. */
+  font-variation-settings:
+    "opsz" 28,
+    "wght" 440;
   /* Drops from the legacy hero scale (38px) to a compact display
      size that still reads as a section title but yields ~30vh of
      extra real estate above the fold for the case grid. */

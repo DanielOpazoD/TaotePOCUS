@@ -31,6 +31,10 @@ const SECTION_BY_LETTER: Record<string, string> = {
 interface Options {
   /** Open the help modal when "?" is pressed. */
   onHelp: () => void;
+  /** Fires on `⌘K` / `Ctrl+K`. Opens the command palette overlay
+   *  (see `<CommandPalette>`). Passing `undefined` disables the
+   *  binding — keeps the test suite + isolated stories minimal. */
+  onCommandPalette?: () => void;
 }
 
 /**
@@ -65,12 +69,25 @@ interface Options {
  * @example
  *   useShortcuts({ onHelp: () => setShortcutsOpen(true) });
  */
-export function useShortcuts({ onHelp }: Options) {
+export function useShortcuts({ onHelp, onCommandPalette }: Options) {
   const router = useRouter();
   const gPending = useRef<number | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Cmd+K / Ctrl+K — global command palette. Fires regardless of
+      // focus context (text inputs included) because the palette IS
+      // the navigation/edit surface; suppressing it while the user is
+      // typing in the header search defeats its purpose. The handler
+      // bails out fast when `onCommandPalette` isn't wired (tests,
+      // future variant trees) to keep behaviour unchanged.
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "k") {
+        if (onCommandPalette) {
+          e.preventDefault();
+          onCommandPalette();
+        }
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isTypingInField(e.target)) return;
 
@@ -131,7 +148,7 @@ export function useShortcuts({ onHelp }: Options) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, onHelp]);
+  }, [router, onHelp, onCommandPalette]);
 }
 
 type GridDirection = "next" | "prev" | "down" | "up" | "first" | "last";
