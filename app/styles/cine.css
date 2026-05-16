@@ -5,6 +5,14 @@
   background: #000;
   overflow: hidden;
 }
+/* Static dark backdrop the loaded video / image paints on top of.
+   Previously this ran a `cinePulse` opacity animation (0.55 ↔ 0.85
+   every 1.6s) to make the loading state feel "alive." In practice
+   the pulse competed with the new loading spinner overlay — two
+   moving things at once read as chaos, and users explicitly called
+   out "fondo negro que movia" as the offender. Static gradient
+   carries the same visual depth without the motion; the spinner
+   alone now carries the "loading" signal. */
 .cine-wrap::before {
   content: "";
   position: absolute;
@@ -12,18 +20,9 @@
   background:
     radial-gradient(ellipse at 50% 30%, rgba(40, 50, 70, 0.45), transparent 60%),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
-  animation: cinePulse 1.6s ease-in-out infinite;
+  opacity: 0.7;
   pointer-events: none;
   z-index: 0;
-}
-@keyframes cinePulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 0.85;
-  }
 }
 .cine-canvas,
 .cine-video {
@@ -150,6 +149,11 @@
     }
   }
 }
+/* Soft highlight stripe across the skeleton — STATIC now (no sweep
+   animation). The previous left-to-right shimmer competed with the
+   spinner overlay and read as a "second loading indicator." A
+   single static gradient still gives the cell a slight depth cue
+   without the second motion track. */
 .cine-skeleton::after {
   content: "";
   position: absolute;
@@ -157,16 +161,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.05) 50%,
     transparent 100%
   );
-  transform: translateX(-100%);
-  animation: cine-skeleton-shimmer 1.4s linear infinite;
-}
-@keyframes cine-skeleton-shimmer {
-  to {
-    transform: translateX(100%);
-  }
 }
 
 /* Fade the asset in over the skeleton-removed transition. The
@@ -182,11 +179,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cine-skeleton::after {
-    animation: none;
-    opacity: 0.5;
-    transform: none;
-  }
   .cine-wrap[data-loaded="true"] .cine-video {
     transition: none;
   }
