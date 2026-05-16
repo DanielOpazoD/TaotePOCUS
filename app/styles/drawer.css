@@ -39,6 +39,16 @@
   /* Drawer floats above the page — four-layer shadow falls off
      into the page like natural light from the panel edge. */
   box-shadow: var(--shadow-3);
+  /* Snap-back transition for incomplete swipe-to-close drags. While
+     the user is actively dragging, `is-dragging` and the inline
+     `transition: none` from the component override this so the
+     panel follows the finger 1:1. On release without dismiss the
+     hook resets `offset` to 0, this transition runs, and the panel
+     glides home. */
+  transition: transform var(--duration-base) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.drawer.is-dragging {
+  transition: none;
 }
 @keyframes drawerIn {
   from {
@@ -72,6 +82,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Touch-only polish:
+     - `manipulation` kills the 300ms tap delay legacy iOS Safari
+       still applies to elements without a double-tap-to-zoom
+       gesture. Drawer entries respond on touchend instead of
+       waiting for a possible second tap. Same rationale for the
+       category buttons below.
+     - The default `-webkit-tap-highlight-color` paints a translucent
+       gray over the entire tap target on touch press. It clashes
+       with our `.active` accent rule. Setting it transparent and
+       letting `:active`/`.active` carry the press feedback yields
+       a consistently-themed press state. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .drawer-nav a:hover {
   background: var(--surface-2);
@@ -159,6 +182,9 @@
   cursor: pointer;
   text-align: left;
   min-height: 44px;
+  /* See `.drawer-nav a` for the touch-polish rationale. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
     background var(--duration-fast) ease,
     color var(--duration-fast) ease;

@@ -64,3 +64,27 @@ button {
 a {
   color: inherit;
 }
+
+/* Touch ergonomics applied globally to every clickable surface.
+ *
+ *   - `touch-action: manipulation` opts out of the legacy 300ms tap
+ *     delay iOS Safari still applies to elements without a known
+ *     double-tap-to-zoom gesture. Pinch / scroll still work because
+ *     `manipulation` only suppresses double-tap-zoom + double-tap-to-
+ *     scroll. Cards / nav links / buttons feel instant on touch.
+ *
+ *   - `-webkit-tap-highlight-color: transparent` removes Mobile
+ *     Safari's translucent gray flash on tap. We carry the press
+ *     feedback through component-level `:active` / `.active` styles
+ *     (the heart burst, the chip pop-in, the nav-active accent), so
+ *     letting the OS paint a separate gray on top muddies the brand.
+ *
+ * Effect is touch-only on desktop these properties are no-ops, so
+ * one global rule is enough — no media query needed.
+ */
+a,
+button,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
