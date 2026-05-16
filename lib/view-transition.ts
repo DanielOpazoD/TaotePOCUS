@@ -37,6 +37,32 @@
 //      to-page, drawer open, theme toggle) they share the same
 //      detection / fallback logic.
 
+export interface RunWithViewTransitionOptions {
+  /**
+   * When `true`, the background "root" layer SNAP-CUTS instead of
+   * cross-fading. Use for transitions where the named element
+   * (e.g. the `.case-thumb` morphing into the modal) is the entire
+   * story and the rest of the page underneath shouldn't bleed
+   * through the destination while the cross-fade plays.
+   *
+   * Concretely: opening the case modal. Without this, the OLD root
+   * snapshot (catalog grid visible) cross-fades into the NEW root
+   * snapshot (modal + backdrop) over ~250ms — during the overlap,
+   * the user sees the catalog thumbnails bleeding through the
+   * modal's background. With this flag, the root snap-cuts so only
+   * the named pair morph is visible; the grid behind disappears
+   * the moment the modal lands.
+   *
+   * Implemented via a `vt-root-instant` class on `<html>` that
+   * CSS rules in `app/styles/modals.css` key off (animation: none;
+   * opacity: 0 for OLD, 1 for NEW). The class is set BEFORE
+   * `startViewTransition` so the rule applies to the snapshot
+   * timeline; removed in `.finished` so subsequent transitions
+   * (filter changes etc.) keep the default cross-fade.
+   */
+  instantRoot?: boolean;
+}
+
 /**
  * Best-effort view-transition wrapper. Calls `callback` synchronously
  * either way:
@@ -48,10 +74,12 @@
  *
  * The callback is ALWAYS invoked — the helper never swallows it.
  * Returns the `ViewTransition` instance when the API runs, `null`
- * otherwise. Callers rarely need the return value; it's exposed for
- * future enhancements (chaining `.finished` to clean up post-anim).
+ * otherwise.
  */
-export function runWithViewTransition(callback: () => void): ViewTransition | null {
+export function runWithViewTransition(
+  callback: () => void,
+  options: RunWithViewTransitionOptions = {},
+): ViewTransition | null {
   if (typeof document === "undefined") {
     // SSR / non-browser context. Just run the callback.
     callback();
@@ -76,7 +104,22 @@ export function runWithViewTransition(callback: () => void): ViewTransition | nu
       startViewTransition: (cb: () => void) => ViewTransition;
     }
   ).startViewTransition;
-  return startFn.call(document, callback);
+  // Set the `vt-root-instant` class BEFORE startViewTransition so
+  // the snapshot phase already sees the CSS rule that suppresses
+  // the root cross-fade. Removed after the transition completes
+  // (either resolved or skipped) so subsequent transitions keep
+  // the default cross-fade behaviour.
+  if (options.instantRoot) {
+    document.documentElement.classList.add("vt-root-instant");
+  }
+  const transition = startFn.call(document, callback);
+  if (options.instantRoot) {
+    const cleanup = () => {
+      document.documentElement.classList.remove("vt-root-instant");
+    };
+    transition.finished.then(cleanup, cleanup);
+  }
+  return transition;
 }
 
 /**

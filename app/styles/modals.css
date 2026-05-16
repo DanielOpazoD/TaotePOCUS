@@ -786,6 +786,31 @@ button:hover > .kbd-hint {
     animation-duration: 250ms;
     animation-timing-function: var(--ease-emphasized);
   }
+
+  /* Modal-open path: the root layer SNAP-CUTS instead of cross-
+     fading. The class is set by `runWithViewTransition({
+     instantRoot: true })` in `lib/view-transition.ts` and only
+     during the modal-open transition — filter changes, sort
+     changes, and section navigation still use the rules above for
+     their smoother root cross-fade.
+     Why snap-cut: without it, the OLD root (catalog grid visible)
+     cross-fades into the NEW root (modal + backdrop) over 200-
+     250ms. The catalog area outside the modal is identical between
+     OLD and NEW — no visible difference. But the area WHERE the
+     modal lands shows BOTH the catalog cards (from OLD) and the
+     modal backdrop (from NEW) overlapping until OLD reaches
+     opacity 0. Users see a "the grid behind bleeds through the
+     modal" flash for ~200ms. Snap-cutting the root removes that
+     overlap entirely; only the named-pair morph (card → modal
+     hero) plays smoothly. */
+  html.vt-root-instant::view-transition-old(root) {
+    animation: none;
+    opacity: 0;
+  }
+  html.vt-root-instant::view-transition-new(root) {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 /* =================== COMMAND PALETTE (⌘K) ===================
