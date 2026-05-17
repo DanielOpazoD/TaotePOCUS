@@ -44,7 +44,15 @@ const ROOT = join(__dirname, "..");
  * cleared every entry; the set stays here as the seam where a new
  * pending residue would land.
  */
-const WHITELIST = new Set<string>();
+const WHITELIST = new Set<string>([
+  // AI editorial-rewrite modals (May-2026). The copy is admin-only
+  // ("Procesando 3 de N", "Generar y revisar", confirm dialog text)
+  // and is intentionally in Spanish for the initial admin audience.
+  // Migration to the dict layer is a follow-up — flagged with a TODO
+  // at each callsite.
+  "components/admin/ai/AIRewriteModal.tsx",
+  "components/admin/ai/AIBulkRewriteModal.tsx",
+]);
 
 /**
  * Folders we walk. Keep narrow on purpose — the audit is about

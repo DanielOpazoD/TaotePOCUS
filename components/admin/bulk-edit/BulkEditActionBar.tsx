@@ -34,6 +34,8 @@ interface Props {
   onApplyAddTag: (tag: string) => void;
   /** Remove a tag from every selected case that currently has it. */
   onApplyRemoveTag: (tag: string) => void;
+  /** Open the AI bulk-rewrite modal with the current selection. */
+  onAIRewriteBulk: () => void;
 }
 
 export function BulkEditActionBar({
@@ -47,6 +49,7 @@ export function BulkEditActionBar({
   tagFrequencies,
   onApplyAddTag,
   onApplyRemoveTag,
+  onAIRewriteBulk,
 }: Props) {
   const { lang, t } = useLanguage();
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -119,6 +122,14 @@ export function BulkEditActionBar({
       </button>
       <button type="button" className="btn-ghost" onClick={() => onApplyReviewed(false)}>
         {t("bulk.action.unmarkReviewed")}
+      </button>
+      <button
+        type="button"
+        className="btn-ghost bulk-edit-actionbar-ai"
+        onClick={onAIRewriteBulk}
+        title="Reescribir todos los seleccionados con IA siguiendo las reglas editoriales"
+      >
+        ✨ IA reescribir
       </button>
       <button type="button" className="btn-danger bulk-edit-actionbar-delete" onClick={onDelete}>
         {Icon.trash()} {t("bulk.action.delete")}

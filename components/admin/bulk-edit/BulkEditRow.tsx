@@ -46,6 +46,11 @@ interface Props {
   onPatch: (id: string, patch: Partial<CaseRecord>) => Promise<void> | void;
   onOpenEdit?: (c: CaseRecord) => void;
   onDelete?: (c: CaseRecord) => void;
+  /** Open the per-case AI rewrite modal. The handler receives the
+   *  full case so the modal can read the source ES content; same
+   *  shape as `onOpenEdit` for symmetry. Optional — when omitted
+   *  the ✨ button doesn't render. */
+  onAIRewrite?: (c: CaseRecord) => void;
 }
 
 function BulkEditRowImpl({
@@ -57,6 +62,7 @@ function BulkEditRowImpl({
   onPatch,
   onOpenEdit,
   onDelete,
+  onAIRewrite,
 }: Props) {
   // The bulk-edit table edits the Spanish baseline directly — the
   // admin's productivity surface, not a translation tool. Edits to
@@ -174,6 +180,20 @@ function BulkEditRowImpl({
         />
       </td>
       <td className="bulk-edit-td-actions">
+        {/* AI rewrite ✨ button — placed BEFORE the ⋮ menu so it's
+            visible at a glance for any row. Clicking opens the
+            per-case modal where the admin reviews + applies. */}
+        {onAIRewrite && (
+          <button
+            type="button"
+            className="bulk-edit-row-ai"
+            onClick={() => onAIRewrite(caso)}
+            aria-label={`Reescribir "${titleEs}" con IA`}
+            title="Reescribir este caso con IA (revisar antes de guardar)"
+          >
+            ✨
+          </button>
+        )}
         <BulkEditRowMenu caso={caso} onOpenEdit={onOpenEdit} onDelete={onDelete} />
       </td>
     </tr>
