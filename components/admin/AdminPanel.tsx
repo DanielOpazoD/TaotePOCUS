@@ -19,6 +19,7 @@ import BulkEditTable, { BulkEditTagSuggestions } from "./BulkEditTable";
 import ActivityPanel from "./ActivityPanel";
 import { MinePanel } from "./MinePanel";
 import FocusDefaultsPanel from "./FocusDefaultsPanel";
+import { AIStatusBadge } from "./ai/AIStatusBadge";
 
 interface Props {
   allCases: CaseRecord[];
@@ -175,6 +176,11 @@ export default function AdminPanel({
 
   return (
     <div className="admin-panel">
+      {/* Connection status for the AI translation flows. Lives above
+          the tabs so it's visible on every admin view — answers the
+          "is the AI actually wired up?" question without making the
+          admin open a case form to find out. */}
+      <AIStatusBadge />
       <div className="admin-tabs" role="tablist" aria-label={t("admin.tabs.aria")}>
         <button
           role="tab"
