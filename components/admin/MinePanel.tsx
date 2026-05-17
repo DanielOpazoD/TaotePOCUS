@@ -15,6 +15,7 @@ import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { categoryLabelEs } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
+import { isMediaVideo } from "@/lib/media-kind";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -109,8 +110,12 @@ export function MinePanel({
                 <tr key={c.id}>
                   <td>
                     <div className="admin-thumb">
-                      {c.media?.kind === "video" ? (
-                        <video src={c.media.src} muted />
+                      {/* `isMediaVideo` covers the `kind: "gif"` +
+                          `.mp4` corpus case (218 entries) — without
+                          it those thumbs fell through to `<Image>`
+                          which can't decode mp4 and rendered blank. */}
+                      {isMediaVideo(c.media) ? (
+                        <video src={c.media!.src} muted />
                       ) : c.media ? (
                         // Fixed 56×56 thumb; explicit dimensions let
                         // the optimizer pick the right size for the
