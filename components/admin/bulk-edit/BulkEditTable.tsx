@@ -101,12 +101,17 @@ export default function BulkEditTable({
 
   // ─── AI rewrite modal state ────────────────────────────────────
   // `aiTarget` is the case currently being rewritten via the per-row
-  // ✨ button (single-case modal). `aiBulkOpen` is true while the
-  // bulk modal is on screen with `selected` cases. The two are
-  // independent — bulk uses the live selection set, single uses one
-  // case explicitly chosen from a row.
+  // ✨ button (single-case modal).
+  // `aiBulkCases` is the FROZEN list of cases the bulk modal is
+  // operating on. Two opening paths populate it:
+  //   - "✨ IA reescribir" in the selection action bar → uses the
+  //     currently `selected` set.
+  //   - "✨ IA reescribir todos (N)" in the filter bar → uses every
+  //     case matching the current filter (across all pages).
+  // Freezing the list at open-time means filter / selection changes
+  // during the batch don't shift the in-flight casework.
   const [aiTarget, setAiTarget] = useState<CaseRecord | null>(null);
-  const [aiBulkOpen, setAiBulkOpen] = useState(false);
+  const [aiBulkCases, setAiBulkCases] = useState<CaseRecord[] | null>(null);
 
   // ─── Keyboard nav state ───────────────────────────────────────
   const [activeRow, setActiveRow] = useState<number>(-1);
@@ -117,6 +122,29 @@ export default function BulkEditTable({
   // we surface "Limpiar filtros"; when the catalog is genuinely
   // empty the message stays static (clearing nothing wouldn't help).
   const hasActiveFilters = filterSection !== "" || filterCat !== "" || query.trim() !== "";
+
+  // Bucket counts feed the filter dropdowns ("Pulmonar (47)") so the
+  // admin sees the size of each section / category BEFORE narrowing.
+  // Computed over the live (non-deleted) catalog — independent of
+  // the current filter so the numbers stay stable as the user types
+  // into the search field. Cheap: a single pass over `cases` (~330
+  // entries today) on every cases reference change.
+  const casesPerSection = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of cases) {
+      if (c.deletedAt) continue;
+      m.set(c.section, (m.get(c.section) ?? 0) + 1);
+    }
+    return m;
+  }, [cases]);
+  const casesPerCategory = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of cases) {
+      if (c.deletedAt) continue;
+      m.set(c.category, (m.get(c.category) ?? 0) + 1);
+    }
+    return m;
+  }, [cases]);
 
   // Filter pipeline — admin-side, so we search across BOTH language
   // slots (title.es, title.en, description.es, description.en,
@@ -342,6 +370,14 @@ export default function BulkEditTable({
         total={sorted.length}
         categories={categories}
         pageSizes={PAGE_SIZES}
+        casesPerSection={casesPerSection}
+        casesPerCategory={casesPerCategory}
+        filteredCount={filtered.length}
+        // Open the bulk-rewrite modal seeded with every filtered
+        // case (across all pages, not just the current page).
+        // Captured at click time so subsequent filter / search
+        // changes don't shift the in-flight batch.
+        onAIRewriteFiltered={() => setAiBulkCases([...filtered])}
       />
 
       <div className="bulk-edit-scroll">
@@ -464,7 +500,12 @@ export default function BulkEditTable({
           tagFrequencies={tagFrequencies}
           onApplyAddTag={applyBulkAddTag}
           onApplyRemoveTag={applyBulkRemoveTag}
-          onAIRewriteBulk={() => setAiBulkOpen(true)}
+          onAIRewriteBulk={() =>
+            // Freeze the selection into a stable list at click time
+            // so changes to `selected` during the batch don't shift
+            // the in-flight casework.
+            setAiBulkCases(filtered.filter((c) => selected.has(c.id)))
+          }
         />
       )}
       {/* Per-row AI rewrite modal. Mounted conditionally — the
@@ -474,15 +515,16 @@ export default function BulkEditTable({
       {aiTarget && (
         <AIRewriteModal caso={aiTarget} onApplyPatch={onPatch} onClose={() => setAiTarget(null)} />
       )}
-      {/* Bulk AI rewrite modal. Reads `selected` set at modal open
-          time and freezes that list as the batch input. Subsequent
-          changes to `selected` while the batch runs don't affect
-          the in-flight casework. */}
-      {aiBulkOpen && (
+      {/* Bulk AI rewrite modal. The case list is frozen at open time
+          via `aiBulkCases` — both opening paths (action-bar
+          selection + filter-bar "rewrite all filtered") populate it
+          before mount. Closing flips it back to null which unmounts
+          the modal. */}
+      {aiBulkCases && (
         <AIBulkRewriteModal
-          cases={filtered.filter((c) => selected.has(c.id))}
+          cases={aiBulkCases}
           onApplyPatch={onPatch}
-          onClose={() => setAiBulkOpen(false)}
+          onClose={() => setAiBulkCases(null)}
         />
       )}
     </div>

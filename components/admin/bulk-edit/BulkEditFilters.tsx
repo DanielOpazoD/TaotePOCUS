@@ -32,6 +32,21 @@ interface Props {
   total: number;
   categories: Category[];
   pageSizes: readonly number[];
+  /** Counts per section across the FULL catalog (independent of any
+   *  active filter). Drives the "(N)" suffix on each option label so
+   *  the admin sees the bucket size before narrowing. */
+  casesPerSection: Map<string, number>;
+  /** Counts per category across the FULL catalog. Same role as
+   *  `casesPerSection` for the category dropdown. */
+  casesPerCategory: Map<string, number>;
+  /** Number of cases currently matching the active filter (across
+   *  all pages). Drives the "✨ IA reescribir todos los filtrados"
+   *  button label. */
+  filteredCount: number;
+  /** When provided, the AI-rewrite-all button renders to the right
+   *  of the result counter. Click → orchestrator selects every
+   *  filtered case and opens the bulk-rewrite modal. */
+  onAIRewriteFiltered?: () => void;
 }
 
 export function BulkEditFilters({
@@ -48,8 +63,13 @@ export function BulkEditFilters({
   total,
   categories,
   pageSizes,
+  casesPerSection,
+  casesPerCategory,
+  filteredCount,
+  onAIRewriteFiltered,
 }: Props) {
   const { lang, t } = useLanguage();
+  const hasActiveFilters = filterSection !== "" || filterCat !== "" || query.trim() !== "";
   return (
     <div className="bulk-edit-head">
       <div className="bulk-edit-filters" role="search" aria-label={t("bulk.filters.aria")}>
@@ -60,11 +80,18 @@ export function BulkEditFilters({
           onChange={(e) => setFilterSection(e.target.value as SectionId | "")}
         >
           <option value="">{t("bulk.filter.section.all")}</option>
-          {SECTIONS.map((s) => (
-            <option key={s.id} value={s.id}>
-              {sectionLabel(s.id, lang)}
-            </option>
-          ))}
+          {SECTIONS.map((s) => {
+            // Append the bucket count so the admin sees the size of
+            // each section before narrowing. The count comes from the
+            // FULL catalog (not the current filter), so "Pulmonar (47)"
+            // is stable as the user types into the search field.
+            const n = casesPerSection.get(s.id) ?? 0;
+            return (
+              <option key={s.id} value={s.id}>
+                {sectionLabel(s.id, lang)} ({n})
+              </option>
+            );
+          })}
         </select>
         <select
           className="bulk-edit-filter"
@@ -73,11 +100,14 @@ export function BulkEditFilters({
           onChange={(e) => setFilterCat(e.target.value)}
         >
           <option value="">{t("bulk.filter.category.all")}</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {categoryLabelEs(c)}
-            </option>
-          ))}
+          {categories.map((c) => {
+            const n = casesPerCategory.get(c.id) ?? 0;
+            return (
+              <option key={c.id} value={c.id}>
+                {categoryLabelEs(c)} ({n})
+              </option>
+            );
+          })}
         </select>
         <input
           type="search"
@@ -108,6 +138,23 @@ export function BulkEditFilters({
             total,
           })}
         </span>
+        {/* AI rewrite-all-filtered button. Visible only when a filter
+            actually narrows the catalog — without a filter active,
+            "rewrite all 326 cases" is too easy to click by accident
+            (~$0.50 USD + ~30 min). Forcing the admin to FILTER first
+            (by section, category, or query) keeps the operation
+            intentional. The bulk modal that opens still requires an
+            explicit confirm with the per-case cost estimate. */}
+        {onAIRewriteFiltered && hasActiveFilters && filteredCount > 0 && (
+          <button
+            type="button"
+            className="bulk-edit-filter-ai-rewrite"
+            onClick={onAIRewriteFiltered}
+            title={`Reescribir con IA los ${filteredCount} casos que coinciden con los filtros actuales`}
+          >
+            ✨ IA reescribir todos ({filteredCount})
+          </button>
+        )}
       </div>
     </div>
   );

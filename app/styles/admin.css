@@ -1074,6 +1074,31 @@ textarea.admin-input {
 .bulk-edit-count {
   white-space: nowrap;
 }
+
+/* Filter-bar "✨ IA reescribir todos (N)" button. Appears only when
+   a filter narrows the catalog AND the filtered set is non-empty
+   (logic in BulkEditFilters.tsx). Visually distinct from the rest
+   of the filter chrome — accent-colored border, no fill, signals
+   "this is an action, not a filter input". The ✨ glyph is also
+   the per-row + the action-bar button's marker, so the admin
+   reads "every ✨ kicks off the AI rewrite flow at a different
+   granularity". */
+.bulk-edit-filter-ai-rewrite {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent-ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duration-fast) ease;
+}
+.bulk-edit-filter-ai-rewrite:hover {
+  background: var(--accent-soft);
+}
 .bulk-edit-filter {
   background: var(--input-bg);
   border: 1px solid var(--hairline-strong);
