@@ -123,26 +123,72 @@ under keys. Domain logic lives in `repo`.
 ### 7. Hooks (`hooks/`)
 
 Hooks contain **only React glue**. Anything testable in isolation lives
-in `lib/`. Each one owns a single named responsibility:
+in `lib/`. Each one owns a single named responsibility.
 
-| Hook              | Owns                                                                                   |
-| ----------------- | -------------------------------------------------------------------------------------- |
-| `useViewState`    | URL adapter — parses path + search params into `{view, cat, tags, query, sort, ...}`.  |
-| `useFocusTrap`    | Tab/Shift+Tab containment inside an open modal; restores focus on unmount.             |
-| `useFavs`         | Favorites set, anonymous-user prompt, localStorage persistence via `repo.favs`.        |
-| `useUserCases`    | User-uploaded cases (live + trashed), CRUD, optimistic UI, soft-delete.                |
-| `useSession`      | Auth state, expiry refresh on focus, login/logout flows.                               |
-| `useCaseFilters`  | Pure derivation of `{scopedCases, sectionCategories, sectionTags, filtered}` via memo. |
-| `useToast`        | Toast queue + auto-dismiss; mirrored in an `aria-live` region.                         |
-| `useShortcuts`    | Global keyboard shortcuts (`?`, `j/k`, `g+letter`); binds once on mount.               |
-| `useSwipeToClose` | Touch swipe-down dismissal for mobile sheets; pointer events, desktop-disabled.        |
-| `useCountUp`      | Integer animates 0 → target via `IntersectionObserver` + RAF; reduced-motion aware.    |
+**URL + state plumbing**
+
+| Hook                  | Owns                                                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `useViewState`        | URL adapter — parses path + search params into `{view, cat, tags, query, sort, ...}`.                                                 |
+| `useCardCallbacks`    | Stable per-card bundle (`onCardOpen`, `onCardToggleFav`, `onClearFilters`, `onExploreAtlas`) so `React.memo` on cards short-circuits. |
+| `usePersistedState`   | Single seam over `useState` + `lib/store` defensive read/write.                                                                       |
+| `usePersistedFilters` | Saved filter combinations (per section) via the persisted-state primitive.                                                            |
+| `useSavedViews`       | Named filter snapshots ("my workups", "ECG basics") surfaced in the toolbar.                                                          |
+| `useCrossTabSync`     | `storage` event listener so a fav toggle in one tab refreshes the other.                                                              |
+
+**Repo-facing data hooks**
+
+| Hook                    | Owns                                                                         |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `useSession`            | Auth state, expiry refresh on focus, login/logout flows.                     |
+| `useFavs`               | Favorites set, anonymous-user prompt, persistence via `repo.favs`.           |
+| `useUserCases`          | User-uploaded cases (live + trashed), CRUD, optimistic UI, soft-delete.      |
+| `useSeedCases`          | Lazy-loads the imported corpus (`lib/imported-cases.ts`) on mount.           |
+| `useMergedCatalog`      | Joins seed + user cases + overrides into a single `CaseRecord[]` view.       |
+| `useCaseOverrides`      | Per-case admin patches (title/category/etc.) layered over the seed.          |
+| `useCaseSaver`          | Form-side write pipeline — validation, optimistic UI, repo dispatch.         |
+| `useCatalogConfig`      | Custom categories + section labels (admin-editable).                         |
+| `useCatalogDerivations` | Memoized per-category/per-section counts, sorted indices.                    |
+| `useRecentlyViewed`     | Most-recent case-id list, capped + deduped, persisted, used by `/favoritos`. |
+| `useAdminPipeline`      | Destructive flow orchestration (soft-delete + restore + permanent-delete).   |
+| `useAdminActions`       | Bulk patch + bulk soft-delete dispatchers, optimistic UI.                    |
+
+**UI primitives**
+
+| Hook                | Owns                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `useNativeDialog`   | `<dialog>` ref + `showModal()` on mount + `close()` on unmount; `useLayoutEffect`-based to land before paint. |
+| `useFocusTrap`      | Tab/Shift+Tab containment inside an open modal; restores focus on unmount.                                    |
+| `useModalShortcuts` | Per-modal kbd bindings (`Esc` close, `←/→` navigate cases, `F/S/P` actions).                                  |
+| `useSwipeToClose`   | Touch swipe-down dismissal for mobile sheets; desktop no-op.                                                  |
+| `useScrollProgress` | Modal read-progress bar value driven by `scrollTop` ratio.                                                    |
+| `useHoverPrefetch`  | Background fetches a case's media after 150 ms hover (intent threshold).                                      |
+| `useToast`          | Toast queue + auto-dismiss; mirrored in an `aria-live` region.                                                |
+| `useShortcuts`      | Global keyboard shortcuts (`?`, `j/k`, `g+letter`); inert while typing.                                       |
+
+**Other**
+
+| Hook                    | Owns                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| `useLanguage`           | i18n context provider + `useT()` translator (see ADR-0013).                   |
+| `useFocusDefaults`      | Global / per-section / per-category focus framing for thumbnails.             |
+| `useCaseFilters`        | Pure derivation of `{scopedCases, sectionCategories, sectionTags, filtered}`. |
+| `useCategoryVisibility` | Admin-toggleable per-category visibility.                                     |
+| `useCustomCategories`   | Admin CRUD for non-seed categories.                                           |
+| `useHiddenSections`     | Admin-toggleable per-section visibility.                                      |
+| `useSectionLabels`      | Admin-editable section label overrides.                                       |
+| `useOnlineStatus`       | `navigator.onLine` + `online/offline` events.                                 |
+| `useServiceWorker`      | SW registration + update notification.                                        |
+| `useAIProvider`         | Provider switcher + key validation for the (optional) AI-assist surfaces.     |
 
 ### 8. Components (`components/`)
 
 Organized by responsibility:
 
 - `App.tsx` — the orchestrator (above).
+- `MainGrid.tsx` — rendering-branch dispatcher (admin panel / empty
+  state / uniform `.case-grid`). Extracted from App so the JSX stays
+  composable.
 - `Sidebar.tsx` — categories + collapsible tag cloud (used directly by App).
 - `SectionHero.tsx` — section-aware hero dispatcher: AtlasHero (stat row +
   featured CTA + sparkline + aurora mesh), EcgHero (animated polyline
@@ -151,18 +197,36 @@ Organized by responsibility:
   favs/admin/category-narrowed views.
 - `EmptyState.tsx` — illustrated per-view empty state (probe, flat ECG,
   open book, folded poster, dashed heart) with optional CTA action.
-- `Skeleton.tsx` — typographic placeholders (Card / Grid / Hero) sized to
-  match real content silhouettes. Wired but not yet rendered (sync seed).
+- `Skeleton.tsx` — typographic placeholders sized to match real content
+  silhouettes; rendered while `useSeedCases` is loading the corpus chunk.
+- `ErrorBoundary.tsx` — per-region boundary used around grid, featured,
+  recently-viewed, and modal surfaces so a single render error doesn't
+  blank the entire page.
 - `chrome/` — Header (glass on scroll, magnetic nav indicator,
-  pathLength-traced wordmark), MobileDrawer, ThemeToggle, **Footer**
+  pathLength-traced wordmark), MobileDrawer, ThemeToggle, Footer
   (editorial colophon), **TransitionLink** (`<Link>` wrapped in
-  `document.startViewTransition()`).
-- `cards/` — CaseCard (container-query host), FeaturedRow, **BentoGrid**
-  (atlas landing layout: 2×2 hero + interleaved quote cards), **QuoteCard**
-  (no-image variant, serif italic fragment).
-- `modals/` — CaseModal, AuthModal, ConfirmDialog, ShortcutsModal.
-- `cine/` — CineLoop, cineScenes, PresentationMode.
-- `admin/` — AdminPanel, CaseForm.
+  `document.startViewTransition()` for route morphs), LanguageSwitcher,
+  PWAStatus, SavedViewsMenu, ToastHost.
+- `cards/` — CaseCard (container-query host), FeaturedRow,
+  RecentlyViewedRail (the `/favoritos` "continue where I left off"
+  rail), FallbackBadge (the EN→ES fallback marker), AdminThumbMenu (the
+  `⋮` quick-actions panel on each card).
+  - BentoGrid + QuoteCard were removed in May-2026 (ADR-0009 —
+    uniform-catalog-ui); the doc keeps the names here only as a
+    breadcrumb for anyone wondering where the atlas landing went.
+- `hero/` — CompactHead (shrinks the section hero on scroll; carries
+  the `view-transition-name` pairs for route morphs).
+- `modals/` — CaseModal, AuthModal, ConfirmDialog, ShortcutsModal,
+  CommandPalette (⌘K), ModalLoopMedia (the cine + media-carousel
+  inside CaseModal, extracted so the modal stays composable).
+- `cine/` — CineLoop, cineScenes (synthetic loops), PresentationMode.
+- `admin/` — AdminPanel (the dispatcher), CaseForm + `case-form/`
+  sub-tree, BulkEditTable + `bulk-edit/` (tag editor + action bar),
+  CategoriesEditor, SectionsEditor, ClassifierBoard + `classifier/`,
+  ActivityPanel (recent edits feed), BackupPanel (export/import),
+  FocusDefaultsPanel + FocusEditor (per-card thumbnail framing),
+  MinePanel (admin's own cases list), and `ai/` (AI-assist provider
+  wiring).
 
 Each subfolder has a barrel `index.ts` so consumers can write
 `import { CaseCard } from '@/components/cards'`. Barrels are intentionally
@@ -235,6 +299,29 @@ All wrapped in `@supports (view-transition-name: ...)` — Firefox falls
 back to the default Next.js fade. Modifier-clicks and external links
 bypass the wrapper so opening in a new tab still works.
 
+**Removed (May-2026):** the case-thumb → modal-loop morph on modal
+open. A `case-thumb-<id>` name on `<CaseCard>` / `<FeaturedCard>` /
+`<RecentlyViewedRail>` matched the same name on `<CaseModal>`'s hero
+loop, so the clicked card "grew into" the modal via
+`useCardCallbacks.onCardOpen` wrapping the URL state change in
+`runWithViewTransition({ instantRoot: true })`. The morph produced a
+persistent visual flicker (catalog row briefly visible overlapping the
+modal during the transition); four targeted fixes (PRs #75–#78) failed
+to fully eliminate it on real devices. PR #79 ripped the wrap out and
+PR #80 cleaned up the name plumbing + `vt-root-instant` CSS rules.
+The modal now opens via its plain CSS entrance (`.modal` scale-in +
+`::backdrop` fadeIn + `dialog[open]` fadeIn). The unit test
+`tests/useCardCallbacks.test.tsx` carries a regression guard that
+fails if anyone re-introduces the wrap without re-validating the
+flicker on real devices.
+
+`lib/view-transition.ts > runWithViewTransition` is kept as the
+canonical wrapper (feature detection + `prefers-reduced-motion`
+fallback) for whoever wires the next transition. `TransitionLink`
+currently calls `document.startViewTransition` inline rather than
+through the helper — fine; consolidating is a polish issue, not a
+correctness one.
+
 ### Accessibility
 
 - `role="dialog"` + `aria-modal` + `aria-labelledby` on every modal.
@@ -266,12 +353,26 @@ tags. In prod, a no-op until a transport is wired (Sentry / Logtail).
 ### Testing
 
 - **Unit (Vitest, happy-dom)**: pure modules in `lib/*` and the hook
-  adapters. Coverage threshold ≥ 80% on `lib/`.
+  adapters. Coverage threshold ≥ 80% on `lib/`. Regression guards on
+  decisions that are easy to silently reopen — e.g.
+  `tests/useCardCallbacks.test.tsx` spies on
+  `document.startViewTransition` to lock in PR #79's removal of the
+  modal-open morph.
 - **E2E (Playwright, chromium)**: full flows on the production build —
-  navigation, modals, login, deep-links, share.
+  navigation, modals, login, deep-links, share. The `e2e/admin.spec.ts`
+  suite has a **chronic flake** (~50% pass rate on CI; passes locally)
+  whose root cause hasn't been pinned. The current workaround is
+  admin-merging affected PRs after green spec-level retries; the
+  durable fix is on the backlog. Don't add hand-waved waits to fight
+  it — find the real race.
+- **Mutation (Stryker)**: configured (`stryker.conf.mjs`) but not yet
+  required-on-PR. Useful for spot-checking that tests actually fail
+  when the code under test breaks.
+- **Lighthouse CI**: `.lighthouserc.json` runs against the prod build,
+  enforcing the budgets in `bundle-budget.json`.
 
 CI runs typecheck + lint + format:check + unit tests + build + e2e on
-every PR.
+every PR. The admin-spec flake gate is exempt from the strict block.
 
 ## Performance posture
 
@@ -305,6 +406,22 @@ The mitigations layered into the codebase:
   dataset) is loaded via dynamic `import()` in `lib/seed-cases.ts`,
   so the initial bundle stays small (see ADR-0006 / the size
   budget script in `scripts/bundle-budget.mjs`).
+- **Lazy modal mount.** `CaseModal`, `AuthModal`, `CommandPalette`,
+  and the admin panel are wrapped in `next/dynamic` with
+  `ssr: false`. The modal JS doesn't ship until the user opens
+  one — knocks ~40KB gzipped off the initial route.
+- **`useHoverPrefetch`.** A 150 ms pointer-enter intent threshold
+  on every card kicks off a background fetch of that case's
+  media so by the time the user actually clicks the asset is in
+  the HTTP cache and the modal mounts paint-ready instead of
+  spinner-first.
+- **AVIF / WebP image pipeline.** `scripts/optimize-media.mjs`
+  pre-encodes a 4-variant ladder (AVIF + WebP at 2 widths) for
+  every imported image at build time. Direct `<img srcset>` tags
+  win the first paint for above-the-fold thumbnails; Next.js
+  Image's optimizer caches the rest. Real saving lands on first
+  cache fill per Netlify edge region — see ADR-0006 + the script
+  header for the honest framing.
 
 What this DOES NOT solve, by design:
 
@@ -334,28 +451,37 @@ These are deliberate non-goals at this stage. Each one becomes a real
 concern when we move to a backend, and is tracked in an ADR or in
 `README.md`.
 
-- Multi-user concurrency. `localStorage` is a single-tab store; two tabs
-  edit the same case → last write wins.
+- Multi-user concurrency at the same record. The repo facade is
+  Firebase-backed (ADR-0004) so two browsers writing to the same case
+  no longer "last-write-wins from localStorage" — but there's no
+  optimistic-concurrency token yet. A user editing a case while an
+  admin retypes the title still ends with whoever-wrote-last winning.
 - Real PHI. The admin upload limit and the demo credentials make this
-  unsafe for actual patient data.
+  unsafe for actual patient data; the security disclosure in
+  `SECURITY.md` covers what's missing.
 - Server-side rendering of dynamic content. Everything is statically
   generated; the URL drives the client. Search engines see the shell,
   not the case grid.
-- Internationalization. Everything is in Spanish. The structure is
-  translation-ready (no hardcoded strings outside views), but no
-  dictionary layer yet.
+- Languages beyond ES + EN. The i18n layer (ADR-0013) ships ES as the
+  canonical write surface and EN as a read-side translation with
+  EN→ES fallback marked via `<FallbackBadge>`. Adding a third
+  language is a `lib/i18n/dict.<lang>.ts` + the language switcher; no
+  structural change needed, but no work has been done.
 
 ## Adding a new feature — the cheat sheet
 
-| If you are adding…                    | Touch these files                                                                                    |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| A new section (e.g. "Pediatric")      | `lib/data.ts` (SECTIONS) + `lib/url.ts` (VALID_SECTIONS) + new route in `app/`                       |
-| A new field on `CaseRecord`           | `lib/types.ts` + `lib/data.ts` (seed) + `components/admin/CaseForm.tsx` + display where shown        |
-| A new filter                          | `lib/url.ts` (params + applyViewPatch + parseViewState) + `App.tsx` (filtering) + `Sidebar.tsx` (UI) |
-| A new icon                            | `lib/icons.tsx`                                                                                      |
-| A new persistence backend (Firebase…) | `lib/repo.ts` only. Tests in `tests/repo.test.ts` already pin the contract.                          |
-| A new modal                           | `components/modals/` + add a `useFocusTrap` + open/close via URL or local state                      |
-| A new env var                         | `.env.example` + `lib/env.ts` (validation) + reference in code                                       |
+| If you are adding…                    | Touch these files                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| A new section (e.g. "Pediatric")      | `lib/data.ts` (SECTIONS) + `lib/url.ts` (VALID_SECTIONS) + new route in `app/`                                            |
+| A new field on `CaseRecord`           | `lib/types.ts` + `lib/data.ts` (seed) + `components/admin/CaseForm.tsx` + display where shown                             |
+| A new filter                          | `lib/url.ts` (params + applyViewPatch + parseViewState) + `App.tsx` (filtering) + `Sidebar.tsx` (UI)                      |
+| A new icon                            | `lib/icons.tsx`                                                                                                           |
+| A new persistence backend (Firebase…) | `lib/repo/` only. Tests in `tests/repo.test.ts` already pin the contract.                                                 |
+| A new modal                           | `components/modals/` + `useNativeDialog` ref + `useFocusTrap` + open/close via URL or local state                         |
+| A new env var                         | `.env.example` + `lib/env.ts` (validation) + reference in code                                                            |
+| A new translated string               | `lib/i18n/dict.es.ts` + `lib/i18n/dict.en.ts` (mirrored keys) — `tests/spanish-strings.test.ts` audits hardcoded ES leaks |
+| A new admin quick-action              | `components/cards/AdminThumbMenu.tsx` (the per-card `⋮` host) or `components/admin/` (panel-wide)                         |
+| A new card-side callback              | `hooks/useCardCallbacks.ts` — keep identity stable so `React.memo(<CaseCard>)` short-circuits                             |
 
 ## Companion docs
 
