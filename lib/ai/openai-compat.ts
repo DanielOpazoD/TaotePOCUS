@@ -104,9 +104,36 @@ function buildUserPrompt(input: TranslateInput): string {
 }
 
 /**
+ * Which structured-output mode to use on the `response_format` field.
+ *
+ *   - `"json_schema"` (OpenAI proper): the model is constrained at
+ *     generation time to a strict JSON schema. Guarantees parseable
+ *     JSON matching the schema; rejects token sequences that would
+ *     break it. Available only on OpenAI's own models (gpt-4o+,
+ *     gpt-5*, etc.) — third-party OpenAI-compatible APIs typically
+ *     don't implement it.
+ *
+ *   - `"json_object"` (broader compatibility, including DeepSeek):
+ *     the model is asked to output JSON; no schema constraint at
+ *     generation time. The prompt explicitly asks for the expected
+ *     shape ("Output strict JSON: { title, description, tags }")
+ *     and `isTranslateShape()` validates client-side after parsing.
+ *     If the model returns malformed JSON or the wrong shape, the
+ *     route handler surfaces a structured error.
+ *
+ * History: this used to be hardcoded to `json_schema` for both
+ * OpenAI and DeepSeek. DeepSeek returned `400 This response_format
+ * type is unavailable now` because their API only supports the
+ * `json_object` variant. Per-provider configuration keeps OpenAI's
+ * stronger guarantees while letting DeepSeek work.
+ */
+type JsonMode = "json_schema" | "json_object";
+
+/**
  * Build a provider that talks to an OpenAI-compatible endpoint.
  * Used twice below — once for OpenAI proper, once for DeepSeek.
- * The same chat-completions request shape works for both.
+ * The same chat-completions request shape works for both, modulo
+ * the `jsonMode` switch (see type above).
  */
 function buildOpenAICompatProvider({
   id,
@@ -115,6 +142,7 @@ function buildOpenAICompatProvider({
   baseURL,
   defaultModel,
   modelEnvVarName,
+  jsonMode,
 }: {
   id: ProviderId;
   displayName: string;
@@ -123,6 +151,8 @@ function buildOpenAICompatProvider({
   baseURL?: string;
   defaultModel: string;
   modelEnvVarName: string;
+  /** Which `response_format` variant the provider's API supports. */
+  jsonMode: JsonMode;
 }): AIProvider {
   return {
     id,
@@ -145,6 +175,22 @@ function buildOpenAICompatProvider({
       const model = process.env[modelEnvVarName] || defaultModel;
       const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) });
 
+      // Build the response_format payload. The cast is needed
+      // because the OpenAI SDK types narrow `response_format` to
+      // each specific shape; `JsonMode` is a discriminator that
+      // produces one of the two valid variants at runtime.
+      const responseFormat =
+        jsonMode === "json_schema"
+          ? ({
+              type: "json_schema" as const,
+              json_schema: {
+                name: "translation",
+                strict: true,
+                schema: TRANSLATE_RESPONSE_SCHEMA,
+              },
+            } as const)
+          : ({ type: "json_object" as const } as const);
+
       const start = Date.now();
       const response = await client.chat.completions.create({
         model,
@@ -152,16 +198,7 @@ function buildOpenAICompatProvider({
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: buildUserPrompt(input) },
         ],
-        // Strict JSON output. OpenAI enforces the schema at
-        // generation time when `strict: true`.
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "translation",
-            strict: true,
-            schema: TRANSLATE_RESPONSE_SCHEMA,
-          },
-        },
+        response_format: responseFormat,
         temperature: 0.2,
       });
 
@@ -176,12 +213,18 @@ function buildOpenAICompatProvider({
         parsed = JSON.parse(text);
       } catch (err) {
         throw new Error(
-          `${id} returned malformed JSON despite json_schema: ${err instanceof Error ? err.message : String(err)}`,
+          `${id} returned malformed JSON (mode=${jsonMode}): ${err instanceof Error ? err.message : String(err)}`,
         );
       }
 
+      // Shape validation. For `json_schema` mode the API guarantees
+      // the shape, so this is belt-and-suspenders. For `json_object`
+      // mode the API only guarantees parseable JSON — the shape is
+      // enforced here, and a mismatch surfaces as a 502 to the UI.
       if (!isTranslateShape(parsed)) {
-        throw new Error(`${id} response did not match the translation schema`);
+        throw new Error(
+          `${id} response did not match the translation schema { title, description, tags[] } (mode=${jsonMode})`,
+        );
       }
 
       const usage = response.usage;
@@ -214,6 +257,10 @@ function isTranslateShape(v: unknown): v is { title: string; description: string
 /**
  * OpenAI proper. Default model: `gpt-5-mini` (smaller, ~$0.25/M
  * input, $2/M output — covers the catalog for under $1).
+ *
+ * `jsonMode: "json_schema"` because OpenAI's own models support
+ * strict schema-constrained generation. The model literally can't
+ * produce tokens that would violate the schema.
  */
 export const openaiProvider: AIProvider = buildOpenAICompatProvider({
   id: "openai",
@@ -221,12 +268,21 @@ export const openaiProvider: AIProvider = buildOpenAICompatProvider({
   envVarName: "OPENAI_API_KEY",
   defaultModel: "gpt-5-mini",
   modelEnvVarName: "OPENAI_TRANSLATE_MODEL",
+  jsonMode: "json_schema",
 });
 
 /**
  * DeepSeek. OpenAI-compatible API — same request/response shape,
  * different baseURL. Default model: `deepseek-chat` (V3-style chat
  * model). Pricing is in the same ballpark as GPT-5-mini.
+ *
+ * `jsonMode: "json_object"` because DeepSeek's API doesn't
+ * implement OpenAI's `json_schema` variant (returns
+ * `400 This response_format type is unavailable now` if you try).
+ * The simpler `json_object` mode is supported and produces
+ * parseable JSON; `isTranslateShape()` validates the shape
+ * client-side after parsing. The SYSTEM_PROMPT already asks for
+ * the exact shape, so the model returns it reliably in practice.
  */
 export const deepseekProvider: AIProvider = buildOpenAICompatProvider({
   id: "deepseek",
@@ -235,4 +291,5 @@ export const deepseekProvider: AIProvider = buildOpenAICompatProvider({
   baseURL: "https://api.deepseek.com",
   defaultModel: "deepseek-chat",
   modelEnvVarName: "DEEPSEEK_TRANSLATE_MODEL",
+  jsonMode: "json_object",
 });
