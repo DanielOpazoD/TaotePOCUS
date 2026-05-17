@@ -705,34 +705,28 @@ button:hover > .kbd-hint {
 
 /* ─── View Transitions API tuning ───────────────────────────────────
  *
- * Programmatic `document.startViewTransition()` calls in
- * `useCardCallbacks.onCardOpen` (open) and `App.tsx > onCloseCase`
- * (close) capture two snapshots and morph between them. The browser
- * targets elements with matching `view-transition-name`:
+ * Live consumer (May-2026): `components/chrome/TransitionLink.tsx`
+ * uses `document.startViewTransition` for client-side route
+ * navigations. The matched `view-transition-name` pairs are the
+ * `<h1>` and crumb chrome (named in `main.css` / `header.css`).
  *
- *   - `.case-thumb` on the originating `<CaseCard>` /
- *     `<FeaturedCard>` carries `case-thumb-<id>` (suppressed to
- *     `none` when the card's case is the one being opened, so the
- *     name lives on a single element at any given snapshot).
- *   - `.modal-loop` (inside `<CaseModal>`) carries the same name
- *     when the modal is mounted.
+ * The case-thumb → modal-loop morph was the original consumer but
+ * was removed in PR #79 — see `lib/view-transition.ts` header for
+ * the history.
  *
- * Defaults are good (300 ms cross-fade + position interpolation).
- * The custom rules here:
- *   - Tighten the duration to 250 ms — feels snappier on the
- *     ~280 px → ~880 px scale-up.
- *   - Soften the ease — `--ease-emphasized` matches the rest of
- *     the app's micro-animations.
- *   - Hide the OLD snapshot's accompanying body content (cards
- *     around the originating one) during the morph so the eye
- *     follows the lift cleanly. The NEW snapshot's body fades in
- *     at 50% of the duration so the modal chrome is legible the
- *     moment the morph completes.
+ * The custom rules here tighten the default 300ms cross-fade to
+ * 250ms and soften the ease (`--ease-emphasized`) so route
+ * transitions feel snappier and match the rest of the app's
+ * micro-animations. The `*` wildcards cover every named pair —
+ * the rules apply globally to whatever the live consumer names.
  *
- * `prefers-reduced-motion: reduce` short-circuits at the JS layer
- * (the helper in `lib/view-transition.ts` skips
- * `startViewTransition` entirely). The CSS below is also wrapped
- * in a motion-respecting media query as belt-and-suspenders.
+ * `prefers-reduced-motion: reduce` is handled at two layers:
+ *   1. The CSS block below is wrapped in `@media not (reduce)`.
+ *   2. `lib/view-transition.ts > runWithViewTransition` (when
+ *      used) short-circuits at the JS layer before calling
+ *      `startViewTransition`. `TransitionLink` currently calls
+ *      the API directly without the JS-level check; layer 1
+ *      catches that case.
  */
 @media not (prefers-reduced-motion: reduce) {
   /* Morph timing for the named pair (card thumb ↔ modal loop).
@@ -786,57 +780,18 @@ button:hover > .kbd-hint {
     animation-duration: 250ms;
     animation-timing-function: var(--ease-emphasized);
   }
-
-  /* Modal-open path: the root layer SNAP-CUTS instead of cross-
-     fading. The class is set by `runWithViewTransition({
-     instantRoot: true })` in `lib/view-transition.ts` and only
-     during the modal-open transition — filter changes, sort
-     changes, and section navigation still use the rules above for
-     their smoother root cross-fade.
-     Why snap-cut: without it, the OLD root (catalog grid visible)
-     cross-fades into the NEW root (modal + backdrop) over 200-
-     250ms. The catalog area outside the modal is identical between
-     OLD and NEW — no visible difference. But the area WHERE the
-     modal lands shows BOTH the catalog cards (from OLD) and the
-     modal backdrop (from NEW) overlapping until OLD reaches
-     opacity 0. Users see a "the grid behind bleeds through the
-     modal" flash for ~200ms. Snap-cutting the root removes that
-     overlap entirely; only the named-pair morph (card → modal
-     hero) plays smoothly. */
-  html.vt-root-instant::view-transition-old(root) {
-    animation: none;
-    opacity: 0;
-  }
-  html.vt-root-instant::view-transition-new(root) {
-    animation: none;
-    opacity: 1;
-  }
 }
 
-/* Suppress the modal's own scale-in + the backdrop's fadeIn while
-   the view-transition is running (vt-root-instant class set).
-   Without this, even with the root snap-cut above, the user STILL
-   saw a brief overlap: the NEW root snapshot captures the modal
-   AT THE START of its scale-in animation — meaning the modal is
-   at `opacity: 0` and the backdrop is at `opacity: 0`, so the
-   captured pixels are effectively "empty box". After the snap-cut
-   the live DOM continues these animations from frame 0, which is
-   when the user sees the catalog still visible underneath the
-   transparent backdrop for ~250ms while the dialog fades in.
-   Disabling these animations during the transition window means
-   the modal renders at its final state (opacity 1, scale 1) from
-   the moment it mounts — the named-pair morph from the card thumb
-   provides all the perceptual smoothness needed; the dialog's own
-   entrance animation is redundant with view-transitions.
-   Rules sit OUTSIDE the `@media not (reduced-motion)` block above
-   because they NEED to apply even when reduced motion is on if
-   somehow the class is still set — but in practice the helper
-   skips `startViewTransition` entirely under reduced motion, so
-   the class never gets added in that case. */
-html.vt-root-instant .modal,
-html.vt-root-instant dialog.case-modal-host::backdrop {
-  animation: none !important;
-}
+/* Modal-open path note (May-2026): the original implementation
+   wrapped the case-thumb → modal-loop opening in
+   `document.startViewTransition` with an `instantRoot` flag that
+   set the `vt-root-instant` class on `<html>` to snap-cut the
+   background layer. Four targeted fixes (#75–#78) failed to fully
+   eliminate a "catalog row bleeds through the modal" flicker, so
+   PR #79 reverted to a plain CSS-only entrance. The class and its
+   accompanying rules are no longer set anywhere and were removed
+   in the cleanup PR. See `lib/view-transition.ts` for the full
+   history. */
 
 /* =================== COMMAND PALETTE (⌘K) ===================
  * Centred overlay, fixed near the top of the viewport (modal feel,

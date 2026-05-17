@@ -3,10 +3,13 @@
 //   - Reduced motion: matched media query → fallback.
 //   - Available + motion accepted → call into the API.
 //   - Callback ALWAYS runs (the helper never swallows).
-//   - Name generation: unsafe id chars get sanitized.
+//
+// The `caseThumbViewTransitionName` tests were dropped in May-2026
+// when PR #79 ripped the case-thumb→modal morph (the only caller).
+// See `lib/view-transition.ts` header for the full history.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { caseThumbViewTransitionName, runWithViewTransition } from "@/lib/view-transition";
+import { runWithViewTransition } from "@/lib/view-transition";
 
 // Snapshot of the relevant document globals so each test sees a
 // known starting state. The helper reads `document.startViewTransition`
@@ -96,19 +99,5 @@ describe("runWithViewTransition", () => {
     const cb = vi.fn();
     runWithViewTransition(cb);
     expect(cb).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("caseThumbViewTransitionName", () => {
-  it("returns a stable name based on the case id", () => {
-    expect(caseThumbViewTransitionName("tw-12345")).toBe("case-thumb-tw-12345");
-    expect(caseThumbViewTransitionName("u_abc")).toBe("case-thumb-u_abc");
-  });
-
-  it("sanitizes characters that would break CSS identifier syntax", () => {
-    // Defensive against future id schemes — slashes, dots, etc.
-    expect(caseThumbViewTransitionName("a/b")).toBe("case-thumb-a_b");
-    expect(caseThumbViewTransitionName("foo.bar")).toBe("case-thumb-foo_bar");
-    expect(caseThumbViewTransitionName("with space")).toBe("case-thumb-with_space");
   });
 });

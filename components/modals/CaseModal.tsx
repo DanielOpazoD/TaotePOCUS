@@ -12,7 +12,6 @@ import { useNativeDialog } from "@/hooks/useNativeDialog";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { useModalShortcuts } from "@/hooks/useModalShortcuts";
 import { useLanguage } from "@/hooks/useLanguage";
-import { caseThumbViewTransitionName } from "@/lib/view-transition";
 import { highlight } from "@/lib/highlight";
 import {
   difficultyLabel,
@@ -174,17 +173,7 @@ export default function CaseModal({
           {Icon.close()}
         </button>
         <div className="modal-grid">
-          <div
-            className="modal-loop"
-            // View Transitions API — name MUST match the
-            // corresponding `.case-thumb` element on the originating
-            // card so the browser morphs between the two. The
-            // matching CaseCard / FeaturedCard suppresses ITS name
-            // when it sees its case is open, so this `case-thumb-<id>`
-            // is the only named element in the new snapshot. See
-            // `lib/view-transition.ts` for the orchestration.
-            style={{ viewTransitionName: caseThumbViewTransitionName(caso.id) }}
-          >
+          <div className="modal-loop">
             <ModalLoopMedia caso={caso} mediaList={mediaList} speed={speed} paused={paused} />
             <div className="modal-loop-controls">
               <button
