@@ -225,6 +225,16 @@ textarea.admin-input {
   background: var(--surface-2);
   overflow: hidden;
   transition: all var(--duration-fast);
+  /* Cap the preview so it stays a "compact thumbnail" inside the
+     CaseForm rather than a wall of media. Without this, the
+     `aspect-ratio: 1/1` + no explicit width meant the box stretched
+     to fill the whole modal column (~700px on desktop), making the
+     metadata + tabs above scroll off-screen. 240px square is large
+     enough to read the asset's content (you can tell a B-line scan
+     from an ECG strip at this size) and small enough that the rest
+     of the form stays in view. The empty-state drop zone fits its
+     32px icon + 2 lines of copy comfortably at this size too. */
+  max-width: 240px;
 }
 .admin-uploader:hover {
   border-color: var(--accent);
