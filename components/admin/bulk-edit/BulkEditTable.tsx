@@ -29,6 +29,8 @@ import { BulkEditFilters } from "./BulkEditFilters";
 import { BulkEditPagination } from "./BulkEditPagination";
 import { BulkEditRow } from "./BulkEditRow";
 import { BulkEditSortHeader } from "./cells/SortHeader";
+import { AIRewriteModal } from "../ai/AIRewriteModal";
+import { AIBulkRewriteModal } from "../ai/AIBulkRewriteModal";
 import { getDescription } from "@/lib/case-description";
 import { categoryLabelEs } from "@/lib/i18n";
 import { useT } from "@/hooks/useLanguage";
@@ -96,6 +98,15 @@ export default function BulkEditTable({
   // Set so add/remove is O(1) and the UI doesn't re-render every
   // row when a single one toggles.
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // ─── AI rewrite modal state ────────────────────────────────────
+  // `aiTarget` is the case currently being rewritten via the per-row
+  // ✨ button (single-case modal). `aiBulkOpen` is true while the
+  // bulk modal is on screen with `selected` cases. The two are
+  // independent — bulk uses the live selection set, single uses one
+  // case explicitly chosen from a row.
+  const [aiTarget, setAiTarget] = useState<CaseRecord | null>(null);
+  const [aiBulkOpen, setAiBulkOpen] = useState(false);
 
   // ─── Keyboard nav state ───────────────────────────────────────
   const [activeRow, setActiveRow] = useState<number>(-1);
@@ -401,6 +412,7 @@ export default function BulkEditTable({
                 onPatch={onPatch}
                 onOpenEdit={onOpenEdit}
                 onDelete={onDelete}
+                onAIRewrite={setAiTarget}
               />
             ))}
             {paged.length === 0 && (
@@ -452,6 +464,25 @@ export default function BulkEditTable({
           tagFrequencies={tagFrequencies}
           onApplyAddTag={applyBulkAddTag}
           onApplyRemoveTag={applyBulkRemoveTag}
+          onAIRewriteBulk={() => setAiBulkOpen(true)}
+        />
+      )}
+      {/* Per-row AI rewrite modal. Mounted conditionally — the
+          internal <dialog> auto-opens via useLayoutEffect. Closing
+          (×, cancel, or successful apply) flips `aiTarget` to null
+          which unmounts the modal. */}
+      {aiTarget && (
+        <AIRewriteModal caso={aiTarget} onApplyPatch={onPatch} onClose={() => setAiTarget(null)} />
+      )}
+      {/* Bulk AI rewrite modal. Reads `selected` set at modal open
+          time and freezes that list as the batch input. Subsequent
+          changes to `selected` while the batch runs don't affect
+          the in-flight casework. */}
+      {aiBulkOpen && (
+        <AIBulkRewriteModal
+          cases={filtered.filter((c) => selected.has(c.id))}
+          onApplyPatch={onPatch}
+          onClose={() => setAiBulkOpen(false)}
         />
       )}
     </div>

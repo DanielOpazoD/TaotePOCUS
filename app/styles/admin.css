@@ -2061,3 +2061,389 @@ textarea.ai-suggestions-field-input {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* ─── AI Rewrite Modal (per-row + bulk) ────────────────────────────
+   The ✨ rewrite modal opens from the BulkEditTable row actions and
+   from the selection action bar. Two paths inside:
+     1. Configure → loading → review → apply  (per-case modal)
+     2. Configure → confirm  → loading → applied  (per-case direct)
+     3. Configure → confirm  → progress → complete  (bulk modal)
+   All paths share the same shell + form chrome below; the phase
+   renderer picks which content block is on screen.
+
+   Visual style stays close to the other admin modals (CaseForm,
+   AuthModal) — a centered <dialog> with a `--max-modal`-bounded
+   shell, soft shadow, neutral palette. The ✨-flavored action
+   buttons use the accent color to signal "this is a special op".
+*/
+.ai-rewrite-dialog[open] {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  max-width: none;
+  max-height: none;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  display: grid;
+  place-items: center;
+}
+.ai-rewrite-dialog::backdrop {
+  background: var(--overlay-strong);
+  backdrop-filter: blur(4px);
+}
+.ai-rewrite-shell {
+  width: min(720px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 2px oklch(0.198 0.005 254 / 0.06),
+    0 24px 48px -12px oklch(0.198 0.005 254 / 0.2);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ai-rewrite-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.ai-rewrite-head h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+}
+.ai-rewrite-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 20px;
+  cursor: pointer;
+}
+.ai-rewrite-close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ai-rewrite-source {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+}
+.ai-rewrite-source-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 4px;
+}
+.ai-rewrite-source-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.ai-rewrite-source-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  /* Cap the source preview so a verbose import doesn't push the
+     action buttons off the visible modal area. */
+  max-height: 4.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.ai-rewrite-intro {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+.ai-rewrite-instruction-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.ai-rewrite-instruction {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--ink);
+  resize: vertical;
+  min-height: 60px;
+}
+.ai-rewrite-instruction-hint {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 11px;
+  color: var(--ink-mute);
+  line-height: 1.4;
+}
+.ai-rewrite-instruction-count {
+  font-family: var(--mono);
+  flex: 0 0 auto;
+}
+.ai-rewrite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+}
+.ai-rewrite-action {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+.ai-rewrite-action--review {
+  background: var(--accent);
+  color: oklch(1 0 0);
+}
+.ai-rewrite-action--review:hover {
+  filter: brightness(1.08);
+}
+.ai-rewrite-action--direct {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.ai-rewrite-action--direct:hover {
+  background: var(--accent-soft);
+}
+.ai-rewrite-action--cancel {
+  background: transparent;
+  border-color: var(--hairline-strong);
+  color: var(--ink-soft);
+}
+.ai-rewrite-action--cancel:hover {
+  border-color: var(--ink-mute);
+  color: var(--ink);
+}
+.ai-rewrite-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+.ai-rewrite-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--hairline-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ai-rewrite-spin 700ms linear infinite;
+}
+@keyframes ai-rewrite-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-rewrite-spinner {
+    animation: none;
+  }
+}
+.ai-rewrite-confirm {
+  padding: var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ai-rewrite-confirm p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+.ai-rewrite-confirm-detail {
+  font-size: 12px !important;
+  color: var(--ink-mute) !important;
+  line-height: 1.5;
+}
+.ai-rewrite-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+.ai-rewrite-meta strong {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.ai-rewrite-review {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+@media (max-width: 720px) {
+  .ai-rewrite-review {
+    grid-template-columns: 1fr;
+  }
+}
+.ai-rewrite-lang {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ai-rewrite-lang legend {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding: 0 var(--space-2);
+}
+.ai-rewrite-lang label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+.ai-rewrite-lang input,
+.ai-rewrite-lang textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--ink);
+  resize: vertical;
+}
+.ai-rewrite-error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--crit-soft);
+  border: 1px solid var(--crit);
+  border-radius: var(--radius-md);
+  color: var(--crit);
+  font-size: 14px;
+}
+.ai-rewrite-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+}
+.ai-rewrite-progress-label {
+  font-size: 14px;
+  color: var(--ink);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.ai-rewrite-progress-fail-count {
+  color: var(--crit);
+  font-size: 12px;
+}
+.ai-rewrite-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--hairline);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.ai-rewrite-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 200ms ease;
+}
+.ai-rewrite-complete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ai-rewrite-complete p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+.ai-rewrite-complete-fail {
+  color: var(--crit);
+}
+.ai-rewrite-complete-fail-list {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.ai-rewrite-complete-fail-list code {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 0 4px;
+  background: var(--surface-2);
+  border-radius: 3px;
+}
+
+/* Per-row ✨ button in BulkEditTable. Lives in the actions cell
+   alongside the ⋮ menu. */
+.bulk-edit-row-ai {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-mute);
+  transition: all var(--duration-fast) ease;
+  margin-right: 2px;
+}
+.bulk-edit-row-ai:hover {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  transform: scale(1.1);
+}
+
+/* Bulk "IA reescribir" button in the action bar. Same vocabulary
+   as the other action-bar buttons (btn-ghost) but with a hint of
+   accent on the icon so it stands out. */
+.bulk-edit-actionbar-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

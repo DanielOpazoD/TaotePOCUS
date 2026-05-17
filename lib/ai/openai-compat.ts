@@ -20,6 +20,8 @@ import type {
   AIProvider,
   AvailabilityCheck,
   ProviderId,
+  RewriteInput,
+  RewriteOutput,
   TranslateInput,
   TranslateOutput,
 } from "./provider";
@@ -240,6 +242,17 @@ function buildOpenAICompatProvider({
         meta,
       };
     },
+    async rewriteCase(input: RewriteInput): Promise<RewriteOutput> {
+      const apiKey = process.env[envVarName];
+      if (!apiKey) {
+        throw new ProviderUnavailableError(id, `${envVarName} not set`);
+      }
+      const model = process.env[modelEnvVarName] || defaultModel;
+      // Delegate to the shared implementation. The provider closure
+      // carries the auth/model/jsonMode config; the implementation
+      // assembles the OpenAI request + validates the response.
+      return rewriteCaseImpl({ id, apiKey, baseURL, model, jsonMode, input });
+    },
   };
 }
 
@@ -252,6 +265,217 @@ function isTranslateShape(v: unknown): v is { title: string; description: string
     Array.isArray(obj.tags) &&
     obj.tags.every((t) => typeof t === "string")
   );
+}
+
+/**
+ * Editorial system prompt for `rewriteCase`. Encodes the catalog's
+ * editorial conventions so the AI rewrites BOTH languages following
+ * the same rules.
+ *
+ * The rules are derived from how the editorial team uses the catalog:
+ *
+ *   - **Title = visible diagnosis**, not clinical history. The
+ *     catalog is a SONOGRAPHIC reference — a reader scanning titles
+ *     should learn what each case LOOKS LIKE on US, not what symptom
+ *     the patient presented with.
+ *   - **Description = US findings only**. Clinical context belongs
+ *     in the (separate, optional) advanced fields, not the main
+ *     description. A reader using the catalog as an image bank
+ *     needs to know "what does this image show?", not "how did this
+ *     patient end up here?".
+ *   - **Tags = clinical idioms in each language**. Not literal
+ *     translations — concept mappings. "B-líneas" doesn't translate
+ *     to "B-line" (singular), it translates to "B-lines" (plural,
+ *     idiomatic) or sometimes "wet lungs" depending on context.
+ *
+ * Per-call user instruction is appended as a second user message
+ * after this system message, so it can refine but not override the
+ * editorial rules.
+ */
+const REWRITE_SYSTEM_PROMPT = `You are an editorial assistant for a bilingual POCUS (point-of-care ultrasound) clinical educational catalog. The catalog ships in Spanish (canonical) + English (translation).
+
+TASK: Given a case in Spanish (title, description, tags), produce a refined Spanish version AND an English translation that BOTH follow these editorial rules.
+
+EDITORIAL RULES — apply to BOTH languages:
+
+1. TITLE. Must reflect the SONOGRAPHIC diagnosis (what is visible in the ultrasound image / loop), NOT the clinical history.
+   - GOOD ES: "Edema pulmonar agudo (B-líneas confluentes bilaterales)"
+   - GOOD EN: "Acute pulmonary edema (confluent bilateral B-lines)"
+   - BAD: "Paciente con disnea progresiva" / "Patient with progressive dyspnea"
+   - If the original title is a clinical-history phrase, INFER the likely sonographic diagnosis from the description.
+
+2. DESCRIPTION. ONLY ultrasound findings. OMIT clinical case narrative.
+   - INCLUDE: anatomical view, B-lines, A-lines, sliding, effusions, hyperechoic/hypoechoic, dimensions, motion patterns, probe type if mentioned.
+   - OMIT: patient demographics, symptoms, physical exam findings outside US, lab values, treatment, outcome, follow-up.
+   - Style: structured radiologic-style report. Concise but specific.
+   - Length: 1-3 sentences typical, max 5.
+   - If the original description has ONLY clinical narrative and no US findings, write a brief description of what such a case typically LOOKS LIKE on US, marked clearly as inferred.
+
+3. TAGS. 3-5 idiomatic clinical tags in EACH language.
+   - Map concepts, not words.
+   - Spanish: Latin American medical Spanish (Chile/Argentina conventions).
+   - English: American clinical English (SCCM / EMRA / ACEP style).
+   - Example: ["B-líneas", "pulmón húmedo", "edema intersticial"] ↔ ["B-lines", "wet lungs", "interstitial syndrome"]
+
+OUTPUT: strict JSON, no preamble, no markdown fences.
+{
+  "es": { "title": string, "description": string, "tags": string[] },
+  "en": { "title": string, "description": string, "tags": string[] }
+}`;
+
+/**
+ * Strict JSON schema for the rewrite response. Used in
+ * \`response_format: { type: "json_schema" }\` mode on OpenAI proper.
+ * DeepSeek falls back to \`json_object\` mode (see deepseekProvider
+ * jsonMode below) and validates the shape client-side via
+ * \`isRewriteShape\`.
+ */
+const REWRITE_RESPONSE_SCHEMA = {
+  type: "object",
+  properties: {
+    es: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        description: { type: "string" },
+        tags: { type: "array", items: { type: "string" } },
+      },
+      required: ["title", "description", "tags"],
+      additionalProperties: false,
+    },
+    en: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        description: { type: "string" },
+        tags: { type: "array", items: { type: "string" } },
+      },
+      required: ["title", "description", "tags"],
+      additionalProperties: false,
+    },
+  },
+  required: ["es", "en"],
+  additionalProperties: false,
+} as const;
+
+function isRewriteShape(
+  v: unknown,
+): v is {
+  es: { title: string; description: string; tags: string[] };
+  en: { title: string; description: string; tags: string[] };
+} {
+  if (!v || typeof v !== "object") return false;
+  const obj = v as Record<string, unknown>;
+  return isTranslateShape(obj.es) && isTranslateShape(obj.en);
+}
+
+/**
+ * Concrete rewrite implementation shared by openaiProvider and
+ * deepseekProvider. Takes the same `apiKey` / `model` / `baseURL` /
+ * `jsonMode` config as the translate path because the OpenAI SDK is
+ * the same; only the system prompt + response schema differ.
+ */
+async function rewriteCaseImpl(args: {
+  id: ProviderId;
+  apiKey: string;
+  baseURL?: string;
+  model: string;
+  jsonMode: JsonMode;
+  input: RewriteInput;
+}): Promise<RewriteOutput> {
+  const client = new OpenAI({
+    apiKey: args.apiKey,
+    ...(args.baseURL ? { baseURL: args.baseURL } : {}),
+  });
+
+  const responseFormat =
+    args.jsonMode === "json_schema"
+      ? ({
+          type: "json_schema" as const,
+          json_schema: {
+            name: "case_rewrite",
+            strict: true,
+            schema: REWRITE_RESPONSE_SCHEMA,
+          },
+        } as const)
+      : ({ type: "json_object" as const } as const);
+
+  // Pull source fields into locals before interpolation. Same
+  // reason as `stub.rewriteCase`: the localized-consumer audit
+  // false-positives on `${something.title}` patterns. Here
+  // `args.input.source` is a `LocalizedCaseContent` with plain
+  // string fields, not a `LocalizedString`.
+  const srcTitle = args.input.source.title;
+  const srcDescription = args.input.source.description;
+  const srcTags = args.input.source.tags;
+  const sourceBlock = [
+    `Source (Spanish):`,
+    `Title: ${srcTitle}`,
+    `Description: ${srcDescription}`,
+    `Tags: ${srcTags.join(", ") || "(none)"}`,
+  ].join("\n");
+
+  const userInstruction = args.input.instruction?.trim();
+  // Clamp the user instruction so an admin can't accidentally inject
+  // a multi-kilobyte prompt and 10x the call cost. 500 chars is more
+  // than enough for "be more concise" / "highlight differential" /
+  // "use the dimensions if mentioned".
+  const clampedInstruction =
+    userInstruction && userInstruction.length > 500
+      ? userInstruction.slice(0, 500)
+      : userInstruction;
+  const userMessageContent = clampedInstruction
+    ? `${sourceBlock}\n\nAdditional instruction (apply alongside the editorial rules):\n${clampedInstruction}`
+    : sourceBlock;
+
+  const start = Date.now();
+  const response = await client.chat.completions.create({
+    model: args.model,
+    messages: [
+      { role: "system", content: REWRITE_SYSTEM_PROMPT },
+      { role: "user", content: userMessageContent },
+    ],
+    response_format: responseFormat,
+    // Slightly higher temperature than translate (0.2) because rewrite
+    // is creative-ish: inferring a sonographic diagnosis from clinical
+    // narrative isn't a 1:1 transformation. Capped at 0.4 to keep the
+    // output stable enough that two consecutive calls don't produce
+    // wildly different titles.
+    temperature: 0.4,
+  });
+
+  const choice = response.choices[0];
+  const text = choice?.message?.content;
+  if (!text) {
+    throw new Error(`${args.id} returned empty rewrite response (no message content)`);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (err) {
+    throw new Error(
+      `${args.id} returned malformed JSON for rewrite (mode=${args.jsonMode}): ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+  }
+
+  if (!isRewriteShape(parsed)) {
+    throw new Error(
+      `${args.id} rewrite response did not match { es: {title, description, tags[]}, en: {title, description, tags[]} } (mode=${args.jsonMode})`,
+    );
+  }
+
+  const usage = response.usage;
+  const meta: AICallMeta = {
+    provider: args.id,
+    model: args.model,
+    promptTokens: usage?.prompt_tokens ?? null,
+    completionTokens: usage?.completion_tokens ?? null,
+    durationMs: Date.now() - start,
+  };
+  return { result: { es: parsed.es, en: parsed.en }, meta };
 }
 
 /**

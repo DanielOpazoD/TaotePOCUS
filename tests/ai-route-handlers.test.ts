@@ -23,6 +23,7 @@ vi.mock("@/lib/server/session", () => ({
 import { POST as translatePOST } from "@/app/api/admin/ai/translate/route";
 import { GET as providersGET } from "@/app/api/admin/ai/providers/route";
 import { POST as healthPOST } from "@/app/api/admin/ai/health/route";
+import { POST as rewritePOST } from "@/app/api/admin/ai/rewrite/route";
 
 process.env.AI_STUB_INSTANT = "1";
 
@@ -323,4 +324,119 @@ describe("POST /api/admin/ai/health", () => {
   // (`HealthResponseFail`) and documented in the route header. If
   // we ever see drift here, the next admin who clicks "Probar
   // conexión" with a misconfigured key will surface it immediately.
+});
+
+describe("POST /api/admin/ai/rewrite", () => {
+  function rewriteRequest(body: unknown): Request {
+    return new Request("http://localhost/api/admin/ai/rewrite", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  const validSource = {
+    title: "Disnea aguda",
+    description: "Múltiples B-líneas en ambos hemitórax.",
+    tags: ["pulmonar"],
+  };
+
+  it("returns 403 when no admin session", async () => {
+    mockedRequireAdmin.mockResolvedValue(null);
+    const res = await rewritePOST(rewriteRequest({ source: validSource }));
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 400 on non-JSON body", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const req = new Request("http://localhost/api/admin/ai/rewrite", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "not-json",
+    });
+    const res = await rewritePOST(req);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 when source is missing or malformed", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res1 = await rewritePOST(rewriteRequest({}));
+    expect(res1.status).toBe(400);
+    const res2 = await rewritePOST(
+      rewriteRequest({ source: { title: "", description: "x", tags: [] } }),
+    );
+    expect(res2.status).toBe(400);
+  });
+
+  it("returns 400 when instruction exceeds 500 chars", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const longInstruction = "x".repeat(501);
+    const res = await rewritePOST(
+      rewriteRequest({ source: validSource, instruction: longInstruction }),
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.reason).toMatch(/500 chars/);
+  });
+
+  it("defaults to the resolved provider when none is supplied", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    // No env vars set → defaults to stub → stub.rewriteCase returns
+    // deterministic ES + EN with marker prefixes.
+    const res = await rewritePOST(rewriteRequest({ source: validSource }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.result.es.title).toMatch(/^\[stub rewrite ES\]/);
+    expect(body.result.en.title).toMatch(/^\[stub rewrite EN\]/);
+    expect(body.meta.provider).toBe("stub");
+    expect(body.meta.model).toBe("stub-deterministic-v1");
+  });
+
+  it("routes to the explicitly-named provider when supplied", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await rewritePOST(rewriteRequest({ provider: "stub", source: validSource }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.meta.provider).toBe("stub");
+  });
+
+  it("returns 400 for unknown providers", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await rewritePOST(
+      rewriteRequest({ provider: "not-a-provider", source: validSource }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 503 when the explicit provider isn't available", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    // DEEPSEEK_API_KEY is unset → deepseek.isAvailable() is false.
+    const res = await rewritePOST(rewriteRequest({ provider: "deepseek", source: validSource }));
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body.reason).toMatch(/DEEPSEEK_API_KEY/);
+  });
+
+  it("threads the instruction through to the stub (appears in result)", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await rewritePOST(
+      rewriteRequest({ source: validSource, instruction: "más conciso" }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // Stub appends "(custom: ...)" to titles when instruction is present.
+    expect(body.result.es.title).toContain("más conciso");
+    expect(body.result.en.title).toContain("más conciso");
+  });
+
+  it("returns both ES and EN with the LocalizedCaseContent shape", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await rewritePOST(rewriteRequest({ source: validSource }));
+    const body = await res.json();
+    for (const lang of ["es", "en"] as const) {
+      expect(typeof body.result[lang].title).toBe("string");
+      expect(typeof body.result[lang].description).toBe("string");
+      expect(Array.isArray(body.result[lang].tags)).toBe(true);
+    }
+  });
 });

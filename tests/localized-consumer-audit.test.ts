@@ -93,6 +93,15 @@ const WHITELIST = new Set<string>([
   // downstream provider never sees the bilingual object —
   // there's no `[object Object]` risk here.
   "components/admin/ai/AISuggestionsPanel.tsx",
+
+  // AI editorial-rewrite modals send the ES slot to the AI and
+  // write both ES + EN slots back. Same design constraint as the
+  // translate panel above: the operation IS language-specific,
+  // so the lang-agnostic helper doesn't fit. The plain-string
+  // payload to /api/admin/ai/rewrite has no LocalizedString
+  // shape — no `[object Object]` risk.
+  "components/admin/ai/AIRewriteModal.tsx",
+  "components/admin/ai/AIBulkRewriteModal.tsx",
 ]);
 
 /**

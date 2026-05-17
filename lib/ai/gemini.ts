@@ -24,6 +24,8 @@ import type {
   AICallMeta,
   AIProvider,
   AvailabilityCheck,
+  RewriteInput,
+  RewriteOutput,
   TranslateInput,
   TranslateOutput,
 } from "./provider";
@@ -208,6 +210,25 @@ export const geminiProvider: AIProvider = {
       result: { title: parsed.title, description: parsed.description, tags: parsed.tags },
       meta,
     };
+  },
+  async rewriteCase(_input: RewriteInput): Promise<RewriteOutput> {
+    // Not implemented for Gemini yet. The catalog's primary provider
+    // is DeepSeek (May-2026); the editorial rewrite path is only
+    // wired through `openai-compat.ts` so far. Switching to Gemini
+    // would silently fall back to the translate-only path (not
+    // sufficient for the editorial rewrite contract), so we throw
+    // a structured error the route handler can surface to the admin.
+    //
+    // To enable: implement the same prompt + schema as
+    // `openai-compat.ts > rewriteCaseImpl`, using
+    // `gen.models.generateContent` with `responseMimeType:
+    // application/json` and a Gemini-shaped response schema (use
+    // the `TRANSLATE_RESPONSE_SCHEMA` above as the model — Type.OBJECT
+    // / Type.STRING / etc.).
+    throw new ProviderUnavailableError(
+      "gemini",
+      "rewriteCase is not yet implemented for Gemini. Use DeepSeek or OpenAI.",
+    );
   },
 };
 

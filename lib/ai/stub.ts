@@ -24,6 +24,8 @@ import type {
   AICallMeta,
   AIProvider,
   AvailabilityCheck,
+  RewriteInput,
+  RewriteOutput,
   TranslateInput,
   TranslateOutput,
 } from "./provider";
@@ -76,5 +78,43 @@ export const stubProvider: AIProvider = {
       durationMs: Date.now() - start,
     };
     return { result, meta };
+  },
+  async rewriteCase(input: RewriteInput): Promise<RewriteOutput> {
+    const start = Date.now();
+    if (process.env.NODE_ENV !== "test" && process.env.AI_STUB_INSTANT !== "1") {
+      await new Promise((r) => setTimeout(r, STUB_DELAY_MS));
+    }
+    // Deterministic markers so tests can assert on the output shape
+    // without depending on a real model. The `[stub rewrite ES]`
+    // prefix is recognizable to a reviewer as "this came from the
+    // stub, replace before shipping".
+    //
+    // Note: pull source fields into local vars before string
+    // interpolation. The localized-consumer audit otherwise flags
+    // `${input.source.title}` as a possible LocalizedString
+    // stringification (false positive — `LocalizedCaseContent.title`
+    // is a plain `string`, not a `LocalizedString`).
+    const srcTitle = input.source.title;
+    const srcDescription = input.source.description;
+    const srcTags = input.source.tags;
+    const instructionSuffix = input.instruction ? ` (custom: ${input.instruction})` : "";
+    const es = {
+      title: `[stub rewrite ES] ${srcTitle}${instructionSuffix}`,
+      description: `[stub rewrite ES] hallazgos ecográficos: ${srcDescription}`,
+      tags: srcTags.length > 0 ? srcTags : ["stub-tag-es"],
+    };
+    const en = {
+      title: `[stub rewrite EN] ${srcTitle}${instructionSuffix}`,
+      description: `[stub rewrite EN] ultrasound findings: ${srcDescription}`,
+      tags: srcTags.length > 0 ? srcTags.map((t) => `en:${t}`) : ["stub-tag-en"],
+    };
+    const meta: AICallMeta = {
+      provider: "stub",
+      model: "stub-deterministic-v1",
+      promptTokens: null,
+      completionTokens: null,
+      durationMs: Date.now() - start,
+    };
+    return { result: { es, en }, meta };
   },
 };

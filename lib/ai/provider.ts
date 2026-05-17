@@ -112,6 +112,54 @@ export interface TranslateOutput {
 }
 
 /**
+ * Input for the "editorial rewrite + translate" operation. Different
+ * from `TranslateInput`: this is a content TRANSFORMATION, not a
+ * language transformation. The AI is asked to rewrite the ES source
+ * to fit editorial conventions (title = visible diagnosis, description
+ * = US findings only, omit clinical history) AND produce an EN
+ * translation of the cleaned ES.
+ *
+ * Use case (May-2026): admin imports a case with a clinical-narrative
+ * description ("Paciente de 45 años con disnea progresiva, niega
+ * fiebre, examen físico muestra…") and wants a sonography-focused
+ * description ("Múltiples B-líneas confluentes bilaterales, sin
+ * derrame pleural significativo.") in BOTH languages, in one click.
+ */
+export interface RewriteInput {
+  /** ES content as input. The rewrite ALWAYS reads from ES — that's
+   *  the canonical language of the catalog. EN is regenerated from
+   *  the cleaned ES, not from any existing EN slot. If an admin wants
+   *  to preserve hand-tuned EN phrasing they should use the manual
+   *  review path (the `<AIRewriteModal>` shows the AI suggestion
+   *  before saving, so existing EN can be re-applied by editing). */
+  source: LocalizedCaseContent;
+  /**
+   * Optional per-call instruction appended to the editorial system
+   * prompt. Lets the admin tell the AI things like "be more concise",
+   * "include the probe type if mentioned in the source", or
+   * "highlight the differential diagnosis". Plain text; the provider
+   * sanitizes / clamps as needed.
+   */
+  instruction?: string;
+}
+
+/**
+ * Output of the editorial rewrite. Returns BOTH languages because the
+ * operation is "ES + EN in one shot" — a single AI call producing the
+ * full bilingual content avoids two round-trips (cheaper) and keeps
+ * the languages stylistically consistent (same model context).
+ */
+export interface RewriteOutput {
+  result: {
+    /** Cleaned ES content per the editorial rules. */
+    es: LocalizedCaseContent;
+    /** Translated EN content from the cleaned ES. */
+    en: LocalizedCaseContent;
+  };
+  meta: AICallMeta;
+}
+
+/**
  * Result of an availability check. `available: false` carries a
  * human-readable `reason` the UI surfaces in the selector tooltip
  * (e.g., "Set GEMINI_API_KEY in the Netlify env to enable").
@@ -151,6 +199,23 @@ export interface AIProvider {
    *     model doesn't report them (some local providers, the stub).
    */
   translate(input: TranslateInput): Promise<TranslateOutput>;
+  /**
+   * Editorial rewrite: takes ES content, returns CLEANED ES + EN
+   * versions following the catalog's editorial conventions (title =
+   * visible diagnosis, description = US findings only, tags = clinical
+   * idioms). See `RewriteInput` for the use case.
+   *
+   * Contract:
+   *   - The returned `result.es` and `result.en` MUST both be valid
+   *     `LocalizedCaseContent` shapes (title string, description
+   *     string, tags array of strings, 3-5 tags each).
+   *   - `meta.provider` MUST equal `this.id`.
+   *   - The system prompt encodes the editorial rules; the provider
+   *     is responsible for appending `input.instruction` (if present)
+   *     after the system prompt so the user override comes last and
+   *     therefore wins on conflicts.
+   */
+  rewriteCase(input: RewriteInput): Promise<RewriteOutput>;
 }
 
 /**
