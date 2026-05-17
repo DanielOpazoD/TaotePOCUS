@@ -35,7 +35,10 @@ afterEach(() => {
 
 describe("AI provider registry", () => {
   it("knows about exactly the four providers in resolution order", () => {
-    expect(ALL_PROVIDERS.map((p) => p.id)).toEqual(["gemini", "openai", "deepseek", "stub"]);
+    // deepseek is intentionally first — it's the chosen primary
+    // for production (DEEPSEEK_API_KEY set in Netlify env, May-2026).
+    // See `lib/ai/registry.ts` header for the rationale.
+    expect(ALL_PROVIDERS.map((p) => p.id)).toEqual(["deepseek", "gemini", "openai", "stub"]);
   });
 
   it("getProvider returns the matching provider", () => {
@@ -101,6 +104,16 @@ describe("AI provider registry", () => {
       process.env.GEMINI_API_KEY = "gemini-key-long-enough";
       process.env.OPENAI_API_KEY = "sk-test-key-long-enough";
       expect(resolveDefaultProvider().id).toBe("gemini");
+    });
+
+    it("prefers deepseek over gemini when both are set (resolution order — deepseek primary)", () => {
+      // Locks the production-intent: even if a maintainer later adds
+      // GEMINI_API_KEY for experimentation, deepseek stays the default
+      // because it's first in `ALL_PROVIDERS`. To switch primary,
+      // either reorder the registry or set AI_PROVIDER_DEFAULT.
+      process.env.DEEPSEEK_API_KEY = "ds-key-long-enough";
+      process.env.GEMINI_API_KEY = "gemini-key-long-enough";
+      expect(resolveDefaultProvider().id).toBe("deepseek");
     });
 
     it("falls back to openai when gemini is unset", () => {

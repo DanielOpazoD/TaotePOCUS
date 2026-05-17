@@ -22,6 +22,7 @@ vi.mock("@/lib/server/session", () => ({
 
 import { POST as translatePOST } from "@/app/api/admin/ai/translate/route";
 import { GET as providersGET } from "@/app/api/admin/ai/providers/route";
+import { POST as healthPOST } from "@/app/api/admin/ai/health/route";
 
 process.env.AI_STUB_INSTANT = "1";
 
@@ -246,4 +247,80 @@ describe("POST /api/admin/ai/translate — dispatch (stub)", () => {
     );
     expect(res.status).toBe(400);
   });
+});
+
+describe("POST /api/admin/ai/health", () => {
+  function healthRequest(body?: unknown): Request {
+    return new Request("http://localhost/api/admin/ai/health", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+
+  it("returns 403 when no admin session", async () => {
+    mockedRequireAdmin.mockResolvedValue(null);
+    const res = await healthPOST(healthRequest({}));
+    expect(res.status).toBe(403);
+  });
+
+  it("pings the resolved default provider when no body is supplied", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    // No env vars set → defaults to stub → stub.translate returns
+    // deterministic placeholder + meta.model = "stub-deterministic-v1".
+    const res = await healthPOST(healthRequest());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.providerId).toBe("stub");
+    expect(body.ok).toBe(true);
+    expect(body.model).toBe("stub-deterministic-v1");
+    expect(typeof body.latencyMs).toBe("number");
+    expect(body.latencyMs).toBeGreaterThanOrEqual(0);
+    expect(typeof body.checkedAt).toBe("string");
+  });
+
+  it("pings the explicitly-named provider when providerId is in the body", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await healthPOST(healthRequest({ providerId: "stub" }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.providerId).toBe("stub");
+    expect(body.providerName).toBe("Stub (local · deterministic)");
+    expect(body.ok).toBe(true);
+  });
+
+  it("returns 400 when providerId is malformed", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await healthPOST(healthRequest({ providerId: "not-a-provider" }));
+    expect(res.status).toBe(400);
+  });
+
+  it("falls back to the default provider when the body is malformed JSON", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const req = new Request("http://localhost/api/admin/ai/health", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "not-json",
+    });
+    const res = await healthPOST(req);
+    // Malformed body is benign — it's optional. Should treat as
+    // "use default provider" rather than 400, because the user clicked
+    // "Probar conexión" without anything in particular to provide.
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+  });
+
+  // NOT tested here: the "ok:false on real provider failure" path.
+  // To assert that the route surfaces a structured `{ ok: false,
+  // error }` (rather than a 5xx) when a provider call fails, we'd
+  // either need to:
+  //   (a) Make a real network call with a fake key — flaky and
+  //       slow under CI.
+  //   (b) Mock the OpenAI SDK or stub the provider import chain —
+  //       adds test scaffolding for marginal value.
+  // The structured-failure shape is exercised by the type system
+  // (`HealthResponseFail`) and documented in the route header. If
+  // we ever see drift here, the next admin who clicks "Probar
+  // conexión" with a misconfigured key will surface it immediately.
 });

@@ -12,9 +12,21 @@
 //   3. Append the new instance to `ALL_PROVIDERS` below.
 //
 // The order in `ALL_PROVIDERS` is the resolution order for the
-// "first available" default: `gemini > openai > deepseek > stub`.
+// "first available" default. Current order:
+//
+//   `deepseek > gemini > openai > stub`
+//
+// DeepSeek is first because that's the chosen primary provider for
+// production (DEEPSEEK_API_KEY is what's set in the Netlify project
+// env as of May-2026). Putting it first means a future maintainer
+// who adds GEMINI_API_KEY for experimentation doesn't accidentally
+// promote Gemini to primary. To force a specific provider regardless
+// of order, set `AI_PROVIDER_DEFAULT=<id>` in the env — that
+// overrides the resolution below (see `resolveDefaultProvider`).
+//
 // Local dev with no env vars → falls through to `stub` (always
-// available). Netlify with `GEMINI_API_KEY` set → `gemini` wins.
+// available). `stub` stays last on purpose: any real provider with a
+// key configured wins over it.
 
 import type { AIProvider, AvailabilityCheck, ProviderId } from "./provider";
 import { stubProvider } from "./stub";
@@ -28,9 +40,9 @@ import { openaiProvider, deepseekProvider } from "./openai-compat";
  * per-call via the UI selector).
  */
 export const ALL_PROVIDERS: ReadonlyArray<AIProvider> = [
+  deepseekProvider,
   geminiProvider,
   openaiProvider,
-  deepseekProvider,
   stubProvider,
 ];
 
