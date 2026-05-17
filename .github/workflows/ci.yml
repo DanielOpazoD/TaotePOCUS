@@ -303,32 +303,66 @@ jobs:
   # `verify` check instead of having to keep the required-checks list
   # in sync with every job rename. `verify` succeeds only when every
   # required upstream job succeeded.
+  #
+  # Note on lighthouse: included here so a failed LHCI run on main
+  # (where the step is hard-gated, see lighthouse job comments)
+  # propagates to `verify`. On PR the lighthouse step uses
+  # `continue-on-error` so the JOB is always "success" — the verify
+  # check passes regardless of what the assertions said. The
+  # asymmetry is intentional: contributors see Lighthouse scores in
+  # the sticky comment without being blocked by perf-test variance,
+  # while post-merge regressions still light up red.
   verify:
     name: Verify (PR gate)
     runs-on: ubuntu-latest
-    needs: [quality, e2e]
+    needs: [quality, e2e, lighthouse]
     if: always()
     steps:
       - name: All required jobs succeeded
+        # `success` = ran and passed.
+        # `skipped` = the job's `if:` excluded this event (e.g.,
+        # lighthouse skips on `workflow_dispatch`); treated as benign
+        # because the gate didn't apply for this trigger.
+        # `failure` / `cancelled` = something we care about broke.
         run: |
-          if [ "${{ needs.quality.result }}" != "success" ] || [ "${{ needs.e2e.result }}" != "success" ]; then
+          quality_result="${{ needs.quality.result }}"
+          e2e_result="${{ needs.e2e.result }}"
+          lighthouse_result="${{ needs.lighthouse.result }}"
+          fail=0
+          case "$quality_result" in success) ;; *) fail=1 ;; esac
+          case "$e2e_result" in success) ;; *) fail=1 ;; esac
+          case "$lighthouse_result" in success|skipped) ;; *) fail=1 ;; esac
+          if [ "$fail" -ne 0 ]; then
             echo "Required jobs did not all succeed:"
-            echo "  quality: ${{ needs.quality.result }}"
-            echo "  e2e:     ${{ needs.e2e.result }}"
+            echo "  quality:    $quality_result"
+            echo "  e2e:        $e2e_result"
+            echo "  lighthouse: $lighthouse_result"
             exit 1
           fi
           echo "All required jobs succeeded."
 
-  # Lighthouse now runs on every PR too (was push-to-main only), with
-  # `continue-on-error: true` on the run step so a flaky perf swing
-  # doesn't red-flag an unrelated change. The thresholds in
-  # `.lighthouserc.json` still gate post-merge — what's new is that
-  # contributors get score visibility BEFORE merge via the sticky PR
-  # comment posted from the parsed manifest.
+  # Lighthouse runs on every PR (informational, soft) and on push to
+  # main (hard gate). The split is implemented via a conditional
+  # `continue-on-error` on the run step:
   #
-  # Perf scores have ~5pp run-to-run variance even with `numberOfRuns=3`
-  # in the LHCI config; the comment shows the median so a single
-  # outlier doesn't dominate the signal.
+  #   - PR runs: `continue-on-error: true`. Perf scores have ~5pp
+  #     run-to-run variance even with `numberOfRuns=3` and one bad
+  #     LHCI blip shouldn't red-flag an unrelated change. The sticky
+  #     PR comment still surfaces the median scores so reviewers see
+  #     the regression candidates BEFORE merge.
+  #   - main runs: `continue-on-error: false`. The thresholds in
+  #     `.lighthouserc.json` (perf ≥ 0.85, a11y ≥ 0.95, best-practices
+  #     ≥ 0.9, SEO ≥ 0.95) are the contract; if a merge regresses
+  #     past them, the workflow goes red and the `verify` aggregate
+  #     gate fails. Deployment to Netlify happens via a separate
+  #     pipeline (not blocked by this) — the red `verify` is the
+  #     alert signal so the next PR can revert / refactor.
+  #
+  # Earlier history: an unconditional `continue-on-error: true` left
+  # the gate decorative — the assertions ran but never blocked. The
+  # YAML's old "post-merge gate enforces the floor" claim was
+  # aspirational, not implemented. PR fixing this (May-2026) made
+  # the implementation match the documented intent.
   lighthouse:
     name: Lighthouse CI
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
@@ -358,11 +392,13 @@ jobs:
 
       - name: Run Lighthouse CI
         id: lhci
-        # Don't fail the entire PR if a single run blips under threshold —
-        # the post-merge gate (push to main) still enforces the floor.
-        # The PR comment step below reads the manifest regardless of
-        # this step's exit code, so contributors always see the scores.
-        continue-on-error: true
+        # Conditional gate (see job-level comment above):
+        #   - pull_request → soft (don't block, ~5pp variance noise)
+        #   - push to main → hard (assertions in .lighthouserc.json
+        #     become real). The PR comment step below reads the
+        #     manifest regardless of this step's exit code, so
+        #     contributors always see the scores either way.
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         run: npm run lighthouse
         env:
           # Public storage upload — temporary, anonymous report URLs in
