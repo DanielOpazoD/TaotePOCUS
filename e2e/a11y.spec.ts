@@ -187,6 +187,84 @@ test.describe("Accessibility (axe-core)", () => {
     ).toHaveLength(0);
   });
 
+  // Dark mode. Token calibration for dark theme lives in
+  // `app/styles/tokens.css` separately from light; a contrast
+  // regression in dark-only tokens (e.g. `--ink-mute` on
+  // `--surface-2`) wouldn't show up in any of the scans above
+  // because they run in the default light theme. `emulateMedia` sets
+  // `prefers-color-scheme: dark` BEFORE the goto, so the pre-paint
+  // script in `app/layout.tsx` (which reads `localStorage["pocus_theme"]`
+  // first, then falls back to the media query) lands on `data-theme=
+  // "dark"` and renders the dark token palette from the first paint.
+  // Each Playwright context starts with an empty localStorage, so
+  // the fallback is what fires.
+  test("home renders no serious/critical a11y violations (dark mode)", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    // Sanity check: dark theme actually landed. Without this the
+    // test could silently scan light tokens and report a false-pass.
+    await expect(page.locator("html[data-theme='dark']")).toBeVisible();
+    await page.locator(".case-grid .case-card, .empty--illustrated").first().waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
+    await page.waitForTimeout(500);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(AXE_TAGS)
+      .disableRules([...DISABLED_RULES])
+      .analyze();
+    const blocking = results.violations.filter(
+      (v) => v.impact && BLOCKING_IMPACTS.includes(v.impact),
+    );
+
+    expect(
+      blocking,
+      blocking.length > 0
+        ? `axe found ${blocking.length} blocking violation(s) on / (dark):\n\n` +
+            formatViolations(blocking)
+        : undefined,
+    ).toHaveLength(0);
+  });
+
+  // Mobile viewport. The catalog has CSS branches the desktop scans
+  // never exercise: a phone breakpoint hamburger menu in the header,
+  // the mobile drawer for category navigation, the full-bleed modal
+  // (≤ 640px in `app/styles/modals.css`), and the per-card
+  // container-query "compact" layout (≤ 240px). 390×844 is iPhone 13
+  // — chosen because it's a realistic target device, NOT the
+  // narrowest possible viewport. The mobile drawer pattern is the
+  // top regression risk for a11y (focus management + aria-controls).
+  test("home renders no serious/critical a11y violations (mobile viewport)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    await page.locator(".case-grid .case-card, .empty--illustrated").first().waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
+    await page.waitForTimeout(500);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(AXE_TAGS)
+      .disableRules([...DISABLED_RULES])
+      .analyze();
+    const blocking = results.violations.filter(
+      (v) => v.impact && BLOCKING_IMPACTS.includes(v.impact),
+    );
+
+    expect(
+      blocking,
+      blocking.length > 0
+        ? `axe found ${blocking.length} blocking violation(s) on / (mobile):\n\n` +
+            formatViolations(blocking)
+        : undefined,
+    ).toHaveLength(0);
+  });
+
   // Modal-open state. Dialog accessibility (focus trap, role,
   // aria-modal, labelled-by) is one of the highest-friction
   // surfaces for screen-reader users — and a regression here is
@@ -229,6 +307,48 @@ test.describe("Accessibility (axe-core)", () => {
       blocking,
       blocking.length > 0
         ? `axe found ${blocking.length} blocking violation(s) inside the case modal:\n\n` +
+            formatViolations(blocking)
+        : undefined,
+    ).toHaveLength(0);
+  });
+
+  // Shortcuts modal. Different shape from the case modal — no
+  // CineLoop, no scroll-progress bar, just a keyboard-shortcut
+  // reference table. Worth a separate scan because the table layout
+  // is where heading hierarchy + table-header role bindings can
+  // regress invisibly (axe catches those, manual review usually
+  // doesn't). Opened via the documented `?` shortcut (`useShortcuts`
+  // line 105-111), which routes to `useShortcutsModal > setOpen(true)`.
+  test("shortcuts modal open state passes a11y on home", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    await page.locator(".case-grid .case-card, .empty--illustrated").first().waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
+    // `?` is shift+/; Playwright accepts the resolved character and
+    // dispatches it as a `KeyboardEvent` whose `key` is "?", which
+    // matches the `case "?"` branch in `useShortcuts`.
+    await page.keyboard.press("?");
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    await page.waitForTimeout(500);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(AXE_TAGS)
+      .disableRules([...DISABLED_RULES])
+      .include("dialog")
+      .analyze();
+    const blocking = results.violations.filter(
+      (v) => v.impact && BLOCKING_IMPACTS.includes(v.impact),
+    );
+
+    expect(
+      blocking,
+      blocking.length > 0
+        ? `axe found ${blocking.length} blocking violation(s) inside the shortcuts modal:\n\n` +
             formatViolations(blocking)
         : undefined,
     ).toHaveLength(0);
