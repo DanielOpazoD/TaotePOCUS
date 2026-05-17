@@ -23,6 +23,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { isMediaVideo } from "@/lib/media-kind";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -45,8 +46,7 @@ export function BulkEditThumb({ caso, onOpen }: Props) {
       );
     }
     const src = caso.media.src;
-    const isVideoFile = caso.media.kind === "video" || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
-    if (isVideoFile) {
+    if (isMediaVideo(caso.media)) {
       return (
         <video
           src={src}

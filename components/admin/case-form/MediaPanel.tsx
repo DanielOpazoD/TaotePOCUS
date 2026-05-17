@@ -10,6 +10,7 @@
 import { useRef } from "react";
 import { Icon } from "@/lib/icons";
 import { useT } from "@/hooks/useLanguage";
+import { isMediaVideo } from "@/lib/media-kind";
 import type { CaseRecord, Media, MediaKind } from "@/lib/types";
 import { MAX_UPLOAD_BYTES, type FormUpdate } from "./types";
 
@@ -145,7 +146,12 @@ export function MediaPanel({
         aria-label={t("form.media.uploader.aria")}
       >
         {form.media ? (
-          form.media.kind === "video" ? (
+          // Dispatch via `isMediaVideo` (not `media.kind` alone) so
+          // a `.mp4` source marked `kind: "gif"` (Twitter animated
+          // GIFs, 218 cases in the seed corpus) renders inside a
+          // `<video>` element. Without the helper this branch fell
+          // through to `<img>` and the preview rendered blank.
+          isMediaVideo(form.media) ? (
             <video src={form.media.src} autoPlay loop muted playsInline className="admin-preview" />
           ) : (
             <img src={form.media.src} className="admin-preview" alt="" />
@@ -187,7 +193,11 @@ export function MediaPanel({
             <ul className="admin-media-extra-list">
               {form.mediaExtra.map((m, i) => (
                 <li key={m.src} className="admin-media-extra-item">
-                  {m.kind === "video" ? (
+                  {/* Same `kind: "gif"` + `.mp4` trap as the primary
+                      preview above — use the shared helper so this
+                      list never silently breaks on Twitter-style
+                      animated GIF entries. */}
+                  {isMediaVideo(m) ? (
                     <video
                       src={m.src}
                       autoPlay

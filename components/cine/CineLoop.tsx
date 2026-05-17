@@ -6,6 +6,7 @@ import { Icon } from "@/lib/icons";
 import { useT } from "@/hooks/useLanguage";
 import type { Media } from "@/lib/types";
 import { getMediaCacheEntry, markMediaLoaded } from "@/lib/media-cache";
+import { isMediaVideo } from "@/lib/media-kind";
 import { drawScene, drawChrome, type SceneLabels } from "./cineScenes";
 
 interface Props {
@@ -313,11 +314,14 @@ export default function CineLoop({
     // just the declared kind. Twitter's "animated_gif" media type is
     // shipped as an .mp4 file in the archive — declaring kind="gif"
     // with an .mp4 src and rendering as <img> would break the thumbnail
-    // (browsers can't paint mp4 inside <img>). Treat anything that
-    // ends in .mp4 / .webm / .mov as video; .gif as gif inside <img>;
-    // everything else as static image.
+    // (browsers can't paint mp4 inside <img>). The `isMediaVideo`
+    // helper in `lib/media-kind.ts` encodes the dispatch logic;
+    // every renderer that handles user-provided `Media` should use
+    // it instead of inline checks. Audit on the seed corpus showed
+    // 218/326 cases trip the kind-vs-extension mismatch — anything
+    // that didn't go through the helper rendered blank.
     const src = media.src || "";
-    const isVideoFile = media.kind === "video" || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
+    const isVideoFile = isMediaVideo(media);
     // Resolved aspect: native if requested AND known, otherwise the
     // caller-provided value. Falling back keeps the wrapper from
     // collapsing to 0×0 during the brief window before metadata loads.
