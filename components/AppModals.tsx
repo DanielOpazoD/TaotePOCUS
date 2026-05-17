@@ -44,24 +44,34 @@ const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 const AuthModal = dynamic(() => import("./modals/AuthModal"), { ssr: false });
 
 /**
- * Warm the lazy modal chunks during browser idle. Without this, the
- * first click on "Entrar" / `?` / a delete button triggers a network
- * fetch for the chunk; the wrapper renders nothing while it waits,
- * then mounts the dialog in a second frame. The brief gap between
- * "wrapper renders" and "dialog DOM attached" is the race the
- * Playwright admin specs hit (`element was detached from the DOM,
- * retrying`) on slower CI runners — Chromium grabs the rendering
- * intermediate frame before React finishes reconciling.
+ * Warm the lazy modal chunks immediately after first paint. Without
+ * this, the first click on "Entrar" / `?` / a delete button triggers
+ * a network fetch for the chunk; the wrapper renders nothing while
+ * it waits, then mounts the dialog in a second frame. The brief gap
+ * between "wrapper renders null" and "dialog DOM attached" is the
+ * race the Playwright admin specs hit (`element was detached from
+ * the DOM, retrying`) on slower CI runners — Chromium grabs the
+ * rendering intermediate frame before React finishes reconciling.
  *
- * Preloading on idle is fire-and-forget: the chunks fetch in the
- * background after the first paint, never delay anything visible,
- * and are already cached by the time the user clicks. For users
- * who never open a modal it's a few KB of speculative download —
- * cheap relative to the smoothness it buys.
+ * History (May-2026): an earlier version of this function ran via
+ * `requestIdleCallback` with a 2-second timeout (and a 1.5-second
+ * `setTimeout` fallback for Safari < 17). On busy CI runners idle
+ * never fired before the deadline, so the preload would land at the
+ * 2-second mark — long AFTER the e2e suite had already clicked
+ * "Entrar" (~300-500 ms into the run). The chunk then loaded
+ * on-demand and the race window stayed open. The chronic
+ * `admin.spec` flake tracked back to that timing.
  *
- * `requestIdleCallback` is the right primitive (only runs when the
- * main thread is genuinely free); the `setTimeout` fallback handles
- * Safari < 17 where it isn't yet exposed.
+ * Replaced with a plain `setTimeout(0)` inside `useEffect`. The
+ * callback fires on the next macrotask — after React's commit phase
+ * and the browser's first paint — but FAR sooner than 2 seconds.
+ * The chunks are in-flight by the time the user (or Playwright)
+ * touches anything.
+ *
+ * Trade-off: real users now download the chunks during initial page
+ * load instead of during idle. HTTP/2 multiplexing + low fetch
+ * priority make the cost negligible (the home grid + cine canvases
+ * are the bottleneck, not network bandwidth for a 120KB chunk).
  */
 function preloadLazyModals() {
   // Bare `import()` calls trigger webpack to fetch + cache the same
@@ -145,29 +155,16 @@ interface Props {
 
 export default function AppModals(props: Props) {
   const { lang, t } = useLanguage();
-  // Warm the lazy-modal chunks during idle so the first open isn't
-  // a network round-trip. See `preloadLazyModals` for the why.
+  // Warm the lazy-modal chunks immediately after first paint so the
+  // first open isn't a network round-trip. `setTimeout(0)` schedules
+  // a new macrotask, which runs after React's commit phase and the
+  // browser's first paint without competing for the same frame. See
+  // `preloadLazyModals` for the history (the earlier
+  // `requestIdleCallback` approach was the source of the chronic
+  // `admin.spec` e2e flake).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const idleApi = (
-      window as Window & {
-        requestIdleCallback?: (cb: IdleRequestCallback, opts?: IdleRequestOptions) => number;
-        cancelIdleCallback?: (handle: number) => void;
-      }
-    ).requestIdleCallback;
-    if (typeof idleApi === "function") {
-      // 2s deadline so a perpetually busy main thread still preloads.
-      const id = idleApi(() => preloadLazyModals(), { timeout: 2000 });
-      return () => {
-        const cancel = (window as Window & { cancelIdleCallback?: (handle: number) => void })
-          .cancelIdleCallback;
-        if (typeof cancel === "function") cancel(id);
-      };
-    }
-    // Safari < 17 fallback: post-paint timer. 1.5s gives the home
-    // grid time to fully render its 30 cards + featured row before
-    // we pay the chunk download.
-    const timer = setTimeout(() => preloadLazyModals(), 1500);
+    const timer = setTimeout(preloadLazyModals, 0);
     return () => clearTimeout(timer);
   }, []);
   const {
