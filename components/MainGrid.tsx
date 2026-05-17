@@ -152,13 +152,6 @@ interface Props {
    *  Drives the skeleton-grid render path that reserves the right
    *  layout space so the chunk landing doesn't trigger CLS. */
   seedLoading?: boolean;
-  /** Currently-open case id (from URL state). Forwarded to each
-   *  `<CaseCard>` so the matching card can suppress its
-   *  `view-transition-name` when its case is the one being opened
-   *  — otherwise both the card AND the modal hero would carry the
-   *  same name in the same snapshot, which the View Transitions
-   *  API rejects. `null` when no modal is open. */
-  openCaseId?: string | null;
 }
 
 /** How many cases per page in the public catalog grid. Hardcoded
@@ -235,7 +228,6 @@ export default function MainGrid({
   onSetFocusCategory,
   onResetFocusDefaults,
   seedLoading,
-  openCaseId,
 }: Props) {
   // Hooks first — Rules of Hooks. The early returns for the admin /
   // empty branches don't render the grid below, but `useMemo` still
@@ -427,7 +419,6 @@ export default function MainGrid({
             // re-render — same set affected by the filter anyway).
             searchQuery={query.trim() || undefined}
             focusDefaults={focusDefaults}
-            isViewTransitionTarget={openCaseId === c.id}
           />
         ))}
       </div>

@@ -11,7 +11,6 @@ import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-locali
 import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
-import { caseThumbViewTransitionName } from "@/lib/view-transition";
 import { highlight } from "@/lib/highlight";
 import { resolveFocus } from "@/lib/focus";
 import type { CaseRecord, Category, FocusDefaults } from "@/lib/types";
@@ -59,14 +58,6 @@ interface Props {
    *  always wins. Optional — when omitted the renderer uses only
    *  `caso.focus` (legacy behaviour, fine for tests). */
   focusDefaults?: FocusDefaults;
-  /** `true` when this card's case is currently open in the modal —
-   *  the orchestrator forwards `openCaseId === caso.id`. When true,
-   *  the thumb's `view-transition-name` is suppressed so the modal
-   *  hero can carry the name without colliding. When false, the
-   *  thumb is the named element and the modal-open animation
-   *  morphs from this card's position. Optional; defaults to
-   *  `false` (no transition target). */
-  isViewTransitionTarget?: boolean;
 }
 
 function CaseCardImpl({
@@ -81,7 +72,6 @@ function CaseCardImpl({
   priority = false,
   searchQuery,
   focusDefaults,
-  isViewTransitionTarget = false,
 }: Props) {
   const { lang, t } = useLanguage();
   // Pointer-enter handlers that kick off a background fetch of this
@@ -222,19 +212,7 @@ function CaseCardImpl({
       onPointerEnter={prefetch.onPointerEnter}
       onPointerLeave={prefetch.onPointerLeave}
     >
-      <div
-        className="case-thumb"
-        // View Transitions API morph target. Name suppressed when
-        // this card is the currently-open one — the modal's hero
-        // carries the name then, and a duplicate would crash the
-        // browser's pre-snapshot validation. See
-        // `lib/view-transition.ts > caseThumbViewTransitionName`.
-        style={{
-          viewTransitionName: isViewTransitionTarget
-            ? "none"
-            : caseThumbViewTransitionName(caso.id),
-        }}
-      >
+      <div className="case-thumb">
         <CineLoop
           kind={caso.loop}
           aspect="1/1"

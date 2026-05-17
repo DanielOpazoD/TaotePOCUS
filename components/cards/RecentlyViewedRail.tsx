@@ -11,12 +11,12 @@
 //
 // Each row is a compact tile (thumb + title only) — same shape as
 // the editorial featured cards, smaller. Click → standard
-// `onOpen(caso)` → modal opens with the view transition (the same
-// `case-thumb-<id>` morph the grid cards use).
+// `onOpen(caso)` → modal opens via plain CSS entrance (PR #79
+// ripped out the View Transitions morph — see
+// `lib/view-transition.ts` header).
 
 import { useCallback } from "react";
 import { CineLoop } from "../cine";
-import { caseThumbViewTransitionName } from "@/lib/view-transition";
 import { getCaseTitle } from "@/lib/case-localized";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { CaseRecord } from "@/lib/types";
@@ -26,15 +26,11 @@ interface Props {
    *  `useRecentlyViewed` hook. Empty → component renders nothing. */
   cases: CaseRecord[];
   /** Open a case in the modal. Same contract as the grid's
-   *  `onCardOpen` — pushPatch + view transition wrap. */
+   *  `onCardOpen` — `pushPatch({ caso: id })`, plain state change. */
   onOpen: (caso: CaseRecord) => void;
-  /** Currently-open case id from URL state. Mirrors the prop on
-   *  `<MainGrid>` so the rail suppresses its `view-transition-name`
-   *  on the matching tile (same duplicate-name rule as the grid). */
-  openCaseId?: string | null;
 }
 
-export default function RecentlyViewedRail({ cases, onOpen, openCaseId }: Props) {
+export default function RecentlyViewedRail({ cases, onOpen }: Props) {
   const { t } = useLanguage();
   if (cases.length === 0) return null;
   return (
@@ -45,12 +41,7 @@ export default function RecentlyViewedRail({ cases, onOpen, openCaseId }: Props)
       </header>
       <ul className="recently-row">
         {cases.map((caso) => (
-          <RecentlyViewedItem
-            key={caso.id}
-            caso={caso}
-            onOpen={onOpen}
-            isViewTransitionTarget={openCaseId === caso.id}
-          />
+          <RecentlyViewedItem key={caso.id} caso={caso} onOpen={onOpen} />
         ))}
       </ul>
     </section>
@@ -60,11 +51,9 @@ export default function RecentlyViewedRail({ cases, onOpen, openCaseId }: Props)
 function RecentlyViewedItem({
   caso,
   onOpen,
-  isViewTransitionTarget,
 }: {
   caso: CaseRecord;
   onOpen: (caso: CaseRecord) => void;
-  isViewTransitionTarget: boolean;
 }) {
   const { lang } = useLanguage();
   const titleRead = getCaseTitle(caso, lang);
@@ -87,14 +76,7 @@ function RecentlyViewedItem({
         className="recently-link"
         onClick={handleClick}
       >
-        <div
-          className="recently-thumb"
-          style={{
-            viewTransitionName: isViewTransitionTarget
-              ? "none"
-              : caseThumbViewTransitionName(caso.id),
-          }}
-        >
+        <div className="recently-thumb">
           <CineLoop
             kind={caso.loop}
             aspect="16/10"

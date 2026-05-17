@@ -9,7 +9,6 @@ import { getCaseDescription, getCaseTitle } from "@/lib/case-localized";
 import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
-import { caseThumbViewTransitionName } from "@/lib/view-transition";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -17,10 +16,6 @@ interface Props {
   favs: string[];
   onOpen: (c: CaseRecord) => void;
   onFav: (id: string) => void;
-  /** Currently-open case id from URL state. Mirrors the
-   *  `<MainGrid>` prop — see `CaseCard.tsx > isViewTransitionTarget`
-   *  for the duplicate-name rationale. `null` when no modal open. */
-  openCaseId?: string | null;
 }
 
 function FeaturedCard({
@@ -29,16 +24,12 @@ function FeaturedCard({
   isFav,
   onOpen,
   onFav,
-  isViewTransitionTarget = false,
 }: {
   caso: CaseRecord;
   variant: "hero" | "side";
   isFav: boolean;
   onOpen: () => void;
   onFav: () => void;
-  /** See `<CaseCard>` — suppress `view-transition-name` when the
-   *  case is the currently-open one to avoid a duplicate. */
-  isViewTransitionTarget?: boolean;
 }) {
   const { lang, t } = useLanguage();
   // Hover-prefetch the case media so a click on the featured tile
@@ -94,16 +85,7 @@ function FeaturedCard({
       onPointerEnter={prefetch.onPointerEnter}
       onPointerLeave={prefetch.onPointerLeave}
     >
-      <div
-        className="featured-thumb"
-        // Same view-transition target as `<CaseCard>`. Featured row
-        // cases share the morph-into-modal animation.
-        style={{
-          viewTransitionName: isViewTransitionTarget
-            ? "none"
-            : caseThumbViewTransitionName(caso.id),
-        }}
-      >
+      <div className="featured-thumb">
         {/* Hero is the largest above-the-fold image on sections that
             mount FeaturedRow (ECG, Casos clínicos), so it's the LCP
             candidate. `priority` boosts its fetch priority and disables
@@ -160,7 +142,7 @@ function FeaturedCard({
   );
 }
 
-export default function FeaturedRow({ cases, favs, onOpen, onFav, openCaseId }: Props) {
+export default function FeaturedRow({ cases, favs, onOpen, onFav }: Props) {
   const { t } = useLanguage();
   const featured = cases.filter((c) => c.featured).slice(0, 3);
   const [hero, ...side] = featured;
@@ -180,7 +162,6 @@ export default function FeaturedRow({ cases, favs, onOpen, onFav, openCaseId }: 
           isFav={favs.includes(hero.id)}
           onOpen={() => onOpen(hero)}
           onFav={() => onFav(hero.id)}
-          isViewTransitionTarget={openCaseId === hero.id}
         />
         {side.length > 0 && (
           <div className="featured-side-stack">
@@ -192,7 +173,6 @@ export default function FeaturedRow({ cases, favs, onOpen, onFav, openCaseId }: 
                 isFav={favs.includes(c.id)}
                 onOpen={() => onOpen(c)}
                 onFav={() => onFav(c.id)}
-                isViewTransitionTarget={openCaseId === c.id}
               />
             ))}
           </div>

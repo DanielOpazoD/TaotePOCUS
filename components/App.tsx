@@ -13,7 +13,6 @@ import AppModals from "./AppModals";
 import { derivePageHead } from "@/lib/headers";
 import { computeRelaxationSuggestions } from "@/lib/filter-suggestions";
 import type { Command as PaletteCommand } from "./modals/CommandPalette";
-import { runWithViewTransition } from "@/lib/view-transition";
 import type { CaseRecord, View } from "@/lib/types";
 import { useViewState } from "@/hooks/useViewState";
 import { usePersistedFilters } from "@/hooks/usePersistedFilters";
@@ -570,7 +569,6 @@ function AppInner() {
                   favs={favs}
                   onOpen={onCardOpen}
                   onFav={toggleFav}
-                  openCaseId={openCaseId}
                 />
               </ErrorBoundary>
             )}
@@ -581,11 +579,7 @@ function AppInner() {
               context — the favs grid below is the destination. */}
           {view.kind === "favs" && recentlyViewed.cases.length > 0 && (
             <ErrorBoundary name="recently-viewed">
-              <RecentlyViewedRail
-                cases={recentlyViewed.cases}
-                onOpen={onCardOpen}
-                openCaseId={openCaseId}
-              />
+              <RecentlyViewedRail cases={recentlyViewed.cases} onOpen={onCardOpen} />
             </ErrorBoundary>
           )}
           <ErrorBoundary name="grid">
@@ -641,7 +635,6 @@ function AppInner() {
               onSetFocusCategory={isAdmin ? focusDefaults.setCategory : undefined}
               onResetFocusDefaults={isAdmin ? focusDefaults.reset : undefined}
               seedLoading={seedLoading}
-              openCaseId={openCaseId}
             />
           </ErrorBoundary>
         </main>
@@ -654,15 +647,14 @@ function AppInner() {
       <AppModals
         openCase={openCase}
         isFav={openCase ? favs.includes(openCase.id) : false}
-        // Close is intentionally NOT wrapped in `runWithViewTransition`.
-        // The open-side morph (`useCardCallbacks.onCardOpen`) is the
-        // visible polish. Wrapping close too introduced flake in CI's
-        // headless Chromium where the transition's "wait for next
-        // paint" sometimes raced with subsequent modal mounts (notably
-        // the auth modal in `e2e/admin.spec.ts`) — Playwright saw
-        // `element was detached` mid-action and the page appeared to
-        // re-navigate to `/`. Snap-cut close keeps the UX clean and
-        // the test suite green.
+        // Plain state change — no view transition. Both open and
+        // close paths run as snap-cut URL updates; the modal's CSS
+        // entrance + exit animations (`.modal` scale-in / `dialog`
+        // fadeIn / `::backdrop` fade) handle the perceived motion.
+        // The original open-path morph (`case-thumb` → `modal-loop`)
+        // was removed in PR #79 after four targeted flicker fixes
+        // failed to fully eliminate the catalog bleed-through; see
+        // `lib/view-transition.ts` header for the full history.
         onCloseCase={() => replacePatch({ caso: null })}
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}

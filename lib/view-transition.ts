@@ -6,19 +6,23 @@
 // Firefox 138+) lets the browser auto-morph between two DOM
 // snapshots: it captures elements with matching `view-transition-name`
 // before/after a state change and animates between their positions.
-// We use this to morph the clicked `.case-thumb` into the case
-// modal's hero loop — the card "grows into" the modal.
 //
-// Scope: currently used ONLY on the OPEN path
-// (`useCardCallbacks.onCardOpen`). The close path runs a plain
-// snap-cut state change. Closing the modal via the helper too was
-// originally implemented but introduced flake in CI headless
-// Chromium where the transition's "wait for next paint" raced with
-// subsequent modal mounts (notably the auth modal in
-// `e2e/admin.spec.ts`) — Playwright saw `element was detached`
-// mid-action. Re-enable on close once that race is understood and
-// addressed (probably a `transition.finished` await before allowing
-// the next user action).
+// Scope (May-2026): currently NO direct callers. The modal-open
+// path was the original consumer but its `case-thumb-<id>` morph
+// caused a persistent flicker that survived four targeted fixes
+// (#75–#78); PR #79 ripped it out in favor of plain CSS modal
+// entrance animations. Page-to-page navigation via
+// `components/chrome/TransitionLink.tsx` calls
+// `document.startViewTransition` inline rather than through this
+// helper.
+//
+// The helper is kept (rather than deleted) for two reasons:
+//   1. It has well-tested feature-detection + reduced-motion
+//      fallback behavior. If TransitionLink or a future caller
+//      wants those guarantees, importing here is cheaper than
+//      re-implementing.
+//   2. Future transitions (drawer open, theme toggle, filter
+//      morph) likely want the same detection logic. One seam.
 //
 // Why a helper instead of inline calls:
 //
@@ -37,32 +41,6 @@
 //      to-page, drawer open, theme toggle) they share the same
 //      detection / fallback logic.
 
-export interface RunWithViewTransitionOptions {
-  /**
-   * When `true`, the background "root" layer SNAP-CUTS instead of
-   * cross-fading. Use for transitions where the named element
-   * (e.g. the `.case-thumb` morphing into the modal) is the entire
-   * story and the rest of the page underneath shouldn't bleed
-   * through the destination while the cross-fade plays.
-   *
-   * Concretely: opening the case modal. Without this, the OLD root
-   * snapshot (catalog grid visible) cross-fades into the NEW root
-   * snapshot (modal + backdrop) over ~250ms — during the overlap,
-   * the user sees the catalog thumbnails bleeding through the
-   * modal's background. With this flag, the root snap-cuts so only
-   * the named pair morph is visible; the grid behind disappears
-   * the moment the modal lands.
-   *
-   * Implemented via a `vt-root-instant` class on `<html>` that
-   * CSS rules in `app/styles/modals.css` key off (animation: none;
-   * opacity: 0 for OLD, 1 for NEW). The class is set BEFORE
-   * `startViewTransition` so the rule applies to the snapshot
-   * timeline; removed in `.finished` so subsequent transitions
-   * (filter changes etc.) keep the default cross-fade.
-   */
-  instantRoot?: boolean;
-}
-
 /**
  * Best-effort view-transition wrapper. Calls `callback` synchronously
  * either way:
@@ -76,10 +54,7 @@ export interface RunWithViewTransitionOptions {
  * Returns the `ViewTransition` instance when the API runs, `null`
  * otherwise.
  */
-export function runWithViewTransition(
-  callback: () => void,
-  options: RunWithViewTransitionOptions = {},
-): ViewTransition | null {
+export function runWithViewTransition(callback: () => void): ViewTransition | null {
   if (typeof document === "undefined") {
     // SSR / non-browser context. Just run the callback.
     callback();
@@ -104,22 +79,7 @@ export function runWithViewTransition(
       startViewTransition: (cb: () => void) => ViewTransition;
     }
   ).startViewTransition;
-  // Set the `vt-root-instant` class BEFORE startViewTransition so
-  // the snapshot phase already sees the CSS rule that suppresses
-  // the root cross-fade. Removed after the transition completes
-  // (either resolved or skipped) so subsequent transitions keep
-  // the default cross-fade behaviour.
-  if (options.instantRoot) {
-    document.documentElement.classList.add("vt-root-instant");
-  }
-  const transition = startFn.call(document, callback);
-  if (options.instantRoot) {
-    const cleanup = () => {
-      document.documentElement.classList.remove("vt-root-instant");
-    };
-    transition.finished.then(cleanup, cleanup);
-  }
-  return transition;
+  return startFn.call(document, callback);
 }
 
 /**
@@ -133,24 +93,4 @@ export interface ViewTransition {
   ready: Promise<void>;
   updateCallbackDone: Promise<void>;
   skipTransition: () => void;
-}
-
-/**
- * Stable name for a case's morphing target. Used by:
- *   - `.case-thumb` on `<CaseCard>` and `<FeaturedCard>` (the
- *     OLD-state element).
- *   - The modal's hero loop wrapper (the NEW-state element).
- *
- * Each name MUST be unique at any snapshot — that's why we encode
- * the case id and the consumers conditionally suppress the name
- * (to `"none"`) when the card matches the currently-open case.
- * Otherwise both card + modal would carry the same name in the same
- * DOM at the same time, and the browser would refuse to capture.
- */
-export function caseThumbViewTransitionName(caseId: string): string {
-  // `view-transition-name` only accepts CSS-identifier-safe values.
-  // Case ids are typically nanoid-ish (e.g., `tw-12345`) — already
-  // safe. Replace anything else with `_` defensively.
-  const safe = caseId.replace(/[^A-Za-z0-9_-]/g, "_");
-  return `case-thumb-${safe}`;
 }
