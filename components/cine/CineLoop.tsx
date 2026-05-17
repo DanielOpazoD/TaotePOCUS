@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { useT } from "@/hooks/useLanguage";
 import type { Media } from "@/lib/types";
+import { getMediaCacheEntry, markMediaLoaded } from "@/lib/media-cache";
 import { drawScene, drawChrome, type SceneLabels } from "./cineScenes";
 
 interface Props {
@@ -113,11 +114,23 @@ export default function CineLoop({
     ...(focusScale < 1 ? { objectFit: "contain" as const } : {}),
     ...(focusScale !== 1 ? { transform: `scale(${focusScale})` } : {}),
   };
+  // Session-level cache lookup. If we've already painted this URL
+  // at least once during this page session, we seed every loading-
+  // related state to its "loaded" value so the spinner / skeleton
+  // never render on remount. The HTTP cache will paint the image
+  // synchronously and the user perceives no flash. See
+  // `lib/media-cache.ts` header for the full rationale.
+  //
+  // Computed once per render rather than memoized — the lookup is
+  // a `Map.get` on a small in-memory map, microsecond-cost.
+  const cached = media ? getMediaCacheEntry(media.src) : undefined;
   // Native aspect ratio of the loaded media, captured after the video
   // emits `loadedmetadata` or the image emits `load`. Stays null until
   // the browser decodes the file — until then we render with the
   // caller-provided `aspect` so the wrapper has stable dimensions.
-  const [nativeAspect, setNativeAspect] = useState<string | null>(null);
+  // Seeded from the cache so a remount doesn't briefly relayout from
+  // the caller `aspect` back to the resolved native aspect.
+  const [nativeAspect, setNativeAspect] = useState<string | null>(cached?.nativeAspect ?? null);
   // Loading state for the image/video paths. The wrapper carries
   // `data-loaded="false"` until the asset paints, which CSS uses to
   // show a shimmer skeleton + fade the asset in. Without this, a
@@ -126,7 +139,7 @@ export default function CineLoop({
   // duration of the CDN fetch — reads as "the page is frozen".
   // Synthetic-canvas loops skip this entirely (RAF paints the first
   // frame on the next tick, so there's no perceptible blank window).
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(cached?.loaded ?? false);
   // Two-stage video loading: `metadataLoaded` flips when the browser
   // has the first frame painted (cheap, via `preload="metadata"`);
   // `loaded` flips when there's enough buffer to start playing. The
@@ -134,7 +147,10 @@ export default function CineLoop({
   // with a spinner overlay on top of the visible first frame — so
   // the reader sees a real preview of the case content + a clear
   // "still loading" cue, instead of a generic gray block.
-  const [metadataLoaded, setMetadataLoaded] = useState(false);
+  // Same cache-seed treatment as `loaded` above — if we know the
+  // asset was loaded before, both flags start at `true` and the
+  // skeleton / spinner skip rendering entirely on remount.
+  const [metadataLoaded, setMetadataLoaded] = useState(cached?.loaded ?? false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -187,8 +203,28 @@ export default function CineLoop({
   // re-appears for the new asset. Without this, an admin editing a
   // case's media (rare path) would carry the previous asset's
   // "loaded" state into the new fetch.
+  //
+  // The cache check below makes the reset cache-aware: if the NEW
+  // src has already been loaded in this session, we skip the reset
+  // entirely so the skeleton doesn't flash for an asset the browser
+  // is about to paint from cache. This matters because `media.src`
+  // CAN change on the same mounted CineLoop (admin media edit) — we
+  // don't want to lose the optimization in that case either.
   useEffect(() => {
-    setLoaded(false);
+    if (!media?.src) {
+      setLoaded(false);
+      setMetadataLoaded(false);
+      return;
+    }
+    const entry = getMediaCacheEntry(media.src);
+    if (entry?.loaded) {
+      setLoaded(true);
+      setMetadataLoaded(true);
+      if (entry.nativeAspect) setNativeAspect(entry.nativeAspect);
+    } else {
+      setLoaded(false);
+      setMetadataLoaded(false);
+    }
   }, [media?.src]);
 
   useEffect(() => {
@@ -329,20 +365,34 @@ export default function CineLoop({
               // the fold, defeating the point of `preload="metadata"`.
               if (paused || !visible || !tabVisible) v.pause();
               else v.play().catch(() => {});
-              if (preserveNativeAspect && v.videoWidth > 0 && v.videoHeight > 0) {
-                setNativeAspect(`${v.videoWidth} / ${v.videoHeight}`);
-              }
+              const resolvedAspectStr =
+                preserveNativeAspect && v.videoWidth > 0 && v.videoHeight > 0
+                  ? `${v.videoWidth} / ${v.videoHeight}`
+                  : null;
+              if (resolvedAspectStr) setNativeAspect(resolvedAspectStr);
               // First frame is now available — flip the skeleton off
               // so the user sees what the case content actually looks
               // like, and let the spinner overlay below carry the
               // "still loading" signal until `onLoadedData` fires.
               setMetadataLoaded(true);
+              // Persist into the session cache so a remount (filter
+              // change → card unmounted → card remounted) skips the
+              // skeleton entirely. The aspect is also cached so the
+              // wrapper doesn't relayout on remount.
+              if (media.src) markMediaLoaded(media.src, resolvedAspectStr);
             }}
             // First frame painted AND enough buffer to start playing.
             // `loadeddata` fires earlier than `canplay` and matches
             // when there's actually a picture to show. Flips `loaded`
             // which removes the spinner overlay entirely.
-            onLoadedData={() => setLoaded(true)}
+            onLoadedData={() => {
+              setLoaded(true);
+              // Idempotent — `markMediaLoaded` ran in `onLoadedMetadata`
+              // too; this second call just preserves the aspect (the
+              // helper's contract uses `??` to keep a known aspect
+              // even if the second call passes `null`).
+              if (media.src) markMediaLoaded(media.src);
+            }}
           />
           {/* Loading overlay — spinner is visible THE ENTIRE TIME the
               video is loading, never just during the metadata→data
@@ -439,19 +489,30 @@ export default function CineLoop({
           style={mediaStyle}
           onLoad={(e) => {
             const im = e.currentTarget as HTMLImageElement;
-            if (preserveNativeAspect && im.naturalWidth > 0 && im.naturalHeight > 0) {
-              setNativeAspect(`${im.naturalWidth} / ${im.naturalHeight}`);
-            }
+            const resolvedAspectStr =
+              preserveNativeAspect && im.naturalWidth > 0 && im.naturalHeight > 0
+                ? `${im.naturalWidth} / ${im.naturalHeight}`
+                : null;
+            if (resolvedAspectStr) setNativeAspect(resolvedAspectStr);
             // Mark the cell as loaded so the skeleton fades out and
             // the image fades in. `<Image>` fires `onLoad` after the
             // browser has decoded the resource, which is exactly when
             // there's something to look at.
             setLoaded(true);
+            // Persist into the session cache — next remount of this
+            // CineLoop (e.g., the user filters away and comes back)
+            // will skip the spinner because the cache says we've
+            // already painted this URL once. See lib/media-cache.ts.
+            if (media.src) markMediaLoaded(media.src, resolvedAspectStr);
           }}
           onError={() => {
             // On error, drop the skeleton too so we don't show the
             // shimmer forever. The Image element renders its broken
             // state behind the now-revealed wrapper.
+            // Intentionally NOT calling `markMediaLoaded` here —
+            // failed loads stay "unknown" so a future retry (e.g.,
+            // user has reconnected to the network) gets the spinner
+            // and a fresh fetch attempt.
             setLoaded(true);
           }}
         />
