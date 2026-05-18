@@ -14,7 +14,12 @@
 // failed" and can retry the failed ones via the per-row ✨ modal.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CaseRecord, LocalizedString } from "@/lib/types";
+import { entryFromCase, rememberAIBatch, type AIBatchEntry } from "@/lib/ai-batch-undo";
+import type { CaseRecord, LocalizedString, TranslationMeta } from "@/lib/types";
+
+function asProviderId(raw: string): TranslationMeta["provider"] {
+  return raw as TranslationMeta["provider"];
+}
 
 const INSTRUCTION_STORAGE_KEY = "taote.ai.rewrite.instruction";
 const INSTRUCTION_MAX_CHARS = 500;
@@ -28,7 +33,7 @@ interface AIRewriteResult {
     es: { title: string; description: string; tags: string[] };
     en: { title: string; description: string; tags: string[] };
   };
-  meta: { model: string; durationMs: number };
+  meta: { provider: string; model: string; durationMs: number };
 }
 
 interface Props {
@@ -90,6 +95,10 @@ export function AIBulkRewriteModal({ cases, onApplyPatch, onClose }: Props) {
   const runBatch = useCallback(async () => {
     cancelRef.current = false;
     const failures: Array<{ id: string; error: string }> = [];
+    // Accumulate before-state snapshots PER successful patch. At
+    // the end we hand the full list to `rememberAIBatch` so the
+    // undo banner can revert every case the AI actually changed.
+    const undoEntries: AIBatchEntry[] = [];
     setPhase({ kind: "running", done: 0, failures });
 
     for (let i = 0; i < cases.length; i++) {
@@ -121,6 +130,9 @@ export function AIBulkRewriteModal({ cases, onApplyPatch, onClose }: Props) {
           continue;
         }
         const data: AIRewriteResult = await res.json();
+        // Bulk = auto-save without per-case review. Mark each case
+        // as `aiGenerated: true, reviewedAt: undefined` so the
+        // "Estado IA: pending review" filter surfaces them later.
         const patch: Partial<CaseRecord> = {
           title: {
             es: data.result.es.title,
@@ -131,13 +143,30 @@ export function AIBulkRewriteModal({ cases, onApplyPatch, onClose }: Props) {
             en: data.result.en.description,
           } satisfies LocalizedString,
           tags: { es: data.result.es.tags, en: data.result.en.tags },
+          translationMeta: {
+            aiGenerated: true,
+            provider: asProviderId(data.meta.provider),
+            model: data.meta.model,
+            generatedAt: new Date().toISOString(),
+          },
         };
+        // Snapshot BEFORE state so the undo banner can revert this
+        // case. The snapshot is taken from the original case
+        // reference, not from any mutated state.
+        undoEntries.push(entryFromCase(c));
         await onApplyPatch(c.id, patch);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         failures.push({ id: c.id, error: message });
       }
       setPhase({ kind: "running", done: i + 1, failures: [...failures] });
+    }
+
+    // Persist the batch (only the cases that actually got patched —
+    // failures don't go into the undo buffer because the AI didn't
+    // change them).
+    if (undoEntries.length > 0) {
+      rememberAIBatch("rewrite", undoEntries);
     }
 
     setPhase({

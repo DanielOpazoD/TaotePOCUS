@@ -20,7 +20,16 @@
 // at the localStorage call sites).
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CaseRecord, LocalizedString } from "@/lib/types";
+import { entryFromCase, rememberAIBatch } from "@/lib/ai-batch-undo";
+import type { CaseRecord, LocalizedString, TranslationMeta } from "@/lib/types";
+
+/** Narrow the provider id from the response meta to the
+ *  `ProviderId` literal type the schema expects. The HTTP layer
+ *  validates the value comes from the known set, so a runtime cast
+ *  is safe here. */
+function asProviderId(raw: string): TranslationMeta["provider"] {
+  return raw as TranslationMeta["provider"];
+}
 
 const INSTRUCTION_STORAGE_KEY = "taote.ai.rewrite.instruction";
 const INSTRUCTION_MAX_CHARS = 500;
@@ -179,6 +188,10 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
     const data = await runRewrite("save-direct");
     if (!data) return;
     // Build the patch directly from the AI output (no review step).
+    // `translationMeta.reviewedAt` is intentionally left UNDEFINED
+    // here — auto-save means the admin didn't validate the output
+    // case by case. The "Estado IA" filter surfaces these as
+    // "pending review" so they can be visited later.
     const patch: Partial<CaseRecord> = {
       title: {
         es: data.result.es.title,
@@ -192,10 +205,19 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
         es: data.result.es.tags,
         en: data.result.en.tags,
       },
+      translationMeta: {
+        aiGenerated: true,
+        provider: asProviderId(data.meta.provider),
+        model: data.meta.model,
+        generatedAt: new Date().toISOString(),
+      },
     };
+    // Snapshot the BEFORE state into the undo buffer BEFORE applying
+    // the patch. A click on the undo banner restores this.
+    rememberAIBatch("rewrite", [entryFromCase(caso)]);
     await onApplyPatch(caso.id, patch);
     onClose();
-  }, [runRewrite, onApplyPatch, caso.id, onClose]);
+  }, [runRewrite, onApplyPatch, caso, onClose]);
 
   const onApplyFromReview = useCallback(async () => {
     // Build the patch from the (possibly admin-edited) review fields.
@@ -205,6 +227,11 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
         .split(",")
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
+    // Pull provider/model from the result we showed in the review
+    // phase. If the phase isn't `review` we shouldn't be in this
+    // handler — defensive fallback to stub.
+    const meta = phase.kind === "review" ? phase.result.meta : null;
+    const now = new Date().toISOString();
     const patch: Partial<CaseRecord> = {
       title: {
         es: editEsTitle.trim(),
@@ -218,10 +245,24 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
         es: parseTags(editEsTags),
         en: parseTags(editEnTags),
       },
+      // The review path = the admin explicitly looked at the output
+      // and accepted it. `reviewedAt` is stamped immediately — the
+      // case skips the "pending review" queue.
+      translationMeta: meta
+        ? {
+            aiGenerated: true,
+            provider: asProviderId(meta.provider),
+            model: meta.model,
+            generatedAt: now,
+            reviewedAt: now,
+          }
+        : undefined,
     };
+    rememberAIBatch("rewrite", [entryFromCase(caso)]);
     await onApplyPatch(caso.id, patch);
     onClose();
   }, [
+    phase,
     editEsTitle,
     editEnTitle,
     editEsDescription,
@@ -229,7 +270,7 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
     editEsTags,
     editEnTags,
     onApplyPatch,
-    caso.id,
+    caso,
     onClose,
   ]);
 
@@ -243,13 +284,19 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
           </button>
         </header>
 
-        <div className="ai-rewrite-source">
-          <div className="ai-rewrite-source-label">Caso actual (ES)</div>
-          <div className="ai-rewrite-source-title">{caso.title.es}</div>
-          <div className="ai-rewrite-source-desc">
-            {caso.description?.es || <em>(sin descripción)</em>}
+        {/* Source preview at the top — visible in every phase EXCEPT
+            review (where the side-by-side diff already shows the
+            source in the left column, so this block would just be
+            duplicated content). */}
+        {phase.kind !== "review" && (
+          <div className="ai-rewrite-source">
+            <div className="ai-rewrite-source-label">Caso actual (ES)</div>
+            <div className="ai-rewrite-source-title">{caso.title.es}</div>
+            <div className="ai-rewrite-source-desc">
+              {caso.description?.es || <em>(sin descripción)</em>}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Configure phase: instruction + two action buttons. */}
         {phase.kind === "configure" && (
@@ -354,54 +401,124 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
                 </span>
               )}
             </div>
-            <div className="ai-rewrite-review">
+            {/* Side-by-side diff: source (read-only) | AI suggestion
+                (editable). Each language gets its own two-column row
+                so the admin can scan original ↔ proposed without
+                losing context. On narrow viewports (≤ 720px) the
+                grid collapses to a single column — the CSS
+                `.ai-rewrite-side-by-side` rule handles the flip. */}
+            <div className="ai-rewrite-side-by-side">
               <fieldset className="ai-rewrite-lang">
                 <legend>Español (ES)</legend>
-                <label htmlFor="ai-rewrite-es-title">Título</label>
-                <input
-                  id="ai-rewrite-es-title"
-                  type="text"
-                  value={editEsTitle}
-                  onChange={(e) => setEditEsTitle(e.target.value)}
-                />
-                <label htmlFor="ai-rewrite-es-desc">Descripción</label>
-                <textarea
-                  id="ai-rewrite-es-desc"
-                  value={editEsDescription}
-                  onChange={(e) => setEditEsDescription(e.target.value)}
-                  rows={4}
-                />
-                <label htmlFor="ai-rewrite-es-tags">Tags (separados por coma)</label>
-                <input
-                  id="ai-rewrite-es-tags"
-                  type="text"
-                  value={editEsTags}
-                  onChange={(e) => setEditEsTags(e.target.value)}
-                />
+                <div className="ai-rewrite-diff-row">
+                  <div className="ai-rewrite-diff-original">
+                    <span className="ai-rewrite-diff-label">Original</span>
+                    <div className="ai-rewrite-diff-readonly">{caso.title.es}</div>
+                  </div>
+                  <div className="ai-rewrite-diff-proposed">
+                    <label htmlFor="ai-rewrite-es-title">Propuesto · Título</label>
+                    <input
+                      id="ai-rewrite-es-title"
+                      type="text"
+                      value={editEsTitle}
+                      onChange={(e) => setEditEsTitle(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="ai-rewrite-diff-row">
+                  <div className="ai-rewrite-diff-original">
+                    <span className="ai-rewrite-diff-label">Original</span>
+                    <div className="ai-rewrite-diff-readonly">
+                      {caso.description?.es || <em>(sin descripción)</em>}
+                    </div>
+                  </div>
+                  <div className="ai-rewrite-diff-proposed">
+                    <label htmlFor="ai-rewrite-es-desc">Propuesto · Descripción</label>
+                    <textarea
+                      id="ai-rewrite-es-desc"
+                      value={editEsDescription}
+                      onChange={(e) => setEditEsDescription(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </div>
+                <div className="ai-rewrite-diff-row">
+                  <div className="ai-rewrite-diff-original">
+                    <span className="ai-rewrite-diff-label">Original</span>
+                    <div className="ai-rewrite-diff-readonly ai-rewrite-diff-tags">
+                      {caso.tags.es.length > 0 ? caso.tags.es.join(", ") : <em>(sin tags)</em>}
+                    </div>
+                  </div>
+                  <div className="ai-rewrite-diff-proposed">
+                    <label htmlFor="ai-rewrite-es-tags">
+                      Propuesto · Tags (separados por coma)
+                    </label>
+                    <input
+                      id="ai-rewrite-es-tags"
+                      type="text"
+                      value={editEsTags}
+                      onChange={(e) => setEditEsTags(e.target.value)}
+                    />
+                  </div>
+                </div>
               </fieldset>
               <fieldset className="ai-rewrite-lang">
                 <legend>English (EN)</legend>
-                <label htmlFor="ai-rewrite-en-title">Title</label>
-                <input
-                  id="ai-rewrite-en-title"
-                  type="text"
-                  value={editEnTitle}
-                  onChange={(e) => setEditEnTitle(e.target.value)}
-                />
-                <label htmlFor="ai-rewrite-en-desc">Description</label>
-                <textarea
-                  id="ai-rewrite-en-desc"
-                  value={editEnDescription}
-                  onChange={(e) => setEditEnDescription(e.target.value)}
-                  rows={4}
-                />
-                <label htmlFor="ai-rewrite-en-tags">Tags (comma-separated)</label>
-                <input
-                  id="ai-rewrite-en-tags"
-                  type="text"
-                  value={editEnTags}
-                  onChange={(e) => setEditEnTags(e.target.value)}
-                />
+                <div className="ai-rewrite-diff-row">
+                  <div className="ai-rewrite-diff-original">
+                    <span className="ai-rewrite-diff-label">Original</span>
+                    <div className="ai-rewrite-diff-readonly">
+                      {caso.title.en || <em>(no EN title yet)</em>}
+                    </div>
+                  </div>
+                  <div className="ai-rewrite-diff-proposed">
+                    <label htmlFor="ai-rewrite-en-title">Proposed · Title</label>
+                    <input
+                      id="ai-rewrite-en-title"
+                      type="text"
+                      value={editEnTitle}
+                      onChange={(e) => setEditEnTitle(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="ai-rewrite-diff-row">
+                  <div className="ai-rewrite-diff-original">
+                    <span className="ai-rewrite-diff-label">Original</span>
+                    <div className="ai-rewrite-diff-readonly">
+                      {caso.description?.en || <em>(no EN description yet)</em>}
+                    </div>
+                  </div>
+                  <div className="ai-rewrite-diff-proposed">
+                    <label htmlFor="ai-rewrite-en-desc">Proposed · Description</label>
+                    <textarea
+                      id="ai-rewrite-en-desc"
+                      value={editEnDescription}
+                      onChange={(e) => setEditEnDescription(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </div>
+                <div className="ai-rewrite-diff-row">
+                  <div className="ai-rewrite-diff-original">
+                    <span className="ai-rewrite-diff-label">Original</span>
+                    <div className="ai-rewrite-diff-readonly ai-rewrite-diff-tags">
+                      {(caso.tags.en?.length ?? 0) > 0 ? (
+                        (caso.tags.en ?? []).join(", ")
+                      ) : (
+                        <em>(no EN tags yet)</em>
+                      )}
+                    </div>
+                  </div>
+                  <div className="ai-rewrite-diff-proposed">
+                    <label htmlFor="ai-rewrite-en-tags">Proposed · Tags (comma-separated)</label>
+                    <input
+                      id="ai-rewrite-en-tags"
+                      type="text"
+                      value={editEnTags}
+                      onChange={(e) => setEditEnTags(e.target.value)}
+                    />
+                  </div>
+                </div>
               </fieldset>
             </div>
             <div className="ai-rewrite-actions">

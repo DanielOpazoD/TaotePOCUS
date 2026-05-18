@@ -31,11 +31,12 @@ import { BulkEditRow } from "./BulkEditRow";
 import { BulkEditSortHeader } from "./cells/SortHeader";
 import { AIRewriteModal } from "../ai/AIRewriteModal";
 import { AIBulkRewriteModal } from "../ai/AIBulkRewriteModal";
+import { AIBatchUndoBanner } from "../ai/AIBatchUndoBanner";
 import { getDescription } from "@/lib/case-description";
 import { categoryLabelEs } from "@/lib/i18n";
 import { useT } from "@/hooks/useLanguage";
 import type { CaseRecord, Category, SectionId } from "@/lib/types";
-import type { SortDir, SortField } from "./types";
+import type { AIStatusFilter, SortDir, SortField } from "./types";
 
 interface Props {
   cases: CaseRecord[];
@@ -72,6 +73,10 @@ export default function BulkEditTable({
   // ─── Filters ───────────────────────────────────────────────────
   const [filterSection, setFilterSection] = useState<SectionId | "">("");
   const [filterCat, setFilterCat] = useState<string>("");
+  // "Estado IA" filter — narrows to cases the AI has / hasn't
+  // touched. Default "all" = no narrowing. See `types.ts >
+  // AIStatusFilter` for the predicate semantics.
+  const [filterAIStatus, setFilterAIStatus] = useState<AIStatusFilter>("all");
   const [query, setQuery] = useState("");
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_DEFAULT);
   const [page, setPage] = useState(0);
@@ -121,7 +126,8 @@ export default function BulkEditTable({
   // results). Drives the empty-state CTA — when filters are active,
   // we surface "Limpiar filtros"; when the catalog is genuinely
   // empty the message stays static (clearing nothing wouldn't help).
-  const hasActiveFilters = filterSection !== "" || filterCat !== "" || query.trim() !== "";
+  const hasActiveFilters =
+    filterSection !== "" || filterCat !== "" || query.trim() !== "" || filterAIStatus !== "all";
 
   // Bucket counts feed the filter dropdowns ("Pulmonar (47)") so the
   // admin sees the size of each section / category BEFORE narrowing.
@@ -157,6 +163,15 @@ export default function BulkEditTable({
       if (c.deletedAt) return false;
       if (filterSection && c.section !== filterSection) return false;
       if (filterCat && c.category !== filterCat) return false;
+      // "Estado IA" filter — derived from `translationMeta`.
+      if (filterAIStatus !== "all") {
+        const meta = c.translationMeta;
+        const aiTouched = meta?.aiGenerated === true;
+        const reviewed = meta?.reviewedAt != null;
+        if (filterAIStatus === "no-ai" && aiTouched) return false;
+        if (filterAIStatus === "ai-pending" && (!aiTouched || reviewed)) return false;
+        if (filterAIStatus === "ai-reviewed" && (!aiTouched || !reviewed)) return false;
+      }
       if (q) {
         const titleHay = `${c.title.es} ${c.title.en ?? ""}`.toLowerCase();
         const descHay = `${c.description.es} ${c.description.en ?? ""}`.toLowerCase();
@@ -167,7 +182,7 @@ export default function BulkEditTable({
       }
       return true;
     });
-  }, [cases, filterSection, filterCat, query]);
+  }, [cases, filterSection, filterCat, filterAIStatus, query]);
 
   // Apply sort over the filtered set.
   const sorted = useMemo(() => {
@@ -361,6 +376,8 @@ export default function BulkEditTable({
         setFilterSection={setFilterSection}
         filterCat={filterCat}
         setFilterCat={setFilterCat}
+        filterAIStatus={filterAIStatus}
+        setFilterAIStatus={setFilterAIStatus}
         query={query}
         setQuery={setQuery}
         pageSize={pageSize}
@@ -379,6 +396,11 @@ export default function BulkEditTable({
         // changes don't shift the in-flight batch.
         onAIRewriteFiltered={() => setAiBulkCases([...filtered])}
       />
+      {/* Undo banner for the most recent AI batch. Renders only when
+          a batch is in scope (TTL 24h). Click → revert all cases in
+          the batch + clear the buffer. Mounted high so it's visible
+          even when the table scrolls. */}
+      <AIBatchUndoBanner onApplyPatch={onPatch} />
 
       <div className="bulk-edit-scroll">
         <table className="bulk-edit-table" ref={tableRef}>

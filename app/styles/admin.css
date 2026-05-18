@@ -2343,6 +2343,66 @@ textarea.ai-suggestions-field-input {
     grid-template-columns: 1fr;
   }
 }
+
+/* Side-by-side diff layout. One column per LANGUAGE (ES + EN),
+   each containing 3 rows (title, description, tags). Each row is
+   itself a 2-column grid: original (read-only) ↔ proposed (editable).
+   This way the admin can scan original ↔ proposed without losing
+   the language grouping. */
+.ai-rewrite-side-by-side {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+.ai-rewrite-diff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+@media (max-width: 720px) {
+  .ai-rewrite-diff-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
+.ai-rewrite-diff-original,
+.ai-rewrite-diff-proposed {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ai-rewrite-diff-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+.ai-rewrite-diff-readonly {
+  /* Read-only display of the source content. Visual cue: muted
+     background so the eye knows it's not editable, but text stays
+     legible (ink-soft, not ink-mute). The min-height keeps the
+     diff row visually paired even when the source is empty (the
+     "(sin descripción)" placeholder). */
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  min-height: 32px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+.ai-rewrite-diff-readonly em {
+  color: var(--ink-mute);
+  font-style: italic;
+}
+.ai-rewrite-diff-tags {
+  font-family: var(--mono);
+  font-size: 12px;
+}
 .ai-rewrite-lang {
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
@@ -2471,4 +2531,69 @@ textarea.ai-suggestions-field-input {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* "Deshacer último batch" banner. Sits between the filters and
+   the table, full-width, accent border. Visible only when there's
+   a recent AI batch in the undo buffer (see
+   `lib/ai-batch-undo.ts`). The visual weight is intentional —
+   undo offers should feel reachable; if it's too quiet the admin
+   misses the window. */
+.ai-batch-undo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 14px;
+  margin-bottom: var(--space-3);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--ink);
+}
+.ai-batch-undo-icon {
+  font-size: 18px;
+  color: var(--accent-ink);
+  flex: 0 0 auto;
+}
+.ai-batch-undo-text {
+  flex: 1;
+  line-height: 1.4;
+}
+.ai-batch-undo-text strong {
+  font-weight: 500;
+}
+.ai-batch-undo-action {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: oklch(1 0 0);
+  cursor: pointer;
+  transition: filter var(--duration-fast) ease;
+}
+.ai-batch-undo-action:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.ai-batch-undo-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ai-batch-undo-dismiss {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 18px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.ai-batch-undo-dismiss:hover {
+  background: oklch(1 0 0 / 0.4);
+  color: var(--ink);
 }
