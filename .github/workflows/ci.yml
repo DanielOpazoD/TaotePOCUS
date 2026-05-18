@@ -111,7 +111,7 @@ jobs:
       # can still see what their unit tests covered.
       - name: Coverage report on PR
         if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require("fs");
@@ -424,7 +424,7 @@ jobs:
       # they're a stable source of truth.
       - name: Lighthouse report on PR
         if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require("fs");
