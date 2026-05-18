@@ -29,8 +29,9 @@
 // rationale on reusing translate vs a dedicated health endpoint).
 // Fire-on-demand only — never on every page load.
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAIProvider, type AIProviderId } from "@/hooks/useAIProvider";
+import { formatCostUSD, getCurrentMonthStats, type AIUsageStats } from "@/lib/ai-usage-stats";
 
 /** Shape returned by `POST /api/admin/ai/health`. Kept inline as a
  *  literal so the badge doesn't pull lib/ai types into the client
@@ -58,6 +59,21 @@ export function AIStatusBadge() {
   const [pingResult, setPingResult] = useState<HealthResponse | null>(null);
   const [pinging, setPinging] = useState(false);
   const [pingError, setPingError] = useState<string | null>(null);
+  // Cost dashboard state. Reads from localStorage on mount + on
+  // every `taote-ai-usage-updated` custom event (dispatched by
+  // `recordAICall` after a write). Cross-tab via `storage` event
+  // so a call from another tab updates this badge too.
+  const [usage, setUsage] = useState<AIUsageStats>(() => getCurrentMonthStats());
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const refresh = () => setUsage(getCurrentMonthStats());
+    window.addEventListener("taote-ai-usage-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("taote-ai-usage-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
 
   const runPing = useCallback(async () => {
     setPinging(true);
@@ -149,6 +165,21 @@ export function AIStatusBadge() {
           </span>
         )}
       </span>
+      {/* Cost-dashboard chip. Reads the current-month aggregate
+          stats and shows "$X.XX · N ops". Only visible when at
+          least one call has been recorded — keeps the badge clean
+          for fresh devices. The estimate is per-device (localStorage)
+          and not authoritative — the provider's billing console is
+          the source of truth. */}
+      {usage.totalCalls > 0 && (
+        <span
+          className="ai-status-badge-cost"
+          title={`Estimado del mes actual (${usage.monthKey}). Tokens: ${usage.totalInputTokens}↑/${usage.totalOutputTokens}↓. La cifra real está en la consola del proveedor.`}
+        >
+          💰 {formatCostUSD(usage.estimatedCostUSD)} · {usage.totalCalls} op
+          {usage.totalCalls === 1 ? "" : "s"}
+        </span>
+      )}
       {!isStub && (
         <button
           type="button"

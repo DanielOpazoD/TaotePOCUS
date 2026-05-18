@@ -28,6 +28,7 @@ import { BulkEditEditableText } from "./cells/EditableText";
 import { BulkEditRowMenu } from "./cells/RowMenu";
 import { BulkEditTagsCell } from "./cells/TagsCell";
 import { BulkEditThumb } from "./cells/Thumb";
+import { AIAutoTagButton } from "../ai/AIAutoTagButton";
 import { getDescription, setDescription as makeDescriptionPatch } from "@/lib/case-description";
 import { categoryLabelEs } from "@/lib/i18n";
 import type { CaseRecord, Category, LocalizedTags } from "@/lib/types";
@@ -51,6 +52,11 @@ interface Props {
    *  shape as `onOpenEdit` for symmetry. Optional — when omitted
    *  the ✨ button doesn't render. */
   onAIRewrite?: (c: CaseRecord) => void;
+  /** Notify channel for the auto-tag "tags only" button. The
+   *  button fires its own API call + patch internally — the
+   *  parent only needs to surface the toast (success / failure
+   *  message). When omitted, the 🏷️ button doesn't render. */
+  onAutoTag?: (message: string) => void;
 }
 
 function BulkEditRowImpl({
@@ -63,6 +69,7 @@ function BulkEditRowImpl({
   onOpenEdit,
   onDelete,
   onAIRewrite,
+  onAutoTag,
 }: Props) {
   // The bulk-edit table edits the Spanish baseline directly — the
   // admin's productivity surface, not a translation tool. Edits to
@@ -180,9 +187,8 @@ function BulkEditRowImpl({
         />
       </td>
       <td className="bulk-edit-td-actions">
-        {/* AI rewrite ✨ button — placed BEFORE the ⋮ menu so it's
-            visible at a glance for any row. Clicking opens the
-            per-case modal where the admin reviews + applies. */}
+        {/* AI rewrite ✨ button — full rewrite (title + desc + tags).
+            Opens the per-case modal where the admin reviews + applies. */}
         {onAIRewrite && (
           <button
             type="button"
@@ -194,6 +200,10 @@ function BulkEditRowImpl({
             ✨
           </button>
         )}
+        {/* 🏷️ Auto-tag button — lighter than the full rewrite. Just
+            regenerates tags from the existing title + description.
+            One click, no modal, undo via the batch banner above. */}
+        {onAutoTag && <AIAutoTagButton caso={caso} onApplyPatch={onPatch} onNotify={onAutoTag} />}
         <BulkEditRowMenu caso={caso} onOpenEdit={onOpenEdit} onDelete={onDelete} />
       </td>
     </tr>

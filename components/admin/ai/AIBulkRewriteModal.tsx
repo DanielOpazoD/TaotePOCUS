@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { entryFromCase, rememberAIBatch, type AIBatchEntry } from "@/lib/ai-batch-undo";
+import { recordAICall } from "@/lib/ai-usage-stats";
 import type { CaseRecord, LocalizedString, TranslationMeta } from "@/lib/types";
 
 function asProviderId(raw: string): TranslationMeta["provider"] {
@@ -33,7 +34,13 @@ interface AIRewriteResult {
     es: { title: string; description: string; tags: string[] };
     en: { title: string; description: string; tags: string[] };
   };
-  meta: { provider: string; model: string; durationMs: number };
+  meta: {
+    provider: string;
+    model: string;
+    promptTokens: number | null;
+    completionTokens: number | null;
+    durationMs: number;
+  };
 }
 
 interface Props {
@@ -130,6 +137,10 @@ export function AIBulkRewriteModal({ cases, onApplyPatch, onClose }: Props) {
           continue;
         }
         const data: AIRewriteResult = await res.json();
+        // Record each call individually for the cost-dashboard
+        // chip in the AI status badge. Bulk runs N calls — each
+        // one increments the counter + accumulates tokens.
+        recordAICall(data.meta.provider, data.meta.promptTokens, data.meta.completionTokens);
         // Bulk = auto-save without per-case review. Mark each case
         // as `aiGenerated: true, reviewedAt: undefined` so the
         // "Estado IA: pending review" filter surfaces them later.

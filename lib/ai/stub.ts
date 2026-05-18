@@ -23,6 +23,8 @@
 import type {
   AICallMeta,
   AIProvider,
+  AutoTagInput,
+  AutoTagOutput,
   AvailabilityCheck,
   RewriteInput,
   RewriteOutput,
@@ -108,6 +110,35 @@ export const stubProvider: AIProvider = {
       description: `[stub rewrite EN] ultrasound findings: ${srcDescription}`,
       tags: srcTags.length > 0 ? srcTags.map((t) => `en:${t}`) : ["stub-tag-en"],
     };
+    const meta: AICallMeta = {
+      provider: "stub",
+      model: "stub-deterministic-v1",
+      promptTokens: null,
+      completionTokens: null,
+      durationMs: Date.now() - start,
+    };
+    return { result: { es, en }, meta };
+  },
+  async autoTag(input: AutoTagInput): Promise<AutoTagOutput> {
+    const start = Date.now();
+    if (process.env.NODE_ENV !== "test" && process.env.AI_STUB_INSTANT !== "1") {
+      await new Promise((r) => setTimeout(r, STUB_DELAY_MS));
+    }
+    // Deterministic tag synthesis: pull the first 3 distinct
+    // single-word lowercase tokens from the title+description. Test
+    // assertions can rely on the shape (string[] of len 1-3) and on
+    // the fact that the output is derived from the input.
+    const srcTitle = input.source.title;
+    const srcDescription = input.source.description;
+    const words = `${srcTitle} ${srcDescription}`
+      .toLowerCase()
+      .split(/[^a-záéíóúñü]+/i)
+      .filter((w) => w.length > 3);
+    const distinct = Array.from(new Set(words)).slice(0, 3);
+    // Fall back to a single placeholder when the source is too short
+    // to yield any tokens (defends the contract: 1-3 tags always).
+    const es = distinct.length > 0 ? distinct : ["stub-tag-es"];
+    const en = es.map((t) => `en:${t}`);
     const meta: AICallMeta = {
       provider: "stub",
       model: "stub-deterministic-v1",

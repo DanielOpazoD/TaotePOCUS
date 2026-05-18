@@ -2086,6 +2086,25 @@ textarea.ai-suggestions-field-input {
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* Cost dashboard chip. Right-justified next to the action button.
+   Quiet visual treatment — surface area = a label, not a CTA. The
+   admin reads it passively while doing other work; clicking does
+   nothing (the data is also in the title attribute for hover-to-
+   inspect). */
+.ai-status-badge-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  margin-left: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink-mute);
+  font-size: 11px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
 
 /* ─── AI Rewrite Modal (per-row + bulk) ────────────────────────────
    The ✨ rewrite modal opens from the BulkEditTable row actions and
@@ -2522,6 +2541,28 @@ textarea.ai-suggestions-field-input {
   background: var(--accent-soft);
   color: var(--accent-ink);
   transform: scale(1.1);
+}
+
+/* Per-row 🏷️ auto-tag button. Same shape as ✨ but distinct icon —
+   lighter operation (tags only) so the icon hints at the scope. */
+.bulk-edit-row-autotag {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-mute);
+  transition: all var(--duration-fast) ease;
+  margin-right: 2px;
+}
+.bulk-edit-row-autotag:hover:not(:disabled) {
+  background: var(--accent-soft);
+  transform: scale(1.1);
+}
+.bulk-edit-row-autotag:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Bulk "IA reescribir" button in the action bar. Same vocabulary

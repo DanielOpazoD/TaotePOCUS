@@ -55,6 +55,9 @@ interface Props {
   onOpenEdit?: (c: CaseRecord) => void;
   /** Soft-delete a single case (with confirm + undo). */
   onDelete?: (c: CaseRecord) => void;
+  /** Toast surface — used by the per-row 🏷️ auto-tag button to
+   *  announce success / failure since it doesn't open a modal. */
+  notify?: (msg: string) => void;
 }
 
 const PAGE_SIZE_DEFAULT = 50;
@@ -68,6 +71,7 @@ export default function BulkEditTable({
   onBulkSoftDelete,
   onOpenEdit,
   onDelete,
+  notify,
 }: Props) {
   const t = useT();
   // ─── Filters ───────────────────────────────────────────────────
@@ -471,6 +475,7 @@ export default function BulkEditTable({
                 onOpenEdit={onOpenEdit}
                 onDelete={onDelete}
                 onAIRewrite={setAiTarget}
+                onAutoTag={notify}
               />
             ))}
             {paged.length === 0 && (

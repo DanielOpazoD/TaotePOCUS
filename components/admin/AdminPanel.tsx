@@ -285,6 +285,7 @@ export default function AdminPanel({
             onBulkSoftDelete={onBulkSoftDelete}
             onOpenEdit={onEdit}
             onDelete={onDelete}
+            notify={notify}
           />
           <BulkEditTagSuggestions />
         </>

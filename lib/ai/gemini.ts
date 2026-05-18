@@ -23,6 +23,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import type {
   AICallMeta,
   AIProvider,
+  AutoTagInput,
+  AutoTagOutput,
   AvailabilityCheck,
   RewriteInput,
   RewriteOutput,
@@ -228,6 +230,17 @@ export const geminiProvider: AIProvider = {
     throw new ProviderUnavailableError(
       "gemini",
       "rewriteCase is not yet implemented for Gemini. Use DeepSeek or OpenAI.",
+    );
+  },
+  async autoTag(_input: AutoTagInput): Promise<AutoTagOutput> {
+    // Same Phase-2 status as `rewriteCase` — implementable but not
+    // yet ported to the Gemini SDK shape. Switching to Gemini for
+    // tags would throw silently if we relied on a fallback; the
+    // structured error here surfaces a clear message in the AI
+    // status badge.
+    throw new ProviderUnavailableError(
+      "gemini",
+      "autoTag is not yet implemented for Gemini. Use DeepSeek or OpenAI.",
     );
   },
 };
