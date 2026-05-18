@@ -109,6 +109,11 @@ const WHITELIST = new Set<string>([
   // helper-based read doesn't fit (we'd lose access to the slot
   // that was NOT preferred at read time).
   "lib/ai-batch-undo.ts",
+
+  // Auto-tag button reads the ES slot for the AI input. Same
+  // design constraint as the other AI modals — the operation
+  // is language-specific.
+  "components/admin/ai/AIAutoTagButton.tsx",
 ]);
 
 /**

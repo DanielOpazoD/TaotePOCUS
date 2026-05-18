@@ -21,6 +21,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { entryFromCase, rememberAIBatch } from "@/lib/ai-batch-undo";
+import { recordAICall } from "@/lib/ai-usage-stats";
 import type { CaseRecord, LocalizedString, TranslationMeta } from "@/lib/types";
 
 /** Narrow the provider id from the response meta to the
@@ -156,6 +157,10 @@ export function AIRewriteModal({ caso, onApplyPatch, onClose }: Props) {
           return null;
         }
         const data: AIRewriteResult = await res.json();
+        // Record the call for the cost-dashboard chip in the AI
+        // status badge. Best-effort — failure to write to
+        // localStorage doesn't block the rewrite flow.
+        recordAICall(data.meta.provider, data.meta.promptTokens, data.meta.completionTokens);
         return data;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

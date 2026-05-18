@@ -24,6 +24,7 @@ import { POST as translatePOST } from "@/app/api/admin/ai/translate/route";
 import { GET as providersGET } from "@/app/api/admin/ai/providers/route";
 import { POST as healthPOST } from "@/app/api/admin/ai/health/route";
 import { POST as rewritePOST } from "@/app/api/admin/ai/rewrite/route";
+import { POST as autotagPOST } from "@/app/api/admin/ai/autotag/route";
 
 process.env.AI_STUB_INSTANT = "1";
 
@@ -438,5 +439,65 @@ describe("POST /api/admin/ai/rewrite", () => {
       expect(typeof body.result[lang].description).toBe("string");
       expect(Array.isArray(body.result[lang].tags)).toBe(true);
     }
+  });
+});
+
+describe("POST /api/admin/ai/autotag", () => {
+  function autotagRequest(body: unknown): Request {
+    return new Request("http://localhost/api/admin/ai/autotag", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+  const validSource = {
+    title: "Apendicitis aguda",
+    description: "Apéndice no compresible, signo de diana, líquido periapendicular.",
+  };
+
+  it("returns 403 when no admin session", async () => {
+    mockedRequireAdmin.mockResolvedValue(null);
+    const res = await autotagPOST(autotagRequest({ source: validSource }));
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 400 when source is missing", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await autotagPOST(autotagRequest({}));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 when source.title is empty", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await autotagPOST(
+      autotagRequest({ source: { title: "", description: "non-empty desc." } }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("defaults to the resolved provider when none is supplied", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await autotagPOST(autotagRequest({ source: validSource }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.meta.provider).toBe("stub");
+    expect(Array.isArray(body.result.es)).toBe(true);
+    expect(Array.isArray(body.result.en)).toBe(true);
+  });
+
+  it("returns 1-3 tags per language (the editorial contract)", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await autotagPOST(autotagRequest({ source: validSource }));
+    const body = await res.json();
+    expect(body.result.es.length).toBeGreaterThanOrEqual(1);
+    expect(body.result.es.length).toBeLessThanOrEqual(3);
+    expect(body.result.en.length).toBeGreaterThanOrEqual(1);
+    expect(body.result.en.length).toBeLessThanOrEqual(3);
+  });
+
+  it("returns 503 when the explicit provider isn't available", async () => {
+    mockedRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    const res = await autotagPOST(autotagRequest({ provider: "openai", source: validSource }));
+    expect(res.status).toBe(503);
   });
 });

@@ -18,6 +18,8 @@ import OpenAI from "openai";
 import type {
   AICallMeta,
   AIProvider,
+  AutoTagInput,
+  AutoTagOutput,
   AvailabilityCheck,
   ProviderId,
   RewriteInput,
@@ -252,6 +254,14 @@ function buildOpenAICompatProvider({
       // carries the auth/model/jsonMode config; the implementation
       // assembles the OpenAI request + validates the response.
       return rewriteCaseImpl({ id, apiKey, baseURL, model, jsonMode, input });
+    },
+    async autoTag(input: AutoTagInput): Promise<AutoTagOutput> {
+      const apiKey = process.env[envVarName];
+      if (!apiKey) {
+        throw new ProviderUnavailableError(id, `${envVarName} not set`);
+      }
+      const model = process.env[modelEnvVarName] || defaultModel;
+      return autoTagImpl({ id, apiKey, baseURL, model, jsonMode, input });
     },
   };
 }
@@ -491,6 +501,138 @@ async function rewriteCaseImpl(args: {
     durationMs: Date.now() - start,
   };
   return { result: { es: parsed.es, en: parsed.en }, meta };
+}
+
+/**
+ * "Tags only" system prompt. Tighter scope than the full rewrite —
+ * the prompt is just about producing 1-3 idiomatic clinical tags in
+ * each language, drawn from concepts the source explicitly names.
+ * Saves tokens (shorter prompt) and runs faster.
+ */
+const AUTOTAG_SYSTEM_PROMPT = `You produce idiomatic clinical tags for a bilingual POCUS catalog (Spanish + English).
+
+Given a case TITLE and DESCRIPTION (in Spanish), output 1 to 3 tags per language, mirrored count.
+
+RULES:
+- ONLY tag concepts EXPLICITLY named in the source. Do NOT add tags for things the source doesn't mention. Do NOT assume or infer.
+- Spanish: Latin American medical Spanish (Chile / Argentina).
+- English: American clinical English (SCCM / EMRA / ACEP).
+- Map concepts, not words (e.g., "B-líneas" ↔ "B-lines", "consolidación alveolar" ↔ "alveolar consolidation").
+
+Reference style (real user-validated examples):
+- Title "Neumonía bacteriana" + description mentioning consolidation/bronchogram → ["neumonía bacteriana", "consolidación alveolar", "broncograma aéreo"] ↔ ["bacterial pneumonia", "alveolar consolidation", "air bronchogram"]
+- Title "Apendicitis aguda" + description mentioning target sign + periappendiceal fluid → ["apendicitis aguda", "signo de diana", "líquido periapendicular"] ↔ ["acute appendicitis", "target sign", "periappendiceal fluid"]
+
+OUTPUT: strict JSON, no preamble, no markdown fences.
+{ "es": string[], "en": string[] }`;
+
+const AUTOTAG_RESPONSE_SCHEMA = {
+  type: "object",
+  properties: {
+    es: { type: "array", items: { type: "string" } },
+    en: { type: "array", items: { type: "string" } },
+  },
+  required: ["es", "en"],
+  additionalProperties: false,
+} as const;
+
+function isAutoTagShape(v: unknown): v is { es: string[]; en: string[] } {
+  if (!v || typeof v !== "object") return false;
+  const obj = v as Record<string, unknown>;
+  return (
+    Array.isArray(obj.es) &&
+    obj.es.every((t) => typeof t === "string") &&
+    Array.isArray(obj.en) &&
+    obj.en.every((t) => typeof t === "string")
+  );
+}
+
+/**
+ * Concrete autoTag implementation shared by openai + deepseek.
+ * Same shape as `rewriteCaseImpl`; smaller prompt + simpler schema.
+ */
+async function autoTagImpl(args: {
+  id: ProviderId;
+  apiKey: string;
+  baseURL?: string;
+  model: string;
+  jsonMode: JsonMode;
+  input: AutoTagInput;
+}): Promise<AutoTagOutput> {
+  const client = new OpenAI({
+    apiKey: args.apiKey,
+    ...(args.baseURL ? { baseURL: args.baseURL } : {}),
+  });
+
+  const responseFormat =
+    args.jsonMode === "json_schema"
+      ? ({
+          type: "json_schema" as const,
+          json_schema: {
+            name: "case_autotag",
+            strict: true,
+            schema: AUTOTAG_RESPONSE_SCHEMA,
+          },
+        } as const)
+      : ({ type: "json_object" as const } as const);
+
+  // Pull source fields to locals (see note on rewriteCaseImpl about
+  // the localized-consumer audit's false-positive regex).
+  const srcTitle = args.input.source.title;
+  const srcDescription = args.input.source.description;
+  const userMessageContent = [`Title: ${srcTitle}`, `Description: ${srcDescription}`].join("\n");
+
+  const start = Date.now();
+  const response = await client.chat.completions.create({
+    model: args.model,
+    messages: [
+      { role: "system", content: AUTOTAG_SYSTEM_PROMPT },
+      { role: "user", content: userMessageContent },
+    ],
+    response_format: responseFormat,
+    // Lower temperature than rewrite (0.2 vs 0.4) — tag generation
+    // should be predictable; we want the same input to yield similar
+    // tags across calls so the catalog vocabulary stays coherent.
+    temperature: 0.2,
+  });
+
+  const choice = response.choices[0];
+  const text = choice?.message?.content;
+  if (!text) {
+    throw new Error(`${args.id} returned empty autoTag response (no message content)`);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (err) {
+    throw new Error(
+      `${args.id} returned malformed JSON for autoTag (mode=${args.jsonMode}): ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+  }
+
+  if (!isAutoTagShape(parsed)) {
+    throw new Error(
+      `${args.id} autoTag response did not match { es: string[], en: string[] } (mode=${args.jsonMode})`,
+    );
+  }
+
+  // Clamp to 3 per language defensively — the prompt asks for 1-3
+  // but the model may overshoot. Slicing keeps the contract.
+  const es = parsed.es.slice(0, 3);
+  const en = parsed.en.slice(0, 3);
+
+  const usage = response.usage;
+  const meta: AICallMeta = {
+    provider: args.id,
+    model: args.model,
+    promptTokens: usage?.prompt_tokens ?? null,
+    completionTokens: usage?.completion_tokens ?? null,
+    durationMs: Date.now() - start,
+  };
+  return { result: { es, en }, meta };
 }
 
 /**

@@ -160,6 +160,40 @@ export interface RewriteOutput {
 }
 
 /**
+ * Input for the "tags only" operation. Lighter than `rewriteCase` —
+ * reads the case's existing title + description (assumed already in
+ * good editorial shape) and produces fresh tags in both languages.
+ * Use case: an admin already wrote a clean description but never
+ * filled the tags slot, or imported a case that has good prose but
+ * empty tags.
+ *
+ * The request body to the AI is smaller than rewrite (shorter
+ * system prompt, no editorial rewrite instructions), so the call
+ * is cheaper + faster — typically half the cost of a full rewrite.
+ */
+export interface AutoTagInput {
+  /** Title + description that the AI reads to produce tags. ES is
+   *  the canonical input; EN tags are derived as translations of
+   *  the ES tags via the same provider call. */
+  source: {
+    title: string;
+    description: string;
+  };
+}
+
+/**
+ * Output of the "tags only" operation. Returns 1-3 tags per language
+ * matching the editorial conventions of the catalog.
+ */
+export interface AutoTagOutput {
+  result: {
+    es: string[];
+    en: string[];
+  };
+  meta: AICallMeta;
+}
+
+/**
  * Result of an availability check. `available: false` carries a
  * human-readable `reason` the UI surfaces in the selector tooltip
  * (e.g., "Set GEMINI_API_KEY in the Netlify env to enable").
@@ -216,6 +250,19 @@ export interface AIProvider {
    *     therefore wins on conflicts.
    */
   rewriteCase(input: RewriteInput): Promise<RewriteOutput>;
+  /**
+   * "Tags only" — lighter than `rewriteCase`. Reads the existing
+   * title + description (assumed already in editorial shape) and
+   * produces fresh 1-3 tags in both languages.
+   *
+   * Contract:
+   *   - The returned `result.es` and `result.en` MUST both be
+   *     `string[]` arrays of length 1-3, mirrored count.
+   *   - `meta.provider` MUST equal `this.id`.
+   *   - Tags MUST be drawn from concepts explicitly named in the
+   *     source — the same source-bound rule as the rewrite tag step.
+   */
+  autoTag(input: AutoTagInput): Promise<AutoTagOutput>;
 }
 
 /**
