@@ -478,26 +478,12 @@ button:hover > .kbd-hint {
 .modal-meta-pills .pill-muted {
   color: var(--ink-mute);
 }
-.modal-meta-pills .pill-basic {
-  color: oklch(0.55 0.12 145);
-  border-color: oklch(0.85 0.06 145);
-  background: oklch(0.97 0.03 145);
-}
-.modal-meta-pills .pill-intermediate {
-  color: var(--accent-ink);
-  border-color: var(--accent-soft);
-  background: var(--accent-soft);
-}
-.modal-meta-pills .pill-advanced {
-  color: var(--crit);
-  border-color: var(--crit-soft);
-  background: var(--crit-soft);
-}
-[data-theme="dark"] .modal-meta-pills .pill-basic {
-  color: oklch(0.78 0.14 145);
-  border-color: oklch(0.42 0.08 145);
-  background: oklch(0.27 0.06 145);
-}
+/* `.pill-basic`, `.pill-intermediate`, `.pill-advanced` were the
+   difficulty-colored variants of the meta-pill row. Removed in
+   May-2026 when the difficulty pill itself was dropped from the
+   modal header — see `CaseModal.tsx > meta-pill row` comment. The
+   classes don't exist in the live tree anymore; deleting them
+   keeps the CSS bundle tight. */
 .modal-author {
   display: flex;
   align-items: center;
