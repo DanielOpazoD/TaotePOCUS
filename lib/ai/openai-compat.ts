@@ -277,16 +277,23 @@ function isTranslateShape(v: unknown): v is { title: string; description: string
  *   - **Title = visible diagnosis**, not clinical history. The
  *     catalog is a SONOGRAPHIC reference — a reader scanning titles
  *     should learn what each case LOOKS LIKE on US, not what symptom
- *     the patient presented with.
- *   - **Description = US findings only**. Clinical context belongs
- *     in the (separate, optional) advanced fields, not the main
- *     description. A reader using the catalog as an image bank
- *     needs to know "what does this image show?", not "how did this
- *     patient end up here?".
- *   - **Tags = clinical idioms in each language**. Not literal
- *     translations — concept mappings. "B-líneas" doesn't translate
- *     to "B-line" (singular), it translates to "B-lines" (plural,
- *     idiomatic) or sometimes "wet lungs" depending on context.
+ *     the patient presented with. Concise (2-4 words), no parenthesized
+ *     subtitles.
+ *   - **Description = US findings actually present**. Clinical
+ *     context belongs in the (separate, optional) advanced fields,
+ *     not the main description. NEGATIVE FINDINGS (statements about
+ *     the absence of pathology, e.g. "sin derrame pleural") are also
+ *     omitted — the description lists what IS, not what isn't.
+ *     Caveat: negative-syntax descriptors that are positive findings
+ *     of the diagnosis itself (e.g. "no compresible" for appendicitis,
+ *     "avascular" for cyst) stay.
+ *   - **Tags = 1-3 idiomatic clinical tags per language**, mirrored
+ *     count, ONLY drawn from concepts explicitly named in the source.
+ *     No inferred tags, no assumed tags.
+ *
+ * Reference examples in the prompt are real user-validated cases —
+ * matching their style means the model converges faster to the
+ * editorial voice the catalog already uses.
  *
  * Per-call user instruction is appended as a second user message
  * after this system message, so it can refine but not override the
@@ -298,24 +305,34 @@ TASK: Given a case in Spanish (title, description, tags), produce a refined Span
 
 EDITORIAL RULES — apply to BOTH languages:
 
-1. TITLE. Must reflect the SONOGRAPHIC diagnosis (what is visible in the ultrasound image / loop), NOT the clinical history.
-   - GOOD ES: "Edema pulmonar agudo (B-líneas confluentes bilaterales)"
-   - GOOD EN: "Acute pulmonary edema (confluent bilateral B-lines)"
+1. TITLE. Reflects the SONOGRAPHIC diagnosis (what is visible on the ultrasound), NOT the clinical history.
+   - GOOD: "Neumonía bacteriana" / "Bacterial pneumonia"
+   - GOOD: "Apendicitis aguda" / "Acute appendicitis"
+   - GOOD: "Edema pulmonar agudo" / "Acute pulmonary edema"
    - BAD: "Paciente con disnea progresiva" / "Patient with progressive dyspnea"
-   - If the original title is a clinical-history phrase, INFER the likely sonographic diagnosis from the description.
+   - Concise: typically 2-4 words. No parenthesized subtitles.
+   - If the original is a clinical-history phrase, INFER the likely sonographic diagnosis from the description.
 
-2. DESCRIPTION. ONLY ultrasound findings. OMIT clinical case narrative.
-   - INCLUDE: anatomical view, B-lines, A-lines, sliding, effusions, hyperechoic/hypoechoic, dimensions, motion patterns, probe type if mentioned.
-   - OMIT: patient demographics, symptoms, physical exam findings outside US, lab values, treatment, outcome, follow-up.
-   - Style: structured radiologic-style report. Concise but specific.
-   - Length: 1-3 sentences typical, max 5.
-   - If the original description has ONLY clinical narrative and no US findings, write a brief description of what such a case typically LOOKS LIKE on US, marked clearly as inferred.
+2. DESCRIPTION. ONLY ultrasound findings that are ACTUALLY OBSERVED.
+   - INCLUDE: anatomical view / window, findings present (consolidations, B-lines, fluid, dimensions, signs, motion patterns, compressibility, vascularity, etc.), probe type if the source mentions it.
+   - OMIT clinical narrative: patient demographics, symptoms, physical exam outside US, lab values, treatment, outcome, follow-up.
+   - **OMIT ABSENT FINDINGS** — do NOT write "sin derrame pleural", "no hay líquido libre", "descartado neumotórax", "sin signos de X", or any phrase whose purpose is to rule OUT another diagnosis. The description lists what IS, not what isn't.
+   - Caveat (KEEP these): negative-syntax descriptors that are positive findings of the diagnosis itself stay. "No compresible" (appendicitis) is a hallmark sign — keep it. "Avascular" (cyst) is a hallmark — keep it. "Sin flujo Doppler" (torsion) is a hallmark — keep it. The rule is: omit absence-of-pathology statements, keep characteristic features that happen to be syntactically negative.
+   - Style: structured radiologic-style report. Concise, specific.
+   - Length: 1-2 sentences typical. Reference style (real user-validated examples):
+     * "En ventana axilar derecha, se observa una consolidación alveolar con broncograma aéreo."
+     * "Apéndice de >6 mm de diámetro, no compresible, con signo de diana y líquido periapendicular."
 
-3. TAGS. 3-5 idiomatic clinical tags in EACH language.
-   - Map concepts, not words.
-   - Spanish: Latin American medical Spanish (Chile/Argentina conventions).
+3. TAGS. EXACTLY 1 to 3 tags per language, mirrored count between ES and EN.
+   - ONLY tag concepts EXPLICITLY named in the source (title or description). Do NOT add tags for things the source doesn't mention. Do NOT assume. Do NOT infer additional findings.
+   - When applicable, the pattern is: [diagnosis], [key finding 1], [key finding 2].
+   - Spanish: Latin American medical Spanish (Chile / Argentina conventions).
    - English: American clinical English (SCCM / EMRA / ACEP style).
-   - Example: ["B-líneas", "pulmón húmedo", "edema intersticial"] ↔ ["B-lines", "wet lungs", "interstitial syndrome"]
+   - Reference style (real user-validated examples):
+     * ["neumonía bacteriana", "consolidación alveolar", "broncograma aéreo"]
+       ↔ ["bacterial pneumonia", "alveolar consolidation", "air bronchogram"]
+     * ["apendicitis aguda", "signo de diana", "líquido periapendicular"]
+       ↔ ["acute appendicitis", "target sign", "periappendiceal fluid"]
 
 OUTPUT: strict JSON, no preamble, no markdown fences.
 {
@@ -358,9 +375,7 @@ const REWRITE_RESPONSE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-function isRewriteShape(
-  v: unknown,
-): v is {
+function isRewriteShape(v: unknown): v is {
   es: { title: string; description: string; tags: string[] };
   en: { title: string; description: string; tags: string[] };
 } {
