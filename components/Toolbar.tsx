@@ -5,9 +5,11 @@ import SavedViewsMenu from "./chrome/SavedViewsMenu";
 import type { Difficulty, SortOrder, ViewState } from "@/lib/url";
 import { useLanguage } from "@/hooks/useLanguage";
 
-/** Difficulty options the rail renders. Kept in basic→advanced order
- *  for a left-to-right "easier → harder" reading. */
-const DIFFICULTY_OPTIONS: readonly Difficulty[] = ["basic", "intermediate", "advanced"];
+// `DIFFICULTY_OPTIONS` was the source list for the chip rail that
+// got removed in May-2026 — see the comment in the render branch
+// below. The `Difficulty` type stays imported because the `Props`
+// shape still receives the URL-state value (for the Clear-button
+// reset) even though we no longer render the toggle UI.
 
 interface Props {
   /** Number of results currently visible — drives the "N casos" copy. */
@@ -64,13 +66,13 @@ export default function Toolbar({
   const { t } = useLanguage();
   const [clearShaking, setClearShaking] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasFilters = tags.length > 0 || !!query || difficulty.length > 0;
-  const toggleDifficulty = (level: Difficulty) => {
-    const next = difficulty.includes(level)
-      ? difficulty.filter((d) => d !== level)
-      : [...difficulty, level];
-    onReplace({ difficulty: next });
-  };
+  // `difficulty` is still part of the URL state (admins / bookmarks
+  // can still narrow via `?difficulty=...`) but the public Toolbar
+  // no longer exposes the toggle row. So `hasFilters` doesn't
+  // include it — a user without the UI control can't add a
+  // difficulty filter, and we don't want the Clear button to look
+  // active because of a stale URL param the user didn't set.
+  const hasFilters = tags.length > 0 || !!query;
 
   // Drop the shake timer if the component unmounts mid-wink so React
   // doesn't get a setState on an unmounted instance. A real concern
@@ -107,27 +109,14 @@ export default function Toolbar({
       >
         {t("toolbar.clearFilters")}
       </button>
-      {/* Difficulty chip rail. Three fixed options, toggleable as a
-          group — sits inline with the tag pills so the active filter
-          surface reads as one continuous row. Keep the role group
-          + accessible label so screen readers announce "Dificultad,
-          group" before the buttons. */}
-      <div className="toolbar-difficulty" role="group" aria-label={t("toolbar.difficulty.label")}>
-        {DIFFICULTY_OPTIONS.map((level) => {
-          const active = difficulty.includes(level);
-          return (
-            <button
-              key={level}
-              type="button"
-              className={`tag-chip diff-chip${active ? " active" : ""}`}
-              aria-pressed={active}
-              onClick={() => toggleDifficulty(level)}
-            >
-              {t(`case.difficulty.${level}`)}
-            </button>
-          );
-        })}
-      </div>
+      {/* The difficulty chip rail (Básico / Intermedio / Avanzado)
+          was removed from the public toolbar in May-2026. The
+          difficulty data is still set by admins via AdminThumbMenu
+          and the URL state still accepts `?difficulty=...` for
+          bookmarks, but no UI surface exposes the toggle to public
+          readers — the difficulty signal was adding visual noise
+          without informing the read experience for a sonography
+          reference catalog. */}
       {tags.length > 0 && (
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {tags.map((tag) => (

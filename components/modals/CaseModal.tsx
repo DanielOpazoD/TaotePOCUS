@@ -13,13 +13,13 @@ import { useScrollProgress } from "@/hooks/useScrollProgress";
 import { useModalShortcuts } from "@/hooks/useModalShortcuts";
 import { useLanguage } from "@/hooks/useLanguage";
 import { highlight } from "@/lib/highlight";
-import {
-  difficultyLabel,
-  getCaseMedia,
-  lastUpdatedFor,
-  readingTimeFor,
-  wasUpdatedAfterPublication,
-} from "@/lib/case-meta";
+// `difficultyLabel` and `readingTimeFor` used to drive the meta-pill
+// row in the modal header; both were removed from the public surface
+// in May-2026 (admin still sets difficulty via AdminThumbMenu, but
+// it no longer renders to readers). The helpers stay in `case-meta.ts`
+// for now in case a future surface wants them back; the unused
+// imports here are removed to keep the bundle tight.
+import { getCaseMedia, lastUpdatedFor, wasUpdatedAfterPublication } from "@/lib/case-meta";
 import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
 import { categoryLabel } from "@/lib/i18n";
 import type { CaseRecord } from "@/lib/types";
@@ -220,22 +220,24 @@ export default function CaseModal({
               {searchQuery ? highlight(titleRead.value, searchQuery) : titleRead.value}
               {titleRead.isFallback && <FallbackBadge read={titleRead} />}
             </h2>
-            <div className="modal-meta-pills">
-              <span className={`pill pill-${caso.difficulty ?? "intermediate"}`}>
-                {difficultyLabel(caso, lang)}
-              </span>
-              <span className="pill pill-muted" title={t("modal.readingTime.title")}>
-                {readingTimeFor(caso, lang)}
-              </span>
-              {wasUpdatedAfterPublication(caso) && (
+            {/* Meta-pill row. The difficulty pill (Básico / Intermedio /
+                Avanzado) and the reading-time pill were removed in
+                May-2026 — they added noise without informing the read
+                experience for a sonography reference catalog. The
+                "Actualizado" pill remains because freshness IS load-
+                bearing (a reader scanning recently-edited cases needs
+                to know which ones are fresh). The whole row collapses
+                when no pills are visible. */}
+            {wasUpdatedAfterPublication(caso) && (
+              <div className="modal-meta-pills">
                 <span
                   className="pill pill-muted"
                   title={t("modal.lastUpdated.title", { date: lastUpdatedFor(caso, lang) })}
                 >
                   {t("modal.updated")}
                 </span>
-              )}
-            </div>
+              </div>
+            )}
             <div className="modal-author">
               <div className="modal-avatar">{initials}</div>
               <div className="modal-author-meta">
