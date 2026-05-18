@@ -17,12 +17,17 @@ import { SECTIONS } from "@/lib/data";
 import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { Category, SectionId } from "@/lib/types";
+import type { AIStatusFilter } from "./types";
 
 interface Props {
   filterSection: SectionId | "";
   setFilterSection: (s: SectionId | "") => void;
   filterCat: string;
   setFilterCat: (c: string) => void;
+  /** "Estado IA" filter — surfaces cases the AI has touched
+   *  separately from hand-written ones. Default "all". */
+  filterAIStatus: AIStatusFilter;
+  setFilterAIStatus: (v: AIStatusFilter) => void;
   query: string;
   setQuery: (q: string) => void;
   pageSize: number;
@@ -54,6 +59,8 @@ export function BulkEditFilters({
   setFilterSection,
   filterCat,
   setFilterCat,
+  filterAIStatus,
+  setFilterAIStatus,
   query,
   setQuery,
   pageSize,
@@ -108,6 +115,25 @@ export function BulkEditFilters({
               </option>
             );
           })}
+        </select>
+        {/* "Estado IA" filter. Surfaces three buckets driven by
+            `translationMeta`. The use case is "show me cases I
+            auto-saved with the AI but haven't yet reviewed by
+            eye". The dropdown sits between the structural filters
+            (section/category) and the free-text search so it
+            doesn't feel like a top-level navigation control —
+            it's a refinement, like the others. */}
+        <select
+          className="bulk-edit-filter"
+          value={filterAIStatus}
+          onChange={(e) => setFilterAIStatus(e.target.value as AIStatusFilter)}
+          aria-label="Filtrar por estado de IA"
+          title="Filtrar por estado de IA"
+        >
+          <option value="all">Estado IA: todos</option>
+          <option value="no-ai">Sin tocar por IA</option>
+          <option value="ai-pending">IA · pendiente revisar</option>
+          <option value="ai-reviewed">IA · revisado</option>
         </select>
         <input
           type="search"

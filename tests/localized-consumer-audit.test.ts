@@ -102,6 +102,13 @@ const WHITELIST = new Set<string>([
   // shape — no `[object Object]` risk.
   "components/admin/ai/AIRewriteModal.tsx",
   "components/admin/ai/AIBulkRewriteModal.tsx",
+
+  // AI batch undo buffer reads `caso.tags.es` / `caso.tags.en` to
+  // capture the BEFORE-state snapshot. By design — the undo
+  // operation must restore the exact bilingual slots, so the
+  // helper-based read doesn't fit (we'd lose access to the slot
+  // that was NOT preferred at read time).
+  "lib/ai-batch-undo.ts",
 ]);
 
 /**
