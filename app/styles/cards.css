@@ -711,10 +711,14 @@
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  /* 44×44 keeps Apple's recommended touch target on mobile while we
-     visually still see a 32px circle (the icon stays smaller). */
-  width: 44px;
-  height: 44px;
+  /* Smaller (May-2026) — 36×36 on mobile, 26×26 on desktop. The
+     previous 44×44 mobile target hit Apple's HIG minimum but felt
+     visually heavy on the thumbnail. 36×36 still gives a usable
+     touch surface (Material Design's 32px minimum is the next
+     threshold below) while the heart icon — visually the focus —
+     no longer competes with the cine-loop preview behind it. */
+  width: 36px;
+  height: 36px;
   background: oklch(1 0 0 / 0.92);
   border: none;
   border-radius: 50%;
@@ -726,10 +730,11 @@
 }
 @media (min-width: 880px) {
   .case-thumb-fav {
-    /* On desktop, hover doesn't need the giant target — shrink to a
-       compact pill, matching the original visual rhythm of the card. */
-    width: 32px;
-    height: 32px;
+    /* Desktop doesn't need the touch-target padding — shrink
+       further to 26×26 so the chip reads as a quiet accent over
+       the thumbnail, not a CTA. */
+    width: 26px;
+    height: 26px;
   }
 }
 .case-thumb-fav:hover {
@@ -765,8 +770,11 @@
   }
 }
 .case-thumb-fav svg {
-  width: 16px;
-  height: 16px;
+  /* Scaled down with the button (May-2026). 14px keeps the heart
+     readable inside the new 26-36px circle without crowding the
+     padding. */
+  width: 14px;
+  height: 14px;
 }
 
 /* The `.case-thumb-crit` red badge ("Crítico") was removed in May-2026

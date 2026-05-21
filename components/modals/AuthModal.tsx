@@ -101,6 +101,24 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
             overrides remaining bits where the variables aren't
             granular enough (e.g., the "Development mode" footer
             stripe in test instances). */}
+        {/* Social-only sign-in. Per user request (May-2026), we want
+            ONLY the Google OAuth path — no email/password form, no
+            sign-up link, no "or" divider. The Clerk widget shows
+            whatever the dashboard has enabled, so we layer
+            `appearance.elements` overrides to HIDE the form-based
+            sections while keeping the social-buttons block visible.
+
+            **Important ops note for the maintainer**: this CSS-side
+            hide is belt-and-suspenders. The Clerk dashboard should
+            ALSO be configured to allow only Google OAuth (Sign-in &
+            Sign-up → Strategies). Otherwise an email/password user
+            with credentials could still sign in via a direct API
+            call. To configure:
+
+              Clerk dashboard → User & Authentication → Email,
+              Phone, Username  → disable everything except OAuth.
+              Then in "Social Connections" enable only Google.
+        */}
         <SignIn
           routing="hash"
           appearance={{
@@ -122,6 +140,21 @@ function ClerkSignInModal({ onClose }: { onClose: () => void }) {
                 boxShadow: "var(--shadow-3)",
                 border: "1px solid var(--hairline)",
                 borderRadius: "var(--radius-lg)",
+              },
+              // Google-only mode: hide every non-OAuth surface.
+              // The `socialButtons*` blocks stay visible; everything
+              // form-based collapses to `display: none`.
+              dividerRow: { display: "none" },
+              formFieldRow: { display: "none" },
+              formFieldInput: { display: "none" },
+              formButtonPrimary: { display: "none" },
+              footer: { display: "none" },
+              footerAction: { display: "none" },
+              // Make the social button feel like THE primary CTA
+              // since it's now the only one.
+              socialButtonsBlockButton: {
+                fontSize: "15px",
+                padding: "12px 16px",
               },
             },
           }}
