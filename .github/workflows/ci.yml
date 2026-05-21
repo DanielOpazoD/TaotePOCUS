@@ -260,6 +260,23 @@ jobs:
       - name: Bundle size budget
         run: npm run size:check
 
+      # Sentry observability guard. Production CI builds MUST have
+      # NEXT_PUBLIC_SENTRY_DSN set; otherwise the SDK is a no-op and
+      # errors never reach Sentry. The script skips on local
+      # non-production runs. To intentionally bypass (rotating keys),
+      # set `ALLOW_MISSING_SENTRY_DSN=1` in the run env — the
+      # build logs a loud warning but proceeds.
+      - name: Sentry production guard
+        run: npm run sentry:guard
+        env:
+          # CI runs always set NODE_ENV=test for vitest; the build
+          # step above runs `next build` which sets it to production
+          # internally. Pass CI=true so the guard recognizes this is
+          # a production-targeted run regardless of when in the job
+          # it executes.
+          CI: "true"
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+
   e2e:
     name: Playwright e2e
     runs-on: ubuntu-latest
