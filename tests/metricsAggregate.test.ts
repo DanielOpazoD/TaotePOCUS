@@ -3,7 +3,7 @@
 // synthetic events and assert the dashboard-shaped output.
 
 import { describe, expect, it } from "vitest";
-import { aggregate } from "@/app/api/admin/metrics/route";
+import { aggregate } from "@/lib/metrics-aggregate";
 
 interface Ev {
   n: "lcp" | "inp" | "cls" | "fcp" | "ttfb";
