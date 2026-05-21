@@ -60,9 +60,10 @@ export function runWithViewTransition(callback: () => void): ViewTransition | nu
     callback();
     return null;
   }
-  const supportsAPI =
-    typeof (document as Document & { startViewTransition?: unknown }).startViewTransition ===
-    "function";
+  // `Document.startViewTransition` is typed natively in lib.dom (TS
+  // 5.6+). No cast needed; the optional-chain handles browsers that
+  // don't implement the API yet (Firefox <138, Safari <18).
+  const supportsAPI = typeof document.startViewTransition === "function";
   const prefersReducedMotion =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
@@ -71,26 +72,13 @@ export function runWithViewTransition(callback: () => void): ViewTransition | nu
     callback();
     return null;
   }
-  // The cast goes through because we just feature-detected
-  // `startViewTransition`. The lib.dom types may lag the API depending
-  // on the TypeScript version installed.
-  const startFn = (
-    document as Document & {
-      startViewTransition: (cb: () => void) => ViewTransition;
-    }
-  ).startViewTransition;
-  return startFn.call(document, callback);
+  return document.startViewTransition(callback);
 }
 
-/**
- * The transition object returned by `document.startViewTransition`.
- * Mirrors the spec — re-declared here so callers don't depend on the
- * exact lib.dom version. `finished` / `ready` are exposed for the
- * (rare) caller that needs to chain post-animation cleanup.
- */
-export interface ViewTransition {
-  finished: Promise<void>;
-  ready: Promise<void>;
-  updateCallbackDone: Promise<void>;
-  skipTransition: () => void;
-}
+// The `ViewTransition` interface is exported from lib.dom natively
+// (TS 5.6+). We used to re-declare it here as a defensive copy
+// against lib.dom lag — that's no longer necessary, callers can
+// import the global type directly. Re-export the lib.dom type so
+// downstream imports of `ViewTransition` from this module keep
+// working without churn.
+export type ViewTransition = globalThis.ViewTransition;

@@ -15,8 +15,13 @@ describe("TransitionLink", () => {
     pushSpy.mockClear();
   });
   afterEach(() => {
-    // @ts-expect-error — restoring after each test.
-    delete (document as Document & { startViewTransition?: unknown }).startViewTransition;
+    // `Document.startViewTransition` is typed natively in lib.dom
+    // (TS 5.6+). Tests stub it via `Object.defineProperty` below;
+    // the cleanup just removes the property so the next test starts
+    // from a known state. `delete` on a typed non-optional property
+    // needs a cast — but at least the cast is honest (we know what
+    // we're doing) instead of dancing around an old lib.dom gap.
+    delete (document as { startViewTransition?: unknown }).startViewTransition;
   });
 
   it("renders an <a> with the given href and children", () => {
