@@ -64,7 +64,11 @@ const DISABLED_RULES: ReadonlyArray<string> = [];
 // audits. `/admin` is intentionally out of scope — the admin chrome
 // is gated, has a different visual budget, and is exercised in
 // `admin.spec.ts` for functional coverage.
-const ROUTES = ["/", "/ecg", "/cases", "/info", "/rayos", "/favoritos"];
+// `/ocular` + `/neurocritico` added in May-2026 (PR #103) — they
+// render through the same `<App />` orchestrator so the test
+// shape is identical; coverage comes for free via the parametrized
+// `for` loop below.
+const ROUTES = ["/", "/ecg", "/cases", "/info", "/rayos", "/ocular", "/neurocritico", "/favoritos"];
 
 // Tags to scan. WCAG 2.1 A + AA + best-practice cover everything a
 // regulator would expect for a public educational site without
@@ -349,6 +353,86 @@ test.describe("Accessibility (axe-core)", () => {
       blocking,
       blocking.length > 0
         ? `axe found ${blocking.length} blocking violation(s) inside the shortcuts modal:\n\n` +
+            formatViolations(blocking)
+        : undefined,
+    ).toHaveLength(0);
+  });
+
+  // Auth modal. High-traffic surface (every admin login + every
+  // first-time fav attempt) and the highest a11y risk because the
+  // form fields, password input, and OAuth button all have to be
+  // labelled + focusable in the right order. Even though prod uses
+  // the Clerk widget (which has its own a11y baseline), the e2e
+  // harness runs the LEGACY auth modal (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  // is unset in playwright.config.ts) so this scan covers what
+  // tests can see.
+  test("auth modal open state passes a11y on home", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    // Wait for the catalog to hydrate before clicking "Entrar" —
+    // the legacy auth modal is dynamically imported and we want
+    // its chunk preloaded by the AppModals idle-prefetch.
+    await page.locator(".case-grid .case-card, .empty--illustrated").first().waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: "Entrar" }).first().click();
+    await expect(page.getByRole("dialog", { name: "Bienvenido de vuelta" })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    await page.waitForTimeout(500);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(AXE_TAGS)
+      .disableRules([...DISABLED_RULES])
+      .include("dialog")
+      .analyze();
+    const blocking = results.violations.filter(
+      (v) => v.impact && BLOCKING_IMPACTS.includes(v.impact),
+    );
+
+    expect(
+      blocking,
+      blocking.length > 0
+        ? `axe found ${blocking.length} blocking violation(s) inside the auth modal:\n\n` +
+            formatViolations(blocking)
+        : undefined,
+    ).toHaveLength(0);
+  });
+
+  // Empty state. Different DOM shape from the populated catalog
+  // (the illustrated SVG + CTA replace the grid). Worth a separate
+  // scan because the illustration includes inline SVG content that
+  // needs `aria-hidden` discipline + the CTA button needs a clear
+  // accessible name.
+  test("empty state passes a11y when filters yield zero results", async ({ page }) => {
+    // Search for a token that won't match any case in the catalog.
+    // The toolbar updates the URL via `?q=...` so this lands on
+    // the empty state without further interaction.
+    await page.goto("/?q=zzz-not-a-real-finding-token");
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.readyState === "complete");
+    // The empty-state illustration is the marker that we landed on
+    // the no-results branch rather than the grid.
+    await page.locator(".empty--illustrated").waitFor({
+      state: "visible",
+      timeout: 15_000,
+    });
+    await page.waitForTimeout(500);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(AXE_TAGS)
+      .disableRules([...DISABLED_RULES])
+      .analyze();
+    const blocking = results.violations.filter(
+      (v) => v.impact && BLOCKING_IMPACTS.includes(v.impact),
+    );
+
+    expect(
+      blocking,
+      blocking.length > 0
+        ? `axe found ${blocking.length} blocking violation(s) on the empty-state surface:\n\n` +
             formatViolations(blocking)
         : undefined,
     ).toHaveLength(0);
