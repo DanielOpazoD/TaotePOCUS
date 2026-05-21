@@ -58,7 +58,14 @@ export default function CaseModal({
   searchQuery,
 }: Props) {
   const { lang, t } = useLanguage();
-  const [paused, setPaused] = useState(false);
+  // Modal opens with the video paused — play-on-demand means we
+  // wait for an explicit click (center play button on the cine
+  // surface OR the chrome play toggle below). The previous default
+  // of `false` (= playing) was tied to the legacy autoplay model;
+  // keeping it would mean the chrome button shows the pause icon
+  // on open while the video is actually idle, which mis-signals
+  // the playback state to the user.
+  const [paused, setPaused] = useState(true);
   const [speed, setSpeed] = useState(1);
   const dialogRef = useNativeDialog<HTMLDialogElement>();
   const { ref: bodyRef, progress: readProgress } = useScrollProgress<HTMLDivElement>();
@@ -174,7 +181,17 @@ export default function CaseModal({
         </button>
         <div className="modal-grid">
           <div className="modal-loop">
-            <ModalLoopMedia caso={caso} mediaList={mediaList} speed={speed} paused={paused} />
+            <ModalLoopMedia
+              caso={caso}
+              mediaList={mediaList}
+              speed={speed}
+              paused={paused}
+              // Wiring the in-place play button to the same state the
+              // chrome play/pause toggle reads from — clicking either
+              // unpauses the cine surface and both reflect each
+              // other's state from then on.
+              onPlayRequest={() => setPaused(false)}
+            />
             <div className="modal-loop-controls">
               <button
                 onClick={() => setPaused((p) => !p)}

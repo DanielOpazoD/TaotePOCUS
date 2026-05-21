@@ -290,6 +290,9 @@ export const DICT_EN: Dict = {
   // ─── CineLoop chrome ──────────────────────────────────────────
   "cine.fallbackAria": "Image",
   "cine.loadingAria": "Loading video",
+  // Centered play-button overlay on idle videos (post play-on-demand
+  // pass). EN parity for `dict.es.ts:"cine.playAria"`.
+  "cine.playAria": "Play video",
 
   // ─── Synthetic-loop canvas labels ──────────────────────────────
   // ECG labels keep the universal POCUS abbreviations: STEMI is the

@@ -99,12 +99,19 @@
   overflow: hidden;
 }
 
-/* Video buffering spinner. Sits ABOVE the video's first frame
-   (which is now visible thanks to `preload="metadata"`) and BELOW
-   any chrome (z-index ladder: skeleton=1, spinner=2, chrome=3).
-   The first frame is the "image of what kind of video is coming";
-   the spinning dot is the "still loading" cue. Soft scrim on the
-   bottom half keeps the dot legible over light first-frames. */
+/* Loading spinner — used by the IMAGE / GIF branch only. The video
+   branch retired this overlay when playback flipped from autoplay
+   to play-on-demand (see CineLoop's `playable` prop): there's no
+   "still loading the file" state at the cell level for videos any
+   more — bytes only flow after the user clicks the play button,
+   and the clicked state surfaces a spinner INSIDE that button
+   (`.cine-play-button[data-buffering]`) so the loading cue lives
+   exactly where the user just tapped. Keeping this rule because
+   stills still genuinely buffer (the CDN can be slow on a cold
+   thumbnail), and a tile that's blank for 800ms with no feedback
+   reads as broken.
+
+   Z-index ladder: skeleton=1, spinner=2, chrome=3. */
 .cine-spinner {
   position: absolute;
   inset: 0;
@@ -149,6 +156,160 @@
     }
   }
 }
+/* =================== CINE PLAY BUTTON ===================
+ *
+ * The center play-button overlay introduced when video playback
+ * flipped from autoplay-on-visible to play-on-demand. Two layout
+ * roles share the same DOM/CSS surface:
+ *
+ *   - `.cine-play-button` (no modifier): a real <button>. Interactive
+ *     — clicking it calls `videoRef.current.play()`. Used in the
+ *     modal (`playable=true` on CineLoop).
+ *   - `.cine-play-button--decorative`: a <div> with the same visual
+ *     treatment but `pointer-events: none`. Used in every grid
+ *     surface so card-level clicks still open the modal (the modal
+ *     is where the user can actually play). Aria-hidden — screen
+ *     readers don't see a meaningless "button".
+ *
+ * The clickable hit zone covers the whole tile (`inset: 0`) so the
+ * tap is forgiving on touch devices; the circular badge inside
+ * gives the visual centerpoint.
+ *
+ * Z-index ladder: skeleton=1, spinner=2, chrome=3, play-button=3.
+ * Play-button sits at chrome level so the corner chrome (video
+ * icon) stays visible above it — they don't fight for the same
+ * pixel real estate (chrome is corner, play button is center). */
+.cine-play-button {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: rgba(255, 255, 255, 0.96);
+  cursor: pointer;
+  /* The cine-video has `cursor: crosshair` for the medical-imaging
+     read mode. The play-button overrides that on its bounds so the
+     "click to play" affordance is unambiguous — once the video is
+     playing the button unmounts and crosshair returns. */
+}
+.cine-play-button--decorative {
+  pointer-events: none;
+  cursor: default;
+}
+/* The visible circular badge. Decoupled from the button bounds so
+   the click target can be larger than the visual mark — common
+   pattern for tappable media (YouTube, Vimeo, native iOS players). */
+.cine-play-button-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  /* Soft shadow + subtle glow keep the badge legible against
+     bright first frames (think ultrasound shots with a lot of white
+     fluid). The drop-shadow gives depth; the inner highlight comes
+     from the border at 75% alpha. */
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  /* Glass-y blur over the poster — tasteful without obscuring it,
+     and a strong visual cue that the badge is "above" the image. */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition:
+    transform var(--duration-base) var(--ease-emphasized),
+    background var(--duration-base) var(--ease-emphasized);
+}
+.cine-play-button-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  /* Optical nudge: the play triangle's visual center sits ~2px to
+     the left of its geometric center (more mass on the left edge).
+     Shifting the icon right by that amount makes the badge feel
+     balanced. Pure cosmetic but it's the difference between "looks
+     right" and "looks vaguely off". */
+  transform: translateX(2px);
+}
+.cine-play-button-icon svg {
+  width: 100%;
+  height: 100%;
+}
+/* Hover / focus on the interactive variant: lift the badge slightly
+   and darken the backdrop so the affordance reads as "active".
+   Decorative variant intentionally has no hover — it's not
+   clickable, and a hover state would lie about that. */
+.cine-play-button:not(.cine-play-button--decorative):hover .cine-play-button-badge,
+.cine-play-button:not(.cine-play-button--decorative):focus-visible .cine-play-button-badge {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.06);
+}
+.cine-play-button:focus-visible {
+  outline: none;
+}
+.cine-play-button:focus-visible .cine-play-button-badge {
+  outline: 2px solid var(--accent, #6aa6ff);
+  outline-offset: 3px;
+}
+/* Buffering state: video.play() called but no frame yet. Swap the
+   triangle for a rotating spinner so the tap has immediate visual
+   feedback even on slow networks. The badge itself stays put — it's
+   the icon inside that flips. Reuses the existing
+   `cine-spinner-rotate` keyframes so motion vocab is consistent. */
+.cine-play-button[data-buffering="true"] .cine-play-button-icon {
+  display: none;
+}
+.cine-play-button[data-buffering="true"] .cine-play-button-badge::after {
+  content: "";
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  animation: cine-spinner-rotate 0.85s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Same accessibility shim as the legacy spinner — pulse instead
+     of rotate so vestibular-sensitive users still get the "working
+     on it" cue without continuous rotation. */
+  .cine-play-button[data-buffering="true"] .cine-play-button-badge::after {
+    animation: cine-spinner-pulse 1.4s ease-in-out infinite;
+    border-top-color: rgba(255, 255, 255, 0.6);
+  }
+  .cine-play-button:not(.cine-play-button--decorative):hover .cine-play-button-badge,
+  .cine-play-button:not(.cine-play-button--decorative):focus-visible .cine-play-button-badge {
+    /* Cut the hover scale — same darken cue, no motion. */
+    transform: none;
+  }
+}
+/* Tighter badge on phones so it doesn't dominate a 50vw tile. The
+   24px icon and the 56px badge still meet the 44×44 tap target
+   recommendation thanks to the full-tile hit zone wrapping it. */
+@media (max-width: 639.98px) {
+  .cine-play-button-badge {
+    width: 52px;
+    height: 52px;
+  }
+  .cine-play-button-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .cine-play-button[data-buffering="true"] .cine-play-button-badge::after {
+    width: 22px;
+    height: 22px;
+    border-width: 2.5px;
+  }
+}
+
 /* Soft highlight stripe across the skeleton — STATIC now (no sweep
    animation). The previous left-to-right shimmer competed with the
    spinner overlay and read as a "second loading indicator." A

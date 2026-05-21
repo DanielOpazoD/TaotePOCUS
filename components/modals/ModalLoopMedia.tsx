@@ -38,9 +38,23 @@ export interface ModalLoopMediaProps {
   speed: number;
   /** Pause state driven by the modal's play/pause toggle. */
   paused: boolean;
+  /**
+   * Called when the user clicks the center play button on any
+   * slide. The modal hooks this into its `setPaused(false)` so
+   * the chrome play/pause toggle stays in sync with the in-place
+   * affordance. See `CineLoop.Props.onPlayRequest` for the wiring
+   * rationale.
+   */
+  onPlayRequest?: () => void;
 }
 
-export default function ModalLoopMedia({ caso, mediaList, speed, paused }: ModalLoopMediaProps) {
+export default function ModalLoopMedia({
+  caso,
+  mediaList,
+  speed,
+  paused,
+  onPlayRequest,
+}: ModalLoopMediaProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(0);
   const t = useT();
@@ -83,6 +97,14 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
         media={mediaList[0] ?? caso.media}
         quality="full"
         preserveNativeAspect={true}
+        // Modal is where the user has expressed intent ("show me
+        // this case in detail"), so the play button is the real
+        // affordance — clicking it starts playback in place.
+        // Grid surfaces keep the default `playable={false}` so
+        // their button overlay stays decorative and the card-level
+        // click continues to be the open-the-modal handler.
+        playable={true}
+        onPlayRequest={onPlayRequest}
       />
     );
   }
@@ -106,6 +128,13 @@ export default function ModalLoopMedia({ caso, mediaList, speed, paused }: Modal
               media={m}
               quality="full"
               preserveNativeAspect={true}
+              // Each slide is independently playable so the user can
+              // scroll the carousel and tap play on whichever slide
+              // they're inspecting. Off-screen slides are
+              // force-paused via the `paused || i !== active` gate
+              // above, which keeps multiple decoders from competing.
+              playable={true}
+              onPlayRequest={onPlayRequest}
             />
           </div>
         ))}
