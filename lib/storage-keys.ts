@@ -116,6 +116,28 @@ export const STORAGE_KEYS = {
    *  keep both spellings aligned if the key is renamed. */
   lang: "pocus_lang",
 
+  /** User preferences blob exposed in the SettingsPanel
+   *  (`components/modals/SettingsPanel.tsx`). Persisted shape:
+   *
+   *    {
+   *      autoplay: boolean,           // default false — videos stay
+   *                                   // play-on-demand unless the user
+   *                                   // opts back in (PR #109 default).
+   *      density: "comfortable" |     // default "comfortable" — drives
+   *               "compact",          // `<html data-density>`; the
+   *                                   // CSS reads it for spacing.
+   *      reducedMotion: "auto" |      // default "auto" — honors the
+   *                     "always",     // `prefers-reduced-motion` media
+   *                                   // query. "always" forces the
+   *                                   // reduced-motion variants on
+   *                                   // every animation regardless.
+   *    }
+   *
+   *  Read by `usePreferences()` (single source of truth); applied to
+   *  `<html>` via `<PreferencesEffect>` mounted at the layout level
+   *  so CSS can scope the overrides without prop drilling. */
+  preferences: "pocus_preferences",
+
   /** Saved-view presets — named bundles of filter state (path +
    *  search params) the user can recall with one click. Persisted as
    *  `SavedView[]` (see `lib/saved-views.ts`). Per-browser (no

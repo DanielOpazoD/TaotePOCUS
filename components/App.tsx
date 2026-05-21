@@ -115,6 +115,12 @@ function AppInner() {
   const [formOpen, setFormOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // SettingsPanel — opened from the UserMenu's "Configuración" row.
+  // Sibling state of `authOpen` / `formOpen` so AppModals can mount
+  // the dialog with the rest of the modal family. Per-device prefs
+  // live in localStorage via `usePreferences()`; this state is just
+  // "is the dialog visible right now?".
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // Cmd+K / Ctrl+K command palette — single keyboard shortcut for
   // everything a power user reaches for. Bound via
   // `useShortcuts({ onCommandPalette })` below; the actual command
@@ -462,6 +468,7 @@ function AppInner() {
           favCount={favs.length}
           onNewCase={onNewCase}
           onOpenDrawer={() => setDrawerOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
           sections={config.visibleSectionsWithLabels}
         />
       </ErrorBoundary>
@@ -688,6 +695,21 @@ function AppInner() {
         authOpen={authOpen}
         onCloseAuth={() => setAuthOpen(false)}
         onLogin={login}
+        // SettingsPanel mount. The dialog owns its own internal
+        // state for which section is visible; we only control
+        // open/closed from up here. Offline data threads through
+        // so the panel can list saved cases + purge them.
+        settingsOpen={settingsOpen}
+        onCloseSettings={() => setSettingsOpen(false)}
+        allCases={allCases}
+        savedOfflineIds={offlineCases.savedIds}
+        onRemoveOffline={(caseId) => offlineCases.remove(caseId)}
+        onPurgeOffline={() => {
+          // Drop every locally tracked saved id. The SW purge
+          // happens INSIDE the SettingsPanel after this fires so
+          // the storage estimate refreshes from a clean slate.
+          for (const id of offlineCases.savedIds) offlineCases.remove(id);
+        }}
         formOpen={formOpen}
         editingCase={editingCase}
         currentUser={user}

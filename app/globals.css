@@ -42,6 +42,7 @@
 /* Modals (case modal, auth, confirm, presentation, error fallback) */
 @import "./styles/modals.css";
 @import "./styles/auth-modal.css";
+@import "./styles/settings.css";
 @import "./styles/presentation.css";
 @import "./styles/error.css";
 

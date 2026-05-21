@@ -8,6 +8,7 @@ import type { Media } from "@/lib/types";
 import { getMediaCacheEntry, markMediaLoaded } from "@/lib/media-cache";
 import { isMediaVideo } from "@/lib/media-kind";
 import { drawScene, drawChrome, type SceneLabels } from "./cineScenes";
+import { usePreferences } from "@/hooks/usePreferences";
 
 interface Props {
   kind?: string;
@@ -97,6 +98,11 @@ export default function CineLoop({
   onPlayRequest,
 }: Props) {
   const t = useT();
+  // Per-device preference: if the user explicitly opted back into
+  // autoplay via SettingsPanel, treat every "visible" state as an
+  // implicit play request. Default `false` keeps PR #109's
+  // play-on-demand behavior — the data-saver opt-out.
+  const { prefs: userPrefs } = usePreferences();
   // Resolve all synthetic-scene labels once per language change.
   // The `drawScene` call below runs inside the animation loop —
   // recomputing the object every frame would allocate ~6 strings ×
@@ -346,18 +352,24 @@ export default function CineLoop({
     const v = videoRef.current;
     if (!v) return;
     v.playbackRate = speed;
-    const shouldPlay = playRequested && !paused && visible && tabVisible;
+    // `userPrefs.autoplay` is the SettingsPanel opt-back-in: when
+    // true, the user has explicitly chosen the pre-#109 behavior
+    // (autoplay on visible). Treat it as a permanent play intent
+    // so the reconciler plays anytime the card is visible + the
+    // tab is foregrounded, without the user having to tap the
+    // center play button each time.
+    const shouldPlay = (playRequested || userPrefs.autoplay) && !paused && visible && tabVisible;
     if (shouldPlay) {
       v.play().catch(() => {
-        // Autoplay policies can reject (rare here since the user
-        // explicitly clicked play, but defensive). Clear buffering
-        // so the spinner doesn't spin forever.
+        // Autoplay policies can reject (browsers gate even muted
+        // autoplay sometimes). Clear buffering so the spinner
+        // doesn't linger.
         setBuffering(false);
       });
     } else {
       v.pause();
     }
-  }, [playRequested, paused, speed, media, visible, tabVisible]);
+  }, [playRequested, paused, speed, media, visible, tabVisible, userPrefs.autoplay]);
 
   useEffect(() => {
     if (media) return;

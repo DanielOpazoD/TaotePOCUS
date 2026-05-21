@@ -408,6 +408,44 @@ export const DICT_ES = {
   "userMenu.trigger.aria": "Abrir menú de la cuenta de {name}",
   "userMenu.popover.aria": "Acciones de la cuenta",
 
+  // ─── Settings dialog ───────────────────────────────────────────
+  // Surfaced from the avatar UserMenu's "Configuración" row.
+  // Three sections: Apariencia, Reproducción, Offline. The dialog
+  // is per-device — preferences live in localStorage, not the
+  // backup bundle (they don't follow you to a new browser).
+  "settings.menuItem": "Configuración",
+  "settings.title": "Configuración",
+  "settings.close.aria": "Cerrar configuración",
+
+  "settings.appearance.title": "Apariencia",
+  "settings.appearance.sub": "Cómo se ve la app en este dispositivo.",
+  "settings.density.label": "Densidad",
+  "settings.density.comfortable": "Cómoda",
+  "settings.density.compact": "Compacta",
+  "settings.density.help":
+    "Compacta achica los espacios y muestra más casos por pantalla; cómoda da más aire visual.",
+  "settings.motion.label": "Animaciones",
+  "settings.motion.auto": "Sistema",
+  "settings.motion.always": "Siempre reducidas",
+  "settings.motion.help":
+    "“Sistema” honra prefers-reduced-motion del SO. “Siempre reducidas” desactiva animaciones incluso si el SO las permite.",
+
+  "settings.playback.title": "Reproducción",
+  "settings.playback.sub": "Cómo se comportan los videos del Atlas.",
+  "settings.autoplay.label": "Auto-reproducir videos al pasar por encima",
+  "settings.autoplay.help":
+    "Por defecto los videos esperan a que toques play (ahorro de datos). Activá esto si tenés wifi ilimitado y querés volver a la reproducción automática como antes.",
+
+  "settings.offline.title": "Guardado offline",
+  "settings.offline.sub":
+    "Casos cuyo video guardaste para verlos sin conexión. Útil para wifi de hospital.",
+  "settings.offline.empty": "Aún no guardaste ningún caso para offline.",
+  "settings.offline.remove": "Quitar",
+  "settings.offline.remove.aria": "Quitar “{title}” del offline",
+  "settings.offline.purge": "Liberar todo el espacio offline",
+  "settings.storage.used": "{used} usados de {quota}",
+  "settings.storage.aria": "Almacenamiento usado",
+
   // ─── PWA status banners ────────────────────────────────────────
   "pwa.offline": "Estás sin conexión — viendo la versión guardada",
   "pwa.memory": "Modo privado · esta sesión es temporal",

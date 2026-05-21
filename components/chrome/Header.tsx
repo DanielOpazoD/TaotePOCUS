@@ -35,6 +35,10 @@ interface Props {
   favCount: number;
   onNewCase: () => void;
   onOpenDrawer: () => void;
+  /** Opens the settings dialog from the UserMenu's "Configuración"
+   *  row. Optional so anonymous-user / pre-auth contexts can omit
+   *  it (the menu only renders when there's a user anyway). */
+  onOpenSettings?: () => void;
   /**
    * Sections to render in the top nav. Defaults to the full `SECTIONS`
    * catalog when omitted — App.tsx forwards the visibility-filtered
@@ -55,6 +59,7 @@ export default function Header({
   favCount,
   onNewCase,
   onOpenDrawer,
+  onOpenSettings,
   sections = SECTIONS,
 }: Props) {
   const { lang, t } = useLanguage();
@@ -223,7 +228,15 @@ export default function Header({
 
               The avatar is the affordance: tap initials → menu. */}
           {user ? (
-            <UserMenu user={user} view={view} onLogout={onLogout} />
+            <UserMenu
+              user={user}
+              view={view}
+              onLogout={onLogout}
+              // Fallback no-op keeps the type tight; in practice
+              // App.tsx always passes the real opener. Older
+              // callers / focused tests can omit it.
+              onOpenSettings={onOpenSettings ?? (() => {})}
+            />
           ) : (
             <button
               className="btn-primary btn-icon-only"

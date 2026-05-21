@@ -42,6 +42,11 @@ const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 // chunk of the Clerk SDK. Most catalog visitors never click "Entrar"
 // — keep the widget out of the initial bundle and code-split it.
 const AuthModal = dynamic(() => import("./modals/AuthModal"), { ssr: false });
+// SettingsPanel pulls the preferences UI (segmented controls,
+// storage estimates, the offline-cases list). Reached only from
+// the UserMenu's "Configuración" row — keep it out of the initial
+// bundle so the public catalog doesn't pay for the prefs surface.
+const SettingsPanel = dynamic(() => import("./modals/SettingsPanel"), { ssr: false });
 
 /**
  * Warm the lazy modal chunks immediately after first paint. Without
@@ -142,6 +147,25 @@ interface Props {
   onCancelForm: () => void;
   onSaveCase: (data: CaseRecord) => Promise<void> | void;
 
+  // SettingsPanel (per-device preferences + offline storage UI).
+  // Surfaced from the UserMenu; mount lives here next to the other
+  // modal dialogs so the open-state machinery is uniform.
+  settingsOpen: boolean;
+  onCloseSettings: () => void;
+  /** Full case corpus — the SettingsPanel resolves saved ids to
+   *  case records for the offline list (title + media kind hint). */
+  allCases: CaseRecord[];
+  /** Currently-saved-for-offline case IDs from `useOfflineCases`.
+   *  The SettingsPanel renders one row per id. */
+  savedOfflineIds: Set<string>;
+  /** Drops a single id from the offline cache + the parent's
+   *  state. The panel calls this with the id of the case the user
+   *  clicked "Remove" on. */
+  onRemoveOffline: (caseId: string) => void;
+  /** Drops every offline-cached case. The panel calls this from
+   *  its "Liberar todo" button. */
+  onPurgeOffline: () => void;
+
   // Admin pipeline (delete / purge confirms)
   adminPipeline: AdminPipeline;
 
@@ -200,6 +224,12 @@ export default function AppModals(props: Props) {
     tagSuggestions,
     onCancelForm,
     onSaveCase,
+    settingsOpen,
+    onCloseSettings,
+    allCases,
+    savedOfflineIds,
+    onRemoveOffline,
+    onPurgeOffline,
     adminPipeline,
     shortcutsOpen,
     onCloseShortcuts,
@@ -257,6 +287,16 @@ export default function AppModals(props: Props) {
       )}
 
       {authOpen && <AuthModal onClose={onCloseAuth} onLogin={onLogin} />}
+
+      {settingsOpen && (
+        <SettingsPanel
+          onClose={onCloseSettings}
+          allCases={allCases}
+          savedOfflineIds={savedOfflineIds}
+          onRemoveOffline={onRemoveOffline}
+          onPurgeOffline={onPurgeOffline}
+        />
+      )}
 
       {formOpen && (
         <CaseForm

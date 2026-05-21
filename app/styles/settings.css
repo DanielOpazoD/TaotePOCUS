@@ -1,0 +1,339 @@
+/* =================== SETTINGS PANEL =================== */
+/*
+ * Per-device preferences dialog. Reached via the avatar UserMenu's
+ * "Configuración" row. The host `<dialog>` shares the same backdrop
+ * + entrance animation as every other modal in the app (see
+ * `modals.css` where the host selector is grouped with siblings).
+ *
+ * Internal layout:
+ *   header (sticky)
+ *   ── body (scrolls when content overflows)
+ *      ├── Apariencia section (density + reduced-motion)
+ *      ├── Reproducción section (autoplay opt-in toggle)
+ *      └── Offline section (storage bar + saved-case list + purge)
+ *
+ * Sections use the same vertical rhythm as `.modal-section` in the
+ * case modal so the visual cadence reads as "same app, different
+ * dialog". Segmented buttons mirror the `metrics-window-picker`
+ * style established by the RUM dashboard for radio-style choice
+ * rows.
+ */
+
+.settings-panel {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--hairline);
+}
+.settings-head h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.settings-body {
+  padding: var(--space-5);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.settings-section h3 {
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.settings-section-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: var(--space-2);
+}
+.settings-field-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+}
+.settings-help {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.45;
+}
+
+/* Segmented control — two-button radio group. Same visual vocab as
+   `.metrics-window-picker` (the RUM 7d/30d/90d picker). Sliding pill
+   illusion via the active state's `box-shadow` + `background`. */
+.settings-segmented {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 3px;
+  align-self: flex-start;
+}
+.settings-segmented-btn {
+  border: 0;
+  background: transparent;
+  color: var(--ink-mute);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+.settings-segmented-btn.is-active {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.settings-segmented-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Toggle switch — used by the autoplay opt-in row. The native
+   checkbox is visually hidden (`opacity: 0`) but the track + thumb
+   reflect its checked state via :checked sibling selector. */
+.settings-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+.settings-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.settings-toggle-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+.settings-toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--bg);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: transform 150ms ease;
+}
+.settings-toggle input:checked ~ .settings-toggle-track {
+  background: var(--accent, oklch(72% 0.14 240));
+  border-color: transparent;
+}
+.settings-toggle input:checked ~ .settings-toggle-track::after {
+  transform: translateX(16px);
+}
+.settings-toggle input:focus-visible ~ .settings-toggle-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.settings-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.settings-toggle-title {
+  font-size: 13px;
+  color: var(--ink);
+}
+.settings-toggle-help {
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.45;
+}
+
+/* Storage usage bar — quota visualisation in the Offline section.
+   Two-row layout: text row above (used / quota), bar below. */
+.settings-storage {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+.settings-storage-text {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+.settings-storage-pct {
+  font-weight: 500;
+}
+.settings-storage-bar {
+  height: 6px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.settings-storage-fill {
+  height: 100%;
+  background: var(--accent, oklch(72% 0.14 240));
+  border-radius: 999px;
+  transition: width 250ms ease;
+}
+
+.settings-empty {
+  margin: 0;
+  padding: var(--space-3);
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
+.settings-offline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Bounded so 50 saved cases don't push the storage bar + purge
+     button below the viewport fold. */
+  max-height: 240px;
+  overflow-y: auto;
+}
+.settings-offline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.settings-offline-row:hover {
+  background: var(--surface-2);
+}
+.settings-offline-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-offline-kind {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+.settings-offline-remove {
+  background: transparent;
+  border: 0;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-mute);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+.settings-offline-remove:hover {
+  color: var(--crit, var(--ink));
+  background: var(--bg-soft);
+}
+.settings-offline-purge {
+  margin-top: var(--space-3);
+  align-self: flex-start;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--crit);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+.settings-offline-purge:hover {
+  background: var(--crit-soft);
+  border-color: var(--crit);
+}
+
+/* =================== DENSITY PREF =================== */
+/* Driven by `<html data-density>` set in `PreferencesEffect`. The
+   default ("comfortable") is the current visual cadence — we only
+   define an override for "compact" so the cascade stays minimal.
+   Targets the most prominent vertical-rhythm offenders (cards,
+   meta blocks) without going full reset. */
+html[data-density="compact"] .case-card {
+  --space-card-pad: calc(var(--space-3) * 0.7);
+}
+html[data-density="compact"] .case-meta {
+  gap: 6px;
+}
+html[data-density="compact"] .case-summary {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+html[data-density="compact"] .case-grid {
+  gap: var(--space-3);
+}
+
+/* =================== REDUCED MOTION OVERRIDE =================== */
+/* Driven by `<html data-reduced-motion="always">`. Replicates the
+   effect of `@media (prefers-reduced-motion: reduce)` for users who
+   want it forced ON regardless of system setting. Targets the
+   universally noisy transitions; per-component overrides should add
+   their own selectors here as we encounter more motion. */
+html[data-reduced-motion="always"] *,
+html[data-reduced-motion="always"] *::before,
+html[data-reduced-motion="always"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
