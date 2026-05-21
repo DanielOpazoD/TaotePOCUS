@@ -5,6 +5,7 @@ import { esES } from "@clerk/localizations";
 import "./globals.css";
 import { IS_CLERK_ENABLED } from "@/lib/env";
 import { RumInit } from "@/components/chrome/RumInit";
+import { PreferencesEffect } from "@/components/chrome/PreferencesEffect";
 
 // Self-hosted Google Fonts via `next/font` — replaces the legacy
 // `<link rel="stylesheet" href="https://fonts.googleapis.com/...">`
@@ -165,6 +166,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             posture; `components/admin/MetricsPanel.tsx` is where
             an admin reads the aggregated data. */}
         <RumInit />
+        {/* Mirrors `usePreferences()` onto `<html>` as data
+            attributes so CSS can scope density + reduced-motion
+            overrides without prop drilling. Zero DOM contribution.
+            See `components/chrome/PreferencesEffect.tsx`. */}
+        <PreferencesEffect />
         {body}
       </body>
     </html>

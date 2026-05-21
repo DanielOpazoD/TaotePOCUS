@@ -322,6 +322,42 @@ export const DICT_EN: Dict = {
   "userMenu.trigger.aria": "Open {name}'s account menu",
   "userMenu.popover.aria": "Account actions",
 
+  // ─── Settings dialog ───────────────────────────────────────────
+  // EN parity for the SettingsPanel surface. See ES dict for the
+  // per-section rationale.
+  "settings.menuItem": "Settings",
+  "settings.title": "Settings",
+  "settings.close.aria": "Close settings",
+
+  "settings.appearance.title": "Appearance",
+  "settings.appearance.sub": "How the app looks on this device.",
+  "settings.density.label": "Density",
+  "settings.density.comfortable": "Comfortable",
+  "settings.density.compact": "Compact",
+  "settings.density.help":
+    "Compact tightens spacing and shows more cases per screen; comfortable gives more breathing room.",
+  "settings.motion.label": "Animations",
+  "settings.motion.auto": "System",
+  "settings.motion.always": "Always reduced",
+  "settings.motion.help":
+    "“System” honors your OS’s prefers-reduced-motion setting. “Always reduced” disables animations regardless.",
+
+  "settings.playback.title": "Playback",
+  "settings.playback.sub": "How Atlas videos behave.",
+  "settings.autoplay.label": "Autoplay videos on scroll",
+  "settings.autoplay.help":
+    "By default videos wait for you to tap play (data saver). Turn this on if you have unlimited wifi and want pre-#109 autoplay back.",
+
+  "settings.offline.title": "Saved for offline",
+  "settings.offline.sub":
+    "Cases whose video you saved for offline viewing. Useful for hospital wifi.",
+  "settings.offline.empty": "You haven’t saved any cases for offline yet.",
+  "settings.offline.remove": "Remove",
+  "settings.offline.remove.aria": "Remove “{title}” from offline",
+  "settings.offline.purge": "Free all offline storage",
+  "settings.storage.used": "{used} used of {quota}",
+  "settings.storage.aria": "Storage used",
+
   // ─── PWA status banners ────────────────────────────────────────
   "pwa.offline": "You're offline — showing the cached version",
   "pwa.memory": "Private mode · this session is temporary",

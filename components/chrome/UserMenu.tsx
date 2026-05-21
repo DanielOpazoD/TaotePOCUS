@@ -31,9 +31,13 @@ interface Props {
   user: User;
   view: View;
   onLogout: () => void;
+  /** Opens the SettingsPanel modal. The modal mount itself lives
+   *  in `AppModals` (alongside the other dialogs); the menu only
+   *  triggers it. */
+  onOpenSettings: () => void;
 }
 
-export default function UserMenu({ user, view, onLogout }: Props) {
+export default function UserMenu({ user, view, onLogout, onOpenSettings }: Props) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -133,6 +137,26 @@ export default function UserMenu({ user, view, onLogout }: Props) {
               </TransitionLink>
             </li>
           )}
+          {/* Settings row sits between Administrar and Salir so the
+              order reads: identity → role-scoped routes → account
+              prefs → session exit. Available to every authenticated
+              user (it owns prefs that aren't admin-specific). */}
+          <li role="none">
+            <button
+              type="button"
+              role="menuitem"
+              className="user-menu-item"
+              onClick={() => {
+                setOpen(false);
+                onOpenSettings();
+              }}
+            >
+              <span className="user-menu-icon" aria-hidden="true">
+                {Icon.gear()}
+              </span>
+              <span>{t("settings.menuItem")}</span>
+            </button>
+          </li>
           <li role="none">
             <button
               type="button"

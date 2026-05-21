@@ -25,6 +25,7 @@ describe("storage-keys", () => {
         "hiddenSectionIds": "hiddenSectionIds",
         "lang": "pocus_lang",
         "lastBackupAt": "pocus_last_backup_at",
+        "preferences": "pocus_preferences",
         "recentlyViewed": "pocus_recently_viewed",
         "savedViews": "pocus_saved_views",
         "schemaVersion": "pocus_schema_version",

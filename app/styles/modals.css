@@ -7,7 +7,8 @@
    `display: none` (browser default) and doesn't capture clicks. */
 dialog.confirm-dialog-host[open],
 dialog.case-modal-host[open],
-dialog.auth-modal-host[open] {
+dialog.auth-modal-host[open],
+dialog.settings-host[open] {
   position: fixed;
   inset: 0;
   margin: auto;
@@ -26,7 +27,8 @@ dialog.auth-modal-host[open] {
 }
 dialog.confirm-dialog-host::backdrop,
 dialog.case-modal-host::backdrop,
-dialog.auth-modal-host::backdrop {
+dialog.auth-modal-host::backdrop,
+dialog.settings-host::backdrop {
   background: var(--overlay-strong);
   backdrop-filter: blur(4px);
   animation: fadeIn var(--duration-slow) ease;
