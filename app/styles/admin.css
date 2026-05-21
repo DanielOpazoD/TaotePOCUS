@@ -500,17 +500,11 @@ textarea.admin-input {
   letter-spacing: -0.01em;
 }
 
-.admin-empty {
-  text-align: center;
-  padding: 60px 20px;
-  background: var(--surface);
-  border: 1px dashed var(--hairline-strong);
-  border-radius: var(--radius-lg);
-}
-.admin-empty p {
-  color: var(--ink-mute);
-  margin: 0 0 16px;
-}
+/* `.admin-empty` + `.admin-empty p` retired when MinePanel migrated
+   to the shared `EmptyState` component (see `components/EmptyState.tsx`).
+   The dashed-border + 60px padding aesthetic gave way to the
+   illustrated empty state used everywhere else in the app — one
+   visual language for "nothing here" across admin + public. */
 
 .admin-table {
   width: 100%;
@@ -1375,39 +1369,12 @@ textarea.admin-input {
   font-family: var(--sans);
 }
 
-.bulk-edit-empty {
-  text-align: center;
-  padding: var(--space-8);
-  color: var(--ink-mute);
-  font-style: italic;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.bulk-edit-empty-clear {
-  font-style: normal;
-  font-size: 12px;
-  font-family: var(--sans);
-  background: transparent;
-  border: 1px solid var(--surface-border);
-  border-radius: 999px;
-  padding: 4px 12px;
-  color: var(--ink);
-  cursor: pointer;
-  transition:
-    background-color 120ms ease,
-    border-color 120ms ease;
-}
-.bulk-edit-empty-clear:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-}
-.bulk-edit-empty-clear:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
+/* `.bulk-edit-empty` + `.bulk-edit-empty-clear` retired when the
+   table's empty branch was lifted out of `<tbody>` into the shared
+   `EmptyState` component (see `components/admin/bulk-edit/BulkEditTable.tsx`).
+   The empty now lives outside the table — same visual language as
+   the rest of the app's empty states, with the table headers no
+   longer rendering over an empty body. */
 
 .bulk-edit-pagination {
   display: flex;

@@ -374,6 +374,9 @@ export const DICT_EN: Dict = {
   "admin.mine.stats.realMedia": "With real media",
   "admin.mine.stats.categories": "Categories",
   "admin.mine.publications": "Your publications",
+  // EN parity for `dict.es.ts:"admin.mine.empty.title"`. See ES
+  // dict for the EmptyState-component rationale.
+  "admin.mine.empty.title": "No publications yet",
   "admin.mine.empty.body":
     "You haven't published any cases yet. Start by uploading your first ultrasound finding.",
   "admin.mine.empty.cta": "Publish first case",
@@ -412,9 +415,15 @@ export const DICT_EN: Dict = {
   "bulk.filter.section.all": "All sections",
   "bulk.filter.category.all": "All categories",
   "bulk.filter.search.placeholder": "Search by title, description or tag…",
+  // EN parity for `dict.es.ts:"bulk.empty.*Title"`. The body
+  // strings predate the EmptyState migration so they're short —
+  // the new titles carry the headline.
+  "bulk.empty.filteredTitle": "No matches",
   "bulk.empty.filtered": "No cases match the current filters.",
   "bulk.empty.clearFilters": "Clear filters",
-  "bulk.empty.catalog": "The catalog is empty.",
+  "bulk.empty.catalogTitle": "Empty catalog",
+  "bulk.empty.catalog":
+    "There are no cases published yet. When the first one lands, it'll show up here.",
   "bulk.action.changeSection": "Change section…",
   "bulk.action.changeSection.aria": "Change section of selected",
   "bulk.action.changeCategory": "Change category…",
