@@ -203,7 +203,10 @@
 }
 /* The visible circular badge. Decoupled from the button bounds so
    the click target can be larger than the visual mark — common
-   pattern for tappable media (YouTube, Vimeo, native iOS players). */
+   pattern for tappable media (YouTube, Vimeo, native iOS players).
+   Default sizing targets the modal (`quality="full"`); the thumb
+   variant below shrinks it for grid surfaces where 64px would
+   dominate the cell. */
 .cine-play-button-badge {
   position: relative;
   display: grid;
@@ -239,6 +242,32 @@
      balanced. Pure cosmetic but it's the difference between "looks
      right" and "looks vaguely off". */
   transform: translateX(2px);
+}
+/* Thumb-quality cine-wraps (grid cards, featured row, rails) get a
+   compact badge so the play affordance doesn't overpower the
+   thumbnail. 40px keeps a comfortable visual mark; the hit zone
+   stays the whole cell (inset: 0 on the button), so the tap target
+   is far larger than the badge implies. Mobile shrinks one more
+   step to keep proportion on 50vw tiles. Slightly thinner border
+   (1px) avoids the badge looking heavy at the small size. */
+.cine-wrap[data-quality="thumb"] .cine-play-button-badge {
+  width: 40px;
+  height: 40px;
+  border-width: 1px;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.cine-wrap[data-quality="thumb"] .cine-play-button-icon {
+  width: 16px;
+  height: 16px;
+}
+.cine-wrap[data-quality="thumb"]
+  .cine-play-button[data-buffering="true"]
+  .cine-play-button-badge::after {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
 }
 .cine-play-button-icon svg {
   width: 100%;
@@ -291,9 +320,10 @@
     transform: none;
   }
 }
-/* Tighter badge on phones so it doesn't dominate a 50vw tile. The
-   24px icon and the 56px badge still meet the 44×44 tap target
-   recommendation thanks to the full-tile hit zone wrapping it. */
+/* Phone breakpoint — shrinks both quality tiers further so the
+   badge sits proportionally on small viewports. Modal stays
+   readable; thumbs drop to ~32px (still well above a fingertip
+   thanks to the inset:0 hit zone). */
 @media (max-width: 639.98px) {
   .cine-play-button-badge {
     width: 52px;
@@ -307,6 +337,21 @@
     width: 22px;
     height: 22px;
     border-width: 2.5px;
+  }
+  .cine-wrap[data-quality="thumb"] .cine-play-button-badge {
+    width: 34px;
+    height: 34px;
+  }
+  .cine-wrap[data-quality="thumb"] .cine-play-button-icon {
+    width: 14px;
+    height: 14px;
+  }
+  .cine-wrap[data-quality="thumb"]
+    .cine-play-button[data-buffering="true"]
+    .cine-play-button-badge::after {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
   }
 }
 

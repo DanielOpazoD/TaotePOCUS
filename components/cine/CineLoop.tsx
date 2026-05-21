@@ -457,6 +457,11 @@ export default function CineLoop({
           // `data-loaded` = "paint complete" — see the `<Image>`
           // block below for that branch's flag.
           data-loaded={metadataLoaded}
+          // Lets CSS scope the play-button overlay sizing to where
+          // it's rendered: tiny in grid thumbs (40px badge), full
+          // size in the modal (64px). Without this hook the play
+          // button used to dominate small cells.
+          data-quality={quality}
         >
           <video
             ref={videoRef}

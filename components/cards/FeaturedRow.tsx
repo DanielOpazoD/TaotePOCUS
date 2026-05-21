@@ -97,6 +97,10 @@ function FeaturedCard({
           showChrome={true}
           media={caso.media}
           priority={variant === "hero"}
+          // Same split as CaseCard: the video area plays in place,
+          // the title/meta area opens the modal via the anchor
+          // cover. See CaseCard for the z-index rationale.
+          playable={true}
         />
         {/* Overlay + modality chip removed in May-2026 alongside the
             equivalent cleanup in `<CaseCard>` — see comment there. */}

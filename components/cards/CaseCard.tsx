@@ -221,6 +221,13 @@ function CaseCardImpl({
           media={caso.media}
           focus={effectiveFocus}
           priority={priority}
+          // Play the video in place on tap. The play button covers
+          // the whole cine-wrap (inset: 0) at z-index:3, above the
+          // `.case-card-link::after` anchor cover (z-index:1) — so
+          // clicks inside the video area absorb to "play", clicks in
+          // `.case-meta` (title + summary + tags) pass through to
+          // the anchor and open the modal. Two click zones, one card.
+          playable={true}
         />
         {/* `case-thumb-overlay` + `case-thumb-preview` were removed
             in May-2026 — the gradient vignette + hover-only preview
