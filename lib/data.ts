@@ -8,12 +8,25 @@
 
 import type { Category, Section } from "./types";
 
+// `label` + `sub` here are the ES BASELINE — every renderer reads
+// the localized version via `sectionLabel(id, lang)` / `sectionSub`
+// in `lib/i18n`, which falls through to the dict (`section.<id>` /
+// `section.<id>.sub`). Keep the strings in this file in sync with
+// the ES dict so a future opt-out of i18n still produces something
+// sensible. New section → see `docs/ARCHITECTURE.md` cheat sheet
+// for the full 5-file touch list.
 export const SECTIONS: Section[] = [
   { id: "atlas", label: "Atlas POCUS", sub: "Imágenes y videos ecográficos por tema" },
   { id: "ecg", label: "ECG", sub: "Electrocardiogramas con interpretación" },
   { id: "cases", label: "Casos clínicos", sub: "Historias completas con razonamiento" },
   { id: "info", label: "Infografías", sub: "Algoritmos, protocolos y referencias visuales" },
   { id: "rayos", label: "Rayos", sub: "Radiografías, TAC y otros estudios de imagen" },
+  { id: "ocular", label: "Ocular", sub: "Ecografía ocular y de nervio óptico" },
+  {
+    id: "neurocritico",
+    label: "Neurocrítico",
+    sub: "Ultrasonido en el paciente neurocrítico (ONSD, Doppler transcraneal, vainas)",
+  },
 ];
 
 export const CATEGORIES: Category[] = [
