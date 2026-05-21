@@ -674,14 +674,17 @@
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  /* Smaller (May-2026) — 36×36 on mobile, 26×26 on desktop. The
-     previous 44×44 mobile target hit Apple's HIG minimum but felt
-     visually heavy on the thumbnail. 36×36 still gives a usable
-     touch surface (Material Design's 32px minimum is the next
-     threshold below) while the heart icon — visually the focus —
-     no longer competes with the cine-loop preview behind it. */
-  width: 36px;
-  height: 36px;
+  /* MUCH smaller (May-2026 second pass) — 24×24 mobile, 20×20
+     desktop. Previous values (36/26) still read as a chip
+     competing with the thumbnail; the user called it out as
+     visually heavy. At 20px the heart is a quiet accent that
+     punches above its size on hover. Mobile keeps a slightly
+     larger surface (24px) to forgive imprecise taps even though
+     it's below Material's 32px minimum — the fav action is
+     low-stakes (toggle, idempotent, never destructive) and the
+     reward for a wrong tap is just an un-fav. */
+  width: 24px;
+  height: 24px;
   background: oklch(1 0 0 / 0.92);
   border: none;
   border-radius: 50%;
@@ -694,10 +697,10 @@
 @media (min-width: 880px) {
   .case-thumb-fav {
     /* Desktop doesn't need the touch-target padding — shrink
-       further to 26×26 so the chip reads as a quiet accent over
-       the thumbnail, not a CTA. */
-    width: 26px;
-    height: 26px;
+       further so the chip reads as a quiet accent over the
+       thumbnail, not a CTA. */
+    width: 20px;
+    height: 20px;
   }
 }
 .case-thumb-fav:hover {
@@ -733,11 +736,11 @@
   }
 }
 .case-thumb-fav svg {
-  /* Scaled down with the button (May-2026). 14px keeps the heart
-     readable inside the new 26-36px circle without crowding the
-     padding. */
-  width: 14px;
-  height: 14px;
+  /* Scaled with the second-pass shrink (May-2026). 12px keeps the
+     heart silhouette legible inside the new 20-24px circle without
+     touching the edges. */
+  width: 12px;
+  height: 12px;
 }
 
 /* The `.case-thumb-crit` red badge ("Crítico") was removed in May-2026
