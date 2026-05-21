@@ -46,6 +46,16 @@
   --section-accent-ink: var(--xray);
   --section-accent-soft: oklch(from var(--xray) l c h / 0.12);
 }
+.layout[data-section="ocular"] {
+  --section-accent: var(--ocular);
+  --section-accent-ink: var(--ocular);
+  --section-accent-soft: oklch(from var(--ocular) l c h / 0.14);
+}
+.layout[data-section="neurocritico"] {
+  --section-accent: var(--neuro);
+  --section-accent-ink: var(--neuro);
+  --section-accent-soft: oklch(from var(--neuro) l c h / 0.14);
+}
 
 /* Section accents flow into the case-cat label and the diagnosis box */
 .layout .case-cat {

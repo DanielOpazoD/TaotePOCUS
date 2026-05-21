@@ -31,8 +31,9 @@ describe("lib/data — IMPORT_MARKER_TAG", () => {
 describe("lib/data — sections + categories shape", () => {
   it("ships exactly the expected built-in section ids", () => {
     // SectionId is a literal union; the array must mirror it.
+    // `ocular` + `neurocritico` were added in May-2026.
     expect(SECTIONS.map((s) => s.id).sort()).toEqual(
-      ["atlas", "cases", "ecg", "info", "rayos"].sort(),
+      ["atlas", "cases", "ecg", "info", "neurocritico", "ocular", "rayos"].sort(),
     );
   });
 

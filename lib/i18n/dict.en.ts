@@ -75,6 +75,11 @@ export const DICT_EN: Dict = {
   "section.info.sub": "Algorithms, protocols and visual references",
   "section.rayos": "Imaging",
   "section.rayos.sub": "Radiographs, CT and other imaging studies",
+  "section.ocular": "Ocular",
+  "section.ocular.sub": "Ocular and optic nerve ultrasound",
+  "section.neurocritico": "Neurocritical",
+  "section.neurocritico.sub":
+    "Ultrasound in the neurocritical patient (ONSD, transcranial Doppler, sheaths)",
 
   // ─── Built-in categories ───────────────────────────────────────
   "category.cardiac": "Cardiac",

@@ -1,4 +1,12 @@
-export type SectionId = "atlas" | "ecg" | "cases" | "info" | "rayos";
+// Top-level catalog sections. Each id maps to a route under `app/`
+// (the default `/` is `atlas`; other ids become `/<id>`), a label
+// in the i18n dict (`section.<id>` / `section.<id>.sub`), and a
+// layout accent in `app/styles/layout.css`.
+//
+// Adding one means touching all five places (the cheat sheet in
+// `docs/ARCHITECTURE.md` enumerates them) — see PR #103 for an
+// example of the full pattern (Ocular + Neurocrítico).
+export type SectionId = "atlas" | "ecg" | "cases" | "info" | "rayos" | "ocular" | "neurocritico";
 
 export interface Section {
   id: SectionId;
