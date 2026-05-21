@@ -49,6 +49,37 @@ interface Props {
    * candidates for LCP.
    */
   priority?: boolean;
+  /**
+   * Whether the centered play-button overlay is interactive
+   * (clicking it starts playback) or purely decorative (visual
+   * "this is a video" cue with `pointer-events: none`).
+   *
+   * Default `false` — used by every grid surface, where the card
+   * itself is the click target (it opens the modal) and the
+   * decorative overlay just communicates "video inside, you'll
+   * be able to play it after opening". `true` in the modal
+   * (`ModalLoopMedia`) where the user has expressed intent and
+   * clicking play in-place is the expected affordance.
+   *
+   * Videos NEVER autoplay regardless of this flag — the play
+   * button is the only way to start playback. This is intentional
+   * data-saving behavior (see the file header comment on
+   * `preload="metadata"` for the broader strategy).
+   */
+  playable?: boolean;
+  /**
+   * Optional callback fired when the user clicks the center play
+   * button. The CineLoop already toggles its own internal play
+   * state; this hook lets a parent that also tracks playback
+   * (e.g. the modal's chrome play/pause toggle) stay in sync.
+   *
+   * Without this, the modal's `paused=true` initial state would
+   * race against the button's local `playRequested=true` — the
+   * reconciler would call play() then immediately pause(). The
+   * modal handler clears its `paused` state, the reconciler
+   * re-runs in agreement, and playback starts cleanly.
+   */
+  onPlayRequest?: () => void;
 }
 
 export default function CineLoop({
@@ -62,6 +93,8 @@ export default function CineLoop({
   preserveNativeAspect = false,
   focus,
   priority = false,
+  playable = false,
+  onPlayRequest,
 }: Props) {
   const t = useT();
   // Resolve all synthetic-scene labels once per language change.
@@ -143,15 +176,51 @@ export default function CineLoop({
   const [loaded, setLoaded] = useState(cached?.loaded ?? false);
   // Two-stage video loading: `metadataLoaded` flips when the browser
   // has the first frame painted (cheap, via `preload="metadata"`);
-  // `loaded` flips when there's enough buffer to start playing. The
-  // gap between the two is where we replace the shimmer skeleton
-  // with a spinner overlay on top of the visible first frame — so
-  // the reader sees a real preview of the case content + a clear
-  // "still loading" cue, instead of a generic gray block.
+  // `loaded` flips when there's enough buffer to start playing. Post
+  // play-on-demand, `metadataLoaded` is the one that matters — once
+  // the poster is ready we unmount the skeleton and the play-button
+  // overlay takes over. `loaded` is kept for the cache contract
+  // (markMediaLoaded) and the image-branch reuse below.
   // Same cache-seed treatment as `loaded` above — if we know the
   // asset was loaded before, both flags start at `true` and the
-  // skeleton / spinner skip rendering entirely on remount.
+  // skeleton skips rendering entirely on remount.
   const [metadataLoaded, setMetadataLoaded] = useState(cached?.loaded ?? false);
+  // Play-on-demand state. Three flags, intentional separation:
+  //
+  //   - `playRequested`: did the user click the play button at some
+  //     point during this card's lifetime? Sticky — only resets when
+  //     `media.src` changes. Lets us resume on scroll-back-into-view
+  //     without re-prompting the user.
+  //   - `isPlaying`: is the <video> element actively playing right
+  //     now? Mirror of native `play`/`pause` events. Drives whether
+  //     the play-button overlay is rendered.
+  //   - `buffering`: did the user just click play and we're waiting
+  //     for the first frame to actually start? Drives the spinner
+  //     INSIDE the play button. Clears as soon as `playing` event
+  //     fires, OR if the play() promise rejects.
+  //
+  // The previous (PR #X) implementation autoplayed every visible
+  // card via IntersectionObserver. With ~15 cards × N-MB clips, the
+  // page used disposable bandwidth on every Atlas open even when the
+  // user only clicked into one or two. Play-on-demand keeps the
+  // poster (free with `preload="metadata"`) and gates byte transfer
+  // on an explicit click.
+  const [playRequested, setPlayRequested] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  // Bridges the modal's chrome play/pause toggle (which writes
+  // `paused`) into our internal `playRequested` flag, so the two
+  // controls speak the same language: clicking chrome-play has the
+  // same effect as clicking the center badge.
+  //
+  // We can't naively set `playRequested = true` whenever `paused`
+  // is false — that would autoplay every grid surface (which
+  // mounts with the default `paused: false`). The ref skips the
+  // initial render so only a SUBSEQUENT flip from true→false counts
+  // as an explicit play intent. Grid: never flips (always false),
+  // skipped on mount → no autoplay. Modal: starts true, user
+  // clicks chrome-play → flips to false → counts as intent.
+  const skipInitialPausedSyncRef = useRef(true);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -212,6 +281,13 @@ export default function CineLoop({
   // CAN change on the same mounted CineLoop (admin media edit) — we
   // don't want to lose the optimization in that case either.
   useEffect(() => {
+    // src change always resets the user's "play me" intent — a new
+    // video isn't an implicit continuation of the previous one.
+    // Without this, an admin swapping the case media (rare path)
+    // would auto-resume the new video as if it were the same clip.
+    setPlayRequested(false);
+    setIsPlaying(false);
+    setBuffering(false);
     if (!media?.src) {
       setLoaded(false);
       setMetadataLoaded(false);
@@ -237,13 +313,51 @@ export default function CineLoop({
     return () => mq.removeEventListener?.("change", onChange);
   }, []);
 
+  // Watch parent `paused`: any transition to false (after mount)
+  // counts as a play intent. See the comment on
+  // `skipInitialPausedSyncRef` above for why we skip the first
+  // render. Also covers the carousel case: when a slide becomes
+  // the active one, its `paused` flips false → it auto-resumes if
+  // the user had played any slide in this modal session.
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-      if (paused || !visible || !tabVisible) videoRef.current.pause();
-      else videoRef.current.play().catch(() => {});
+    if (skipInitialPausedSyncRef.current) {
+      skipInitialPausedSyncRef.current = false;
+      return;
     }
-  }, [paused, speed, media, visible, tabVisible]);
+    if (!paused) setPlayRequested(true);
+  }, [paused]);
+
+  useEffect(() => {
+    // Play-on-demand reconciler. The video plays IFF:
+    //   1. The user has clicked play at least once (playRequested).
+    //   2. The parent isn't force-pausing us (e.g. the modal's
+    //      chrome pause toggle, or the carousel parking off-screen
+    //      slides via `paused || i !== active`).
+    //   3. The card is on-screen (visible) — pause when scrolled
+    //      away to free decoder slots & bandwidth.
+    //   4. The tab is in the foreground (tabVisible) — pause when
+    //      the user switches tabs.
+    //
+    // When all four are true, calling play() is idempotent (no-op
+    // if already playing). When any becomes false we pause but
+    // DON'T clear playRequested — coming back into view resumes
+    // automatically, which matches user expectation ("I asked you
+    // to play this; the brief scroll-away shouldn't be a re-prompt").
+    const v = videoRef.current;
+    if (!v) return;
+    v.playbackRate = speed;
+    const shouldPlay = playRequested && !paused && visible && tabVisible;
+    if (shouldPlay) {
+      v.play().catch(() => {
+        // Autoplay policies can reject (rare here since the user
+        // explicitly clicked play, but defensive). Clear buffering
+        // so the spinner doesn't spin forever.
+        setBuffering(false);
+      });
+    } else {
+      v.pause();
+    }
+  }, [playRequested, paused, speed, media, visible, tabVisible]);
 
   useEffect(() => {
     if (media) return;
@@ -334,17 +448,25 @@ export default function CineLoop({
           ref={wrapRef}
           // For videos `data-loaded` flips at metadata-load time (NOT
           // at full data-load) so the existing CSS fades the first
-          // frame in as soon as it's available. The spinner overlay
-          // below carries the "still buffering" cue from there until
-          // the data buffer is ready. Image / GIF branches stay on
-          // the original semantics — `data-loaded` = "paint complete"
-          // — see the `<Image>` block below for that branch's flag.
+          // frame in as soon as it's available. From there the
+          // play-button overlay (below) is the affordance — there's
+          // no buffering spinner at the cell level any more because
+          // bytes only flow after the user clicks play, and that
+          // click surfaces its own spinner inside the play button.
+          // Image / GIF branches stay on the original semantics —
+          // `data-loaded` = "paint complete" — see the `<Image>`
+          // block below for that branch's flag.
           data-loaded={metadataLoaded}
         >
           <video
             ref={videoRef}
             src={media.src}
-            autoPlay
+            // No `autoPlay`. Playback is gated on the user clicking
+            // the centered play-button overlay below. See the file
+            // header comment on `playRequested` for the rationale —
+            // shorthand: every Atlas open used to download every
+            // visible video; this cuts the data line to "only what
+            // the user actually wants to watch".
             loop
             muted
             playsInline
@@ -356,28 +478,25 @@ export default function CineLoop({
             // `metadata` fetches just the headers + first frame, so
             // every card paints a still preview cheaply and the byte
             // pipeline only opens for the cards that actually start
-            // playing (gated by IntersectionObserver above).
+            // playing (gated by the play-button click above).
             preload="metadata"
             className="cine-video"
             style={mediaStyle}
             onLoadedMetadata={(e) => {
               const v = e.currentTarget;
               v.playbackRate = speed;
-              // Only start playing if the card is in view AND the tab
-              // is visible. Without these guards the metadata-load
-              // event would force a play even on cards 10 rows below
-              // the fold, defeating the point of `preload="metadata"`.
-              if (paused || !visible || !tabVisible) v.pause();
-              else v.play().catch(() => {});
+              // Used to auto-play here; with play-on-demand the
+              // reconciler effect above is the single source of
+              // truth for whether play() gets called.
               const resolvedAspectStr =
                 preserveNativeAspect && v.videoWidth > 0 && v.videoHeight > 0
                   ? `${v.videoWidth} / ${v.videoHeight}`
                   : null;
               if (resolvedAspectStr) setNativeAspect(resolvedAspectStr);
               // First frame is now available — flip the skeleton off
-              // so the user sees what the case content actually looks
-              // like, and let the spinner overlay below carry the
-              // "still loading" signal until `onLoadedData` fires.
+              // so the user sees the actual content as the poster.
+              // The play button overlay below carries the "click to
+              // play" affordance from here on.
               setMetadataLoaded(true);
               // Persist into the session cache so a remount (filter
               // change → card unmounted → card remounted) skips the
@@ -385,44 +504,102 @@ export default function CineLoop({
               // wrapper doesn't relayout on remount.
               if (media.src) markMediaLoaded(media.src, resolvedAspectStr);
             }}
-            // First frame painted AND enough buffer to start playing.
-            // `loadeddata` fires earlier than `canplay` and matches
-            // when there's actually a picture to show. Flips `loaded`
-            // which removes the spinner overlay entirely.
+            // Flips the same "loaded" flag the image branch uses —
+            // matters for the cache contract (markMediaLoaded) so
+            // remounts skip the skeleton. With play-on-demand we no
+            // longer gate any UI on this event; the first frame
+            // arrives at `onLoadedMetadata` and that's all we need
+            // for the poster view.
             onLoadedData={() => {
               setLoaded(true);
-              // Idempotent — `markMediaLoaded` ran in `onLoadedMetadata`
-              // too; this second call just preserves the aspect (the
-              // helper's contract uses `??` to keep a known aspect
-              // even if the second call passes `null`).
               if (media.src) markMediaLoaded(media.src);
             }}
+            // Native playback lifecycle → drives the play-button
+            // overlay state. `playing` fires when bytes are actually
+            // flowing; `pause` when the reconciler (or anything
+            // else) pauses; `waiting` when the buffer drained
+            // mid-playback (rare on muted loops but possible on a
+            // slow link).
+            onPlaying={() => {
+              setIsPlaying(true);
+              setBuffering(false);
+            }}
+            onPause={() => {
+              setIsPlaying(false);
+              // Don't surface buffering once paused — the overlay
+              // shows the idle play-icon instead.
+              setBuffering(false);
+            }}
+            onWaiting={() => {
+              if (playRequested) setBuffering(true);
+            }}
           />
-          {/* Loading overlay — spinner is visible THE ENTIRE TIME the
-              video is loading, never just during the metadata→data
-              window. The previous implementation flipped between
-              skeleton (pre-metadata) and spinner (post-metadata),
-              which meant the user spent the first ~300ms staring at
-              a generic shimmer with no clear "this is loading
-              specifically my card" cue. Now:
-                - 0 → onLoadedMetadata: static dark backdrop + spinner
-                  (no first frame yet — the <video> is a black box,
-                  the backdrop hides it).
-                - onLoadedMetadata → onLoadedData: backdrop unmounts,
-                  the video's first frame fades in, spinner stays on
-                  top as a clear "still buffering" cue.
-                - onLoadedData → playing: spinner unmounts, video
-                  plays unobstructed.
-              Both layers are aria-hidden; the spinner carries the
-              role="status" for screen-reader announcement. */}
-          {!loaded && (
-            <>
-              {!metadataLoaded && <div className="cine-skeleton" aria-hidden="true" />}
-              <div className="cine-spinner" role="status" aria-label={t("cine.loadingAria")}>
-                <span className="cine-spinner-dot" aria-hidden="true" />
+          {/* Initial-load skeleton — sits over the <video> while
+              metadata is in-flight (poster not yet ready). Unmounts
+              as soon as `onLoadedMetadata` fires; from then on the
+              poster IS the visual placeholder behind the play
+              button. The old buffering spinner was removed in this
+              pass: with play-on-demand there's no "still loading
+              the file" state at the cell level — bytes only flow
+              after the user clicks, and the clicked state shows the
+              spinner INSIDE the play button itself (below). */}
+          {!metadataLoaded && <div className="cine-skeleton" aria-hidden="true" />}
+          {/* Play-button overlay — the new primary affordance.
+              Rendered whenever the video isn't currently playing
+              (idle pre-click, paused mid-session, or scrolled
+              off-screen + back). Two flavors:
+                - `playable=true` (modal): a real <button> that calls
+                  `videoRef.current.play()` on click. Tap target
+                  covers the whole tile so misses are forgiving.
+                - `playable=false` (every grid surface): a decorative
+                  <div> with `pointer-events: none`. The grid card is
+                  the click target; this overlay just communicates
+                  "this is a video, you'll be able to play it after
+                  opening".
+              When the user clicks (modal path) and the file is
+              still buffering, the button swaps the triangle for a
+              spinner so the tap has immediate feedback even on
+              slow networks. */}
+          {!isPlaying &&
+            (playable ? (
+              <button
+                type="button"
+                className="cine-play-button"
+                data-buffering={buffering ? "true" : "false"}
+                aria-label={t("cine.playAria")}
+                onClick={(e) => {
+                  // Stop the click from bubbling to any parent that
+                  // might re-trigger something (e.g. the modal's
+                  // wrapper). The play action is self-contained.
+                  e.stopPropagation();
+                  setPlayRequested(true);
+                  setBuffering(true);
+                  // Inform the parent that we're starting playback,
+                  // so its `paused` state (e.g. modal chrome toggle)
+                  // can stay in sync. The reconciler effect above
+                  // would otherwise see `paused=true` from the
+                  // parent and pause() right after our play().
+                  onPlayRequest?.();
+                  // Don't call play() directly here — the parent
+                  // will flip `paused` to false on the next render,
+                  // and the reconciler effect (which is the single
+                  // source of truth for whether play() runs) handles
+                  // it from there. Calling here would race the
+                  // reconciler and could fire play→pause→play in
+                  // the same tick.
+                }}
+              >
+                <span className="cine-play-button-badge" aria-hidden="true">
+                  <span className="cine-play-button-icon">{Icon.play()}</span>
+                </span>
+              </button>
+            ) : (
+              <div className="cine-play-button cine-play-button--decorative" aria-hidden="true">
+                <span className="cine-play-button-badge">
+                  <span className="cine-play-button-icon">{Icon.play()}</span>
+                </span>
               </div>
-            </>
-          )}
+            ))}
           {showChrome && (
             <div
               className="cine-chrome cine-chrome--icon"

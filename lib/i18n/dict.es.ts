@@ -363,6 +363,12 @@ export const DICT_ES = {
   // — the user sees the first frame underneath; this label tells
   // screen readers what the spinning indicator is doing.
   "cine.loadingAria": "Cargando video",
+  // Centered play-button overlay on idle videos (post play-on-demand
+  // pass). Fires whenever the user lands on a card surface and
+  // hasn't clicked play yet — short, action-oriented label so AT
+  // users hear "Reproducir video" and know exactly what activating
+  // the button will do.
+  "cine.playAria": "Reproducir video",
 
   // ─── Synthetic-loop canvas labels ──────────────────────────────
   // `components/cine/cineScenes.ts` paints these as actual pixels on
