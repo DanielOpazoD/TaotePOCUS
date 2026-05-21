@@ -350,6 +350,8 @@ export const DICT_EN: Dict = {
   // EN parity for the RUM dashboard tab and panel. See ES dict
   // for the per-key rationale.
   "admin.tab.metrics": "Metrics",
+  // EN parity for `admin.loading.aria`.
+  "admin.loading.aria": "Loading admin panel",
 
   // ─── Metrics panel (admin RUM dashboard) ───────────────────────
   "metrics.loading": "Loading metrics…",

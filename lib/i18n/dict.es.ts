@@ -435,6 +435,11 @@ export const DICT_ES = {
   // RUM dashboard tab — admin-only Core Web Vitals view. See
   // `components/admin/MetricsPanel.tsx` for the surface.
   "admin.tab.metrics": "Métricas",
+  // Screen-reader announcement for the AdminPanel chunk-loading
+  // skeleton. Fires only while the lazy `dynamic()` chunk is in
+  // flight — once the bundle lands the real panel takes over and
+  // this aria-label is gone.
+  "admin.loading.aria": "Cargando panel de administración",
 
   // ─── Metrics panel (admin RUM dashboard) ───────────────────────
   // Loading / error skeletons share the same shell so the dashboard
