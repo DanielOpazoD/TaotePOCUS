@@ -37,6 +37,24 @@ export function mediaStore() {
 }
 
 /**
+ * Store for Real-User-Monitoring web-vitals events. One blob per
+ * event, keyed `events/<YYYY-MM-DD>/<eventId>` so the admin dashboard
+ * can list a day's prefix and aggregate without scanning the entire
+ * store. See `app/api/metrics/report/route.ts` for the write path
+ * and `app/api/admin/metrics/route.ts` for the read + aggregate.
+ *
+ * Why a separate store from `imports`: different access pattern (lots
+ * of small writes vs. fewer larger reads), different lifecycle (events
+ * can be aged out / purged independently), and a separate Blobs
+ * namespace makes the admin's "purge metrics" affordance scoped.
+ */
+export const METRICS_STORE = "web-vitals";
+
+export function metricsStore() {
+  return getStore(METRICS_STORE);
+}
+
+/**
  * Image extensions the optimization pipeline knows how to re-encode
  * into AVIF + WebP variants. Anything outside this set (videos, GIFs)
  * is served as-is from the original key — the negotiation in

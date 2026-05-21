@@ -347,6 +347,33 @@ export const DICT_EN: Dict = {
   "admin.tab.focus": "Focus",
   "admin.tab.focus.title":
     "Configure default focus and zoom globally, per section, or per category",
+  // EN parity for the RUM dashboard tab and panel. See ES dict
+  // for the per-key rationale.
+  "admin.tab.metrics": "Metrics",
+
+  // ─── Metrics panel (admin RUM dashboard) ───────────────────────
+  "metrics.loading": "Loading metrics…",
+  "metrics.errorPrefix": "Could not load metrics",
+  "metrics.title": "Real-user metrics (Web Vitals)",
+  "metrics.summary": "{total} events · {days} days with data",
+  "metrics.empty.title": "No events yet",
+  "metrics.empty.sub": "Once users navigate, Web Vitals will appear here.",
+  "metrics.empty.checkA": "Confirm the service worker is active (DevTools → Application → SW).",
+  "metrics.empty.checkB": "The /api/metrics/report endpoint should reply 204 to a test POST.",
+  "metrics.empty.checkC": "Users with Do Not Track enabled don't send beacons — that's by design.",
+  "metrics.window.aria": "Time window",
+  "metrics.window.days": "{n}d",
+  "metrics.card.count": "{n} samples",
+  "metrics.series.title": "Daily trend (p75)",
+  "metrics.series.aria.lcp": "LCP p75 daily trend",
+  "metrics.series.aria.inp": "INP p75 daily trend",
+  "metrics.series.aria.cls": "CLS p75 daily trend",
+  "metrics.routes.title": "By route",
+  "metrics.routes.col.route": "Route",
+  "metrics.routes.col.count": "Events",
+  "metrics.foot.privacy":
+    "No IP, no user-agent, no session — just metric, route, and viewport bucket. Honors Do Not Track.",
+  "metrics.foot.generated": "Generated at {time}",
 
   // ─── Focus editor (shared widget) ──────────────────────────────
   "focus.editor.foco": "FOCUS",

@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { esES } from "@clerk/localizations";
 import "./globals.css";
 import { IS_CLERK_ENABLED } from "@/lib/env";
+import { RumInit } from "@/components/chrome/RumInit";
 
 // Self-hosted Google Fonts via `next/font` — replaces the legacy
 // `<link rel="stylesheet" href="https://fonts.googleapis.com/...">`
@@ -158,6 +159,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}>
+        {/* Subscribes the browser to Core Web Vitals events and
+            beacons them to `/api/metrics/report`. Honors Do Not
+            Track. See `lib/rum.ts` for the wire format + privacy
+            posture; `components/admin/MetricsPanel.tsx` is where
+            an admin reads the aggregated data. */}
+        <RumInit />
         {body}
       </body>
     </html>

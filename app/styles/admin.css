@@ -2653,3 +2653,270 @@ textarea.ai-suggestions-field-input {
   background: oklch(1 0 0 / 0.4);
   color: var(--ink);
 }
+
+/* =================== METRICS PANEL (admin RUM dashboard) ===================
+ *
+ * Three regions stack vertically:
+ *   1. `metrics-cards` — five Core Web Vitals cards in a responsive
+ *      grid. Each card carries its own status color (good / ni / poor)
+ *      computed against Google's CWV thresholds.
+ *   2. `metrics-series` — one row per metric, with a label + a
+ *      thin SVG sparkline + the current p75 value. The polyline
+ *      uses `currentColor` so the trend modifier classes
+ *      (`--up`/`--down`/`--flat`) drive the line color.
+ *   3. `metrics-routes` — per-route table. Cells carry status
+ *      colors as a 4-px left border + bg tint so the admin can
+ *      scan vertically for slow surfaces.
+ *
+ * Color philosophy: STATUS lives in the cells, not in chrome. The
+ * panel itself is the same neutral surface as every other admin
+ * panel. Only the metric values pop. This keeps the visual weight
+ * proportional to the information (Stripe-Docs-style restraint pass
+ * — see the May-2026 token comment in `tokens.css`).
+ */
+.metrics-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+}
+.metrics-panel--loading,
+.metrics-panel--error {
+  padding: var(--space-6);
+  color: var(--ink-mute);
+}
+.metrics-panel--error {
+  color: var(--crit);
+}
+.metrics-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.metrics-panel-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.metrics-panel-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+.metrics-window-picker {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 3px;
+}
+.metrics-window-btn {
+  border: 0;
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+.metrics-window-btn.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.metrics-empty {
+  padding: var(--space-5);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--hairline-strong);
+}
+.metrics-empty h4 {
+  margin: 0 0 var(--space-3);
+  font-size: 14px;
+}
+.metrics-empty ul {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.6;
+}
+
+.metrics-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+.metric-card {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-left: 4px solid var(--hairline-strong);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.metric-card--good {
+  border-left-color: var(--accent, oklch(70% 0.15 145));
+}
+.metric-card--ni {
+  border-left-color: oklch(70% 0.15 75);
+}
+.metric-card--poor {
+  border-left-color: var(--crit);
+}
+.metric-card--empty {
+  opacity: 0.55;
+}
+.metric-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.metric-card-headline {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.metric-card-percentiles {
+  display: flex;
+  gap: var(--space-3);
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+}
+
+.metrics-series {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.metrics-series h4,
+.metrics-routes h4 {
+  margin: 0 0 var(--space-2);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-weight: 500;
+}
+.metrics-sparkline {
+  display: grid;
+  grid-template-columns: 84px 1fr 80px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--ink-mute);
+}
+.metrics-sparkline--flat {
+  color: var(--ink-mute);
+}
+.metrics-sparkline--up {
+  color: var(--crit);
+}
+.metrics-sparkline--down {
+  color: var(--accent, oklch(60% 0.13 145));
+}
+.metrics-sparkline--empty {
+  opacity: 0.4;
+}
+.metrics-sparkline-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+}
+.metrics-sparkline-svg {
+  width: 100%;
+  height: 32px;
+  display: block;
+}
+.metrics-sparkline-current {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: right;
+  color: var(--ink);
+}
+.metrics-sparkline-flat {
+  font-family: var(--mono);
+  text-align: center;
+  color: var(--ink-mute);
+}
+
+.metrics-routes {
+  overflow-x: auto;
+}
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.metrics-table thead th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  font-weight: 500;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--hairline);
+}
+.metrics-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--mono);
+  color: var(--ink);
+}
+.metrics-table-route {
+  font-family: var(--mono);
+  color: var(--ink);
+}
+.metrics-table-cell {
+  border-left: 3px solid transparent;
+}
+.metrics-table-cell--good {
+  border-left-color: var(--accent, oklch(70% 0.15 145));
+}
+.metrics-table-cell--ni {
+  border-left-color: oklch(70% 0.15 75);
+  background: oklch(98% 0.04 75 / 0.4);
+}
+.metrics-table-cell--poor {
+  border-left-color: var(--crit);
+  background: var(--crit-soft);
+}
+.metrics-table-cell--empty {
+  color: var(--ink-mute);
+}
+
+.metrics-panel-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--hairline);
+  color: var(--ink-mute);
+  font-size: 11px;
+  font-family: var(--mono);
+}
