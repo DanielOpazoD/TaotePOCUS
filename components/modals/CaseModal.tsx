@@ -22,6 +22,7 @@ import { highlight } from "@/lib/highlight";
 import { getCaseMedia, lastUpdatedFor, wasUpdatedAfterPublication } from "@/lib/case-meta";
 import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
 import { categoryLabel } from "@/lib/i18n";
+import { isMediaVideo } from "@/lib/media-kind";
 import type { CaseRecord } from "@/lib/types";
 
 interface Props {
@@ -38,6 +39,14 @@ interface Props {
    *  a search result and opened the modal: the highlight makes it
    *  obvious WHY the case was in the result set. */
   searchQuery?: string;
+  /** Whether this case's video is saved for offline. Drives the
+   *  pressed state of the "Guardar offline" toggle in the footer. */
+  isOffline?: boolean;
+  /** True while the SW is processing a save / remove for this case. */
+  offlinePending?: boolean;
+  /** Toggle the offline state. Hidden entirely when not provided
+   *  (admin contexts that don't wire this up keep the old footer). */
+  onToggleOffline?: () => void;
   // Admin-only chrome (edit / restore / mark reviewed / soft-delete /
   // permanent-delete) used to live as text buttons in the modal
   // footer. They were removed in May-2026 because the footer was
@@ -56,6 +65,9 @@ export default function CaseModal({
   onShare,
   onPresent,
   searchQuery,
+  isOffline = false,
+  offlinePending = false,
+  onToggleOffline,
 }: Props) {
   const { lang, t } = useLanguage();
   // Modal opens with the video paused — play-on-demand means we
@@ -331,6 +343,36 @@ export default function CaseModal({
               >
                 {Icon.presentation()}
               </button>
+              {/* Selective-offline toggle. Only renders for video
+                  cases — image-only cases are already covered by
+                  the existing media-image runtime cache rule in
+                  `app/sw.ts` (no separate opt-in needed). Pressed
+                  state mirrors the favorite button's accent
+                  treatment so the visual language is consistent.
+                  While the SW round-trips, the icon swaps for a
+                  spinner so a slow network doesn't read as "click
+                  ignored". */}
+              {onToggleOffline && isMediaVideo(caso.media) && (
+                <button
+                  type="button"
+                  className={"modal-action modal-action--offline" + (isOffline ? " is-active" : "")}
+                  onClick={onToggleOffline}
+                  disabled={offlinePending}
+                  aria-label={
+                    isOffline ? t("modal.offline.remove.aria") : t("modal.offline.save.aria")
+                  }
+                  aria-pressed={isOffline}
+                  title={
+                    isOffline ? t("modal.offline.remove.title") : t("modal.offline.save.title")
+                  }
+                >
+                  {offlinePending ? (
+                    <span className="modal-action-spinner" aria-hidden="true" role="presentation" />
+                  ) : (
+                    Icon.download()
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

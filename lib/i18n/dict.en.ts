@@ -237,6 +237,12 @@ export const DICT_EN: Dict = {
   "modal.share.title": "Copy link to case (S)",
   "modal.present.aria": "Presentation mode",
   "modal.present.title": "Presentation mode (P)",
+  // EN parity for `modal.offline.*` — see ES dict for the
+  // selective-offline contract.
+  "modal.offline.save.aria": "Save video for offline use",
+  "modal.offline.save.title": "Save video for offline viewing",
+  "modal.offline.remove.aria": "Remove from offline",
+  "modal.offline.remove.title": "Delete the saved offline video",
 
   // ─── Page heads (favs / admin / fallback) ──────────────────────
   "page.favs.title": "Your collection",

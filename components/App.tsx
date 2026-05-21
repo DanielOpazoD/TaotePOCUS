@@ -33,6 +33,7 @@ import { useCardCallbacks } from "@/hooks/useCardCallbacks";
 import { useCaseSaver } from "@/hooks/useCaseSaver";
 import { useFocusDefaults } from "@/hooks/useFocusDefaults";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import { useOfflineCases } from "@/hooks/useOfflineCases";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { runStorageMigrations } from "@/lib/storage-migrations";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
@@ -251,6 +252,12 @@ function AppInner() {
   // write site; the hook itself just exposes resolved cases + an
   // add() helper that the effect calls.
   const recentlyViewed = useRecentlyViewed(allCases, openCaseId);
+  // Selective-offline state for the medical-use case: marking a
+  // case "Guardar offline" caches its video bytes through the SW
+  // so the case plays even on a dead hospital wifi. See the hook
+  // for the boot-reconcile dance with the SW cache and the LRU
+  // eviction toast.
+  const offlineCases = useOfflineCases({ cases: allCases, notify: showToast });
   useEffect(() => {
     if (openCaseId) recentlyViewed.add(openCaseId);
     // Intentionally depend only on openCaseId — `recentlyViewed.add`
@@ -659,6 +666,13 @@ function AppInner() {
         onFav={() => openCase && toggleFav(openCase.id)}
         onShare={() => openCase && onShare(openCase)}
         onPresent={() => openCase && replacePatch({ caso: null, presenting: openCase.id })}
+        // Offline toggle — only renders inside the modal when the
+        // case actually has a video to save (the OfflineToggleButton
+        // self-gates). The `isOffline` boolean drives the button's
+        // pressed state and the badge on the matching grid card.
+        isOffline={openCase ? offlineCases.isSaved(openCase.id) : false}
+        offlinePending={offlineCases.pending}
+        onToggleOffline={() => openCase && offlineCases.toggle(openCase.id)}
         // Mirror the grid's search highlight inside the modal —
         // when the user deep-linked from a query, the matched
         // substrings in the case title + description get the same

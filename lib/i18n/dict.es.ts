@@ -279,6 +279,15 @@ export const DICT_ES = {
   "modal.share.title": "Copiar enlace al caso (S)",
   "modal.present.aria": "Modo presentación",
   "modal.present.title": "Modo presentación (P)",
+  // Selective offline toggle (see `app/sw.ts` + `useOfflineCases`).
+  // Two label states: save vs. remove. Tooltip keys spell out
+  // the data-saving contract so the user knows what they're
+  // agreeing to ("descargar para wifi inestable"). Only render
+  // for video cases — image cases are auto-cached by the SW.
+  "modal.offline.save.aria": "Guardar video para offline",
+  "modal.offline.save.title": "Guardar video para ver sin conexión",
+  "modal.offline.remove.aria": "Eliminar de offline",
+  "modal.offline.remove.title": "Borrar el video guardado para offline",
 
   // ─── Page heads (favs / admin / fallback) ──────────────────────
   // Used by `derivePageHead` for the title / sub / crumb of the
