@@ -82,11 +82,6 @@ export const DICT_ES = {
   "section.info.sub": "Algoritmos, protocolos y referencias visuales",
   "section.rayos": "Rayos",
   "section.rayos.sub": "Radiografías, TAC y otros estudios de imagen",
-  "section.ocular": "Ocular",
-  "section.ocular.sub": "Ecografía ocular y de nervio óptico",
-  "section.neurocritico": "Neurocrítico",
-  "section.neurocritico.sub":
-    "Ultrasonido en el paciente neurocrítico (ONSD, Doppler transcraneal, vainas)",
 
   // ─── Built-in categories ───────────────────────────────────────
   "category.cardiac": "Cardíaco",
@@ -97,6 +92,8 @@ export const DICT_ES = {
   "category.ob": "Obstétrico",
   "category.ms": "Musculoesquelético",
   "category.proc": "Procedimientos",
+  "category.ocular": "Ocular",
+  "category.neurocritico": "Neurocrítico",
 
   // ─── Mobile drawer ─────────────────────────────────────────────
   "drawer.categories": "Categorías",

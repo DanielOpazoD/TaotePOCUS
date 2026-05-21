@@ -43,15 +43,7 @@ export interface ViewState {
   page: number;
 }
 
-const VALID_SECTIONS: SectionId[] = [
-  "atlas",
-  "ecg",
-  "cases",
-  "info",
-  "rayos",
-  "ocular",
-  "neurocritico",
-];
+const VALID_SECTIONS: SectionId[] = ["atlas", "ecg", "cases", "info", "rayos"];
 const VALID_SORT: SortOrder[] = ["recent", "title", "featured"];
 const VALID_DIFFICULTY: Difficulty[] = ["basic", "intermediate", "advanced"];
 

@@ -4,9 +4,15 @@
 // layout accent in `app/styles/layout.css`.
 //
 // Adding one means touching all five places (the cheat sheet in
-// `docs/ARCHITECTURE.md` enumerates them) — see PR #103 for an
-// example of the full pattern (Ocular + Neurocrítico).
-export type SectionId = "atlas" | "ecg" | "cases" | "info" | "rayos" | "ocular" | "neurocritico";
+// `docs/ARCHITECTURE.md` enumerates them).
+//
+// History: `ocular` + `neurocritico` briefly lived here (PR #103)
+// but were reverted (PR #108) — they're CATEGORIES of the Atlas
+// section, not top-level sections. The corpus they live in is
+// ultrasound imagery, indistinguishable from cardiac / pulmonar /
+// abdominal at the catalog-shape level. They now sit in
+// `CATEGORIES` in `lib/data.ts`.
+export type SectionId = "atlas" | "ecg" | "cases" | "info" | "rayos";
 
 export interface Section {
   id: SectionId;
