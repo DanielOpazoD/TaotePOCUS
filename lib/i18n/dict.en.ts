@@ -315,8 +315,12 @@ export const DICT_EN: Dict = {
   "newCase.aria": "New case",
   "newCase.label": "New case",
 
-  // ─── Admin badge ───────────────────────────────────────────────
-  "admin.badge": "ADMIN",
+  // ─── User menu (avatar dropdown) ───────────────────────────────
+  // EN parity for `userMenu.*`. See ES dict for the cleanup-pass
+  // rationale (admin.badge was dropped, account-scoped actions
+  // moved behind the avatar).
+  "userMenu.trigger.aria": "Open {name}'s account menu",
+  "userMenu.popover.aria": "Account actions",
 
   // ─── PWA status banners ────────────────────────────────────────
   "pwa.offline": "You're offline — showing the cached version",

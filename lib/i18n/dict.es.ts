@@ -398,10 +398,15 @@ export const DICT_ES = {
   "newCase.aria": "Nuevo caso",
   "newCase.label": "Nuevo caso",
 
-  // ─── Admin badge ───────────────────────────────────────────────
-  // Kept uppercase across both languages — it's a status pill, not
-  // a sentence; "ADMIN" reads identically in es and en.
-  "admin.badge": "ADMIN",
+  // ─── User menu (avatar dropdown) ───────────────────────────────
+  // The `admin.badge` key (a status pill that just said "ADMIN") was
+  // dropped in the header cleanup pass — duplicated information the
+  // admin already has from logging in. The avatar dropdown now hosts
+  // every account-scoped action (Administrar + Salir). Aria labels
+  // below; the visible action labels reuse the existing
+  // `nav.administrar` and `nav.salir` keys.
+  "userMenu.trigger.aria": "Abrir menú de la cuenta de {name}",
+  "userMenu.popover.aria": "Acciones de la cuenta",
 
   // ─── PWA status banners ────────────────────────────────────────
   "pwa.offline": "Estás sin conexión — viendo la versión guardada",

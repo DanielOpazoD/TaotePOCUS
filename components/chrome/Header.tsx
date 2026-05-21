@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import TransitionLink from "./TransitionLink";
-import { preloadAdminPanel } from "../admin/preload";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { sectionLabel } from "@/lib/i18n";
@@ -11,6 +10,7 @@ import { viewToPath } from "@/lib/url";
 import type { Section, User, View } from "@/lib/types";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
+import UserMenu from "./UserMenu";
 
 /**
  * Returns true when the user is currently typing in a field. We use it
@@ -119,12 +119,12 @@ export default function Header({
         >
           {Icon.menu()}
         </button>
-        {/* No `aria-label` here: WCAG SC 2.5.3 (Label in Name) flags
-            the mismatch between the visible text ("Taote POCUS ES")
-            and the dict-resolved aria-label ("Taote POCUS — home").
-            The visible text is self-describing — let it become the
-            accessible name. The lang tag is `aria-hidden` below so
-            "ES"/"EN" doesn't pollute the name for screen readers. */}
+        {/* Brand link. The earlier `.brand-tag` chip mirroring the
+            active language ("ES"/"EN") next to the wordmark was
+            removed in this pass — the interactive `LanguageSwitcher`
+            on the right already surfaces the same code with its own
+            label, and two static "ES" pills 30px apart read as a
+            broken duplicate to first-time visitors. */}
         <TransitionLink className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
@@ -155,16 +155,6 @@ export default function Header({
           <span className="brand-wordmark">
             Taote <em>POCUS</em>
           </span>
-          {/* Brand tag mirrors the active language so the wordmark
-              stays self-describing. The interactive switcher in the
-              right cluster is what changes it. `aria-hidden` because
-              this tag is decorative — the brand link's accessible
-              name is "Taote POCUS" (computed from the wordmark span
-              above), and adding "ES"/"EN" would be noisy + would
-              shift between languages. */}
-          <span className="brand-tag" aria-hidden="true">
-            {lang.toUpperCase()}
-          </span>
         </TransitionLink>
         <nav className="nav" aria-label={t("nav.aria.sections")}>
           {sections.map((s) => {
@@ -187,26 +177,12 @@ export default function Header({
           >
             {t("nav.favoritos")} {favCount > 0 && <span className="fav-count">{favCount}</span>}
           </TransitionLink>
-          {isAdmin && (
-            <TransitionLink
-              href={viewToPath({ kind: "admin" })}
-              className={`nav-admin-icon${view.kind === "admin" ? " active" : ""}`}
-              aria-current={view.kind === "admin" ? "page" : undefined}
-              aria-label={t("nav.administrar.aria")}
-              title={t("nav.administrar")}
-              // Pre-warm the lazy AdminPanel chunk on intent (hover
-              // or keyboard focus). By the time the click lands, the
-              // bundle is in HTTP cache and the panel paints
-              // ~immediately. RUM showed p75 LCP of 5s on /admin
-              // pre-fix — the bulk was chunk load + parse on click.
-              // See `components/admin/preload.ts` for why this is
-              // safe (deduped against the `dynamic()` call site).
-              onMouseEnter={preloadAdminPanel}
-              onFocus={preloadAdminPanel}
-            >
-              {Icon.gear()}
-            </TransitionLink>
-          )}
+          {/* The "Administrar" gear icon used to live here as the last
+              nav entry (admin-only). It moved into `UserMenu` because
+              section navigation is for everyone and an admin-only
+              affordance read as out of place. Pre-warming of the
+              lazy AdminPanel chunk follows the link — see
+              `components/admin/preload.ts`. */}
         </nav>
         <div className="header-search" role="search">
           <Icon.search />
@@ -236,16 +212,18 @@ export default function Header({
               <Icon.plus />
             </button>
           )}
+          {/* `UserMenu` rolls up three header surfaces that used to
+              be siblings: the role pill the admin already knew (no
+              new information), the standalone logout button (visual
+              weight), and the avatar (decorative). They share one
+              dropdown anchored to the avatar. The gear link that
+              used to live in the section nav moves into the same
+              menu — admin-only actions cluster behind the avatar
+              where account-scoped affordances belong.
+
+              The avatar is the affordance: tap initials → menu. */}
           {user ? (
-            <>
-              {isAdmin && <span className="admin-badge">{t("admin.badge")}</span>}
-              <div className="modal-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>
-                {user.initials}
-              </div>
-              <button className="btn-ghost" onClick={onLogout}>
-                {t("nav.salir")}
-              </button>
-            </>
+            <UserMenu user={user} view={view} onLogout={onLogout} />
           ) : (
             <button
               className="btn-primary btn-icon-only"

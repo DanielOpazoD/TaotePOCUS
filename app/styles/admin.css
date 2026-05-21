@@ -1,14 +1,9 @@
-/* =================== ADMIN BADGE & AUTH =================== */
-.admin-badge {
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  background: var(--ink);
-  color: var(--bg);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-}
+/* =================== AUTH =================== */
+/* `.admin-badge` retired in the header cleanup pass — the black
+   "ADMIN" chip next to the avatar duplicated information the
+   admin already knows ("yo ya sé que soy admin"). Admin-scoped
+   affordances (Administrar, Salir) now live inside the avatar
+   dropdown (`UserMenu`). */
 .auth-error {
   margin-top: var(--space-3);
   padding: 10px 12px;

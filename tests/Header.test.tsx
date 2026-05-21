@@ -52,12 +52,15 @@ describe("Header", () => {
     expect(atlas.getAttribute("aria-current")).toBeNull();
   });
 
-  it("hides the admin nav for anonymous users", () => {
+  it("hides admin chrome (avatar menu trigger + Nuevo caso) for anonymous users", () => {
     render(<Header {...baseProps} />);
-    expect(screen.queryByRole("link", { name: "Administrar" })).toBeNull();
+    // Avatar-anchored UserMenu is rendered only when there's a user;
+    // anonymous gets the "Entrar" affordance instead.
+    expect(screen.queryByRole("button", { name: /menú de la cuenta/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Nuevo caso/ })).toBeNull();
   });
 
-  it("shows the admin nav and Nuevo caso button when user is admin", () => {
+  it("shows the avatar UserMenu trigger + Nuevo caso when user is admin", () => {
     const admin: User = {
       email: "admin@taote.pocus",
       name: "Administrador",
@@ -67,9 +70,51 @@ describe("Header", () => {
       expiresAt: Date.now() + 1000,
     };
     render(<Header {...baseProps} user={admin} />);
-    expect(screen.getByRole("link", { name: "Administrar" })).toBeTruthy();
+    // The header chrome cleanup (May-2026) removed the standalone
+    // "Administrar" link in the section nav, the "ADMIN" pill, and
+    // the standalone "Salir" button. Admin-scoped actions now live
+    // INSIDE the avatar UserMenu — closed by default.
+    expect(screen.queryByRole("link", { name: "Administrar" })).toBeNull();
+    expect(screen.queryByText("ADMIN")).toBeNull();
+    // What stays visible at rest: the avatar trigger + Nuevo caso.
+    expect(screen.getByRole("button", { name: /menú de la cuenta/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Nuevo caso/ })).toBeTruthy();
-    expect(screen.getByText("ADMIN")).toBeTruthy();
+  });
+
+  it("opens the user menu on avatar click and reveals admin + logout rows", () => {
+    const admin: User = {
+      email: "admin@taote.pocus",
+      name: "Administrador",
+      initials: "AD",
+      role: "admin",
+      issuedAt: 0,
+      expiresAt: Date.now() + 1000,
+    };
+    const onLogout = vi.fn();
+    render(<Header {...baseProps} user={admin} onLogout={onLogout} />);
+    // Click the avatar — opens the dropdown.
+    fireEvent.click(screen.getByRole("button", { name: /menú de la cuenta/i }));
+    // Administrar link is admin-only and now lives inside the menu.
+    expect(screen.getByRole("menuitem", { name: /Administrar/ })).toBeTruthy();
+    // Salir row inside the menu calls onLogout.
+    const logout = screen.getByRole("menuitem", { name: /Salir/ });
+    fireEvent.click(logout);
+    expect(onLogout).toHaveBeenCalledTimes(1);
+  });
+
+  it("user menu omits Administrar row for non-admin users", () => {
+    const user: User = {
+      email: "user@taote.pocus",
+      name: "Usuaria",
+      initials: "U",
+      role: "user",
+      issuedAt: 0,
+      expiresAt: Date.now() + 1000,
+    };
+    render(<Header {...baseProps} user={user} />);
+    fireEvent.click(screen.getByRole("button", { name: /menú de la cuenta/i }));
+    expect(screen.queryByRole("menuitem", { name: /Administrar/ })).toBeNull();
+    expect(screen.getByRole("menuitem", { name: /Salir/ })).toBeTruthy();
   });
 
   it("shows the favorite count badge when favCount > 0", () => {

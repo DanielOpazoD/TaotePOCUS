@@ -100,17 +100,10 @@
   letter-spacing: -0.005em;
   color: inherit;
 }
-.brand-tag {
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  padding: 3px 7px;
-  border: 1px solid var(--hairline-strong);
-  border-radius: var(--radius-sm);
-}
+/* `.brand-tag` retired in the header cleanup pass — the small
+   ES/EN pill next to the wordmark duplicated the `LanguageSwitcher`
+   chip on the right cluster. The interactive switcher is the single
+   source for "what language am I on / how do I change it". */
 .hamburger {
   display: none;
   width: 36px;
@@ -204,28 +197,11 @@
   background: var(--surface-2);
 }
 
-/* Admin entry — icon-only (gear). Square hit-target, no text label;
-   the accessible name + tooltip carry "Administrar". The active
-   state uses a surface tint rather than the text underline (a 14px-
-   inset bar under a 18px icon would be a sliver). */
-.nav-admin-icon {
-  padding: 8px;
-  width: 36px;
-  justify-content: center;
-}
-.nav-admin-icon svg {
-  width: 18px;
-  height: 18px;
-}
-.nav-admin-icon.active {
-  background: var(--surface-2);
-  color: var(--ink);
-}
-/* Suppress the inherited `.nav a.active::after` underline — the
-   icon variant signals "active" via the surface tint above. */
-.nav-admin-icon.active::after {
-  display: none;
-}
+/* `.nav-admin-icon` retired in the header cleanup pass — the
+   gear-icon admin link moved out of the section nav and into the
+   user-menu dropdown (anchored to the avatar). See
+   `components/chrome/UserMenu.tsx`. Admin-only navigation now
+   clusters behind the avatar where account-scoped actions belong. */
 
 .header-search {
   flex: 1;
@@ -431,14 +407,193 @@
   }
 }
 @media (max-width: 419.98px) {
-  /* Wordmark + tag drop on the smallest phones — keep just the
-     brand mark (the SVG sigil). The brand still links to home. */
-  .brand-wordmark,
-  .brand-tag {
+  /* Wordmark drops on the smallest phones — keep just the brand
+     mark (the SVG sigil). The brand still links to home. The
+     `.brand-tag` and `.admin-badge` rules that used to live here
+     were dropped in the header cleanup pass (those elements no
+     longer exist; see header.css headers above). */
+  .brand-wordmark {
     display: none;
   }
-  /* Avatar + admin badge collapse to chip-only at this size. */
-  .admin-badge {
-    display: none;
+}
+
+/* =================== USER MENU =================== */
+/*
+ * Avatar-anchored dropdown for account-scoped actions (Administrar,
+ * Salir). Lives in the header's right cluster. Mirrors the shape +
+ * motion of `.lang-menu` (see `language.css`) — same dropdown
+ * vocabulary so the two header popovers feel related.
+ *
+ * The trigger is a button that LOOKS like the existing modal-avatar
+ * (36×36 circle, surface-2 bg, serif initials) but is now
+ * interactive. A subtle focus ring + hover lift carry the "this is
+ * clickable" cue without changing the visual at rest.
+ */
+.user-menu {
+  position: relative;
+  display: inline-flex;
+}
+.user-menu-trigger {
+  /* Button reset → avatar styling. The 32×32 footprint matches the
+     other icon-btns in the right cluster (theme toggle, language
+     switcher) so the rail keeps a stable vertical rhythm. */
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 12px;
+  /* Visual contract with the rest of the header chrome — same
+     transition timing as `.icon-btn`. */
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+.user-menu-trigger:hover {
+  background: var(--surface);
+  border-color: var(--ink-mute);
+  transform: translateY(-1px);
+}
+.user-menu-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.user-menu-trigger[aria-expanded="true"] {
+  background: var(--surface);
+  border-color: var(--ink);
+}
+.user-menu-avatar {
+  /* The initials span — already centered by the trigger's grid.
+     Inherits color + font from the button. */
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.user-menu-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: var(--shadow-2);
+  z-index: var(--z-presentation);
+  min-width: 220px;
+  /* Match `.lang-menu` entrance — same easing + duration so the
+     two header dropdowns animate identically. */
+  animation: userMenuIn 120ms var(--ease-emphasized);
+  transform-origin: top right;
+}
+@keyframes userMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .user-menu-popover {
+    animation: none;
+  }
+}
+
+/* Identity header row — name + email. Not a menuitem (descriptive
+   only), so it's deliberately non-focusable. */
+.user-menu-identity {
+  padding: 8px 10px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+.user-menu-name {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.user-menu-email {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  /* Truncate long emails so the popover doesn't grow wider than
+     its content guarantees. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+.user-menu-sep {
+  margin: 4px 0;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Menu rows — both the `<TransitionLink>` for Administrar and the
+   `<button>` for Salir share the same shape. */
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: background-color var(--duration-fast) ease;
+}
+.user-menu-item:hover,
+.user-menu-item:focus-visible {
+  background: var(--bg-soft);
+  outline: none;
+}
+.user-menu-item.is-active {
+  /* Subtle weight bump on the currently-active route ("Administrar"
+     while the user is on /admin). The brand-color accent is reserved
+     for INTERACTIONS — current page is a quiet bold. */
+  font-weight: 500;
+}
+.user-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-mute);
+  flex-shrink: 0;
+}
+.user-menu-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.user-menu-item--logout {
+  /* Logout is destructive-ish; use the muted-warn color so the row
+     reads as "leaving" without screaming. Matches the pattern used
+     for "Eliminar" rows in `AdminThumbMenu`. */
+  color: var(--crit, var(--ink));
+}
+.user-menu-item--logout .user-menu-icon {
+  color: currentColor;
+  opacity: 0.8;
 }
