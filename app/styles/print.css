@@ -33,7 +33,8 @@
   .modal-backdrop,
   .toast,
   .case-thumb-fav,
-  .case-thumb-overlay,
+  /* `.case-thumb-overlay` retired in May-2026 — the print-hide
+     entry is dropped along with it. */
   .modal-loop-controls,
   .presentation,
   .hamburger {

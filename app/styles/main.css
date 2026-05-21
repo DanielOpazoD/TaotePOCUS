@@ -31,27 +31,14 @@
   margin-bottom: var(--space-4);
   gap: var(--space-4);
   flex-wrap: wrap;
-  /* Faint section-accent wash behind the head, fading out to the
-     right. Below the h1::before bar (which is the primary identity
-     cue) but above the page background — turns the section landing
-     from "page with a label" into "page that belongs to a section."
-     Pseudo-element instead of a real div so we don't touch JSX. */
+  /* The section-accent gradient wash (a soft tinted background
+     fading right across the head) was removed in May-2026 as
+     part of the Stripe Docs-style restraint pass. The accent
+     now appears in EXACTLY ONE place per page: the 32×3px rule
+     above the h1 (see `h1::before` below). That's the brand
+     identity cue; everything else stays monochrome so the page
+     reads as "one product", not "seven micro-brands". */
   position: relative;
-  isolation: isolate;
-}
-.section-head::before {
-  content: "";
-  position: absolute;
-  inset: calc(var(--space-6) * -1) calc(var(--space-4) * -1) auto calc(var(--space-4) * -1);
-  height: 120px;
-  background: linear-gradient(
-    100deg,
-    color-mix(in oklch, var(--section-accent, var(--accent)) 9%, transparent) 0%,
-    transparent 65%
-  );
-  z-index: -1;
-  pointer-events: none;
-  border-radius: var(--radius-lg);
 }
 .section-head h1 {
   font-family: var(--serif);

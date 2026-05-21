@@ -98,7 +98,8 @@ function FeaturedCard({
           media={caso.media}
           priority={variant === "hero"}
         />
-        <div className="case-thumb-overlay"></div>
+        {/* Overlay + modality chip removed in May-2026 alongside the
+            equivalent cleanup in `<CaseCard>` — see comment there. */}
         <button
           className={`case-thumb-fav ${isFav ? "active" : ""}`}
           onClick={(e) => {
@@ -109,7 +110,6 @@ function FeaturedCard({
         >
           {Icon.heart(isFav)}
         </button>
-        <span className="case-thumb-modality">{caso.modality}</span>
       </div>
       <div className="featured-meta">
         <div className="case-cat">{cat ? categoryLabel(cat, lang) : ""}</div>

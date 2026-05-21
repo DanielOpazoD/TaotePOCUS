@@ -636,9 +636,13 @@
     var(--shadow-1),
     0 0 0 2px color-mix(in oklch, var(--section-accent, var(--accent)) 55%, transparent);
 }
-.case-card:hover .case-thumb-overlay {
-  opacity: 1;
-}
+/* `.case-thumb-overlay` was removed in May-2026 alongside its
+   hover-only `.case-thumb-preview` companion — the gradient
+   vignette + the on-hover description text added decorative
+   weight without informing the read experience. The card's
+   visible meta block below already shows category + title +
+   summary statically; the cine-loop carries the visual
+   identity. */
 .case-thumb {
   position: relative;
   aspect-ratio: 1/1;
@@ -655,58 +659,17 @@
      the structure, the hover state adds the lift cue. */
   transition: box-shadow var(--duration-base);
 }
-.case-thumb-overlay {
-  position: absolute;
-  inset: 0;
-  /* Lighter gradient — was 0.85 opacity at the bottom, now 0.6
-     via `--overlay-soft`. The thumbnails read more as photographic
-     content and less as "card-with-vignette". */
-  background: linear-gradient(180deg, transparent 60%, var(--overlay-soft) 100%);
-  opacity: 0.6;
-  pointer-events: none;
-  transition: opacity var(--duration-base);
-}
-.case-thumb-preview {
-  position: absolute;
-  inset: auto 0 0 0;
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  background: linear-gradient(180deg, transparent 0%, oklch(0.05 0 0 / 0.85) 60%);
-  color: oklch(1 0 0 / 0.95);
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity var(--duration-base) ease,
-    transform var(--duration-base) ease;
-  pointer-events: none;
-  z-index: 2;
-}
-.case-thumb-preview p {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-  letter-spacing: -0.005em;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  padding-bottom: 18px; /* leave room for modality label below */
-}
-.case-card:hover .case-thumb-preview {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.case-thumb-modality {
-  position: absolute;
-  bottom: 10px;
-  left: 12px;
-  z-index: 3;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  color: oklch(1 0 0 / 0.85);
-  text-transform: uppercase;
-}
+/* Three former selectors all retired in the May-2026 visual pass:
+     - `.case-thumb-overlay`     — gradient vignette
+     - `.case-thumb-preview`     — hover-only description text
+     - `.case-thumb-modality`    — "POCUS" / "ECG" chip pinned to
+                                   the thumbnail corner
+   All three competed visually with the cine-loop preview. The
+   modality string was largely redundant within a section view
+   (everything in /ecg is ECG) and the hover-only preview hid
+   information behind a hover gesture, broken on touch devices.
+   The card's existing meta block (category line + h2 + summary
+   paragraph) does the work statically now. */
 .case-thumb-fav {
   position: absolute;
   top: var(--space-2);
@@ -1161,7 +1124,12 @@
   font-feature-settings:
     "smcp" 1,
     "c2sc" 1;
-  color: var(--accent-ink);
+  /* May-2026 restraint pass: muted ink instead of accent ink. The
+     category label was previously the SECOND accent flow on the
+     card (after the section-head rule) — neutralizing it keeps
+     "one accent per page" honest. The small-caps + weight already
+     give the label enough typographic weight without color. */
+  color: var(--ink-mute);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -1172,7 +1140,11 @@
   place-items: center;
   width: 14px;
   height: 14px;
-  color: var(--section-accent-ink, var(--accent-ink));
+  /* Neutral ink (May-2026 restraint pass) — was tied to the
+     section accent, but with seven sections that meant seven
+     different small icon colors in the same scroll. Now sits
+     in the muted ink palette so the cards read as one set. */
+  color: var(--ink-mute);
   flex-shrink: 0;
 }
 .case-cat-glyph svg {
