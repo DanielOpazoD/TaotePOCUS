@@ -51,17 +51,24 @@ function makeCase(id: string): CaseRecord {
 
 // Snapshot the document hook so each test sees a fresh surface and
 // the regression guard below has somewhere to write a tripwire.
-const originalStartFn = (document as unknown as Record<string, unknown>).startViewTransition;
+// `Omit` makes the property truly optional so `delete` accepts it
+// (a plain intersection keeps the property required from Document).
+type StartFn = Document["startViewTransition"];
+type DocumentWithOptionalStart = Omit<Document, "startViewTransition"> & {
+  startViewTransition?: StartFn;
+};
+
+const originalStartFn = (document as DocumentWithOptionalStart).startViewTransition;
 
 beforeEach(() => {
-  delete (document as unknown as Record<string, unknown>).startViewTransition;
+  delete (document as DocumentWithOptionalStart).startViewTransition;
 });
 
 afterEach(() => {
   if (originalStartFn === undefined) {
-    delete (document as unknown as Record<string, unknown>).startViewTransition;
+    delete (document as DocumentWithOptionalStart).startViewTransition;
   } else {
-    (document as unknown as Record<string, unknown>).startViewTransition = originalStartFn;
+    (document as DocumentWithOptionalStart).startViewTransition = originalStartFn;
   }
   vi.restoreAllMocks();
 });
@@ -87,16 +94,19 @@ describe("useCardCallbacks", () => {
       // test fails loudly. The flicker bug ate four sequential
       // theory-based fixes (#75–#78) — we don't quietly reopen
       // that door.
-      const startViewTransition = vi.fn((cb: () => void) => {
+      // Mock satisfies the full ViewTransition contract (lib.dom
+      // 5.6+ requires `types`).
+      const startViewTransition = vi.fn((cb: () => void): ViewTransition => {
         cb();
         return {
           finished: Promise.resolve(),
           ready: Promise.resolve(),
           updateCallbackDone: Promise.resolve(),
           skipTransition: vi.fn(),
+          types: new Set<string>(),
         };
-      });
-      (document as unknown as Record<string, unknown>).startViewTransition = startViewTransition;
+      }) as unknown as StartFn;
+      (document as DocumentWithOptionalStart).startViewTransition = startViewTransition;
 
       const pushPatch = vi.fn();
       const { result } = renderHook(() =>

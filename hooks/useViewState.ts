@@ -82,17 +82,15 @@ export function useViewState(): ViewState & {
           patch.sort === undefined &&
           patch.page === undefined;
 
+        // `Document.startViewTransition` is typed natively in lib.dom
+        // (TS 5.6+). The optional-chain check handles browsers that
+        // haven't shipped the API yet — when absent, the URL update
+        // runs without the animation wrap.
         const supportsViewTransition =
-          typeof document !== "undefined" &&
-          typeof (document as Document & { startViewTransition?: unknown }).startViewTransition ===
-            "function";
+          typeof document !== "undefined" && typeof document.startViewTransition === "function";
 
         if (!isModalOnly && supportsViewTransition) {
-          (
-            document as Document & {
-              startViewTransition: (cb: () => void) => unknown;
-            }
-          ).startViewTransition(doIt);
+          document.startViewTransition(doIt);
         } else {
           doIt();
         }
