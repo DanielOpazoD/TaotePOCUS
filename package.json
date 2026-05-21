@@ -18,6 +18,7 @@
     "analyze": "cross-env ANALYZE=true next build",
     "size:check": "node scripts/bundle-budget.mjs",
     "size:update": "node scripts/bundle-budget.mjs --update",
+    "sentry:guard": "node scripts/sentry-prod-guard.mjs",
     "optimize:media": "node scripts/optimize-media.mjs",
     "lighthouse": "lhci autorun",
     "prepare": "husky"

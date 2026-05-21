@@ -2086,6 +2086,54 @@ textarea.ai-suggestions-field-input {
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* Row containing the AI status badge + the observability chip.
+   Flex so both wrap naturally on narrow viewports. Mounted above
+   the admin tabs. */
+.admin-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Observability chip — quiet status indicator for Sentry. Same
+   visual weight as `.ai-status-badge-cost` so the two read as a
+   matched set. Click does nothing; the full config snapshot lives
+   in the `title` attribute for hover-to-inspect. */
+.observability-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+.observability-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-mute);
+  flex: 0 0 auto;
+}
+.observability-chip--on .observability-chip-dot {
+  background: oklch(0.62 0.18 145); /* green — same as AI ok */
+}
+.observability-chip--off .observability-chip-dot {
+  background: var(--crit);
+}
+.observability-chip strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.observability-chip-env {
+  color: var(--ink-mute);
+}
+
 /* Cost dashboard chip. Right-justified next to the action button.
    Quiet visual treatment — surface area = a label, not a CTA. The
    admin reads it passively while doing other work; clicking does
