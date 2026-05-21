@@ -21,14 +21,18 @@ export const SECTIONS: Section[] = [
   { id: "cases", label: "Casos clínicos", sub: "Historias completas con razonamiento" },
   { id: "info", label: "Infografías", sub: "Algoritmos, protocolos y referencias visuales" },
   { id: "rayos", label: "Rayos", sub: "Radiografías, TAC y otros estudios de imagen" },
-  { id: "ocular", label: "Ocular", sub: "Ecografía ocular y de nervio óptico" },
-  {
-    id: "neurocritico",
-    label: "Neurocrítico",
-    sub: "Ultrasonido en el paciente neurocrítico (ONSD, Doppler transcraneal, vainas)",
-  },
 ];
 
+// Categories — system / anatomy / procedure axis WITHIN a section.
+// A case has one section (where it lives in nav) and one category
+// (the cross-cutting tag the catalog filters by).
+//
+// `ocular` + `neurocritico` were added in May-2026 (PR #108) —
+// they belong here, not in SECTIONS, because at the catalog-shape
+// level they're ultrasound topics indistinguishable from the
+// existing cardiac / lung / abdominal entries. Cases in those
+// categories live in the Atlas section, surfaced via the standard
+// `?cat=ocular` filter.
 export const CATEGORIES: Category[] = [
   { id: "cardiac", label: "Cardíaco" },
   { id: "lung", label: "Pulmonar" },
@@ -38,6 +42,8 @@ export const CATEGORIES: Category[] = [
   { id: "ob", label: "Obstétrico" },
   { id: "ms", label: "Musculoesquelético" },
   { id: "proc", label: "Procedimientos" },
+  { id: "ocular", label: "Ocular" },
+  { id: "neurocritico", label: "Neurocrítico" },
 ];
 
 export const COMMON_TAGS = [

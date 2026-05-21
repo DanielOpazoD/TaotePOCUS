@@ -64,11 +64,12 @@ const DISABLED_RULES: ReadonlyArray<string> = [];
 // audits. `/admin` is intentionally out of scope — the admin chrome
 // is gated, has a different visual budget, and is exercised in
 // `admin.spec.ts` for functional coverage.
-// `/ocular` + `/neurocritico` added in May-2026 (PR #103) — they
-// render through the same `<App />` orchestrator so the test
-// shape is identical; coverage comes for free via the parametrized
-// `for` loop below.
-const ROUTES = ["/", "/ecg", "/cases", "/info", "/rayos", "/ocular", "/neurocritico", "/favoritos"];
+// `/ocular` + `/neurocritico` were briefly listed here (PR #103)
+// but reverted (PR #108) — those topics moved into Atlas as
+// CATEGORIES rather than top-level sections. The category-filtered
+// surface is covered by the existing `/` scan (clicking a category
+// filter narrows the same grid; no new chrome rendered).
+const ROUTES = ["/", "/ecg", "/cases", "/info", "/rayos", "/favoritos"];
 
 // Tags to scan. WCAG 2.1 A + AA + best-practice cover everything a
 // regulator would expect for a public educational site without

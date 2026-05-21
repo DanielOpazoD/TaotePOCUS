@@ -31,15 +31,29 @@ describe("lib/data — IMPORT_MARKER_TAG", () => {
 describe("lib/data — sections + categories shape", () => {
   it("ships exactly the expected built-in section ids", () => {
     // SectionId is a literal union; the array must mirror it.
-    // `ocular` + `neurocritico` were added in May-2026.
+    // `ocular` + `neurocritico` briefly lived here (PR #103) but
+    // moved to CATEGORIES in PR #108 — see the next assertion.
     expect(SECTIONS.map((s) => s.id).sort()).toEqual(
-      ["atlas", "cases", "ecg", "info", "neurocritico", "ocular", "rayos"].sort(),
+      ["atlas", "cases", "ecg", "info", "rayos"].sort(),
     );
   });
 
   it("ships exactly the expected built-in category ids", () => {
+    // `ocular` + `neurocritico` added in May-2026 (PR #108) as
+    // Atlas categories.
     expect(CATEGORIES.map((c) => c.id).sort()).toEqual(
-      ["abdominal", "cardiac", "fast", "lung", "ms", "ob", "proc", "vascular"].sort(),
+      [
+        "abdominal",
+        "cardiac",
+        "fast",
+        "lung",
+        "ms",
+        "neurocritico",
+        "ob",
+        "ocular",
+        "proc",
+        "vascular",
+      ].sort(),
     );
   });
 });

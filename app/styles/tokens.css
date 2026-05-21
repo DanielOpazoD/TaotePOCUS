@@ -42,8 +42,10 @@
   --editorial: oklch(0.55 0.1 35); /* cálido editorial — casos */
   --poster: oklch(0.5 0.1 285); /* índigo — infografías */
   --xray: oklch(0.55 0.06 240); /* azul-grisáceo radiológico — rayos */
-  --ocular: oklch(0.6 0.12 70); /* ámbar dorado — ocular (iris / retina) */
-  --neuro: oklch(0.5 0.13 340); /* magenta profundo — neurocrítico */
+  /* `--ocular` + `--neuro` were briefly defined here (PR #103)
+     when those topics shipped as top-level sections. They're now
+     categories of Atlas (PR #108) so they don't need their own
+     section-accent token — Atlas's `--accent` applies. */
   --shadow: 0 1px 0 oklch(0.198 0.005 254 / 0.04), 0 8px 24px -12px oklch(0.198 0.005 254 / 0.08);
 
   /* Layered shadow scale — three stops in physical proximity.
@@ -198,8 +200,8 @@
   --editorial: oklch(0.72 0.12 35);
   --poster: oklch(0.7 0.13 285);
   --xray: oklch(0.72 0.07 240); /* dark-mode equivalent of --xray */
-  --ocular: oklch(0.78 0.13 70); /* dark-mode equivalent of --ocular */
-  --neuro: oklch(0.7 0.15 340); /* dark-mode equivalent of --neuro */
+  /* `--ocular` + `--neuro` retired in PR #108 — see the light-mode
+     companion block above for the rationale. */
   --shadow: 0 1px 0 oklch(0 0 0 / 0.5), 0 8px 24px -12px oklch(0 0 0 / 0.6);
 
   /* Dark-mode layered shadows. Higher opacities because dark
