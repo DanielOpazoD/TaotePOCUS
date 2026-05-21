@@ -1,1 +1,49 @@
+#!/usr/bin/env sh
+# Pre-commit hook. Two stages:
+#
+#   1. `lint-staged` formats + lints whatever you staged. Cheap.
+#   2. Conditional `npm run build`: only when the commit touches a
+#      Next.js reserved-name file (route / page / layout). These
+#      files have a fixed-export contract that `tsc --noEmit` does
+#      NOT validate — only Next's own build typecheck does. Skipping
+#      this step shipped the bug behind PR #114 (admin metrics route
+#      exported `aggregate` → typecheck passed → Netlify build broke).
+#
+# Edits outside the Next file conventions skip the build (the vast
+# majority of commits). Hot loop on `lib/`, `components/`, `hooks/`,
+# `tests/`, etc. stays sub-second.
+
 npx lint-staged
+
+# --diff-filter=ACM = added / copied / modified. Excludes deletions
+# (deleting a route file can't introduce a new invalid export). The
+# regex covers the three Next conventions where reserved exports
+# matter today; extend if a future file type starts to trip the same
+# class of bug (sitemap.ts, manifest.ts, etc.).
+ROUTE_FILES=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '(^|/)(route|page|layout)\.(ts|tsx)$' || true)
+
+if [ -n "$ROUTE_FILES" ]; then
+  echo ""
+  echo "→ Detected staged Next.js reserved-name file(s):"
+  echo "$ROUTE_FILES" | sed 's/^/    /'
+  echo "→ Running 'npm run build' to validate route exports (this is"
+  echo "  the check Netlify runs — local 'tsc --noEmit' does NOT"
+  echo "  catch invalid route exports). ~30-60s."
+
+  # Capture output to a tempfile so a passing build doesn't spam the
+  # terminal; on failure we replay the log so the cause is obvious.
+  BUILD_LOG=$(mktemp -t pocus-build.XXXXXX)
+  if ! npm run build > "$BUILD_LOG" 2>&1; then
+    echo ""
+    echo "✗ next build failed — commit BLOCKED."
+    echo "  Output below. To skip this hook (NOT recommended) use"
+    echo "  'git commit --no-verify' once you've understood the failure."
+    echo ""
+    cat "$BUILD_LOG"
+    rm -f "$BUILD_LOG"
+    exit 1
+  fi
+  rm -f "$BUILD_LOG"
+  echo "✓ next build passed"
+fi
