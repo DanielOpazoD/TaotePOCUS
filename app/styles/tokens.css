@@ -89,15 +89,24 @@
 
   /* Spacing scale — multiples of 4. Use these instead of magic
      numbers in new CSS. Existing rules will migrate gradually. */
+  /* Spacing scale. Bumped ~15-25% across the board in May-2026 to
+     match a Stripe Docs / Linear-tier density — the previous values
+     were tight enough that surfaces felt informationally dense
+     instead of confident. The tokens below preserve the same
+     numeric stepping pattern (1→2→3→4→5→6→8→10→12) so existing
+     callsites pick up the new values without code changes.
+     `--space-1` and `--space-2` stay tighter because they're used
+     for in-row gaps (chip padding, icon margin) where a 5px↔7px
+     shift would visibly drift. */
   --space-1: 4px;
   --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
+  --space-3: 14px;
+  --space-4: 20px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 40px;
+  --space-10: 56px;
+  --space-12: 72px;
 
   /* Fluid typographic scale. Each token is a `clamp(min, fluid, max)`
      — adios to media queries for typography. Values calibrated so the

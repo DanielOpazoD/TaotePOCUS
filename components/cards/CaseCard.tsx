@@ -222,14 +222,12 @@ function CaseCardImpl({
           focus={effectiveFocus}
           priority={priority}
         />
-        <div className="case-thumb-overlay"></div>
-        <div className="case-thumb-preview">
-          {/* First sentence of the active-language description (with
-              EN→ES fallback). Imported cases that ship as ES-only
-              still render the preview because the helper falls
-              through to the Spanish baseline. */}
-          <p>{firstSentence(descRead.value)}</p>
-        </div>
+        {/* `case-thumb-overlay` + `case-thumb-preview` were removed
+            in May-2026 — the gradient vignette + hover-only preview
+            text were decoration that competed with the cine-loop
+            preview and hid information behind a hover (poor on
+            touch). The card meta below now carries the description
+            statically. */}
         {/* Admin-only review badge — appears top-right under the fav
             button when the editorial review has been confirmed. The
             `data-reviewed` attribute lets CSS hide it for non-admin
@@ -265,7 +263,13 @@ function CaseCardImpl({
         >
           {Icon.heart(isFav)}
         </button>
-        <span className="case-thumb-modality">{caso.modality}</span>
+        {/* `case-thumb-modality` was removed in May-2026 — the
+            modality string ("POCUS", "ECG", etc.) is largely
+            redundant inside a section view (everything in /ecg
+            is ECG) and the chip added visual weight to a slot
+            already busy with the fav + admin controls. The
+            modality remains on the case data and renders in the
+            modal where it informs the open-state view. */}
       </div>
       <div className="case-meta">
         <div className="case-cat">

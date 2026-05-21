@@ -57,22 +57,23 @@
   --section-accent-soft: oklch(from var(--neuro) l c h / 0.14);
 }
 
-/* Section accents flow into the case-cat label and the diagnosis box */
-.layout .case-cat {
-  color: var(--section-accent-ink);
-}
+/* Section accent flow (May-2026 restraint pass).
+   Previously the section accent flowed into the case-cat label,
+   the modal diagnosis box, and the section-head crumb. The
+   Stripe Docs-style pass cut that to ONE primary cue: the rule
+   above the section h1 (see `section-head h1::before` in
+   `main.css`). Everything else stays in the neutral ink palette
+   so the page reads as one brand instead of seven sub-brands.
+
+   The modal diagnosis box keeps the accent because it's a
+   semantic emphasis (the diagnosis IS the headline finding of
+   the case), not a section identity cue. The case-cat label and
+   crumb dot drop to neutral ink. */
 .layout .modal-diagnosis {
   background: var(--section-accent-soft);
   border-left-color: var(--section-accent);
 }
 .layout .modal-diagnosis h5 {
-  color: var(--section-accent-ink);
-}
-
-/* The crumb dot inherits color naturally; nudge the crumb tone subtly */
-.layout[data-section="ecg"] .section-head .crumb,
-.layout[data-section="cases"] .section-head .crumb,
-.layout[data-section="info"] .section-head .crumb {
   color: var(--section-accent-ink);
 }
 

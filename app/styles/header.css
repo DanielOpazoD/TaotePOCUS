@@ -3,44 +3,25 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  /* At the top of the page the header is solid — feels like part of
-     the document, not a chrome layer. The border is invisible so the
-     hero meets the page seamlessly. The blur is *armed* (so toggling
-     to scrolled state has no flicker) but with very high bg opacity. */
+  /* Stripe Docs / Linear-style chrome (May-2026 pass): solid
+     background ALL THE TIME, no frosted-glass-on-scroll, no
+     transparency animation. A single hairline separator at the
+     bottom edge gives the bar weight without a drop shadow or
+     blur effect. The previous frosted-on-scroll variant felt
+     more "consumer iOS" than "professional reference"; the
+     static version reads as a fixed chrome that you stop
+     noticing — which is exactly what a chrome should do. */
   background: var(--bg);
-  backdrop-filter: saturate(1.1) blur(0px);
-  -webkit-backdrop-filter: saturate(1.1) blur(0px);
-  border-bottom: 1px solid transparent;
-  transition:
-    background var(--duration-base) ease,
-    backdrop-filter var(--duration-base) ease,
-    -webkit-backdrop-filter var(--duration-base) ease,
-    border-color var(--duration-base) ease,
-    box-shadow var(--duration-base) ease;
+  border-bottom: 1px solid var(--hairline);
 }
 
-/* Scrolled state: frosted glass. Page content shows through with
-   a soft blur. The previous `saturate(1.4)` pumped the colors
-   underneath into "Instagram filter" territory; current minimalist
-   chrome (Apple, Linear, Vercel) lands closer to 1.05–1.10 — just
-   enough to keep colors alive without making them shout. Blur
-   stays at 12px, plenty for the frosted feel. A hairline separator
-   gives the bar physical weight without a drop shadow. */
+/* `.is-scrolled` no longer drives a visual change (the bar is
+   solid at every scroll position). The class is still toggled
+   by `Header.tsx` for any consumer that wants to react to it,
+   but the visual contract is now identical at scrollY = 0 and
+   scrollY > 8. */
 .app-header.is-scrolled {
-  background: var(--bg-translucent);
-  backdrop-filter: saturate(1.08) blur(12px);
-  -webkit-backdrop-filter: saturate(1.08) blur(12px);
-  border-bottom-color: var(--hairline);
-  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--ink) 4%, transparent);
-}
-
-/* If the user prefers reduced motion, skip the smooth transition
-   between states — just snap. The visual effect is identical, only
-   the in-between is different. */
-@media (prefers-reduced-motion: reduce) {
-  .app-header {
-    transition: none;
-  }
+  /* Intentionally empty — see the comment on `.app-header`. */
 }
 .header-inner {
   position: relative; /* anchor for the expand-on-focus search at <640 */
