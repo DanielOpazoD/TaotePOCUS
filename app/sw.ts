@@ -141,3 +141,266 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// ============================================================
+// Selective offline cache for media videos
+// ============================================================
+//
+// Videos are intentionally NetworkOnly in the runtime rules above
+// (auto-caching every viewed clip would fill the storage budget in
+// minutes and is rarely the user's intent). Instead, this section
+// opts a SPECIFIC video into a hand-managed cache when the user
+// clicks the modal's "Guardar offline" toggle.
+//
+// Wire:
+//   1. The client posts `{ type: "offline:add" | "offline:remove" |
+//      "offline:list" | "offline:purge-all", url }` via
+//      `navigator.serviceWorker.controller.postMessage`.
+//   2. This SW handles the message, mutates the
+//      `pocus-offline-media` Cache, and replies with the result so
+//      the client can update its state and toast.
+//   3. A custom `fetch` listener (registered BEFORE Serwist takes
+//      over) checks `pocus-offline-media` for the request first;
+//      hit = serve from cache (works offline); miss = fall through
+//      so Serwist's NetworkOnly rule for videos handles it.
+//
+// LRU on quota error: the `add` handler tries `cache.put`; if it
+// throws QuotaExceededError, we evict the OLDEST entry (the one
+// added longest ago, via the per-URL timestamp we keep in
+// IndexedDB) and retry once. If the second `put` also fails the
+// client gets an error reply and can show a "no space" toast.
+
+const OFFLINE_CACHE = "pocus-offline-media";
+const OFFLINE_DB = "pocus-offline-meta";
+const OFFLINE_DB_STORE = "timestamps";
+
+/** Match the same video-URL pattern the NetworkOnly rule above uses. */
+function isOfflineMediaUrl(url: URL): boolean {
+  return /^\/api\/media\//.test(url.pathname) && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url.pathname);
+}
+
+/** Open the metadata DB once; the SW's lifetime is short and the
+ *  open cost is tiny, but the helper keeps call-sites clean. */
+function openMetaDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(OFFLINE_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(OFFLINE_DB_STORE)) {
+        db.createObjectStore(OFFLINE_DB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function setTimestamp(url: string): Promise<void> {
+  const db = await openMetaDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readwrite");
+    tx.objectStore(OFFLINE_DB_STORE).put(Date.now(), url);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+async function deleteTimestamp(url: string): Promise<void> {
+  const db = await openMetaDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readwrite");
+    tx.objectStore(OFFLINE_DB_STORE).delete(url);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+/** Walks the timestamp store and returns the URL added longest
+ *  ago — the LRU eviction target when storage hits quota. */
+async function oldestUrl(): Promise<string | null> {
+  const db = await openMetaDb();
+  return new Promise<string | null>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readonly");
+    const store = tx.objectStore(OFFLINE_DB_STORE);
+    const cursorReq = store.openCursor();
+    let oldest: { url: string; ts: number } | null = null;
+    cursorReq.onsuccess = () => {
+      const cursor = cursorReq.result;
+      if (!cursor) {
+        db.close();
+        resolve(oldest?.url ?? null);
+        return;
+      }
+      const ts = cursor.value as number;
+      const url = cursor.key as string;
+      if (!oldest || ts < oldest.ts) oldest = { url, ts };
+      cursor.continue();
+    };
+    cursorReq.onerror = () => {
+      db.close();
+      reject(cursorReq.error);
+    };
+  });
+}
+
+/** Fetch + store with LRU retry. Returns `{ evicted: string[] }`
+ *  listing any URLs the client should drop from its local state
+ *  (they were evicted to make room for the new add). */
+async function addToOfflineCache(url: string): Promise<{ evicted: string[] }> {
+  const cache = await caches.open(OFFLINE_CACHE);
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`fetch HTTP ${response.status}`);
+  const evicted: string[] = [];
+  // Retry on QuotaExceededError up to N times — each retry frees the
+  // oldest entry. Bounded so a degenerate storage situation can't
+  // loop forever.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      // Clone needed because put consumes the response body.
+      await cache.put(url, response.clone());
+      await setTimestamp(url);
+      return { evicted };
+    } catch (err) {
+      const name = (err as { name?: string })?.name;
+      if (name !== "QuotaExceededError") throw err;
+      const victim = await oldestUrl();
+      if (!victim) throw err; // nothing left to evict, but still no room
+      await cache.delete(victim);
+      await deleteTimestamp(victim);
+      evicted.push(victim);
+    }
+  }
+  throw new Error("quota exceeded after retries");
+}
+
+async function removeFromOfflineCache(url: string): Promise<void> {
+  const cache = await caches.open(OFFLINE_CACHE);
+  await cache.delete(url);
+  await deleteTimestamp(url);
+}
+
+async function listOfflineCache(): Promise<string[]> {
+  const cache = await caches.open(OFFLINE_CACHE);
+  const reqs = await cache.keys();
+  // Strip the origin so the client can match against the same
+  // relative URLs it stores in localStorage — origins differ
+  // between dev, preview, and production deploys.
+  return reqs.map((r) => new URL(r.url).pathname + new URL(r.url).search);
+}
+
+async function purgeOfflineCache(): Promise<void> {
+  await caches.delete(OFFLINE_CACHE);
+  // Wipe the timestamp store too.
+  const db = await openMetaDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_DB_STORE, "readwrite");
+    tx.objectStore(OFFLINE_DB_STORE).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+// Cache-first read path. Registered as its own `fetch` listener
+// BEFORE Serwist's runtime caching kicks in (event listeners fire
+// in registration order; first to call `respondWith` wins). For
+// non-video paths we return without responding, letting Serwist's
+// own listener (registered by `serwist.addEventListeners()` above)
+// handle the request normally.
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (!isOfflineMediaUrl(url)) return;
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(OFFLINE_CACHE);
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      // Not in the offline cache — fall through to network. The
+      // existing NetworkOnly rule for video URLs in the runtime
+      // caching above would handle this too, but it's already
+      // bypassed by the time we get here (we called respondWith).
+      // So fetch directly. Errors propagate naturally and the
+      // browser shows its usual "video unavailable" affordance.
+      return fetch(event.request);
+    })(),
+  );
+});
+
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data || typeof data !== "object" || typeof data.type !== "string") return;
+  // Reply via the originating port if `postMessage` was sent with
+  // a MessageChannel, otherwise via `event.source` (the client).
+  const reply = (msg: object) => {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage(msg);
+    } else if (event.source && "postMessage" in event.source) {
+      (event.source as Client).postMessage(msg);
+    }
+  };
+  if (data.type === "offline:add" && typeof data.url === "string") {
+    const url = data.url;
+    event.waitUntil(
+      (async () => {
+        try {
+          const { evicted } = await addToOfflineCache(url);
+          reply({ type: "offline:added", url, evicted });
+        } catch (err) {
+          reply({
+            type: "offline:error",
+            url,
+            message: (err as Error)?.message ?? "fetch failed",
+          });
+        }
+      })(),
+    );
+  } else if (data.type === "offline:remove" && typeof data.url === "string") {
+    const url = data.url;
+    event.waitUntil(
+      (async () => {
+        try {
+          await removeFromOfflineCache(url);
+          reply({ type: "offline:removed", url });
+        } catch (err) {
+          reply({
+            type: "offline:error",
+            url,
+            message: (err as Error)?.message ?? "evict failed",
+          });
+        }
+      })(),
+    );
+  } else if (data.type === "offline:list") {
+    event.waitUntil(
+      (async () => {
+        try {
+          const urls = await listOfflineCache();
+          reply({ type: "offline:list-result", urls });
+        } catch (err) {
+          reply({
+            type: "offline:error",
+            url: "",
+            message: (err as Error)?.message ?? "list failed",
+          });
+        }
+      })(),
+    );
+  } else if (data.type === "offline:purge-all") {
+    event.waitUntil(
+      (async () => {
+        try {
+          await purgeOfflineCache();
+          reply({ type: "offline:purged" });
+        } catch (err) {
+          reply({
+            type: "offline:error",
+            url: "",
+            message: (err as Error)?.message ?? "purge failed",
+          });
+        }
+      })(),
+    );
+  }
+});

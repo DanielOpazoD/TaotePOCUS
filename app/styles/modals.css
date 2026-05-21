@@ -686,6 +686,58 @@ button:hover > .kbd-hint {
   border-color: var(--crit);
   background: var(--crit-soft);
 }
+/* "Guardar offline" toggle — pressed state mirrors the fav button's
+   visual language (accent-tinted background + border + icon) so the
+   two chips read as a related cluster. Uses the section accent
+   rather than the crit-red to keep the meaning distinct: fav is a
+   personal bookmark; offline is a utility action ("download for
+   later"). When disabled (a save is in-flight) the chip dims and
+   the cursor flips to wait. */
+.modal-action--offline.is-active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.modal-action:disabled {
+  opacity: 0.6;
+  cursor: progress;
+  transform: none;
+}
+/* Inline spinner for the offline toggle's in-flight state. Same
+   visual vocabulary as `.cine-play-button[data-buffering]` so the
+   "we're working on it" cue is consistent across the app. Sized
+   to match the 18px icon slot the other modal-actions use. */
+.modal-action-spinner {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: modal-action-spin 0.85s linear infinite;
+}
+@keyframes modal-action-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-action-spinner {
+    animation: modal-action-pulse 1.4s ease-in-out infinite;
+    border-top-color: currentColor;
+  }
+  @keyframes modal-action-pulse {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.95;
+    }
+  }
+}
+
 /* Legacy rule removed in May-2026 with the modal action redesign;
    the icon-only chips above set their own SVG dimensions. */
 

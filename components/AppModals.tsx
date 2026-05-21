@@ -109,6 +109,15 @@ interface Props {
    *  treatment the grid cards already apply. Empty / undefined
    *  renders the modal text plain. */
   searchQuery: string;
+  /** Whether the open case's media is already saved for offline.
+   *  Drives the toggle's pressed state in the modal. */
+  isOffline: boolean;
+  /** True while a save / remove is in-flight via the SW message
+   *  channel. Hides the toggle behind a spinner so a slow network
+   *  round-trip doesn't read as "click ignored". */
+  offlinePending: boolean;
+  /** Flip the offline state for the open case. */
+  onToggleOffline: () => void;
 
   // Presentation
   presentingCase: CaseRecord | null;
@@ -175,6 +184,9 @@ export default function AppModals(props: Props) {
     onShare,
     onPresent,
     searchQuery,
+    isOffline,
+    offlinePending,
+    onToggleOffline,
     presentingCase,
     presentationCases,
     onClosePresentation,
@@ -229,6 +241,9 @@ export default function AppModals(props: Props) {
             onShare={onShare}
             onPresent={onPresent}
             searchQuery={searchQuery}
+            isOffline={isOffline}
+            offlinePending={offlinePending}
+            onToggleOffline={onToggleOffline}
           />
         </ErrorBoundary>
       )}
