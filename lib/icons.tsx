@@ -120,6 +120,16 @@ export const Icon = {
       <circle cx="12" cy="7" r="4" />
     </svg>
   ),
+  logout: (): ReactElement => (
+    // Door with an arrow pointing out. Feather/Tabler-style stroke
+    // matching the rest of the icon grammar (1.5 weight, rounded
+    // caps). Used by `UserMenu` for the "Salir" row.
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  ),
   presentation: (): ReactElement => (
     <svg viewBox="0 0 24 24" {...stroke}>
       {/* Projection screen with an upward tick on the easel — clean
