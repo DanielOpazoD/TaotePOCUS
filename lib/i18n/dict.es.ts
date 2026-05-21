@@ -432,6 +432,42 @@ export const DICT_ES = {
   "admin.tab.focus": "Foco",
   "admin.tab.focus.title":
     "Configurar foco y zoom por defecto a nivel global, por sección o por categoría",
+  // RUM dashboard tab — admin-only Core Web Vitals view. See
+  // `components/admin/MetricsPanel.tsx` for the surface.
+  "admin.tab.metrics": "Métricas",
+
+  // ─── Metrics panel (admin RUM dashboard) ───────────────────────
+  // Loading / error skeletons share the same shell so the dashboard
+  // doesn't flash empty space on first paint.
+  "metrics.loading": "Cargando métricas…",
+  "metrics.errorPrefix": "No se pudo cargar las métricas",
+  "metrics.title": "Métricas reales (Web Vitals)",
+  "metrics.summary": "{total} eventos · {days} días con datos",
+  "metrics.empty.title": "Aún no hay eventos",
+  "metrics.empty.sub": "Cuando los usuarios naveguen, los Web Vitals aparecerán acá.",
+  "metrics.empty.checkA":
+    "Verificá que el service worker esté activo (DevTools → Application → SW).",
+  "metrics.empty.checkB":
+    "El endpoint /api/metrics/report debe responder 204 al recibir un POST de prueba.",
+  "metrics.empty.checkC":
+    "Los usuarios con Do Not Track activo no envían beacons — eso es por diseño.",
+  "metrics.window.aria": "Ventana de tiempo",
+  "metrics.window.days": "{n}d",
+  // Card chrome.
+  "metrics.card.count": "{n} muestras",
+  // Sparkline section.
+  "metrics.series.title": "Tendencia diaria (p75)",
+  "metrics.series.aria.lcp": "Tendencia diaria de LCP p75",
+  "metrics.series.aria.inp": "Tendencia diaria de INP p75",
+  "metrics.series.aria.cls": "Tendencia diaria de CLS p75",
+  // Per-route table.
+  "metrics.routes.title": "Por ruta",
+  "metrics.routes.col.route": "Ruta",
+  "metrics.routes.col.count": "Eventos",
+  // Footer disclosure.
+  "metrics.foot.privacy":
+    "Sin IP, sin user-agent, sin sesión — solo métrica, ruta y bucket de viewport. Honra Do Not Track.",
+  "metrics.foot.generated": "Generado a las {time}",
 
   // ─── Focus editor (shared widget) ──────────────────────────────
   "focus.editor.foco": "FOCO",

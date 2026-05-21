@@ -21,6 +21,7 @@ import { MinePanel } from "./MinePanel";
 import FocusDefaultsPanel from "./FocusDefaultsPanel";
 import { AIStatusBadge } from "./ai/AIStatusBadge";
 import { ObservabilityChip } from "./ObservabilityChip";
+import { MetricsPanel } from "./MetricsPanel";
 
 interface Props {
   allCases: CaseRecord[];
@@ -112,7 +113,8 @@ type Tab =
   | "sections"
   | "focus"
   | "activity"
-  | "backup";
+  | "backup"
+  | "metrics";
 
 export default function AdminPanel({
   allCases,
@@ -267,6 +269,18 @@ export default function AdminPanel({
         >
           {t("admin.tab.backup")}
         </button>
+        {/* RUM dashboard. Reads the per-day blobs the beacon
+            endpoint writes (see `app/api/metrics/report/route.ts`)
+            and renders p50/p75/p95 + sparkline + per-route table.
+            Admin-only via `requireAdmin` on the data endpoint. */}
+        <button
+          role="tab"
+          aria-selected={tab === "metrics"}
+          className={`admin-tab${tab === "metrics" ? " is-active" : ""}`}
+          onClick={() => setTab("metrics")}
+        >
+          {t("admin.tab.metrics")}
+        </button>
       </div>
 
       {tab === "classify" && onPatch ? (
@@ -327,6 +341,8 @@ export default function AdminPanel({
         <ActivityPanel />
       ) : tab === "backup" ? (
         <BackupPanel currentEmail={currentEmail ?? null} notify={notify ?? (() => {})} />
+      ) : tab === "metrics" ? (
+        <MetricsPanel />
       ) : (
         <MinePanel
           allCases={allCases}
