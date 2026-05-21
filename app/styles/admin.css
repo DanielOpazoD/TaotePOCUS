@@ -399,6 +399,79 @@ textarea.admin-input {
   gap: var(--space-8);
 }
 
+/* Loading-state skeleton rendered by Next.js's `dynamic()` while
+   the AdminPanel chunk is in flight. Three placeholders mirror the
+   real panel's layout (status row → tab bar → content area) so the
+   landing transition doesn't reflow the page. The neutral surface
+   tones keep the skeleton from competing visually with the real
+   content once it arrives.
+
+   Pulse animation: opacity 0.4 ↔ 0.7 at 1.6s linear (restraint-pass
+   aesthetic — no horizontal shimmer). Disabled for users on
+   `prefers-reduced-motion`. */
+.admin-panel--loading {
+  /* Reserves vertical space close to the typical AdminPanel content
+     height so the page doesn't shrink on chunk landing. The exact
+     value doesn't matter; it just has to be in the right ballpark
+     for the skeleton to feel like "the panel is here, just not
+     ready". */
+  min-height: 60vh;
+}
+.admin-skeleton-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+.admin-skeleton-chip {
+  display: inline-block;
+  width: 180px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+}
+.admin-skeleton-tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.admin-skeleton-tab {
+  display: inline-block;
+  width: 90px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-2);
+  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+}
+.admin-skeleton-content {
+  width: 100%;
+  /* Tall enough to feel like "the real content lives here" without
+     ballooning above the fold and tempting LCP measurement to pick
+     it up as the candidate. */
+  height: 320px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+}
+@keyframes admin-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton-chip,
+  .admin-skeleton-tab,
+  .admin-skeleton-content {
+    animation: none;
+    opacity: 0.55;
+  }
+}
+
 /* Tab strip across the top of the admin panel — switches between
  * "Mis casos" (the default CRUD table view) and "Clasificar" (the
  * bulk drag-and-drop classifier). State is local to AdminPanel; we

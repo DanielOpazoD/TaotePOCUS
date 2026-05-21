@@ -6,6 +6,7 @@ import { CaseCard } from "./cards";
 import { CaseCardSkeleton } from "./CaseCardSkeleton";
 import { CatalogPagination } from "./CatalogPagination";
 import EmptyState from "./EmptyState";
+import { AdminPanelSkeleton } from "./admin/AdminPanelSkeleton";
 import { useT } from "@/hooks/useLanguage";
 import type { RelaxationSuggestion } from "@/lib/filter-suggestions";
 import type {
@@ -20,8 +21,17 @@ import type {
 import type { ViewPatch } from "@/lib/url";
 
 // AdminPanel is admin-only chrome; lazy-load so its tree stays out of
-// the public-route bundles.
-const AdminPanel = dynamic(() => import("./admin/AdminPanel"), { ssr: false });
+// the public-route bundles. The `loading` fallback paints a skeleton
+// while the chunk is in flight — previously it was `null`, which left
+// /admin visually empty for 1-5s on a cold cache (RUM showed 5s p75
+// LCP). The skeleton reserves the layout space and gives the browser
+// something to paint, and the chunk can be pre-warmed via
+// `preloadAdminPanel()` from the header's hover/focus handlers (see
+// `components/admin/preload.ts`).
+const AdminPanel = dynamic(() => import("./admin/AdminPanel"), {
+  ssr: false,
+  loading: () => <AdminPanelSkeleton />,
+});
 
 interface UserCasesShape {
   live: CaseRecord[];
@@ -390,13 +400,20 @@ export default function MainGrid({
   // Atlas landing falls through to the uniform `case-grid` below —
   // the Bento hero was removed in May-2026 (see file header).
   //
-  // `priority` flag goes onto the first 6 cards (roughly above-the-fold
-  // on a 5-col Atlas grid, or 3 rows on a 2-col mobile grid). The flag
-  // forwards to `<Image fetchPriority="high" loading="eager">` inside
-  // the card's CineLoop, which boosts the LCP candidate so the user
-  // sees thumbnails sooner on a fresh page load. Cards beyond the
-  // first 6 stay lazy / low priority — they're below the fold and
-  // shouldn't compete with the LCP cards for bandwidth.
+  // `priority` flag goes onto the FIRST card only (the LCP candidate).
+  // Earlier passes set it on the first 6 cards intending to "eager
+  // load above-the-fold" — but with `fetchpriority="high"` on six
+  // images at once, the browser serialises them and they fight for
+  // bandwidth, which actually slows the LCP element. RUM showed
+  // p75 LCP of 2.6s on `/` (just over the 2.5s threshold); the most
+  // direct lever is to focus the high-priority hint on the single
+  // element that LCP actually measures. The remaining 5 above-the-
+  // fold cards stay normal-priority + eager (Next/Image's default
+  // for cards in the viewport), so they still load fast but don't
+  // crowd the LCP fetch.
+  //
+  // Reference: web.dev/articles/optimize-lcp — "Only one image per
+  // page should typically use the priority hint."
   return (
     <>
       <div className="case-grid">
@@ -411,7 +428,7 @@ export default function MainGrid({
             onPurge={cardOnPurge}
             onPatch={cardOnPatch}
             categories={cardCategories}
-            priority={i < 6}
+            priority={i === 0}
             // Pass the trimmed query through so the card can wrap
             // matches in <mark>. The string is empty-or-stable per
             // render so React.memo keeps short-circuiting unaffected

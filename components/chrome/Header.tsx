@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import TransitionLink from "./TransitionLink";
+import { preloadAdminPanel } from "../admin/preload";
 import { Icon } from "@/lib/icons";
 import { SECTIONS } from "@/lib/data";
 import { sectionLabel } from "@/lib/i18n";
@@ -193,6 +194,15 @@ export default function Header({
               aria-current={view.kind === "admin" ? "page" : undefined}
               aria-label={t("nav.administrar.aria")}
               title={t("nav.administrar")}
+              // Pre-warm the lazy AdminPanel chunk on intent (hover
+              // or keyboard focus). By the time the click lands, the
+              // bundle is in HTTP cache and the panel paints
+              // ~immediately. RUM showed p75 LCP of 5s on /admin
+              // pre-fix — the bulk was chunk load + parse on click.
+              // See `components/admin/preload.ts` for why this is
+              // safe (deduped against the `dynamic()` call site).
+              onMouseEnter={preloadAdminPanel}
+              onFocus={preloadAdminPanel}
             >
               {Icon.gear()}
             </TransitionLink>
