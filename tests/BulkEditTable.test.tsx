@@ -134,18 +134,31 @@ describe("BulkEditTable — filters", () => {
     fireEvent.change(screen.getByLabelText("Buscar en la tabla"), {
       target: { value: "no-such-term-xyz" },
     });
-    // No rows match → empty cell with a Limpiar button.
-    expect(screen.getByText("No hay casos que coincidan con los filtros.")).toBeTruthy();
+    // No rows match → shared EmptyState with the filtered-title +
+    // body pair, plus the Limpiar button. Pre-refactor the body
+    // text was "No hay casos que coincidan con los filtros."; the
+    // migration to EmptyState introduced friendlier copy ("Ningún
+    // caso encaja…") and a proper headline ("Sin coincidencias").
+    expect(screen.getByText("Sin coincidencias")).toBeTruthy();
+    expect(screen.getByText("Ningún caso encaja con los filtros activos.")).toBeTruthy();
     const clear = screen.getByRole("button", { name: "Limpiar filtros" });
     fireEvent.click(clear);
     // Rows reappear after clearing.
     expect(screen.getByText("Tamponade pericárdico")).toBeTruthy();
-    expect(screen.queryByText("No hay casos que coincidan con los filtros.")).toBeNull();
+    expect(screen.queryByText("Sin coincidencias")).toBeNull();
   });
 
   it("empty state with no cases at all shows the catalog-empty message (no clear CTA)", () => {
     renderTable({ cases: [] });
-    expect(screen.getByText("Aún no hay casos en el catálogo.")).toBeTruthy();
+    // Same EmptyState surface as the filtered branch, but with the
+    // catalog-empty title/body pair and no action button (no
+    // filters to clear when the catalog itself is empty).
+    expect(screen.getByText("Catálogo vacío")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Aún no hay casos publicados. Cuando alguien suba el primero, aparecerá acá.",
+      ),
+    ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Limpiar filtros" })).toBeNull();
   });
 });

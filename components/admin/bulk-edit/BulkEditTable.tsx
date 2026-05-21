@@ -32,6 +32,7 @@ import { BulkEditSortHeader } from "./cells/SortHeader";
 import { AIRewriteModal } from "../ai/AIRewriteModal";
 import { AIBulkRewriteModal } from "../ai/AIBulkRewriteModal";
 import { AIBatchUndoBanner } from "../ai/AIBatchUndoBanner";
+import EmptyState from "../../EmptyState";
 import { getDescription } from "@/lib/case-description";
 import { categoryLabelEs } from "@/lib/i18n";
 import { useT } from "@/hooks/useLanguage";
@@ -406,105 +407,108 @@ export default function BulkEditTable({
           even when the table scrolls. */}
       <AIBatchUndoBanner onApplyPatch={onPatch} />
 
-      <div className="bulk-edit-scroll">
-        <table className="bulk-edit-table" ref={tableRef}>
-          <thead>
-            <tr>
-              <th className="bulk-edit-th-check">
-                <input
-                  type="checkbox"
-                  aria-label={t("bulk.selectAll.aria")}
-                  checked={allVisibleSelected}
-                  onChange={toggleAllVisible}
-                />
-              </th>
-              <th className="bulk-edit-th-thumb"></th>
-              <BulkEditSortHeader
-                field="title"
-                active={sortField === "title"}
-                dir={sortDir}
-                onClick={cycleSort}
-              >
-                {t("bulk.col.title")}
-              </BulkEditSortHeader>
-              <BulkEditSortHeader
-                field="description"
-                active={sortField === "description"}
-                dir={sortDir}
-                onClick={cycleSort}
-              >
-                {t("bulk.col.description")}
-              </BulkEditSortHeader>
-              <BulkEditSortHeader
-                field="category"
-                active={sortField === "category"}
-                dir={sortDir}
-                onClick={cycleSort}
-                className="bulk-edit-th-cat"
-              >
-                {t("bulk.col.category")}
-              </BulkEditSortHeader>
-              <th className="bulk-edit-th-tags">{t("bulk.col.tags")}</th>
-              <BulkEditSortHeader
-                field="reviewed"
-                active={sortField === "reviewed"}
-                dir={sortDir}
-                onClick={cycleSort}
-                className="bulk-edit-th-reviewed"
-                title={t("bulk.col.reviewed.title")}
-              >
-                ✓
-              </BulkEditSortHeader>
-              <th className="bulk-edit-th-actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {paged.map((c, i) => (
-              <BulkEditRow
-                key={c.id}
-                caso={c}
-                categories={categories}
-                checked={selected.has(c.id)}
-                isActive={i === activeRow}
-                // Pass the stable id-receiving callback directly —
-                // wrapping it in an arrow `() => toggleOne(c.id)`
-                // would defeat the row's `React.memo` because the
-                // arrow's identity changes every parent render.
-                onCheck={toggleOne}
-                onPatch={onPatch}
-                onOpenEdit={onOpenEdit}
-                onDelete={onDelete}
-                onAIRewrite={setAiTarget}
-                onAutoTag={notify}
-              />
-            ))}
-            {paged.length === 0 && (
+      {/* Lifted out of the table body: when there's nothing to
+          edit we render the shared `EmptyState` instead of a stray
+          `<tr><td colSpan>` row. Keeps the table headers (column
+          names + sort controls) from rendering over an empty body —
+          they were just visual noise when the table had no rows.
+          The "filtered" vs "catalog" branch picks the title/body
+          pair and the clear-filters action when relevant. */}
+      {paged.length === 0 ? (
+        <EmptyState
+          view={{ kind: "admin" }}
+          title={t(hasActiveFilters ? "bulk.empty.filteredTitle" : "bulk.empty.catalogTitle")}
+          message={t(hasActiveFilters ? "bulk.empty.filtered" : "bulk.empty.catalog")}
+          action={
+            hasActiveFilters
+              ? {
+                  label: t("bulk.empty.clearFilters"),
+                  onClick: () => {
+                    setFilterSection("");
+                    setFilterCat("");
+                    setQuery("");
+                  },
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <div className="bulk-edit-scroll">
+          <table className="bulk-edit-table" ref={tableRef}>
+            <thead>
               <tr>
-                <td colSpan={8} className="bulk-edit-empty">
-                  {hasActiveFilters ? (
-                    <>
-                      <span>{t("bulk.empty.filtered")}</span>
-                      <button
-                        type="button"
-                        className="bulk-edit-empty-clear"
-                        onClick={() => {
-                          setFilterSection("");
-                          setFilterCat("");
-                          setQuery("");
-                        }}
-                      >
-                        {t("bulk.empty.clearFilters")}
-                      </button>
-                    </>
-                  ) : (
-                    t("bulk.empty.catalog")
-                  )}
-                </td>
+                <th className="bulk-edit-th-check">
+                  <input
+                    type="checkbox"
+                    aria-label={t("bulk.selectAll.aria")}
+                    checked={allVisibleSelected}
+                    onChange={toggleAllVisible}
+                  />
+                </th>
+                <th className="bulk-edit-th-thumb"></th>
+                <BulkEditSortHeader
+                  field="title"
+                  active={sortField === "title"}
+                  dir={sortDir}
+                  onClick={cycleSort}
+                >
+                  {t("bulk.col.title")}
+                </BulkEditSortHeader>
+                <BulkEditSortHeader
+                  field="description"
+                  active={sortField === "description"}
+                  dir={sortDir}
+                  onClick={cycleSort}
+                >
+                  {t("bulk.col.description")}
+                </BulkEditSortHeader>
+                <BulkEditSortHeader
+                  field="category"
+                  active={sortField === "category"}
+                  dir={sortDir}
+                  onClick={cycleSort}
+                  className="bulk-edit-th-cat"
+                >
+                  {t("bulk.col.category")}
+                </BulkEditSortHeader>
+                <th className="bulk-edit-th-tags">{t("bulk.col.tags")}</th>
+                <BulkEditSortHeader
+                  field="reviewed"
+                  active={sortField === "reviewed"}
+                  dir={sortDir}
+                  onClick={cycleSort}
+                  className="bulk-edit-th-reviewed"
+                  title={t("bulk.col.reviewed.title")}
+                >
+                  ✓
+                </BulkEditSortHeader>
+                <th className="bulk-edit-th-actions"></th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {paged.map((c, i) => (
+                <BulkEditRow
+                  key={c.id}
+                  caso={c}
+                  categories={categories}
+                  checked={selected.has(c.id)}
+                  isActive={i === activeRow}
+                  // Pass the stable id-receiving callback directly —
+                  // wrapping it in an arrow `() => toggleOne(c.id)`
+                  // would defeat the row's `React.memo` because the
+                  // arrow's identity changes every parent render.
+                  onCheck={toggleOne}
+                  onPatch={onPatch}
+                  onOpenEdit={onOpenEdit}
+                  onDelete={onDelete}
+                  onAIRewrite={setAiTarget}
+                  onAutoTag={notify}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {totalPages > 1 && (
         <BulkEditPagination

@@ -25,7 +25,10 @@
     color: black !important;
   }
 
-  /* Hide interactive chrome that doesn't belong on paper. */
+  /* Hide interactive chrome that doesn't belong on paper.
+     `.cine-play-button` joined the list in the play-on-demand
+     pass — the centered badge would print on top of the poster
+     frame and obscure exactly the content the reader wants. */
   .app-header,
   .sidebar,
   .toolbar,
@@ -33,6 +36,9 @@
   .modal-backdrop,
   .toast,
   .case-thumb-fav,
+  .cine-play-button,
+  .cine-skeleton,
+  .cine-spinner,
   /* `.case-thumb-overlay` retired in May-2026 — the print-hide
      entry is dropped along with it. */
   .modal-loop-controls,
@@ -51,25 +57,55 @@
     padding: 0 !important;
   }
 
-  /* Cine-loops are interactive canvases — useless on paper. Replace
-     with a labelled placeholder so the printed copy still flags
-     where the imaging would be. */
+  /* Cine-loop framing. The synthetic-canvas variant is still
+     useless on paper (it's a JS-driven animation, paints nothing
+     once requestAnimationFrame stops on print), so we hide the
+     canvas and surface a placeholder note.
+     Real-video cards behave differently: `<video preload="metadata">`
+     pulls the first frame on mount, and most browsers print that
+     frame as a still. So we LET the `<video>` element render in
+     print (display: inline) and drop the "see digital version"
+     placeholder. Result: the printed page carries the same poster
+     the reader sees on screen — a real handout, not a "go look it
+     up online" stub.
+     Z-index neutralizers + decorations also stripped so the print
+     output is a clean rectangle with the still inside. */
   .cine-wrap {
     background: #f5f5f3 !important;
     border: 1px solid var(--hairline-strong);
   }
-  .cine-canvas,
-  .cine-video {
+  .cine-wrap::before,
+  .cine-wrap::after {
+    /* Paper-grain overlay + dark cinema backdrop are screen-only
+       embellishments. On paper they print as noise / muddy fills
+       that compete with the actual ultrasound image. */
     display: none !important;
   }
-  .cine-wrap::after {
-    content: "Imagen ecográfica — ver versión digital";
-    display: block;
+  /* Synthetic canvas-only loops have no media — keep them
+     replaced with the legacy placeholder so the printed page
+     still flags "imaging goes here". The `:not(:has())` would be
+     simpler but the print branch needs broader browser support;
+     instead we hide the canvas explicitly and let real-video
+     wraps render their poster. */
+  .cine-canvas {
+    display: none !important;
+  }
+  .cine-wrap:not(:has(.cine-video))::after {
+    content: "Imagen ecográfica — ver versión digital" !important;
+    display: block !important;
     font-family: var(--mono);
     font-size: 11px;
     color: var(--ink-mute);
     text-align: center;
     padding: 32px 0;
+  }
+  /* Force the video to print as a static still. Override the
+     screen-mode `cursor: crosshair` (irrelevant on paper) and
+     pin the aspect-ratio cover so the first frame fills the
+     wrap cleanly. */
+  .cine-video {
+    cursor: auto !important;
+    object-fit: cover !important;
   }
 
   /* Avoid awkward page splits. */

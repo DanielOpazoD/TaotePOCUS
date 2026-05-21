@@ -11,6 +11,7 @@
 
 import Image from "next/image";
 import { CineLoop } from "../cine";
+import EmptyState from "../EmptyState";
 import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { categoryLabelEs } from "@/lib/i18n";
@@ -84,12 +85,24 @@ export function MinePanel({
       </div>
 
       {userCases.length === 0 ? (
-        <div className="admin-empty">
-          <p>{t("admin.mine.empty.body")}</p>
-          <button className="btn-primary" onClick={onNew}>
-            {Icon.plus()} {t("admin.mine.empty.cta")}
-          </button>
-        </div>
+        // Routed through the shared `EmptyState`. Pre-refactor this
+        // was a bespoke `.admin-empty` div with a CTA button — same
+        // semantics but visually disconnected from the public-grid
+        // empties. EmptyState's BookGlyph for the admin view ties
+        // the two surfaces together, and the `action` prop replaces
+        // the inline button with the standardised `empty-action`
+        // affordance. Note: this branch loses the inline `Icon.plus`
+        // ornament — EmptyState's button is text-only by design, so
+        // the CTA copy carries the verb.
+        <EmptyState
+          view={{ kind: "admin" }}
+          title={t("admin.mine.empty.title")}
+          message={t("admin.mine.empty.body")}
+          action={{
+            label: t("admin.mine.empty.cta"),
+            onClick: onNew,
+          }}
+        />
       ) : (
         <table className="admin-table">
           <thead>

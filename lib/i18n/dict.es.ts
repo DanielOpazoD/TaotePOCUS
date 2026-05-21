@@ -456,6 +456,11 @@ export const DICT_ES = {
   "admin.mine.stats.realMedia": "Con media real",
   "admin.mine.stats.categories": "Categorías",
   "admin.mine.publications": "Tus publicaciones",
+  // Heading + body pair feeding the `EmptyState` component (see
+  // `components/EmptyState.tsx`). The title is the punchline; the
+  // body softens it and primes the CTA. EN parity lives at
+  // `dict.en.ts:"admin.mine.empty.title"`.
+  "admin.mine.empty.title": "Sin publicaciones aún",
   "admin.mine.empty.body":
     "Aún no has publicado casos. Empieza subiendo tu primer hallazgo ecográfico.",
   "admin.mine.empty.cta": "Publicar primero",
@@ -494,9 +499,16 @@ export const DICT_ES = {
   "bulk.filter.section.all": "Todas las secciones",
   "bulk.filter.category.all": "Todas las categorías",
   "bulk.filter.search.placeholder": "Buscar por título, descripción o etiqueta…",
-  "bulk.empty.filtered": "No hay casos que coincidan con los filtros.",
+  // Bulk-edit table empties. The body strings predate the
+  // `EmptyState` migration so they're short — added titles here
+  // give the component a proper headline. Conditional on whether
+  // a filter is active or the catalog itself is empty.
+  "bulk.empty.filteredTitle": "Sin coincidencias",
+  "bulk.empty.filtered": "Ningún caso encaja con los filtros activos.",
   "bulk.empty.clearFilters": "Limpiar filtros",
-  "bulk.empty.catalog": "Aún no hay casos en el catálogo.",
+  "bulk.empty.catalogTitle": "Catálogo vacío",
+  "bulk.empty.catalog":
+    "Aún no hay casos publicados. Cuando alguien suba el primero, aparecerá acá.",
   "bulk.action.changeSection": "Cambiar sección…",
   "bulk.action.changeSection.aria": "Cambiar sección de seleccionados",
   "bulk.action.changeCategory": "Cambiar categoría…",

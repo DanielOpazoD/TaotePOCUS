@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "../cards/AdminThumbMenu";
+import EmptyState from "../EmptyState";
 import { CATEGORIES, IMPORT_MARKER_TAG, SECTIONS } from "@/lib/data";
 import { getDescription } from "@/lib/case-description";
 import { categoryLabelEs, sectionLabel } from "@/lib/i18n";
@@ -358,10 +359,18 @@ export default function ClassifierBoard({
       </div>
 
       {visible.length === 0 ? (
-        <div className="empty empty--illustrated">
-          <h3>{t("classifier.empty.title")}</h3>
-          <p>{t("classifier.empty.body")}</p>
-        </div>
+        // Routed through the shared `EmptyState` so the classifier's
+        // "nothing to triage" surface gets the same line-art glyph
+        // (BookGlyph for the admin view), heading hierarchy, and
+        // motion as every other empty state in the app. Pre-refactor
+        // this was an inline div that replicated the `.empty
+        // --illustrated` styling without the actual glyph — visually
+        // empty when there was meant to be something.
+        <EmptyState
+          view={{ kind: "admin" }}
+          title={t("classifier.empty.title")}
+          message={t("classifier.empty.body")}
+        />
       ) : (
         <div className="classifier-grid">
           {visible.map((c) => (
