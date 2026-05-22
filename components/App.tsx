@@ -34,6 +34,7 @@ import { useCaseSaver } from "@/hooks/useCaseSaver";
 import { useFocusDefaults } from "@/hooks/useFocusDefaults";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useOfflineCases } from "@/hooks/useOfflineCases";
+import { useAppModalState } from "@/hooks/useAppModalState";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { runStorageMigrations } from "@/lib/storage-migrations";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
@@ -103,29 +104,16 @@ function AppInner() {
   // responsibility — see `hooks/use*.ts` for behavior.
   const { toast, showToast } = useToast();
   const { user, isAdmin, hydrated, login, logout } = useSession({ notify: showToast });
-  const [authOpen, setAuthOpen] = useState(false);
+  // Every transient "is this modal open?" flag lives in one
+  // bundled hook (PR #122) — used to be six separate `useState`
+  // calls inline. Adding a new dialog now means widening one
+  // type instead of fishing through 700+ lines of orchestrator.
+  const modals = useAppModalState();
   const { favs, toggle: toggleFav } = useFavs(user, hydrated, {
-    onAnonymous: () => setAuthOpen(true),
+    onAnonymous: () => modals.setAuthOpen(true),
     notify: showToast,
   });
   const userCases = useUserCases(user, hydrated, { notify: showToast });
-
-  // Truly transient UI state. None of this belongs in the URL.
-  const [editingCase, setEditingCase] = useState<CaseRecord | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  // SettingsPanel — opened from the UserMenu's "Configuración" row.
-  // Sibling state of `authOpen` / `formOpen` so AppModals can mount
-  // the dialog with the rest of the modal family. Per-device prefs
-  // live in localStorage via `usePreferences()`; this state is just
-  // "is the dialog visible right now?".
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  // Cmd+K / Ctrl+K command palette — single keyboard shortcut for
-  // everything a power user reaches for. Bound via
-  // `useShortcuts({ onCommandPalette })` below; the actual command
-  // catalog is computed lower with `useMemo`.
-  const [paletteOpen, setPaletteOpen] = useState(false);
   // Sidebar collapse — persisted via usePersistedState. Compact "1"/"0"
   // serialization keeps the localStorage value short and grep-friendly.
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState(
@@ -142,8 +130,8 @@ function AppInner() {
   // j/k, g+letter and `?`. The `/` shortcut for the search box lives
   // in the Header, co-located with the input it focuses.
   useShortcuts({
-    onHelp: () => setShortcutsOpen(true),
-    onCommandPalette: () => setPaletteOpen(true),
+    onHelp: () => modals.setShortcutsOpen(true),
+    onCommandPalette: () => modals.setPaletteOpen(true),
   });
 
   // Filter persistence between sessions. When the URL comes back
@@ -308,12 +296,12 @@ function AppInner() {
   // would invalidate on every render, throwing the user's query +
   // selectedIndex.
   const onNewCase = useCallback(() => {
-    setEditingCase(null);
-    setFormOpen(true);
+    modals.setEditingCase(null);
+    modals.setFormOpen(true);
   }, []);
   const onEditCase = useCallback((c: CaseRecord) => {
-    setEditingCase(c);
-    setFormOpen(true);
+    modals.setEditingCase(c);
+    modals.setFormOpen(true);
   }, []);
 
   // Stable per-card callbacks for the catalog grid + FeaturedRow.
@@ -333,10 +321,10 @@ function AppInner() {
     userCases,
     setOverride,
     showToast,
-    editingCase,
+    editingCase: modals.editingCase,
     onAfterSave: () => {
-      setFormOpen(false);
-      setEditingCase(null);
+      modals.setFormOpen(false);
+      modals.setEditingCase(null);
     },
   });
 
@@ -460,24 +448,24 @@ function AppInner() {
       <ErrorBoundary name="header">
         <Header
           user={user}
-          onLogin={() => setAuthOpen(true)}
+          onLogin={() => modals.setAuthOpen(true)}
           onLogout={logout}
           query={query}
           setQuery={(q) => replacePatch({ query: q })}
           view={view}
           favCount={favs.length}
           onNewCase={onNewCase}
-          onOpenDrawer={() => setDrawerOpen(true)}
-          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenDrawer={() => modals.setDrawerOpen(true)}
+          onOpenSettings={() => modals.setSettingsOpen(true)}
           sections={config.visibleSectionsWithLabels}
         />
       </ErrorBoundary>
       <MobileDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        open={modals.drawerOpen}
+        onClose={() => modals.setDrawerOpen(false)}
         view={view}
         user={user}
-        onLogin={() => setAuthOpen(true)}
+        onLogin={() => modals.setAuthOpen(true)}
         onLogout={logout}
         favCount={favs.length}
         onNewCase={onNewCase}
@@ -692,15 +680,15 @@ function AppInner() {
         // modal-mount extraction.
         presentationCases={filtered.length > 0 ? filtered : allCases}
         onClosePresentation={() => replacePatch({ presenting: null })}
-        authOpen={authOpen}
-        onCloseAuth={() => setAuthOpen(false)}
+        authOpen={modals.authOpen}
+        onCloseAuth={() => modals.setAuthOpen(false)}
         onLogin={login}
         // SettingsPanel mount. The dialog owns its own internal
         // state for which section is visible; we only control
         // open/closed from up here. Offline data threads through
         // so the panel can list saved cases + purge them.
-        settingsOpen={settingsOpen}
-        onCloseSettings={() => setSettingsOpen(false)}
+        settingsOpen={modals.settingsOpen}
+        onCloseSettings={() => modals.setSettingsOpen(false)}
         allCases={allCases}
         savedOfflineIds={offlineCases.savedIds}
         onRemoveOffline={(caseId) => offlineCases.remove(caseId)}
@@ -710,8 +698,8 @@ function AppInner() {
           // the storage estimate refreshes from a clean slate.
           for (const id of offlineCases.savedIds) offlineCases.remove(id);
         }}
-        formOpen={formOpen}
-        editingCase={editingCase}
+        formOpen={modals.formOpen}
+        editingCase={modals.editingCase}
         currentUser={user}
         categories={config.categories}
         // Catalog-wide ES tag vocabulary for the autocomplete in the
@@ -722,15 +710,15 @@ function AppInner() {
         // corpus grows organically with translations.
         tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags.es)))}
         onCancelForm={() => {
-          setFormOpen(false);
-          setEditingCase(null);
+          modals.setFormOpen(false);
+          modals.setEditingCase(null);
         }}
         onSaveCase={onSaveCase}
         adminPipeline={adminPipeline}
-        shortcutsOpen={shortcutsOpen}
-        onCloseShortcuts={() => setShortcutsOpen(false)}
-        paletteOpen={paletteOpen}
-        onClosePalette={() => setPaletteOpen(false)}
+        shortcutsOpen={modals.shortcutsOpen}
+        onCloseShortcuts={() => modals.setShortcutsOpen(false)}
+        paletteOpen={modals.paletteOpen}
+        onClosePalette={() => modals.setPaletteOpen(false)}
         paletteCommands={paletteCommands}
         onRunPaletteCommand={onRunPaletteCommand}
       />
