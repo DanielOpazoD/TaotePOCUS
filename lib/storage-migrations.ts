@@ -62,14 +62,19 @@ function writePersistedVersion(version: number): void {
 }
 
 /** Read + parse a JSON-encoded localStorage entry. Returns `null`
- *  for missing / malformed values (caller skips the migration). */
+ *  for missing / malformed values (caller skips the migration).
+ *  A parse failure is worth a warning — it usually indicates user
+ *  data corruption (manual edit, partial write during a browser
+ *  crash). Sentry surfaces these so we can see if a particular
+ *  key keeps tripping. */
 function readJson<T = unknown>(key: string): T | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return null;
     return JSON.parse(raw) as T;
-  } catch {
+  } catch (err) {
+    log.warn("storage-migration-parse-failure", { area: "storage-migrations", key }, err);
     return null;
   }
 }
