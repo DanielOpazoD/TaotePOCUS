@@ -512,6 +512,14 @@ export const DICT_ES = {
   "metrics.routes.title": "Por ruta",
   "metrics.routes.col.route": "Ruta",
   "metrics.routes.col.count": "Eventos",
+  // LCP element fingerprint table — diagnostic answer to "qué
+  // elemento es realmente el LCP en cada visita". Solo renderiza
+  // cuando hay datos del campo `el` (clientes post-instrumentación).
+  "metrics.lcpElements.title": "Elemento LCP detectado",
+  "metrics.lcpElements.sub":
+    "Qué elemento captura web-vitals como LCP en cada visita. Optimizar el de arriba es el camino más directo a bajar el p75.",
+  "metrics.lcpElements.col.element": "Elemento",
+  "metrics.lcpElements.col.area": "Tamaño",
   // Footer disclosure.
   "metrics.foot.privacy":
     "Sin IP, sin user-agent, sin sesión — solo métrica, ruta y bucket de viewport. Honra Do Not Track.",

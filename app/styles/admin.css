@@ -2988,3 +2988,32 @@ textarea.ai-suggestions-field-input {
   font-size: 11px;
   font-family: var(--mono);
 }
+
+/* LCP-element fingerprint row decorations. The element column
+   stacks three pieces of info (tag, optional class, hint) on a
+   single line; classes + hints render as muted-mono so the bold
+   tag name still anchors the row. */
+.metrics-lcp-cls {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent, var(--ink-mute));
+  margin-left: 4px;
+}
+.metrics-lcp-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-left: 8px;
+  display: inline-block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.metrics-section-sub {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.45;
+}

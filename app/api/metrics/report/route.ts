@@ -44,7 +44,43 @@ interface ValidatedBeacon {
   v: number;
   r: string;
   vp: "mobile" | "tablet" | "desktop";
+  /** Optional LCP element fingerprint. Only present for `n: "lcp"`
+   *  beacons; the client only populates it there. Shape validated
+   *  below — each field is independently optional + capped to
+   *  prevent injecting arbitrarily-large strings via the public
+   *  ingest endpoint. */
+  el?: {
+    tag: string;
+    cls?: string;
+    src?: string;
+    txt?: string;
+    w?: number;
+    h?: number;
+  };
 }
+
+/** Allow-list of HTML tag names we'll accept as LCP element tags.
+ *  Rejecting anything else stops an attacker from injecting
+ *  arbitrary strings into the dashboard's grouping field. The set
+ *  covers every real LCP candidate (images, videos, headings,
+ *  block text, common containers). */
+const ALLOWED_LCP_TAGS = new Set([
+  "IMG",
+  "VIDEO",
+  "SOURCE",
+  "PICTURE",
+  "H1",
+  "H2",
+  "H3",
+  "P",
+  "DIV",
+  "SECTION",
+  "ARTICLE",
+  "SVG",
+  "CANVAS",
+  "SPAN",
+  "A",
+]);
 
 /** Validate the incoming beacon. Returns null if invalid (caller
  *  responds 400). Validation is strict — anything unexpected is a
@@ -71,12 +107,63 @@ function validateBeacon(raw: unknown): ValidatedBeacon | null {
   // side; rejecting here defends against a tampered client).
   if (!r.startsWith("/")) return null;
   if (r.includes("\n") || r.includes("?") || r.includes("#")) return null;
+
+  // Optional `el` field. Only on LCP beacons; tolerated as missing
+  // on others (the validator quietly drops it rather than failing,
+  // so older / non-LCP clients still round-trip).
+  let el: ValidatedBeacon["el"] | undefined;
+  if (obj.el && typeof obj.el === "object" && n === "lcp") {
+    el = validateLcpElement(obj.el as Record<string, unknown>) ?? undefined;
+    // Invalid `el` (wrong shape, unknown tag) → drop the field but
+    // still accept the beacon. The value of the metric is the
+    // primary signal; element fingerprint is secondary.
+  }
+
   return {
     n: n as ValidatedBeacon["n"],
     v,
     r,
     vp: vp as ValidatedBeacon["vp"],
+    ...(el ? { el } : {}),
   };
+}
+
+/** Validate the LCP element fingerprint. Strict on tag (must be
+ *  in the allow-list); permissive on the optional fields (any
+ *  missing field is just skipped). Caps every string length to
+ *  defend against a tampered client trying to inflate storage. */
+function validateLcpElement(
+  raw: Record<string, unknown>,
+): NonNullable<ValidatedBeacon["el"]> | null {
+  const tag = raw.tag;
+  if (typeof tag !== "string" || !ALLOWED_LCP_TAGS.has(tag)) return null;
+  const out: NonNullable<ValidatedBeacon["el"]> = { tag };
+  if (typeof raw.cls === "string" && raw.cls.length > 0 && raw.cls.length <= 30) {
+    // Class names: lowercased alphanum + dashes + underscores only.
+    // Strips any "weird" character to keep the aggregation column
+    // legible.
+    out.cls = raw.cls.replace(/[^a-z0-9_-]/g, "").slice(0, 30) || undefined;
+  }
+  if (typeof raw.src === "string" && raw.src.length > 0 && raw.src.length <= 256) {
+    // Must be a relative or absolute pathname — reject anything
+    // that smells like cross-origin tracking (URLs to other sites).
+    if (raw.src.startsWith("/") && !raw.src.includes("\n")) {
+      out.src = raw.src.slice(0, 256);
+    }
+  }
+  if (typeof raw.txt === "string" && raw.txt.length > 0 && raw.txt.length <= 60) {
+    // Strip newlines + cap to 40 chars (server side enforces a hard
+    // ceiling slightly above the client's 40 to allow for the rare
+    // edge where the client over-captured a UTF-8 boundary).
+    out.txt = raw.txt.replace(/[\n\r\t]+/g, " ").slice(0, 40);
+  }
+  if (typeof raw.w === "number" && Number.isFinite(raw.w) && raw.w >= 0 && raw.w < 10_000) {
+    out.w = Math.round(raw.w);
+  }
+  if (typeof raw.h === "number" && Number.isFinite(raw.h) && raw.h >= 0 && raw.h < 10_000) {
+    out.h = Math.round(raw.h);
+  }
+  return out;
 }
 
 /** Compose the storage key. Day prefix + timestamp + random tail

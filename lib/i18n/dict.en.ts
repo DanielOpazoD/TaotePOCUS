@@ -413,6 +413,13 @@ export const DICT_EN: Dict = {
   "metrics.routes.title": "By route",
   "metrics.routes.col.route": "Route",
   "metrics.routes.col.count": "Events",
+  // EN parity for `metrics.lcpElements.*`. See ES dict for the
+  // diagnostic rationale.
+  "metrics.lcpElements.title": "LCP element detected",
+  "metrics.lcpElements.sub":
+    "Which element web-vitals captures as the LCP on each visit. Optimising the top row is the most direct lever for lowering p75.",
+  "metrics.lcpElements.col.element": "Element",
+  "metrics.lcpElements.col.area": "Size",
   "metrics.foot.privacy":
     "No IP, no user-agent, no session — just metric, route, and viewport bucket. Honors Do Not Track.",
   "metrics.foot.generated": "Generated at {time}",

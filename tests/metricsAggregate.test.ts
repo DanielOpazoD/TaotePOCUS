@@ -22,9 +22,56 @@ describe("aggregate (RUM dashboard)", () => {
     expect(result.byMetric.lcp).toEqual({ p50: 0, p75: 0, p95: 0, count: 0 });
     expect(result.byRoute).toEqual([]);
     expect(result.series).toEqual([]);
+    expect(result.lcpElements).toEqual([]);
     expect(result.meta.totalEvents).toBe(0);
     expect(result.meta.daysWithData).toBe(0);
     expect(result.meta.daysRequested).toBe(30);
+  });
+
+  it("groups LCP elements by tag+hint, drops fingerprints with <3 observations", () => {
+    const lcpEvent = (
+      el: { tag: string; src?: string; txt?: string; w?: number; h?: number },
+      v = 2000,
+    ): Ev => ({
+      n: "lcp",
+      v,
+      r: "/",
+      vp: "desktop",
+      t: day("2026-05-21"),
+      // The route handler validates + types the el field; tests
+      // exercise the aggregator below with a permissive type cast.
+      ...({ el } as unknown as { el: Ev["n"] extends "lcp" ? object : never }),
+    });
+    const events: Ev[] = [
+      // Heavy hitter: 5 observations of an IMG LCP candidate.
+      ...Array.from({ length: 5 }, () =>
+        lcpEvent({ tag: "IMG", src: "/api/media/hero.jpg", w: 800, h: 600 }, 2500),
+      ),
+      // Tertiary: 3 observations of an H1 text candidate.
+      ...Array.from({ length: 3 }, () =>
+        lcpEvent({ tag: "H1", txt: "Atlas POCUS", w: 400, h: 60 }, 1500),
+      ),
+      // Below threshold: 2 observations of a different IMG. Should
+      // be dropped — too few samples to be actionable.
+      ...Array.from({ length: 2 }, () =>
+        lcpEvent({ tag: "IMG", src: "/api/media/other.jpg" }, 1200),
+      ),
+    ];
+    const out = aggregate(events, 30);
+    expect(out.lcpElements).toHaveLength(2);
+    // Sorted by count desc — IMG/hero first (5 obs > 3 obs).
+    const first = out.lcpElements[0]!;
+    expect(first.tag).toBe("IMG");
+    expect(first.hint).toBe("/api/media/hero.jpg");
+    expect(first.count).toBe(5);
+    expect(first.lcpP75).toBeGreaterThan(0);
+    expect(first.medianAreaPx).toBe(800 * 600);
+    const second = out.lcpElements[1]!;
+    expect(second.tag).toBe("H1");
+    expect(second.hint).toBe("Atlas POCUS");
+    expect(second.count).toBe(3);
+    // Below-threshold IMG/other.jpg is dropped — only 2 hits.
+    expect(out.lcpElements.find((r) => r.hint === "/api/media/other.jpg")).toBeUndefined();
   });
 
   it("computes byMetric percentiles across all events in window", () => {

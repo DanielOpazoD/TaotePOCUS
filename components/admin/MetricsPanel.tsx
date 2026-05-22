@@ -55,10 +55,27 @@ interface SeriesPoint {
   count: number;
 }
 
+/** LCP element fingerprint row. Server-side aggregator
+ *  (`lib/metrics-aggregate.ts`) builds these from beacons that
+ *  carried the `el` field (added in the LCP-instrumentation pass).
+ *  Drives the "what element is actually the LCP?" diagnostic
+ *  section of the dashboard. */
+interface LcpElementRow {
+  key: string;
+  tag: string;
+  cls?: string;
+  hint: string;
+  medianAreaPx: number;
+  count: number;
+  lcpP75: number;
+  lcpP95: number;
+}
+
 interface MetricsResponse {
   byMetric: ByMetric;
   byRoute: RouteRow[];
   series: SeriesPoint[];
+  lcpElements: LcpElementRow[];
   meta: {
     totalEvents: number;
     daysWithData: number;
@@ -152,7 +169,7 @@ export function MetricsPanel() {
     );
   }
 
-  const { byMetric, byRoute, series, meta } = state.data;
+  const { byMetric, byRoute, series, lcpElements, meta } = state.data;
   const hasData = meta.totalEvents > 0;
 
   return (
@@ -266,6 +283,60 @@ export function MetricsPanel() {
                         className={`metrics-table-cell metrics-table-cell--${classify("cls", row.clsP75)}`}
                       >
                         {formatValue("cls", row.clsP75)}
+                      </td>
+                      <td>{row.count.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* LCP element fingerprint table — the diagnostic surface
+              that answers "what element is the LCP actually?". Only
+              renders when there's data (older clients predate the
+              instrumentation pass). Sorted by observation count;
+              status color from p75 against the LCP thresholds. */}
+          {lcpElements.length > 0 && (
+            <div className="metrics-routes">
+              <h4>{t("metrics.lcpElements.title")}</h4>
+              <p className="metrics-section-sub">{t("metrics.lcpElements.sub")}</p>
+              <table className="metrics-table">
+                <thead>
+                  <tr>
+                    <th>{t("metrics.lcpElements.col.element")}</th>
+                    <th>{t("metrics.lcpElements.col.area")}</th>
+                    <th>LCP p75</th>
+                    <th>LCP p95</th>
+                    <th>{t("metrics.routes.col.count")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lcpElements.map((row) => (
+                    <tr key={row.key}>
+                      <td className="metrics-table-route">
+                        <strong>{row.tag}</strong>
+                        {row.cls && <span className="metrics-lcp-cls">.{row.cls}</span>}
+                        {row.hint && (
+                          <span className="metrics-lcp-hint" title={row.hint}>
+                            {row.hint}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {row.medianAreaPx > 0
+                          ? `${Math.round(Math.sqrt(row.medianAreaPx))}²px`
+                          : "—"}
+                      </td>
+                      <td
+                        className={`metrics-table-cell metrics-table-cell--${classify("lcp", row.lcpP75)}`}
+                      >
+                        {formatValue("lcp", row.lcpP75)}
+                      </td>
+                      <td
+                        className={`metrics-table-cell metrics-table-cell--${classify("lcp", row.lcpP95)}`}
+                      >
+                        {formatValue("lcp", row.lcpP95)}
                       </td>
                       <td>{row.count.toLocaleString()}</td>
                     </tr>
