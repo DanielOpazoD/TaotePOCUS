@@ -280,7 +280,7 @@
 .cine-play-button:not(.cine-play-button--decorative):hover .cine-play-button-badge,
 .cine-play-button:not(.cine-play-button--decorative):focus-visible .cine-play-button-badge {
   background: rgba(0, 0, 0, 0.7);
-  transform: scale(1.06);
+  transform: scale(var(--hover-pop));
 }
 .cine-play-button:focus-visible {
   outline: none;

@@ -216,7 +216,13 @@ select.classifier-aux-input {
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
-  z-index: 200;
+  /* Floats above page content during drag-classify, but stays
+     BELOW modals (a confirm dialog should overlay it). The numeric
+     200 used to live here was a coincidence with --z-presentation
+     (also 200), which led to ambiguous priority if both were ever
+     on screen. --z-sticky (50) is the right tier — sticks above
+     the page, defers to any modal. */
+  z-index: var(--z-sticky);
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);

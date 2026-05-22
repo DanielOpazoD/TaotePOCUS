@@ -178,6 +178,15 @@
 
 /* =================== TOOLBAR MICROINTERACTIONS =================== */
 
+/* Container for the active-filter chips below the toolbar's main
+   row. Replaces a `style={{ display: "flex", gap: 6, flexWrap }}`
+   that lived inline in Toolbar.tsx (PR #127 audit cleanup). */
+.toolbar-tags-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 /* Active filter chips appear in the toolbar after a tag toggles or a
    query lands. Pop-in animation = a brief scale-up that signals
    "yes, this filter is now applied". Skipped under reduced motion. */

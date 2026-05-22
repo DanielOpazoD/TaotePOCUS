@@ -157,11 +157,24 @@
    * mixed in OKLCH stays perceptually flat in dark mode where a
    * raw rgba would gray-out.
    *
-   * `--hover-lift` is the translateY value for card / chip hover.
-   * Single source so the whole UI lifts the same amount — used to
-   * be -1/-2/-3px scattered. */
+   * Hover affordance — two valid patterns, picked by context:
+   *
+   *  - `--hover-lift` (translateY): large clickable surfaces that
+   *    "rise" toward the cursor. Cards, list rows, link buttons,
+   *    modal action chips. The whole surface moves up 1px.
+   *    Usage: `transform: translateY(var(--hover-lift));`
+   *
+   *  - `--hover-pop` (scale): small icon buttons inside other
+   *    content where lifting would be invisible (a tiny heart
+   *    chip on a thumbnail). The button "pops" outward.
+   *    Usage: `transform: scale(var(--hover-pop));`
+   *
+   * Don't combine both in one hover state — that reads as bouncy
+   * micro-interaction (the May-2026 restraint pass cut all of
+   * those). Pick the one that matches the surface size. */
   --focus-ring: 0 0 0 3px color-mix(in oklch, var(--ink) 8%, transparent);
   --hover-lift: -1px;
+  --hover-pop: 1.06;
 
   /* ─── Translucent overlays ───────────────────────────────────
    *
@@ -171,11 +184,56 @@
   --overlay-soft: oklch(0.15 0.005 254 / 0.6); /* thumb gradient bottom */
   --overlay-strong: oklch(0.15 0.005 254 / 0.55); /* modal backdrop */
 
-  /* Z-index scale. Avoid raw numbers; pick from this scale. */
+  /* ────────────────────────────────────────────────────────────
+     Z-index scale. Documented ladder so new components land at
+     the right altitude instead of "whatever big number wins."
+     Pick from this scale. Raw numbers are allowed ONLY for
+     intra-component stacking (0/1/2/3 inside a single
+     positioned ancestor) — those create their own stacking
+     context and don't compete with the global ladder.
+     ────────────────────────────────────────────────────────────
+
+     0   (default)        Document flow.
+     50  --z-sticky       Sticky elements within a page (e.g. the
+                          modal-body's sticky header, the bulk-edit
+                          action bar, sidebar collapse rail).
+     100 --z-modal        `<dialog>` root layer. Every modal host
+                          (case / auth / confirm / settings) sits
+                          here. The browser's `::backdrop` is
+                          automatically one tier below.
+     110 --z-modal-chrome Floating chrome INSIDE a modal — the
+                          close button, the search bar in the case
+                          modal, the read-progress pill. Above the
+                          modal body content; below any modal-level
+                          overlay.
+     120 --z-modal-overlay Sticky bars + scroll-progress indicators
+                          inside a modal that need to be drawn over
+                          the chrome (e.g. the read-progress strip
+                          across the top of CaseModal). One tier up
+                          from --z-modal-chrome.
+     200 --z-presentation Presentation mode — full-screen cinema
+                          surface that covers everything except
+                          toasts.
+     300 --z-toast        Toast notifications. Always on top of
+                          modals and presentation so an error /
+                          undo affordance is never hidden.
+     1000 --z-popover     Free-floating popovers ABOVE everything,
+                          including toasts: the admin-thumb-menu
+                          portal that escapes the card's overflow
+                          context. Use sparingly — should only host
+                          temporary user-driven menus.
+     1000 --z-skip-link   Skip-to-content link (a11y).
+                          Co-located with --z-popover at the same
+                          altitude because both are "must be
+                          clickable above any UI."
+  */
   --z-sticky: 50;
   --z-modal: 100;
+  --z-modal-chrome: 110;
+  --z-modal-overlay: 120;
   --z-presentation: 200;
   --z-toast: 300;
+  --z-popover: 1000;
   --z-skip-link: 1000;
 }
 
