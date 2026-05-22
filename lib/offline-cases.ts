@@ -82,30 +82,66 @@ export function postToSW(message: object, timeoutMs = 30_000): Promise<ReplyMess
 }
 
 /** Save a case's media for offline. Returns `{ ok, evictedCount }`
- *  so the caller can toast about LRU evictions. */
+ *  so the caller can toast about LRU evictions.
+ *
+ *  Retry policy: the SW round-trip is wrapped in `withRetry` for
+ *  two failure modes that genuinely benefit from a second try:
+ *
+ *    - `no-controller` (postToSW returned null): the SW isn't
+ *      controlling the page yet. This races first-paint —
+ *      retrying after a short delay lets the SW finish activating.
+ *    - SW-side fetch errors (`offline:error` with a network-shaped
+ *      message): the SW's `await fetch(url)` can fail transiently
+ *      on a slow connection. A 200ms retry usually succeeds.
+ *
+ *  Non-transient errors (`quota exceeded after retries` from the
+ *  SW's own LRU loop, response status 4xx from the source server)
+ *  fail fast — retrying them just delays the inevitable. */
 export async function saveCaseOffline(
   caseId: string,
   mediaUrl: string,
 ): Promise<{ ok: boolean; evictedCount: number; error?: string }> {
-  const reply = await postToSW({ type: "offline:add", url: mediaUrl });
-  if (!reply) return { ok: false, evictedCount: 0, error: "no-controller" };
-  if (reply.type === "offline:error") {
-    return { ok: false, evictedCount: 0, error: reply.message };
+  // Lazy import keeps the retry helper out of any non-offline
+  // import graph. lib/offline-cases lives in the client bundle
+  // for every page, even pages that don't surface offline.
+  const { withRetry } = await import("@/lib/errors/retry");
+  try {
+    const reply = await withRetry(
+      async () => {
+        const r = await postToSW({ type: "offline:add", url: mediaUrl });
+        if (!r) throw new Error("no-controller");
+        if (r.type === "offline:error") {
+          // Throw on the SW's error reply so withRetry's
+          // shouldRetry can decide. We're conservative — retry
+          // only the no-controller + fetch-flavored errors.
+          throw new Error(r.message);
+        }
+        if (r.type !== "offline:added") {
+          throw new Error("unexpected-reply");
+        }
+        return r;
+      },
+      {
+        maxAttempts: 3,
+        baseDelayMs: 200,
+        shouldRetry: (err, attempt) => {
+          if (attempt >= 2) return false;
+          if (!(err instanceof Error)) return false;
+          const m = err.message;
+          // Retry the two transient classes.
+          return m === "no-controller" || m.includes("fetch") || m.includes("HTTP 5");
+        },
+        area: "offline-save",
+      },
+    );
+    const ids = readSavedCaseIds();
+    ids.add(caseId);
+    writeSavedCaseIds(ids);
+    return { ok: true, evictedCount: reply.evicted.length };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return { ok: false, evictedCount: 0, error: message };
   }
-  if (reply.type !== "offline:added") {
-    return { ok: false, evictedCount: 0, error: "unexpected-reply" };
-  }
-  // Reconcile localStorage AFTER the SW confirms — avoids the
-  // optimistic-write surface where we say "saved" but the SW
-  // failed silently.
-  const ids = readSavedCaseIds();
-  ids.add(caseId);
-  // Any URLs the SW evicted to make room for this one map back to
-  // case IDs via the reverse lookup the caller provides — but we
-  // don't have that mapping here. The caller (the hook) holds the
-  // URL→id table and can drop the evicted IDs from `ids`.
-  writeSavedCaseIds(ids);
-  return { ok: true, evictedCount: reply.evicted.length };
 }
 
 /** Remove a case's media from the offline cache. Idempotent — no
