@@ -27,6 +27,7 @@ import { getCaseTitle } from "@/lib/case-localized";
 import type { CaseRecord, Category, User } from "@/lib/types";
 import type { AuthErrorCode } from "@/lib/errors";
 import type { Command as PaletteCommand } from "./modals/CommandPalette";
+import type { AppModalState } from "@/hooks/useAppModalState";
 
 // Lazy-loaded subtrees: each shows up only on a specific flag.
 // Keeping them out of the initial bundle preserves first-paint on
@@ -102,7 +103,16 @@ interface AdminPipeline {
 }
 
 interface Props {
-  // Case modal
+  /** Bundled transient modal state from `useAppModalState`. Replaces
+   *  the seven open/close prop pairs that used to live here
+   *  separately. Close handlers for state-only dialogs (auth, form,
+   *  settings, shortcuts, palette) are derived INSIDE this component
+   *  from `modals.setX(false)`; close handlers for URL-state
+   *  dialogs (case modal, presentation) still arrive as explicit
+   *  props because the URL update is App.tsx's responsibility. */
+  modals: AppModalState;
+
+  // Case modal — URL-state-backed (`?caso=<id>`), not in `modals`.
   openCase: CaseRecord | null;
   isFav: boolean;
   onCloseCase: () => void;
@@ -124,34 +134,28 @@ interface Props {
   /** Flip the offline state for the open case. */
   onToggleOffline: () => void;
 
-  // Presentation
+  // Presentation — URL-state-backed (`?presenting=<id>`), not in `modals`.
   presentingCase: CaseRecord | null;
   presentationCases: CaseRecord[];
   onClosePresentation: () => void;
 
-  // Auth modal
-  authOpen: boolean;
-  onCloseAuth: () => void;
+  // Auth modal — the login callback. Open state + close are in
+  // `modals` / derived; the actual login function lives in App.tsx.
   onLogin: (input: {
     email: string;
     password: string;
     name?: string;
   }) => Promise<{ ok: true } | { ok: false; code: AuthErrorCode | "unknown"; message: string }>;
 
-  // Case form (admin)
-  formOpen: boolean;
-  editingCase: CaseRecord | null;
+  // Case form (admin) — data dependencies. Open state + editingCase
+  // + cancel are in `modals` / derived.
   currentUser: User | null;
   categories: Category[];
   tagSuggestions: string[];
-  onCancelForm: () => void;
   onSaveCase: (data: CaseRecord) => Promise<void> | void;
 
-  // SettingsPanel (per-device preferences + offline storage UI).
-  // Surfaced from the UserMenu; mount lives here next to the other
-  // modal dialogs so the open-state machinery is uniform.
-  settingsOpen: boolean;
-  onCloseSettings: () => void;
+  // SettingsPanel (per-device preferences + offline storage UI) —
+  // data dependencies. Open state + close are in `modals` / derived.
   /** Full case corpus — the SettingsPanel resolves saved ids to
    *  case records for the offline list (title + media kind hint). */
   allCases: CaseRecord[];
@@ -168,14 +172,6 @@ interface Props {
 
   // Admin pipeline (delete / purge confirms)
   adminPipeline: AdminPipeline;
-
-  // Shortcuts modal
-  shortcutsOpen: boolean;
-  onCloseShortcuts: () => void;
-
-  // Command palette (Cmd+K)
-  paletteOpen: boolean;
-  onClosePalette: () => void;
   /** Catalog of commands the palette can dispatch. Built upstream
    *  in `App.tsx` because the call sites for each command (open
    *  case, edit case, toggle theme, navigate) live there. */
@@ -203,6 +199,7 @@ export default function AppModals(props: Props) {
   const {
     openCase,
     isFav,
+    modals,
     onCloseCase,
     onFav,
     onShare,
@@ -214,30 +211,33 @@ export default function AppModals(props: Props) {
     presentingCase,
     presentationCases,
     onClosePresentation,
-    authOpen,
-    onCloseAuth,
     onLogin,
-    formOpen,
-    editingCase,
     currentUser,
     categories,
     tagSuggestions,
-    onCancelForm,
     onSaveCase,
-    settingsOpen,
-    onCloseSettings,
     allCases,
     savedOfflineIds,
     onRemoveOffline,
     onPurgeOffline,
     adminPipeline,
-    shortcutsOpen,
-    onCloseShortcuts,
-    paletteOpen,
-    onClosePalette,
     paletteCommands,
     onRunPaletteCommand,
   } = props;
+  // Derive the state-only close handlers from `modals`. Memoising
+  // them isn't needed — each modal mount is itself conditional, so
+  // these closures are only created when the corresponding dialog
+  // is actually open + about to render the close button.
+  const closeAuth = () => modals.setAuthOpen(false);
+  const closeSettings = () => modals.setSettingsOpen(false);
+  const closeShortcuts = () => modals.setShortcutsOpen(false);
+  const closePalette = () => modals.setPaletteOpen(false);
+  // CaseForm cancel does two things — close the form AND clear the
+  // editingCase pointer — so it's worth its own named helper.
+  const cancelForm = () => {
+    modals.setFormOpen(false);
+    modals.setEditingCase(null);
+  };
 
   return (
     <>
@@ -286,11 +286,11 @@ export default function AppModals(props: Props) {
         />
       )}
 
-      {authOpen && <AuthModal onClose={onCloseAuth} onLogin={onLogin} />}
+      {modals.authOpen && <AuthModal onClose={closeAuth} onLogin={onLogin} />}
 
-      {settingsOpen && (
+      {modals.settingsOpen && (
         <SettingsPanel
-          onClose={onCloseSettings}
+          onClose={closeSettings}
           allCases={allCases}
           savedOfflineIds={savedOfflineIds}
           onRemoveOffline={onRemoveOffline}
@@ -298,13 +298,13 @@ export default function AppModals(props: Props) {
         />
       )}
 
-      {formOpen && (
+      {modals.formOpen && (
         <CaseForm
-          initial={editingCase}
+          initial={modals.editingCase}
           currentUser={currentUser}
           categories={categories}
           tagSuggestions={tagSuggestions}
-          onCancel={onCancelForm}
+          onCancel={cancelForm}
           onSave={onSaveCase}
         />
       )}
@@ -343,16 +343,16 @@ export default function AppModals(props: Props) {
         onCancel={adminPipeline.cancelPurge}
       />
 
-      <ShortcutsModal open={shortcutsOpen} onClose={onCloseShortcuts} />
+      <ShortcutsModal open={modals.shortcutsOpen} onClose={closeShortcuts} />
 
       {/* Cmd+K command palette. Mounts conditionally because the
           lazy import shouldn't ship until the user actually opens
           it, but stays in the modal layer so it shares the same
           z-index / focus-trap conventions as the other dialogs. */}
-      {paletteOpen && (
+      {modals.paletteOpen && (
         <CommandPalette
-          open={paletteOpen}
-          onClose={onClosePalette}
+          open={modals.paletteOpen}
+          onClose={closePalette}
           commands={paletteCommands}
           onRun={onRunPaletteCommand}
         />
