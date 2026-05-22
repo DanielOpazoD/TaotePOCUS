@@ -423,7 +423,7 @@ textarea.admin-input {
   height: 28px;
   border-radius: 999px;
   background: var(--surface-2);
-  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+  animation: admin-skeleton-pulse var(--duration-shimmer) ease-in-out infinite;
 }
 .admin-skeleton-tabs {
   display: flex;
@@ -437,7 +437,7 @@ textarea.admin-input {
   height: 32px;
   border-radius: var(--radius-sm, 6px);
   background: var(--surface-2);
-  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+  animation: admin-skeleton-pulse var(--duration-shimmer) ease-in-out infinite;
 }
 .admin-skeleton-content {
   width: 100%;
@@ -447,7 +447,7 @@ textarea.admin-input {
   height: 320px;
   border-radius: var(--radius-md);
   background: var(--surface-2);
-  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+  animation: admin-skeleton-pulse var(--duration-shimmer) ease-in-out infinite;
 }
 @keyframes admin-skeleton-pulse {
   0%,
@@ -676,14 +676,15 @@ textarea.admin-input {
   border-color: var(--crit);
 }
 
+/* Theme toggle inherits the .icon-btn base (32×32, svg 14×14).
+   Previously declared its own 36×36 / 16×16 sizing which broke
+   the cluster rhythm — the header's right-side icons read as a
+   set, and the theme toggle was the only one larger. Audit-pass
+   #128 aligned everything to 32px; primary-action distinction
+   (e.g. the +new-case button) comes from `.btn-primary`'s dark
+   fill, not from size. */
 .theme-toggle {
-  width: 36px;
-  height: 36px;
   margin-left: 0;
-}
-.theme-toggle svg {
-  width: 16px;
-  height: 16px;
 }
 .theme-toggle:hover {
   color: var(--accent-ink);
@@ -2576,7 +2577,7 @@ textarea.ai-suggestions-field-input {
 .ai-rewrite-progress-fill {
   height: 100%;
   background: var(--accent);
-  transition: width 200ms ease;
+  transition: width var(--duration-base) var(--ease-emphasized);
 }
 .ai-rewrite-complete {
   display: flex;

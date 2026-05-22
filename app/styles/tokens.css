@@ -134,10 +134,25 @@
   --max-modal: 1100px;
 
   /* Animation tokens. Durations should match across the UI so
-     transitions feel coherent — pick from these, don't invent. */
+     transitions feel coherent — pick from these, don't invent.
+
+     Three short-form durations cover UI transitions (hover, focus,
+     small state changes). Three longer-form durations cover
+     loading-state loops (spinners, shimmers, pulses) where the
+     duration IS the visual identity — picking the right value
+     once and reusing it makes every "still working" indicator
+     feel like the same app, not a stack of different vendors. */
   --duration-fast: 0.12s;
   --duration-base: 0.18s;
   --duration-slow: 0.25s;
+  /* Loading-state cadences. Audit-pass #128 surfaced these as the
+     three recurring magic numbers across spinners (cine + modal-action)
+     and shimmers (skeleton + admin-skeleton). Tokenized so they
+     stay coherent and so a designer can re-tune the entire app's
+     "loading rhythm" with three lines. */
+  --duration-spinner: 0.85s; /* full rotation of a loading ring */
+  --duration-shimmer: 1.6s; /* skeleton gradient sweep / opacity pulse */
+  --duration-pulse: 1.4s; /* reduced-motion fallback for spinners */
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.4, 0, 0.2, 1);
   /* Spring (overshoot). Reserved for "alive" moments — the heart

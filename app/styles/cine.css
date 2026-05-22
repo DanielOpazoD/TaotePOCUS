@@ -130,7 +130,7 @@
   border: 3px solid rgba(255, 255, 255, 0.25);
   border-top-color: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  animation: cine-spinner-rotate 0.85s linear infinite;
+  animation: cine-spinner-rotate var(--duration-spinner) linear infinite;
   /* Pop slightly so the spinner reads as a foreground element. */
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
@@ -143,7 +143,7 @@
   /* Pulse rather than rotate — same "still working" cue without the
      constant spin that triggers vestibular sensitivity. */
   .cine-spinner-dot {
-    animation: cine-spinner-pulse 1.4s ease-in-out infinite;
+    animation: cine-spinner-pulse var(--duration-pulse) ease-in-out infinite;
     border-top-color: rgba(255, 255, 255, 0.6);
   }
   @keyframes cine-spinner-pulse {
@@ -286,8 +286,12 @@
   outline: none;
 }
 .cine-play-button:focus-visible .cine-play-button-badge {
-  outline: 2px solid var(--accent, #6aa6ff);
-  outline-offset: 3px;
+  /* Outline canonicalised in audit-pass #128: drop the hardcoded
+     `#6aa6ff` fallback (the token is reliably defined in tokens.css
+     for both light and dark mode) and align offset to 2px (the
+     codebase-wide standard; was 3px here as a one-off). */
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 /* Buffering state: video.play() called but no frame yet. Swap the
    triangle for a rotating spinner so the tap has immediate visual
@@ -304,14 +308,14 @@
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top-color: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  animation: cine-spinner-rotate 0.85s linear infinite;
+  animation: cine-spinner-rotate var(--duration-spinner) linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   /* Same accessibility shim as the legacy spinner — pulse instead
      of rotate so vestibular-sensitive users still get the "working
      on it" cue without continuous rotation. */
   .cine-play-button[data-buffering="true"] .cine-play-button-badge::after {
-    animation: cine-spinner-pulse 1.4s ease-in-out infinite;
+    animation: cine-spinner-pulse var(--duration-pulse) ease-in-out infinite;
     border-top-color: rgba(255, 255, 255, 0.6);
   }
   .cine-play-button:not(.cine-play-button--decorative):hover .cine-play-button-badge,
@@ -381,7 +385,7 @@
 }
 .cine-wrap[data-loaded="true"] .cine-video {
   opacity: 1;
-  transition: opacity 200ms ease-out;
+  transition: opacity var(--duration-base) ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
