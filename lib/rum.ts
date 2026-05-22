@@ -51,6 +51,34 @@ export interface RumBeacon {
   /** Viewport bucket. Buckets > exact widths so the aggregation
    *  table is readable AND the field is non-identifying. */
   vp: "mobile" | "tablet" | "desktop";
+  /** LCP candidate element fingerprint. Populated ONLY for `n: "lcp"`
+   *  beacons — the other metrics don't have a single "element" in the
+   *  same way. Lets the admin dashboard answer "which element is
+   *  actually the LCP?" — without this info the optimization wire
+   *  is guesswork (see PR #116 postmortem). */
+  el?: LcpElement;
+}
+
+/** Anonymous fingerprint of the LCP element. Privacy posture:
+ *   - `tag`: HTML element name (IMG, VIDEO, H1, etc.) — never PII.
+ *   - `cls`: first class name, lowercased + truncated 30 chars —
+ *     a hint at the styling role ("case-thumb-image", "section-hero").
+ *   - `src`: pathname of the image/video src, query-stripped. Public
+ *     catalog content; no session tokens or user data in URLs.
+ *   - `txt`: first 40 chars of the element's text content for text
+ *     LCP candidates. Catalog page titles ("Atlas POCUS", case
+ *     titles) are public content — safe to capture. We do NOT
+ *     capture personalised text (greetings, etc.) because there
+ *     isn't any on the LCP-relevant surfaces today.
+ *   - `w` / `h`: rendered dimensions in pixels. Helps prioritise
+ *     ("a 800×600 hero is a bigger LCP win than a 80×80 thumb"). */
+export interface LcpElement {
+  tag: string;
+  cls?: string;
+  src?: string;
+  txt?: string;
+  w?: number;
+  h?: number;
 }
 
 const ENDPOINT = "/api/metrics/report";
@@ -130,6 +158,65 @@ function roundValue(name: RumBeacon["n"], value: number): number {
 
 type WebVitalMetric = LCPMetric | INPMetric | CLSMetric | FCPMetric | TTFBMetric;
 
+/** Fingerprint the LCP candidate element from a web-vitals
+ *  LCPMetric. The library exposes the actual DOM Element via
+ *  `metric.entries[last].element` (a `LargestContentfulPaint`
+ *  entry). Returns null if the element isn't accessible (e.g.
+ *  removed from the DOM by the time the beacon fires) — the
+ *  beacon is still sent, just without the element field.
+ *
+ *  Conservative on bytes: returns the shortest-prefix `cls` and
+ *  truncates `txt` aggressively (40 chars). The whole `el` object
+ *  fits under 200 bytes for most pages. */
+function captureLcpElement(metric: LCPMetric): LcpElement | undefined {
+  if (typeof window === "undefined") return undefined;
+  const entries = metric.entries;
+  if (!entries || entries.length === 0) return undefined;
+  // The last entry is the LATEST (and final) LCP candidate. Earlier
+  // entries are candidates that got dethroned by later renders.
+  const lastEntry = entries[entries.length - 1];
+  if (!lastEntry) return undefined;
+  // The element property may be null when the LCP candidate has been
+  // removed from the DOM by the time the beacon fires (e.g.
+  // single-page nav between routes after first paint).
+  const el = (lastEntry as LargestContentfulPaint).element;
+  if (!el) return undefined;
+  const tag = el.tagName.toUpperCase();
+  const out: LcpElement = { tag };
+  // First class name only — keeps the field small and aggregatable.
+  const className = el.classList[0];
+  if (className) out.cls = className.toLowerCase().slice(0, 30);
+  // Image / video src — strip query so we don't fan out the
+  // aggregation table with every cache-bust variant.
+  if (tag === "IMG" || tag === "VIDEO" || tag === "SOURCE") {
+    const elWithSrc = el as HTMLImageElement | HTMLVideoElement | HTMLSourceElement;
+    const rawSrc =
+      "currentSrc" in elWithSrc ? elWithSrc.currentSrc || elWithSrc.src : elWithSrc.src;
+    if (rawSrc) {
+      try {
+        const u = new URL(rawSrc, window.location.origin);
+        out.src = u.pathname; // no query, no hash
+      } catch {
+        // Malformed URL — skip, keep the rest of the fingerprint.
+      }
+    }
+  } else {
+    // Text-like LCP candidate. Capture a short prefix of the visible
+    // text content so the dashboard can see "the LCP is the H1
+    // 'Atlas POCUS'" without storing arbitrary user data. Catalog
+    // page titles + case titles are public — no PII surfaces here.
+    const text = (el.textContent || "").trim().replace(/\s+/g, " ");
+    if (text) out.txt = text.slice(0, 40);
+  }
+  // Rendered size for prioritisation hints. `lastEntry.size` is the
+  // intersection-area of the element with the viewport; we surface
+  // the rendered box separately as width × height for the dashboard.
+  const rect = el.getBoundingClientRect();
+  if (rect.width > 0) out.w = Math.round(rect.width);
+  if (rect.height > 0) out.h = Math.round(rect.height);
+  return out;
+}
+
 /** Wrap each web-vitals callback so we shape + send. The library
  *  fires each callback ONCE per page lifecycle for terminal metrics
  *  (LCP / CLS) and on each interaction for INP. */
@@ -141,6 +228,14 @@ function handleMetric(metric: WebVitalMetric): void {
     r: normalizeRoute(typeof window !== "undefined" ? window.location.pathname : "/"),
     vp: viewportBucket(),
   };
+  // Only LCP beacons carry the element fingerprint — the other
+  // metrics don't have a single "element" in the same sense (INP
+  // has multiple interaction targets, CLS is a cumulative shift
+  // score, FCP/TTFB are timeline points).
+  if (metric.name === "LCP") {
+    const el = captureLcpElement(metric as LCPMetric);
+    if (el) beacon.el = el;
+  }
   send(beacon);
 }
 
@@ -160,4 +255,10 @@ export function initRum(): boolean {
 }
 
 // Exported for unit tests — production code path is just initRum().
-export const __test = { normalizeRoute, viewportBucket, roundValue, doNotTrackEnabled };
+export const __test = {
+  normalizeRoute,
+  viewportBucket,
+  roundValue,
+  doNotTrackEnabled,
+  captureLcpElement,
+};
