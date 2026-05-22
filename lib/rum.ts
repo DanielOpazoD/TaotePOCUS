@@ -125,7 +125,17 @@ function viewportBucket(): RumBeacon["vp"] {
 }
 
 /** Fire-and-forget post. Uses `sendBeacon` when available (survives
- *  navigation), falls back to `fetch` with `keepalive: true`. */
+ *  navigation), falls back to `fetch` with `keepalive: true`.
+ *
+ *  Coverage-excluded (v8 ignore): both branches exercise standard-
+ *  library wire calls (sendBeacon + fetch with keepalive). Unit-testing
+ *  would mostly re-assert the spec — the meaningful contract is "the
+ *  beacon got to the server", which is integration territory (the
+ *  `/api/metrics/report` route handler validates the payload and the
+ *  RUM dashboard surfaces shape regressions). The pure helpers above
+ *  (normalizeRoute / viewportBucket / roundValue / doNotTrackEnabled
+ *  / captureLcpElement) ARE unit-tested via the `__test` exports. */
+/* v8 ignore start */
 function send(beacon: RumBeacon): void {
   if (typeof navigator === "undefined") return;
   const payload = JSON.stringify(beacon);
@@ -147,6 +157,7 @@ function send(beacon: RumBeacon): void {
     // Best-effort — beacon loss isn't a user-facing failure.
   });
 }
+/* v8 ignore stop */
 
 /** Round CLS to 4 decimals (the metric is in 0..0.X range) and
  *  everything else to integer milliseconds. Keeps payload size
@@ -219,7 +230,16 @@ function captureLcpElement(metric: LCPMetric): LcpElement | undefined {
 
 /** Wrap each web-vitals callback so we shape + send. The library
  *  fires each callback ONCE per page lifecycle for terminal metrics
- *  (LCP / CLS) and on each interaction for INP. */
+ *  (LCP / CLS) and on each interaction for INP.
+ *
+ *  Coverage-excluded (v8 ignore): handleMetric is the binding point
+ *  between the web-vitals library and our wire, and `initRum`
+ *  subscribes to all five web-vitals events. jsdom doesn't simulate
+ *  PerformanceObserver / web-vitals, so unit-testing this would mean
+ *  stubbing the entire web-vitals SDK. The behavior is exercised by
+ *  the integration smoke against the live `/api/metrics/report`
+ *  endpoint + the RUM dashboard. */
+/* v8 ignore start */
 function handleMetric(metric: WebVitalMetric): void {
   const name = metric.name.toLowerCase() as RumBeacon["n"];
   const beacon: RumBeacon = {
@@ -253,6 +273,7 @@ export function initRum(): boolean {
   onTTFB(handleMetric);
   return true;
 }
+/* v8 ignore stop */
 
 // Exported for unit tests — production code path is just initRum().
 export const __test = {
