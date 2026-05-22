@@ -18,6 +18,7 @@
 // also needs it, lift to a context provider then.
 
 import { useCallback, useEffect, useState } from "react";
+import { isTransient, withRetry } from "@/lib/errors/retry";
 
 /** Matches `lib/ai/provider.ts > ProviderId`. Kept inline as a
  *  literal so the hook doesn't pull lib/ai types into the client
@@ -94,14 +95,30 @@ export function useAIProvider(): UseAIProvider {
   const fetchSnapshot = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const res = await fetch("/api/admin/ai/providers", { cache: "no-store" });
-      if (!res.ok) {
-        // 403 reaches here when the session expired — surface the
-        // status so the UI can prompt re-auth instead of looking
-        // mysteriously broken.
-        throw new Error(`Registry endpoint returned ${res.status}`);
-      }
-      const data: RegistrySnapshot = await res.json();
+      // Wrapped in `withRetry` so a transient upstream blip
+      // (DeepSeek 429 / 503, brief network drop) doesn't surface
+      // as a permanent "AI off" status to the admin. The
+      // `isTransient` predicate filters: 4xx (except 408/429)
+      // are NOT retried — those are real client errors (403
+      // session expired, 404 endpoint gone) and need user
+      // attention immediately.
+      const data = await withRetry(
+        async () => {
+          const res = await fetch("/api/admin/ai/providers", { cache: "no-store" });
+          if (!res.ok) {
+            // 403 reaches here when the session expired — surface the
+            // status so the UI can prompt re-auth instead of looking
+            // mysteriously broken. The `HTTP <N>` shape is what
+            // `isTransient` parses for retry classification.
+            throw new Error(`HTTP ${res.status}`);
+          }
+          return (await res.json()) as RegistrySnapshot;
+        },
+        {
+          shouldRetry: (err, attempt) => attempt < 2 && isTransient(err),
+          area: "ai-providers",
+        },
+      );
       setState({ snapshot: data, error: null, loading: false });
     } catch (err) {
       setState({

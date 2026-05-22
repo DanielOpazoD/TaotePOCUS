@@ -18,6 +18,7 @@
 import { useCallback, useState } from "react";
 import { entryFromCase, rememberAIBatch } from "@/lib/ai-batch-undo";
 import { recordAICall } from "@/lib/ai-usage-stats";
+import { isTransient, withRetry } from "@/lib/errors/retry";
 import type { CaseRecord, TranslationMeta } from "@/lib/types";
 
 interface AutoTagResult {
@@ -51,16 +52,49 @@ export function AIAutoTagButton({ caso, onApplyPatch, onNotify }: Props) {
   const run = useCallback(async () => {
     setRunning(true);
     try {
-      const res = await fetch("/api/admin/ai/autotag", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          source: {
-            title: caso.title.es,
-            description: caso.description?.es ?? "",
+      // Wrapped in `withRetry` — autotag hits the upstream LLM
+      // (DeepSeek), which can return 429 / 503 / network blips
+      // under burst load. `isTransient` filters: 4xx (other than
+      // 408/429) still fail fast since they signal real client /
+      // data errors.
+      //
+      // Pattern: throw on non-OK so withRetry can decide whether
+      // to retry. On final failure we catch + surface the
+      // user-friendly detail (the body's `reason` if available,
+      // else the HTTP status). The 4xx-with-reason path is the
+      // common case for "provider says X is invalid" feedback.
+      let res: Response;
+      try {
+        res = await withRetry(
+          async () => {
+            const r = await fetch("/api/admin/ai/autotag", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                source: {
+                  title: caso.title.es,
+                  description: caso.description?.es ?? "",
+                },
+              }),
+            });
+            if (!r.ok && isTransient(new Error(`HTTP ${r.status}`))) {
+              // Transient — throw so withRetry retries.
+              throw new Error(`HTTP ${r.status}`);
+            }
+            // OK OR a non-transient !ok (e.g. 400). Return as-is
+            // so the outer handler can extract the body reason.
+            return r;
           },
-        }),
-      });
+          {
+            shouldRetry: (err, attempt) => attempt < 2 && isTransient(err),
+            area: "ai-autotag",
+          },
+        );
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : "unknown";
+        onNotify?.(`Error en autotag: ${detail}`);
+        return;
+      }
       if (!res.ok) {
         let detail = `HTTP ${res.status}`;
         try {
