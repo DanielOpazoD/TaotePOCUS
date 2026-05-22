@@ -121,23 +121,13 @@
   padding: 10px 16px;
   font-size: 14px;
 }
-.btn-danger {
-  background: var(--crit);
-  color: oklch(1 0 0);
-  border: 1px solid var(--crit);
-  border-radius: var(--radius-lg);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 9px 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  transition: filter var(--duration-fast);
-}
-.btn-danger:hover {
-  filter: brightness(1.08);
-}
+/* `.btn-danger` definition moved to `header.css` (PR #127) so it
+   lives next to `.btn-primary` / `.btn-ghost` — the three buttons
+   share the same padding / radius / font / transition contract and
+   the danger variant was the outlier. The previous copy here used
+   `brightness(1.08)` on hover (lighten); the consolidated version
+   uses `brightness(0.92)` (darken) for better behaviour on a
+   strong-saturation token. See `header.css > .btn-danger`. */
 
 /* =================== SHORTCUTS MODAL =================== */
 .shortcuts-modal {

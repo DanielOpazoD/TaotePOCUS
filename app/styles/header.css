@@ -297,6 +297,26 @@
   background: var(--ink-hover);
 }
 
+/* Destructive variant. Standalone — DO NOT compose with btn-primary
+   (the danger color always wins, and double-classing was the source
+   of the !important overrides that used to live in admin.css).
+   Single source of truth lives here next to .btn-primary / .btn-ghost
+   so the three buttons share the same padding / radius / font
+   contract.
+
+   Hover behaviour: brightness(0.92) — DIMS the already-bright red
+   rather than further brightening it. A "lighten on hover" cue on
+   a strong-saturation token reads as washed-out instead of
+   "active." See the May-2026 audit (PR #127) for the rationale. */
+.btn-danger {
+  background: var(--crit);
+  color: oklch(1 0 0);
+  border-color: var(--crit);
+}
+.btn-danger:hover {
+  filter: brightness(0.92);
+}
+
 /* Icon-only variant. Circular hit-target with the icon centered;
    the accessible name comes from aria-label, the visible cue from
    the icon plus a tooltip. Used for the user/login + new-case

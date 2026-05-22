@@ -714,7 +714,7 @@
 }
 .case-thumb-fav:hover {
   background: oklch(1 0 0);
-  transform: scale(1.06);
+  transform: scale(var(--hover-pop));
 }
 .case-thumb-fav.active {
   color: var(--crit);
@@ -916,7 +916,7 @@
 .admin-thumb-menu-trigger:hover,
 .admin-thumb-menu-trigger[aria-expanded="true"] {
   border-color: var(--ink-mute);
-  transform: scale(1.1);
+  transform: scale(var(--hover-pop));
   background: var(--bg);
 }
 
@@ -930,7 +930,12 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-3);
   padding: 6px;
-  z-index: 1000;
+  /* Free-floating popover anchored via fixed coords from the
+     card. Must escape every card's overflow context AND sit
+     above modal/toast surfaces (the menu can be triggered from
+     a card the modal is hidden behind). --z-popover is the
+     "above everything" tier for user-triggered menus. */
+  z-index: var(--z-popover);
   animation: quick-reclassify-pop 0.12s var(--ease-standard);
 }
 .admin-thumb-menu-list {

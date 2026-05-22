@@ -132,7 +132,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   border-radius: var(--radius-sm, 6px);
 }
 

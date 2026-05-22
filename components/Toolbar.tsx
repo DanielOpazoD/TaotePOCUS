@@ -118,7 +118,7 @@ export default function Toolbar({
           without informing the read experience for a sonography
           reference catalog. */}
       {tags.length > 0 && (
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        <div className="toolbar-tags-row">
           {tags.map((tag) => (
             <button
               key={tag}

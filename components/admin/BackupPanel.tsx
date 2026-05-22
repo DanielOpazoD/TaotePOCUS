@@ -390,7 +390,7 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
               <button type="button" className="btn-ghost" onClick={cancelRestore}>
                 {t("backup.confirm.cancel")}
               </button>
-              <button type="button" className="btn-primary btn-danger" onClick={confirmRestore}>
+              <button type="button" className="btn-danger" onClick={confirmRestore}>
                 {t("backup.confirm.restore.confirm")}
               </button>
             </div>

@@ -1069,15 +1069,14 @@ textarea.admin-input {
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
-.btn-danger {
-  background: var(--crit) !important;
-  border-color: var(--crit) !important;
-}
-.btn-danger:hover {
-  /* Slightly darker on hover. The token is already a strong red so we
-     just dim it instead of shifting hue. */
-  filter: brightness(0.92);
-}
+/* `.btn-danger` override removed (PR #127). The canonical
+   definition in `header.css` now provides the full button shape
+   + the darker-on-hover behaviour this comment used to justify.
+   The `!important` here existed because components composed
+   `.btn-primary .btn-danger` and needed source-order override —
+   resolved by making `.btn-danger` a standalone class (no
+   composition with btn-primary). One spot in BulkEditActionBar
+   was migrated to drop the dual class. */
 
 /* (Mobile / tablet responsive rules used to live here at 880px;
    moved to `app/styles/layout.css` and `header.css` where the
@@ -1303,7 +1302,7 @@ textarea.admin-input {
   box-shadow:
     0 0 0 2px var(--accent),
     0 2px 6px oklch(0 0 0 / 0.18);
-  transform: scale(1.04);
+  transform: scale(var(--hover-pop));
 }
 .bulk-edit-thumb-btn:focus-visible {
   outline: none;
@@ -2623,7 +2622,7 @@ textarea.ai-suggestions-field-input {
 .bulk-edit-row-ai:hover {
   background: var(--accent-soft);
   color: var(--accent-ink);
-  transform: scale(1.1);
+  transform: scale(var(--hover-pop));
 }
 
 /* Per-row 🏷️ auto-tag button. Same shape as ✨ but distinct icon —
@@ -2641,7 +2640,7 @@ textarea.ai-suggestions-field-input {
 }
 .bulk-edit-row-autotag:hover:not(:disabled) {
   background: var(--accent-soft);
-  transform: scale(1.1);
+  transform: scale(var(--hover-pop));
 }
 .bulk-edit-row-autotag:disabled {
   opacity: 0.5;

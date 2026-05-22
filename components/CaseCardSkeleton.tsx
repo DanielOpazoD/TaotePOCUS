@@ -28,15 +28,21 @@
 // sees a smooth swap. Respects `prefers-reduced-motion`.
 
 export function CaseCardSkeleton() {
+  // Inline-style widths/heights migrated to the modifier classes
+  // that already existed in `app/styles/skeleton.css` (PR #127 audit
+  // cleanup). The previous `style={{ width: "75%", height: 18 }}`
+  // pattern was bypassing the design system; the modifier classes
+  // are tuned to match the real card's line-heights so the swap is
+  // pixel-stable.
   return (
     <div className="case-card case-card--skeleton" aria-hidden="true">
       <div className="case-thumb case-thumb--skeleton" />
       <div className="case-meta">
         <div className="case-cat case-cat--skeleton">
-          <span className="skeleton-line" style={{ width: "30%" }} />
+          <span className="skeleton-line skeleton-line--cat" />
         </div>
-        <div className="skeleton-line" style={{ width: "75%", height: 18 }} />
-        <div className="skeleton-line" style={{ width: "55%", height: 14, marginTop: 6 }} />
+        <div className="skeleton-line skeleton-line--title" />
+        <div className="skeleton-line skeleton-line--meta" />
       </div>
     </div>
   );

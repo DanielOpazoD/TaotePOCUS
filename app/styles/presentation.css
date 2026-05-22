@@ -88,7 +88,7 @@
 }
 .presentation-nav:hover {
   background: oklch(1 0 0 / 0.14);
-  transform: scale(1.05);
+  transform: scale(var(--hover-pop));
 }
 .presentation-nav svg {
   width: 20px;
