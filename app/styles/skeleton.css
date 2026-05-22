@@ -26,7 +26,7 @@
     transparent 100%
   );
   transform: translateX(-100%);
-  animation: skeleton-shimmer 1.6s linear infinite;
+  animation: skeleton-shimmer var(--duration-shimmer) linear infinite;
 }
 @keyframes skeleton-shimmer {
   to {
@@ -68,7 +68,7 @@
     transparent 100%
   );
   transform: translateX(-100%);
-  animation: skeleton-shimmer 1.6s linear infinite;
+  animation: skeleton-shimmer var(--duration-shimmer) linear infinite;
 }
 .skeleton-card-body {
   padding: var(--space-4) var(--space-4) var(--space-3);
@@ -183,5 +183,5 @@
     transparent 100%
   );
   transform: translateX(-100%);
-  animation: skeleton-shimmer 1.6s linear infinite;
+  animation: skeleton-shimmer var(--duration-shimmer) linear infinite;
 }

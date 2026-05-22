@@ -38,7 +38,7 @@
   border-right: 1px solid var(--hairline);
   display: flex;
   flex-direction: column;
-  animation: drawerIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: drawerIn var(--duration-base) var(--ease-standard);
   /* Drawer floats above the page — four-layer shadow falls off
      into the page like natural light from the panel edge. */
   box-shadow: var(--shadow-3);

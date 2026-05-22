@@ -156,8 +156,12 @@
 }
 
 .saved-views-row-apply:focus-visible {
-  outline: 2px solid var(--accent-ink, var(--ink));
-  outline-offset: 1px;
+  /* Outline canonicalised in audit-pass #128: --accent (not
+     --accent-ink which is the "ink on accent" color, wrong for
+     a focus ring) + 2px offset to match the codebase-wide
+     standard. Was 1px here as a one-off. */
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .saved-views-row-name {
@@ -239,8 +243,12 @@
 }
 
 .saved-views-save-input:focus {
-  outline: 2px solid var(--accent-ink, var(--ink));
-  outline-offset: 1px;
+  /* Outline canonicalised in audit-pass #128: --accent (not
+     --accent-ink which is the "ink on accent" color, wrong for
+     a focus ring) + 2px offset to match the codebase-wide
+     standard. Was 1px here as a one-off. */
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-color: transparent;
 }
 

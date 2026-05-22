@@ -322,10 +322,15 @@
    the icon plus a tooltip. Used for the user/login + new-case
    affordances in chrome contexts where horizontal space is precious.
    The `--radius-pill` round shape distinguishes single-action
-   triggers from labeled buttons (which keep `--radius-lg`). */
+   triggers from labeled buttons (which keep `--radius-lg`).
+   Audit-pass #128 brought the dimensions down from 36×36 to 32×32
+   so the button aligns with the rest of the header's right-side
+   icon cluster (lang switcher, theme toggle, avatar — all 32×32).
+   Primary-action emphasis comes from `.btn-primary`'s dark fill,
+   not from size. */
 .btn-icon-only {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: inline-grid;
   place-items: center;
@@ -333,8 +338,8 @@
   border-radius: var(--radius-pill);
 }
 .btn-icon-only svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .fav-count {
