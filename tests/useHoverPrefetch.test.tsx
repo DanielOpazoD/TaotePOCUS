@@ -112,4 +112,41 @@ describe("useHoverPrefetch", () => {
     });
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it("FIFO-evicts the oldest entry once the 256-URL cap is reached", () => {
+    // Walk 257 distinct URLs through the prefetch pipeline. The first
+    // one ("seed") gets pushed out when the 257th lands; a fresh hover
+    // on "seed" should re-fire fetch (it's no longer in the cache).
+    // Every URL in between stays cached and re-hovering them is a no-op.
+    const seed: Media = { kind: "video", src: "/api/media/lru-seed.mp4" };
+    const { result: seedHook } = renderHook(() => useHoverPrefetch(seed));
+    act(() => {
+      seedHook.current.onPointerEnter();
+      vi.advanceTimersByTime(150);
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    // Fill the cache. Render hooks for each URL — the module-scope
+    // dedupe map is what we're stressing, not per-hook state.
+    for (let i = 0; i < 256; i++) {
+      const url = `/api/media/lru-${i}.mp4`;
+      const { result } = renderHook(() => useHoverPrefetch({ kind: "video", src: url }));
+      act(() => {
+        result.current.onPointerEnter();
+        vi.advanceTimersByTime(150);
+      });
+    }
+    // 256 new URLs + the original seed = 257 attempts. The seed should
+    // have been evicted when URL #255 landed (cap is 256, so the 257th
+    // insertion drops the oldest).
+    expect(fetch).toHaveBeenCalledTimes(257);
+
+    // Re-hover the seed — since it was evicted, prefetch fires again.
+    const { result: seedHook2 } = renderHook(() => useHoverPrefetch(seed));
+    act(() => {
+      seedHook2.current.onPointerEnter();
+      vi.advanceTimersByTime(150);
+    });
+    expect(fetch).toHaveBeenCalledTimes(258);
+  });
 });

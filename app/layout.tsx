@@ -158,6 +158,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Preload the cases corpus (~165KB JSON) in parallel with
+            the JS chunks. The browser-side loader in
+            `lib/seed-cases.ts` does a `fetch(CORPUS_PATH, {
+            credentials: "omit", cache: "force-cache" })` AFTER the
+            React tree mounts and `MainGrid` calls `useSeedCases`.
+            Without this hint, the corpus fetch waits behind JS
+            download + parse + first render — typically 300-500ms
+            of dead time on a cold load. With the preload, the
+            response is sitting in the browser's preload cache by
+            the time the loader's fetch fires; the request resolves
+            from the cache instead of opening a fresh network
+            round-trip.
+            `as="fetch" crossOrigin="anonymous"` matches the loader's
+            credentials-omit mode so the preload + fetch share the
+            same cache key (mismatched modes would store TWO copies).
+            Subsequent visits hit Serwist's SWR cache and skip the
+            network entirely; this hint matters most on first load. */}
+        <link
+          rel="preload"
+          as="fetch"
+          href="/data/imported-cases.json"
+          type="application/json"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}>
         {/* Subscribes the browser to Core Web Vitals events and
