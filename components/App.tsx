@@ -680,15 +680,16 @@ function AppInner() {
         // modal-mount extraction.
         presentationCases={filtered.length > 0 ? filtered : allCases}
         onClosePresentation={() => replacePatch({ presenting: null })}
-        authOpen={modals.authOpen}
-        onCloseAuth={() => modals.setAuthOpen(false)}
+        // Bundled transient modal state from `useAppModalState` —
+        // replaces 12 individual open/close prop pairs that lived
+        // here pre-PR-#123. Close handlers are derived inside
+        // AppModals (state flip is local concern); URL-state
+        // close handlers (case, presentation) stay as props.
+        modals={modals}
         onLogin={login}
-        // SettingsPanel mount. The dialog owns its own internal
-        // state for which section is visible; we only control
-        // open/closed from up here. Offline data threads through
-        // so the panel can list saved cases + purge them.
-        settingsOpen={modals.settingsOpen}
-        onCloseSettings={() => modals.setSettingsOpen(false)}
+        // Offline storage data — the SettingsPanel needs allCases
+        // + the savedIds + the remove/purge callbacks. App.tsx
+        // owns the offlineCases hook; the panel only renders.
         allCases={allCases}
         savedOfflineIds={offlineCases.savedIds}
         onRemoveOffline={(caseId) => offlineCases.remove(caseId)}
@@ -698,8 +699,8 @@ function AppInner() {
           // the storage estimate refreshes from a clean slate.
           for (const id of offlineCases.savedIds) offlineCases.remove(id);
         }}
-        formOpen={modals.formOpen}
-        editingCase={modals.editingCase}
+        // CaseForm data dependencies (open state + editingCase
+        // live in `modals`).
         currentUser={user}
         categories={config.categories}
         // Catalog-wide ES tag vocabulary for the autocomplete in the
@@ -709,16 +710,8 @@ function AppInner() {
         // EN editor doesn't surface autocomplete because the EN tag
         // corpus grows organically with translations.
         tagSuggestions={Array.from(new Set(allCases.flatMap((c) => c.tags.es)))}
-        onCancelForm={() => {
-          modals.setFormOpen(false);
-          modals.setEditingCase(null);
-        }}
         onSaveCase={onSaveCase}
         adminPipeline={adminPipeline}
-        shortcutsOpen={modals.shortcutsOpen}
-        onCloseShortcuts={() => modals.setShortcutsOpen(false)}
-        paletteOpen={modals.paletteOpen}
-        onClosePalette={() => modals.setPaletteOpen(false)}
         paletteCommands={paletteCommands}
         onRunPaletteCommand={onRunPaletteCommand}
       />
