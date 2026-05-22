@@ -4,6 +4,16 @@
      <main> remounts on navigation. The animation runs once per route
      change. Subtle Y-shift + opacity to soften the swap. */
   animation: main-fade-in var(--duration-slow) var(--ease-emphasized);
+  /* CRITICAL: grid items default to `min-width: auto` (≈ min-content),
+     which means a wide child can push the column past its `1fr`
+     allotment. This was the bug behind the favoritos page rendering
+     wider than the viewport when the RecentlyViewedRail had 7+
+     items (7 × 180px + gaps ≈ 1380px), bleeding the EmptyState's
+     copy off the right edge. Pinning `min-width: 0` forces the grid
+     to enforce the `1fr` width strictly; the rail's own
+     `overflow-x: auto` then takes over and scrolls IT internally
+     instead of blowing the column. */
+  min-width: 0;
 }
 @keyframes main-fade-in {
   from {
