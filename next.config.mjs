@@ -86,6 +86,15 @@ const securityHeaders = [
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      // CSP violation reports go to a same-origin endpoint that
+      // forwards them to Sentry (via lib/log). Without this, CSP
+      // violations are invisible until a user reports "the page
+      // looks broken". `report-uri` is the legacy header that
+      // every browser supports; the newer Reporting-API path is
+      // not enabled here because it requires the `Report-To`
+      // header + a configured group, which is more infrastructure
+      // for marginal benefit on a single-origin app.
+      "report-uri /api/security/csp-report",
     ].join("; "),
   },
   { key: "X-Frame-Options", value: "DENY" },

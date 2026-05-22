@@ -19,6 +19,7 @@
     "size:check": "node scripts/bundle-budget.mjs",
     "size:update": "node scripts/bundle-budget.mjs --update",
     "sentry:guard": "node scripts/sentry-prod-guard.mjs",
+    "security:verify": "node scripts/verify-security-headers.mjs",
     "optimize:media": "node scripts/optimize-media.mjs",
     "lighthouse": "lhci autorun",
     "prepare": "husky"
