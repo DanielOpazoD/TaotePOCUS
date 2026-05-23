@@ -36,6 +36,12 @@
 /* Loading placeholders that mimic real content silhouettes */
 @import "./styles/skeleton.css";
 
+/* SSR fallback shell — the static silhouette every page's
+ * `<Suspense fallback>` renders while `<App />` hydrates. Has to
+ * come after skeleton.css because it composes on top of those
+ * classes. See `components/AppShell.tsx` for the why. */
+@import "./styles/app-shell.css";
+
 /* Cine-loop renderer */
 @import "./styles/cine.css";
 
