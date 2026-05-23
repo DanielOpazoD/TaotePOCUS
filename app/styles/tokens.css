@@ -261,7 +261,14 @@
   --ink: oklch(0.918 0.004 254);
   --ink-hover: oklch(0.866 0.004 254);
   --ink-soft: oklch(0.738 0.005 254);
-  --ink-mute: oklch(0.53 0.007 254);
+  /* Lightened from oklch(0.53) → 0.66 so muted text (sidebar h4
+     headings, .cat-count chips, table column subheads, etc.) clears
+     WCAG AA 4.5:1 against the dark surface tone (0.205). The light
+     theme received this calibration earlier (see comment at the
+     light-mode token); this dark-mode bump brings it to parity.
+     Catalysed by axe-core e2e flagging color-contrast on `h4` and
+     `.cat-count` in the home-dark spec. Chroma kept low (0.007). */
+  --ink-mute: oklch(0.66 0.007 254);
   --hairline: oklch(0.29 0.007 254);
   --hairline-strong: oklch(0.385 0.007 254);
   --accent: oklch(0.72 0.1 220);
