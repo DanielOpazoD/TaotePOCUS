@@ -22,6 +22,7 @@ forward.
 | 0012 | [Unified role resolution: `resolveRole()`](./0012-unified-role-resolution.md)                     | Accepted                                               |
 | 0013 | [Bilingual rollout (Spanish + English)](./0013-bilingual-rollout.md)                              | Accepted                                               |
 | 0014 | [Defensive storage migrations + error isolation](./0014-defensive-storage-and-error-isolation.md) | Accepted                                               |
+| 0015 | [ADR gate enforced by CI](./0015-adr-gate-in-ci.md)                                               | Accepted                                               |
 
 ## How to add an ADR
 
