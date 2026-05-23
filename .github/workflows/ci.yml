@@ -118,6 +118,45 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node scripts/coverage-delta.mjs
 
+      # ─── ADR gate (PR-only) ───
+      # PRs that touch the architectural surface (data layer, server-
+      # side critical, API routes, build config, lint config, etc.)
+      # must either ship a new ADR under `docs/adr/` or carry a
+      # `[skip-adr]` token in the PR body. See `scripts/check-adr-
+      # gate.mjs` for the full path list + decision matrix.
+      #
+      # We `git fetch` the base ref before diffing because the default
+      # `actions/checkout` is shallow (depth=1) and the script needs
+      # both endpoints of the diff in local history.
+      - name: Fetch PR base for ADR diff
+        if: github.event_name == 'pull_request'
+        # `--depth=200` is plenty for any real PR. The shallow default
+        # (depth=1) doesn't even have the base ref locally so the
+        # downstream `git diff origin/<ref> HEAD` would fail with
+        # "unknown revision". We could `fetch-depth: 0` on checkout
+        # but that fetches the entire history for every job — wasteful
+        # when only this one step needs the base ref.
+        run: |
+          git fetch --depth=200 origin "${{ github.event.pull_request.base.ref }}"
+
+      - name: Write PR body to file for ADR gate
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        # Multi-line PR bodies + special characters survive a file
+        # write more reliably than env-var pass-through. Empty body
+        # produces an empty file, which the script tolerates.
+        run: |
+          mkdir -p /tmp/adr-gate
+          printf '%s' "$PR_BODY" > /tmp/adr-gate/pr-body.txt
+
+      - name: ADR gate
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/check-adr-gate.mjs \
+            --base "origin/${{ github.event.pull_request.base.ref }}" \
+            --body-file /tmp/adr-gate/pr-body.txt
+
       - name: Coverage summary in job log
         if: always()
         run: |
