@@ -515,38 +515,47 @@ function AppInner() {
           {/* Per-section error boundaries: a crash in the hero (sparkline,
               count-up, animation observers) doesn't take down the toolbar
               or the grid below. Each boundary logs through lib/log so
-              Sentry sees the failure once it's wired. */}
-          <ErrorBoundary name="hero">
-            <SectionHero view={view} cat={cat} head={head} />
-          </ErrorBoundary>
-          <ErrorBoundary name="toolbar">
-            <Toolbar
-              count={filtered.length}
-              tags={tags}
-              query={query}
-              sort={sort}
-              difficulty={difficulty}
-              onReplace={replacePatch}
-              // Full ViewState so the saved-views menu can capture
-              // every filter (cat, tags, query, sort, difficulty,
-              // page) under a single named preset. The notify channel
-              // is the shared toast surface so "Vista guardada" /
-              // "Vista eliminada" lands in the same place as every
-              // other admin / public toast.
-              viewState={{
-                view,
-                cat,
-                tags,
-                query,
-                sort,
-                difficulty,
-                caso: openCaseId,
-                presenting: presentingId,
-                page,
-              }}
-              notify={showToast}
-            />
-          </ErrorBoundary>
+              Sentry sees the failure once it's wired.
+
+              `.catalog-header` lays out the hero (crumb + h1) on the left
+              and the toolbar (saved-views + sort) on the right of the
+              SAME ROW. Pre-May-2026 they were two stacked bands separated
+              by ~50px of vertical chrome (toolbar's own padding + margin +
+              border); inlining them eliminates the standalone toolbar row
+              entirely, letting the case grid sit ~40px higher. */}
+          <div className="catalog-header">
+            <ErrorBoundary name="hero">
+              <SectionHero view={view} cat={cat} head={head} />
+            </ErrorBoundary>
+            <ErrorBoundary name="toolbar">
+              <Toolbar
+                count={filtered.length}
+                tags={tags}
+                query={query}
+                sort={sort}
+                difficulty={difficulty}
+                onReplace={replacePatch}
+                // Full ViewState so the saved-views menu can capture
+                // every filter (cat, tags, query, sort, difficulty,
+                // page) under a single named preset. The notify channel
+                // is the shared toast surface so "Vista guardada" /
+                // "Vista eliminada" lands in the same place as every
+                // other admin / public toast.
+                viewState={{
+                  view,
+                  cat,
+                  tags,
+                  query,
+                  sort,
+                  difficulty,
+                  caso: openCaseId,
+                  presenting: presentingId,
+                  page,
+                }}
+                notify={showToast}
+              />
+            </ErrorBoundary>
+          </div>
           {/* FeaturedRow promotes a hero case at the top of certain
               section landings. Excluded from sections where the
               uniform catalog grid is the primary mental model:
