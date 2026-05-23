@@ -50,10 +50,10 @@ export default function Sidebar({
     <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`} aria-label={t("sidebar.aria")}>
       <div className="side-section sidebar-categories">
         {/* The collapse toggle now lives INSIDE the section header,
-            in the same row as the "CATEGORÍAS" label. Pre-May-2026 it
+            in the same row as the categories label. Pre-May-2026 it
             floated above the h4 as a circular standalone button — the
             user feedback was that it read as a UI dev placeholder
-            ("feo y ordinario"), not as an integrated control. Inline
+            (ugly + ordinary), not as an integrated control. Inline
             with the label, sized as ghost chrome, the toggle becomes
             part of the panel rather than a sticker on top of it. */}
         <div className="side-section-header">

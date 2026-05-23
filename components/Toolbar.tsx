@@ -76,13 +76,14 @@ export default function Toolbar({
 
   return (
     <div className="toolbar">
-      {/* Results count + "Clear filters" both removed in the May-2026
-          minimalist pass. The count was redundant with the sidebar's
-          per-category counter ("Cardíaco · 200"); the clear button
-          was rare-use chrome cluttering the daily-driver toolbar.
-          Tag chips (below) still individually-removable; the sort
-          select is now the only non-state-restoring control here. */}
-      {/* The difficulty chip rail (Básico / Intermedio / Avanzado)
+      {/* Results count + Clear-filters button both removed in the
+          May-2026 minimalist pass. The count was redundant with the
+          sidebar (which already shows a per-category count next to
+          each label); the clear button was rare-use chrome cluttering
+          the daily-driver toolbar. Tag chips (below) are still
+          individually-removable; the sort select is now the only
+          non-state-restoring control here. */}
+      {/* The difficulty chip rail (Basic / Intermediate / Advanced)
           was removed from the public toolbar in May-2026. The
           difficulty data is still set by admins via AdminThumbMenu
           and the URL state still accepts `?difficulty=...` for
