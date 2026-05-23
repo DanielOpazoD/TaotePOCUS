@@ -121,7 +121,10 @@ describe("POST /api/admin/ai/translate — auth + validation", () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.reason).toMatch(/provider must be one of/);
+    // Schema-driven error: the message comes from zod and follows the
+    // shape `<path>: <message>`. Locked to the path (`provider`) so a
+    // future zod upgrade that tweaks the message wording still passes.
+    expect(body.reason).toMatch(/^provider:/);
   });
 
   it("returns 400 when direction is invalid", async () => {
@@ -135,7 +138,7 @@ describe("POST /api/admin/ai/translate — auth + validation", () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.reason).toMatch(/direction must be/);
+    expect(body.reason).toMatch(/^direction:/);
   });
 
   it("returns 400 when source.title is missing", async () => {

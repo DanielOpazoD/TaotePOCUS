@@ -34,24 +34,32 @@
 
 import { NextResponse } from "next/server";
 import { IS_NETLIFY_DB_ENABLED } from "@/lib/env";
+import { healthResponseSchema, type HealthResponse } from "@/lib/schemas/api/health";
+import { log } from "@/lib/log";
 
-interface CheckResult {
-  ok: boolean;
-  latencyMs?: number;
-  error?: string;
-}
+// `CheckResult` is now derived from the schema rather than hand-
+// declared so the type stays in lockstep with the wire contract. If
+// the schema's `checkResultSchema` adds a field, every consumer of
+// `CheckResult` here sees it as a compile error until updated.
+type CheckResult = HealthResponse["checks"]["db"];
 
-interface HealthPayload {
-  ok: boolean;
-  build: {
-    commit: string | null;
-    deployedAt: string | null;
-  };
-  checks: {
-    db: CheckResult;
-    blobs: CheckResult;
-  };
-  ts: string;
+/** Validate the outgoing payload against the contract before sending.
+ *  Belt-and-suspenders: TypeScript already constrains the shape, but
+ *  a future refactor that builds the payload via `Object.assign` or
+ *  reads from env could drift the runtime shape from the type. This
+ *  catches that loud — the route returns 500 instead of shipping a
+ *  malformed body downstream. */
+function safeJson(payload: HealthResponse, init: ResponseInit): Response {
+  const parsed = healthResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    log.error(
+      "health-response-shape-drift",
+      { area: "api/health", issues: parsed.error.issues.slice(0, 5) },
+      parsed.error,
+    );
+    return NextResponse.json({ ok: false, error: "internal-shape-drift" }, { status: 500 });
+  }
+  return NextResponse.json(parsed.data, init);
 }
 
 /** Ping the database with a `SELECT 1`. Returns latency on success,
@@ -99,7 +107,7 @@ export async function GET(req: Request) {
   // External monitors hit this on a tight cadence — it costs nothing
   // and answers "is the function alive at all".
   if (!deep) {
-    const payload: HealthPayload = {
+    const payload: HealthResponse = {
       ok: true,
       build: {
         commit: process.env.COMMIT_REF || null,
@@ -111,7 +119,7 @@ export async function GET(req: Request) {
       },
       ts: new Date().toISOString(),
     };
-    return NextResponse.json(payload, {
+    return safeJson(payload, {
       status: 200,
       headers: { "Cache-Control": "no-store" },
     });
@@ -120,7 +128,7 @@ export async function GET(req: Request) {
   // Deep path: round-trip every dependency. Used by humans
   // investigating an incident or by a deploy gate.
   const [db, blobs] = await Promise.all([checkDb(), checkBlobs()]);
-  const payload: HealthPayload = {
+  const payload: HealthResponse = {
     ok: db.ok && blobs.ok,
     build: {
       commit: process.env.COMMIT_REF || null,
@@ -129,7 +137,7 @@ export async function GET(req: Request) {
     checks: { db, blobs },
     ts: new Date().toISOString(),
   };
-  return NextResponse.json(payload, {
+  return safeJson(payload, {
     status: payload.ok ? 200 : 503,
     headers: { "Cache-Control": "no-store" },
   });

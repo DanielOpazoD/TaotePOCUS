@@ -1,7 +1,7 @@
 // POST /api/admin/ai/translate — proxy AI translation requests to
 // the selected provider.
 //
-// Request body:
+// Request body (validated by `aiTranslateRequestSchema`):
 //
 //   {
 //     "provider": "gemini" | "openai" | "deepseek" | "stub",
@@ -10,157 +10,34 @@
 //     "fewShotExamples": [{ "es": {...}, "en": {...} }, ...]   // optional
 //   }
 //
-// Response (200):
+// Response 200 (validated by `aiTranslateResponseSchema`):
 //
 //   {
 //     "result": { "title": "...", "description": "...", "tags": [...] },
 //     "meta":   { "provider": "...", "model": "...",
-//                 "promptTokens": 123, "completionTokens": 456,
+//                 "promptTokens": 123|null, "completionTokens": 456|null,
 //                 "durationMs": 1234 }
 //   }
 //
-// Auth: admin-only. Body validation: hand-rolled (same convention
-// as `lib/schemas.ts` — no Zod dep). Provider errors translated to
-// structured 5xx so the UI can surface meaningful messages.
+// Auth: admin-only.
+//
+// May-2026: the previous hand-rolled validators (`validateRequest`,
+// `validateLocalizedContent`, `validateProviderOutput`) totaled ~90
+// lines of repeated typeof checks and string error returns. Replaced
+// with zod schemas in `lib/schemas/api/ai-translate.ts` — same
+// constraints, less ceremony, structured error paths that the client
+// can map to actionable feedback. See `lib/schemas/api/README.md`
+// for the broader rationale (zod for API contracts, hand-rolled
+// stays for the corpus).
 
 import { requireAdmin } from "@/lib/server/session";
 import { getProvider } from "@/lib/ai/registry";
 import { ProviderUnavailableError } from "@/lib/ai/provider";
-import type {
-  LocalizedCaseContent,
-  ProviderId,
-  TranslateInput,
-  TranslateOutput,
-} from "@/lib/ai/provider";
-
-const VALID_PROVIDERS: ReadonlySet<ProviderId> = new Set<ProviderId>([
-  "stub",
-  "gemini",
-  "openai",
-  "deepseek",
-]);
-const VALID_DIRECTIONS: ReadonlySet<TranslateInput["direction"]> = new Set([
-  "es-to-en" as const,
-  "en-to-es" as const,
-]);
-
-/**
- * Hand-rolled validators mirror the philosophy of `lib/schemas.ts`:
- * accept the safe subset, return a clear error string on the
- * rejection path, no extra runtime deps. The strings flow up to the
- * 400 response so a malformed UI request gets actionable feedback.
- */
-function validateLocalizedContent(input: unknown, label: string): LocalizedCaseContent | string {
-  if (!input || typeof input !== "object") return `${label} must be an object`;
-  const obj = input as Record<string, unknown>;
-  if (typeof obj.title !== "string" || obj.title.length === 0 || obj.title.length > 500) {
-    return `${label}.title must be a string of 1-500 chars`;
-  }
-  if (
-    typeof obj.description !== "string" ||
-    obj.description.length === 0 ||
-    obj.description.length > 5000
-  ) {
-    return `${label}.description must be a string of 1-5000 chars`;
-  }
-  if (
-    !Array.isArray(obj.tags) ||
-    obj.tags.length > 20 ||
-    !obj.tags.every((t) => typeof t === "string" && t.length > 0 && t.length <= 80)
-  ) {
-    return `${label}.tags must be a string[] (≤20 items, each 1-80 chars)`;
-  }
-  return { title: obj.title, description: obj.description, tags: obj.tags as string[] };
-}
-
-interface ValidatedRequest {
-  provider: ProviderId;
-  direction: TranslateInput["direction"];
-  source: LocalizedCaseContent;
-  fewShotExamples?: TranslateInput["fewShotExamples"];
-}
-
-function validateRequest(body: unknown): ValidatedRequest | string {
-  if (!body || typeof body !== "object") return "Body must be a JSON object";
-  const obj = body as Record<string, unknown>;
-
-  if (typeof obj.provider !== "string" || !VALID_PROVIDERS.has(obj.provider as ProviderId)) {
-    return `provider must be one of: ${Array.from(VALID_PROVIDERS).join(", ")}`;
-  }
-  if (typeof obj.direction !== "string" || !VALID_DIRECTIONS.has(obj.direction as never)) {
-    return "direction must be 'es-to-en' or 'en-to-es'";
-  }
-  const source = validateLocalizedContent(obj.source, "source");
-  if (typeof source === "string") return source;
-
-  let fewShotExamples: TranslateInput["fewShotExamples"] | undefined;
-  if (obj.fewShotExamples !== undefined) {
-    if (!Array.isArray(obj.fewShotExamples)) {
-      return "fewShotExamples must be an array";
-    }
-    if (obj.fewShotExamples.length > 5) {
-      return "fewShotExamples can have at most 5 entries";
-    }
-    const examples: NonNullable<TranslateInput["fewShotExamples"]> = [];
-    for (let i = 0; i < obj.fewShotExamples.length; i++) {
-      const ex = obj.fewShotExamples[i];
-      if (!ex || typeof ex !== "object") return `fewShotExamples[${i}] must be an object`;
-      const exObj = ex as Record<string, unknown>;
-      const es = validateLocalizedContent(exObj.es, `fewShotExamples[${i}].es`);
-      if (typeof es === "string") return es;
-      const en = validateLocalizedContent(exObj.en, `fewShotExamples[${i}].en`);
-      if (typeof en === "string") return en;
-      examples.push({ es, en });
-    }
-    fewShotExamples = examples;
-  }
-
-  return {
-    provider: obj.provider as ProviderId,
-    direction: obj.direction as TranslateInput["direction"],
-    source,
-    fewShotExamples,
-  };
-}
-
-/**
- * Defense in depth: re-check the provider's output before returning
- * it to the client. Mirrors the same rules as
- * `validateLocalizedContent` plus the meta envelope.
- */
-function validateProviderOutput(output: unknown): TranslateOutput | string {
-  if (!output || typeof output !== "object") return "Provider returned non-object";
-  const obj = output as Record<string, unknown>;
-  const result = validateLocalizedContent(obj.result, "result");
-  if (typeof result === "string") return `Provider output malformed: ${result}`;
-  const meta = obj.meta;
-  if (!meta || typeof meta !== "object") return "Provider output missing meta envelope";
-  const metaObj = meta as Record<string, unknown>;
-  if (
-    typeof metaObj.provider !== "string" ||
-    !VALID_PROVIDERS.has(metaObj.provider as ProviderId)
-  ) {
-    return "Provider output meta.provider invalid";
-  }
-  if (typeof metaObj.model !== "string") return "Provider output meta.model not a string";
-  if (typeof metaObj.durationMs !== "number") return "Provider output meta.durationMs not a number";
-  if (metaObj.promptTokens !== null && typeof metaObj.promptTokens !== "number") {
-    return "Provider output meta.promptTokens must be number | null";
-  }
-  if (metaObj.completionTokens !== null && typeof metaObj.completionTokens !== "number") {
-    return "Provider output meta.completionTokens must be number | null";
-  }
-  return {
-    result,
-    meta: {
-      provider: metaObj.provider as ProviderId,
-      model: metaObj.model,
-      promptTokens: metaObj.promptTokens as number | null,
-      completionTokens: metaObj.completionTokens as number | null,
-      durationMs: metaObj.durationMs,
-    },
-  };
-}
+import {
+  aiTranslateRequestSchema,
+  aiTranslateResponseSchema,
+} from "@/lib/schemas/api/ai-translate";
+import { log } from "@/lib/log";
 
 export async function POST(req: Request): Promise<Response> {
   const session = await requireAdmin();
@@ -175,14 +52,20 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "Body must be valid JSON" }, { status: 400 });
   }
 
-  const parsed = validateRequest(body);
-  if (typeof parsed === "string") {
-    return Response.json({ error: "Invalid request body", reason: parsed }, { status: 400 });
+  const reqParse = aiTranslateRequestSchema.safeParse(body);
+  if (!reqParse.success) {
+    // First issue's path + message gives the client a precise error
+    // location (e.g. "source.title: too small"). The full issue array
+    // is too noisy for the wire response but useful in the server log.
+    const first = reqParse.error.issues[0];
+    const reason = first ? `${first.path.join(".")}: ${first.message}` : "invalid body";
+    return Response.json({ error: "Invalid request body", reason }, { status: 400 });
   }
+  const validated = reqParse.data;
 
-  const provider = getProvider(parsed.provider);
+  const provider = getProvider(validated.provider);
   if (!provider) {
-    return Response.json({ error: `Unknown provider id: ${parsed.provider}` }, { status: 400 });
+    return Response.json({ error: `Unknown provider id: ${validated.provider}` }, { status: 400 });
   }
 
   const availability = provider.isAvailable();
@@ -195,19 +78,34 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     const output = await provider.translate({
-      source: parsed.source,
-      direction: parsed.direction,
-      fewShotExamples: parsed.fewShotExamples,
+      source: validated.source,
+      direction: validated.direction,
+      fewShotExamples: validated.fewShotExamples,
     });
 
-    const validated = validateProviderOutput(output);
-    if (typeof validated === "string") {
+    // Defense in depth: re-validate the provider's output against the
+    // same contract the client expects. A stub provider returning a
+    // malformed shape (e.g. tags as strings instead of array) gets
+    // caught here as a 502 instead of being shipped through.
+    const respParse = aiTranslateResponseSchema.safeParse(output);
+    if (!respParse.success) {
+      const first = respParse.error.issues[0];
+      const reason = first ? `${first.path.join(".")}: ${first.message}` : "malformed";
+      log.error(
+        "ai-translate-provider-output-malformed",
+        {
+          area: "api/admin/ai/translate",
+          provider: validated.provider,
+          issues: respParse.error.issues.slice(0, 5),
+        },
+        respParse.error,
+      );
       return Response.json(
-        { error: "Provider returned malformed output", reason: validated },
+        { error: "Provider returned malformed output", reason },
         { status: 502 },
       );
     }
-    return Response.json(validated);
+    return Response.json(respParse.data);
   } catch (err) {
     if (err instanceof ProviderUnavailableError) {
       return Response.json({ error: "Provider unavailable", reason: err.reason }, { status: 503 });

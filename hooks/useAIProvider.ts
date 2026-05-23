@@ -19,22 +19,23 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { isTransient, withRetry } from "@/lib/errors/retry";
+import {
+  aiProvidersResponseSchema,
+  type AIProvidersResponse,
+} from "@/lib/schemas/api/ai-providers";
 
-/** Matches `lib/ai/provider.ts > ProviderId`. Kept inline as a
- *  literal so the hook doesn't pull lib/ai types into the client
- *  bundle. */
-export type AIProviderId = "stub" | "gemini" | "openai" | "deepseek";
-
-interface ProviderInfo {
-  id: AIProviderId;
-  displayName: string;
-  availability: { available: true } | { available: false; reason: string };
-}
-
-export interface RegistrySnapshot {
-  defaultId: AIProviderId;
-  providers: ProviderInfo[];
-}
+// Re-export the schema-derived types under the names this hook's
+// consumers historically used. The previous local declarations
+// duplicated the wire contract — single source of truth now lives
+// in `lib/schemas/api/ai-providers.ts`.
+//
+// The runtime schema import lands in the admin chunk only:
+// `useAIProvider` is reached exclusively from `AdminPanel`, which
+// `components/MainGrid.tsx` lazy-loads via `next/dynamic`. The home
+// page never executes this code path so zod stays out of the
+// public bundle.
+export type AIProviderId = AIProvidersResponse["defaultId"];
+export type RegistrySnapshot = AIProvidersResponse;
 
 const STORAGE_KEY = "taote.ai.selectedProvider";
 
@@ -112,7 +113,21 @@ export function useAIProvider(): UseAIProvider {
             // `isTransient` parses for retry classification.
             throw new Error(`HTTP ${res.status}`);
           }
-          return (await res.json()) as RegistrySnapshot;
+          // Parse against the shared schema — catches server-side
+          // shape drift (e.g. stale client cached against an updated
+          // server, or a regression in the route's output that
+          // somehow slipped past the server-side `safeParse`).
+          // Throws a structured `ZodError` whose message carries the
+          // first issue path so the UI's `error` state reads
+          // actionable instead of "undefined is not an object".
+          const json: unknown = await res.json();
+          const parsed = aiProvidersResponseSchema.safeParse(json);
+          if (!parsed.success) {
+            const first = parsed.error.issues[0];
+            const where = first ? `${first.path.join(".")}: ${first.message}` : "malformed";
+            throw new Error(`provider snapshot shape drift — ${where}`);
+          }
+          return parsed.data;
         },
         {
           shouldRetry: (err, attempt) => attempt < 2 && isTransient(err),
