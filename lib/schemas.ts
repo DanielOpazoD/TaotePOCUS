@@ -14,6 +14,19 @@
 //     compile time (JSON.parse output, localStorage.getItem
 //     output, network responses).
 //
+// Scope note (May-2026): the no-zod policy applies HERE — to the
+// corpus validators that ship in every client bundle. API contracts
+// under `lib/schemas/api/**` DO use zod because:
+//   (a) those shapes change more often (every route eventually gets
+//       a new field) — the maintenance cost of hand-rolled cascades
+//       there outweighs the dep cost,
+//   (b) the zod runtime stays in server bundles + the admin chunk
+//       (lazy-loaded), so the public catalog bundle is unaffected,
+//   (c) cross-route shapes share zod sub-schemas (LocalizedCaseContent,
+//       AICallMeta, etc.) — duplicating those across N hand-rolled
+//       routes was a different kind of slow-grind drift.
+// See `lib/schemas/api/README.md` for the full split rationale.
+//
 // Policy:
 //   - Required fields missing → entry rejected. The merge layer
 //     won't see it; the catalog stays consistent.

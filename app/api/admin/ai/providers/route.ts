@@ -22,6 +22,8 @@
 
 import { requireAdmin } from "@/lib/server/session";
 import { snapshotRegistry } from "@/lib/ai/registry";
+import { aiProvidersResponseSchema } from "@/lib/schemas/api/ai-providers";
+import { log } from "@/lib/log";
 
 export async function GET(): Promise<Response> {
   const session = await requireAdmin();
@@ -29,5 +31,18 @@ export async function GET(): Promise<Response> {
     return Response.json({ error: "Admin access required" }, { status: 403 });
   }
   const snapshot = snapshotRegistry();
-  return Response.json(snapshot);
+  // Validate outgoing shape — see `lib/schemas/api/README.md`. If the
+  // registry adds a provider with an unrecognized id (someone forgets
+  // to extend the schema's enum), this returns 500 instead of shipping
+  // a body the client can't parse.
+  const parsed = aiProvidersResponseSchema.safeParse(snapshot);
+  if (!parsed.success) {
+    log.error(
+      "ai-providers-response-shape-drift",
+      { area: "api/admin/ai/providers", issues: parsed.error.issues.slice(0, 5) },
+      parsed.error,
+    );
+    return Response.json({ error: "internal-shape-drift" }, { status: 500 });
+  }
+  return Response.json(parsed.data);
 }
