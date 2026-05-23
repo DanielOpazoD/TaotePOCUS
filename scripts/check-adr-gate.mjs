@@ -107,8 +107,20 @@ function parseArgs(argv) {
 }
 
 function diffFiles(base) {
+  // Two-arg form (no dots) compares the two endpoint trees DIRECTLY
+  // — no merge base required. This matters in CI where the default
+  // `actions/checkout` is shallow (depth=1) and the merge base
+  // between origin/main and HEAD may live in unfetched history.
+  // The three-dot form (`origin/main...HEAD`) needs the merge base
+  // and fails with "fatal: no merge base" on shallow clones.
+  //
+  // The downside of the two-arg form: if main has commits unrelated
+  // to this PR's branch, they show up as differences too. For our
+  // use case (does this PR touch architectural paths?) that's a
+  // false-positive cost we'd rather pay than risk a false negative
+  // from a half-fetched merge base.
   try {
-    const out = execSync(`git diff --name-only ${base}...HEAD`, {
+    const out = execSync(`git diff --name-only ${base} HEAD`, {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });

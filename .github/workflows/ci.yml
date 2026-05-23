@@ -130,8 +130,14 @@ jobs:
       # both endpoints of the diff in local history.
       - name: Fetch PR base for ADR diff
         if: github.event_name == 'pull_request'
+        # `--depth=200` is plenty for any real PR. The shallow default
+        # (depth=1) doesn't even have the base ref locally so the
+        # downstream `git diff origin/<ref> HEAD` would fail with
+        # "unknown revision". We could `fetch-depth: 0` on checkout
+        # but that fetches the entire history for every job — wasteful
+        # when only this one step needs the base ref.
         run: |
-          git fetch --depth=50 origin "${{ github.event.pull_request.base.ref }}"
+          git fetch --depth=200 origin "${{ github.event.pull_request.base.ref }}"
 
       - name: Write PR body to file for ADR gate
         if: github.event_name == 'pull_request'
