@@ -6,6 +6,7 @@
 import js from "@eslint/js";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+import boundaries from "eslint-plugin-boundaries";
 import tseslint from "typescript-eslint";
 import globals from "globals";
 
@@ -63,6 +64,113 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-non-null-assertion": "off",
+    },
+  },
+  {
+    // ─── Architectural layer enforcement (eslint-plugin-boundaries) ───
+    //
+    // The codebase is organised into five element types. Imports must
+    // flow DOWNWARD only — a higher layer can pull from any lower
+    // layer, but never the other way around. Cycles between layers
+    // are the most common source of accidental coupling that makes a
+    // codebase eventually unrefactorable.
+    //
+    //   app/             — Next.js route surface (page, layout, loading,
+    //                      route handlers under app/api/**)
+    //                       → can import: components, hooks, lib,
+    //                                     server-actions
+    //   components/      — React components (UI)
+    //                       → can import: components, hooks, lib,
+    //                                     server-actions
+    //   hooks/           — React hooks (stateful glue)
+    //                       → can import: hooks, lib, server-actions
+    //   lib/             — pure logic (no React, no DOM beyond schemas)
+    //                       → can import: lib, server-actions
+    //   server-actions   — `app/actions/**` server functions. Live
+    //                      under app/ by Next.js convention, but are
+    //                      *callable from anywhere* (lib/, hooks/,
+    //                      components/) — they ARE the API surface
+    //                      between the client and the server. Treated
+    //                      as a separate element type so other layers
+    //                      can import them without tripping the rule.
+    //                       → can import: lib
+    //
+    //   tests/      — unit tests; can import everything (excluded
+    //                 from this rule)
+    //   e2e/        — Playwright specs; can import everything
+    //                 (also excluded)
+    //   scripts/    — build-time Node scripts; out of the React tree
+    //
+    // The rule is `error` so violations break the lint step. When a
+    // genuine exception is needed (rare — usually means the design
+    // is wrong), add a one-off `// eslint-disable-next-line` with a
+    // comment explaining the constraint. Don't silence the rule
+    // wholesale — the value is the *cumulative* discipline.
+    //
+    // The existing `no-restricted-imports` guard (lib/store,
+    // firebase-*) still applies as a finer-grained pattern guard
+    // ABOVE this layer rule — those imports would also be allowed
+    // by the boundaries rule (both files are inside `lib/`), but
+    // we don't want components reaching past the repo facade. Two
+    // rules, two purposes: boundaries enforces direction; the
+    // restricted-imports enforces specific facade contracts.
+    files: [
+      "app/**/*.{ts,tsx}",
+      "components/**/*.{ts,tsx}",
+      "hooks/**/*.{ts,tsx}",
+      "lib/**/*.{ts,tsx}",
+    ],
+    plugins: { boundaries },
+    settings: {
+      // `server-actions` matched FIRST so files under `app/actions/`
+      // are tagged as server-actions, not as `app`. Order matters —
+      // the plugin uses the first pattern that matches.
+      "boundaries/elements": [
+        { type: "server-actions", pattern: "app/actions/**" },
+        { type: "app", pattern: "app/**" },
+        { type: "components", pattern: "components/**" },
+        { type: "hooks", pattern: "hooks/**" },
+        { type: "lib", pattern: "lib/**" },
+      ],
+      // Tell the plugin to resolve `@/foo/bar` aliases the same way
+      // tsconfig + vite + next do — without this, every `@/lib/...`
+      // import looks "external" and the layer rule never fires.
+      "boundaries/include": [
+        "app/**/*.{ts,tsx}",
+        "components/**/*.{ts,tsx}",
+        "hooks/**/*.{ts,tsx}",
+        "lib/**/*.{ts,tsx}",
+      ],
+      "import/resolver": {
+        typescript: { project: "./tsconfig.json" },
+      },
+    },
+    rules: {
+      "boundaries/element-types": [
+        "error",
+        {
+          default: "disallow",
+          rules: [
+            // app/ can import from anywhere below + server-actions
+            { from: "app", allow: ["app", "components", "hooks", "lib", "server-actions"] },
+            // components/ can import from peers + lower + server-actions
+            {
+              from: "components",
+              allow: ["components", "hooks", "lib", "server-actions"],
+            },
+            // hooks/ can import from peers + lower + server-actions
+            { from: "hooks", allow: ["hooks", "lib", "server-actions"] },
+            // lib/ can import from peers + server-actions (the server-
+            // action wire is the only "upward" import lib is allowed —
+            // dual-write delegates through it to the DB).
+            { from: "lib", allow: ["lib", "server-actions"] },
+            // server-actions can only depend on lib (no React, no
+            // hooks, no components — they're pure server-side
+            // entrypoints into the algorithmic core).
+            { from: "server-actions", allow: ["lib"] },
+          ],
+        },
+      ],
     },
   },
   {
