@@ -74,12 +74,16 @@ const SettingsPanel = dynamic(() => import("./modals/SettingsPanel"), { ssr: fal
  * The chunks are in-flight by the time the user (or Playwright)
  * touches anything.
  *
- * Trade-off: real users now download the chunks during initial page
- * load instead of during idle. HTTP/2 multiplexing + low fetch
- * priority make the cost negligible (the home grid + cine canvases
- * are the bottleneck, not network bandwidth for a 120KB chunk).
+ * Conditional gating (May-2026 perf pass): `AuthModal` carries the
+ * Clerk `<SignIn />` widget (~120KB chunk). A logged-in user will
+ * never open it during the session, so preloading wastes bandwidth
+ * on the most common path. We now skip the AuthModal preload when
+ * `currentUser` is non-null at decide-time. If they later log out
+ * and click "Entrar", the chunk loads on demand — a one-shot ~300ms
+ * delay vs. paying the 120KB cost on every authenticated session.
+ * Confirm/Shortcuts stay always-preloaded (small, broadly useful).
  */
-function preloadLazyModals() {
+function preloadLazyModals(opts: { skipAuth: boolean }) {
   // Bare `import()` calls trigger webpack to fetch + cache the same
   // chunks the `dynamic()` wrappers consume above. Webpack dedupes
   // by module identity, so when the user later triggers the actual
@@ -88,7 +92,9 @@ function preloadLazyModals() {
   // are swallowed because a chunk-load failure here would just
   // mean the user pays the original on-demand cost — no worse
   // than not preloading at all.
-  void import("./modals/AuthModal").catch(() => undefined);
+  if (!opts.skipAuth) {
+    void import("./modals/AuthModal").catch(() => undefined);
+  }
   void import("./modals/ConfirmDialog").catch(() => undefined);
   void import("./modals/ShortcutsModal").catch(() => undefined);
 }
@@ -191,11 +197,22 @@ export default function AppModals(props: Props) {
   // `preloadLazyModals` for the history (the earlier
   // `requestIdleCallback` approach was the source of the chronic
   // `admin.spec` e2e flake).
+  //
+  // The 50ms defer (vs. the prior `setTimeout(0)`) gives `useSession`
+  // a microtask budget to resolve its initial user state — legacy
+  // session reads localStorage synchronously; Clerk surfaces its
+  // client-cached user in the first render. By 50ms past first paint
+  // we usually know whether to skip the AuthModal preload. If the
+  // session resolves LATER, `currentUser` flips and the cleanup +
+  // re-arm handles the re-preload (webpack dedupes import calls, so
+  // the late skip-or-include decision is idempotent).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const timer = setTimeout(preloadLazyModals, 0);
+    const timer = setTimeout(() => {
+      preloadLazyModals({ skipAuth: props.currentUser !== null });
+    }, 50);
     return () => clearTimeout(timer);
-  }, []);
+  }, [props.currentUser]);
   const {
     openCase,
     isFav,

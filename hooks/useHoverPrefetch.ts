@@ -23,12 +23,40 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Media } from "@/lib/types";
 
+/** Cap on the number of URLs we remember as "already prefetched".
+ *  Catalog visits don't usually touch more than ~50 cards, so 256
+ *  comfortably covers a long browsing session while bounding memory.
+ *  When the cap is hit, FIFO eviction drops the oldest entry — if the
+ *  user re-hovers that URL the prefetch fires again (which is fine;
+ *  the browser HTTP cache likely still has the asset, so the second
+ *  fetch is a 304 round-trip at worst). */
+const PREFETCH_CACHE_CAP = 256;
+
 /** URLs that have already been prefetched in this session. Module-
- *  level Set so multiple cards / re-mounts don't fire duplicate
+ *  level Map so multiple cards / re-mounts don't fire duplicate
  *  fetches against the same asset — the browser would dedupe at the
  *  network layer anyway, but skipping the function call entirely
- *  is cheaper and keeps DevTools clean. */
-const prefetchedUrls = new Set<string>();
+ *  is cheaper and keeps DevTools clean.
+ *
+ *  Using `Map` instead of `Set` for two reasons: (1) Maps preserve
+ *  insertion order so we can FIFO-evict by reading `.keys().next()`,
+ *  and (2) the bounded size prevents unbounded growth across a long
+ *  session that visits hundreds of cards (each adds one URL; with the
+ *  prior `Set` the only release path was an explicit
+ *  `__resetPrefetchCacheForTests` call). The value side of the Map
+ *  is unused (we just need the key set) so we store `true`. */
+const prefetchedUrls = new Map<string, true>();
+
+/** Mark `url` as prefetched, evicting the oldest entry when the cap
+ *  is hit. FIFO (not strict LRU) — we only care about the memory
+ *  bound, not "hottest URLs stay resident." */
+function rememberPrefetch(url: string): void {
+  if (prefetchedUrls.size >= PREFETCH_CACHE_CAP) {
+    const oldest = prefetchedUrls.keys().next().value;
+    if (oldest !== undefined) prefetchedUrls.delete(oldest);
+  }
+  prefetchedUrls.set(url, true);
+}
 
 /**
  * Schedule `url` for prefetch (idempotent). Uses `fetch` instead of
@@ -47,7 +75,7 @@ const prefetchedUrls = new Set<string>();
 function prefetchMedia(url: string): void {
   if (typeof window === "undefined" || !url) return;
   if (prefetchedUrls.has(url)) return;
-  prefetchedUrls.add(url);
+  rememberPrefetch(url);
   // `keepalive` is harmless here but lets the browser continue the
   // request if the page navigates before it completes — useful when
   // the hover IS the prelude to a click that triggers a route change.
