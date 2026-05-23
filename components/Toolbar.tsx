@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import SavedViewsMenu from "./chrome/SavedViewsMenu";
 import type { Difficulty, SortOrder, ViewState } from "@/lib/url";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -8,8 +7,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 // `DIFFICULTY_OPTIONS` was the source list for the chip rail that
 // got removed in May-2026 — see the comment in the render branch
 // below. The `Difficulty` type stays imported because the `Props`
-// shape still receives the URL-state value (for the Clear-button
-// reset) even though we no longer render the toggle UI.
+// shape still receives the URL-state value even though we no
+// longer render the toggle UI.
 
 interface Props {
   /** Number of results currently visible — drives the "N casos" copy. */
@@ -54,62 +53,37 @@ interface Props {
  * `replacePatch`.
  */
 export default function Toolbar({
-  count,
+  // `count`, `query`, `difficulty` left in `Props` for parity with
+  // the App.tsx call site — destructured-out here because the
+  // results count + Clear-filters button + difficulty toggle row
+  // they powered were all removed in the May-2026 minimalist pass.
+  // Keep the props plumbed through so a future restore (or a third-
+  // party consumer of this component) doesn't have to thread them
+  // again from scratch.
   tags,
-  query,
   sort,
-  difficulty,
   onReplace,
   viewState,
   notify,
 }: Props) {
   const { t } = useLanguage();
-  const [clearShaking, setClearShaking] = useState(false);
-  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // `difficulty` is still part of the URL state (admins / bookmarks
-  // can still narrow via `?difficulty=...`) but the public Toolbar
-  // no longer exposes the toggle row. So `hasFilters` doesn't
-  // include it — a user without the UI control can't add a
-  // difficulty filter, and we don't want the Clear button to look
-  // active because of a stale URL param the user didn't set.
-  const hasFilters = tags.length > 0 || !!query;
-
-  // Drop the shake timer if the component unmounts mid-wink so React
-  // doesn't get a setState on an unmounted instance. A real concern
-  // because route changes (which unmount the toolbar) can collide
-  // with a fresh shake within the 400 ms window.
-  useEffect(
-    () => () => {
-      if (shakeTimerRef.current !== null) clearTimeout(shakeTimerRef.current);
-    },
-    [],
-  );
+  // The `clearShaking` wink-animation state + `hasFilters` derived flag
+  // both lived here for the "Limpiar filtros" button. Removed with that
+  // button in the May-2026 minimalist pass — the wink was a clever
+  // touch but cleared via the per-tag-chip × button + the search-input
+  // clear-icon already cover the action, and the standalone button was
+  // visual chrome on the daily-driver surface.
 
   return (
     <div className="toolbar">
-      <span className="results">
-        {t(count === 1 ? "toolbar.results.one" : "toolbar.results.many", { count })}
-      </span>
-      <button
-        className={`clear-btn${clearShaking ? " is-shaking" : ""}`}
-        disabled={!hasFilters}
-        onClick={() => {
-          if (!hasFilters) {
-            // Wink — nothing to clear, but the user clicked anyway.
-            setClearShaking(true);
-            if (shakeTimerRef.current !== null) clearTimeout(shakeTimerRef.current);
-            shakeTimerRef.current = setTimeout(() => {
-              setClearShaking(false);
-              shakeTimerRef.current = null;
-            }, 400);
-            return;
-          }
-          onReplace({ tags: [], query: "", difficulty: [] });
-        }}
-      >
-        {t("toolbar.clearFilters")}
-      </button>
-      {/* The difficulty chip rail (Básico / Intermedio / Avanzado)
+      {/* Results count + Clear-filters button both removed in the
+          May-2026 minimalist pass. The count was redundant with the
+          sidebar (which already shows a per-category count next to
+          each label); the clear button was rare-use chrome cluttering
+          the daily-driver toolbar. Tag chips (below) are still
+          individually-removable; the sort select is now the only
+          non-state-restoring control here. */}
+      {/* The difficulty chip rail (Basic / Intermediate / Advanced)
           was removed from the public toolbar in May-2026. The
           difficulty data is still set by admins via AdminThumbMenu
           and the URL state still accepts `?difficulty=...` for

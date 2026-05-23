@@ -150,6 +150,21 @@ export const Icon = {
       <path d="M5 12h14M12 5l7 7-7 7" />
     </svg>
   ),
+  // Chevrons — visually lighter than full arrows. Use these for ghost-
+  // chrome controls (sidebar collapse, dropdown indicators, pagination)
+  // where the icon should fade into the surface rather than carry
+  // weight. Full arrowLeft/arrowRight stays for primary navigation
+  // affordances (modal close, hero links).
+  chevronLeft: (): ReactElement => (
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  ),
+  chevronRight: (): ReactElement => (
+    <svg viewBox="0 0 24 24" {...stroke}>
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  ),
   menu: (): ReactElement => (
     <svg viewBox="0 0 24 24" {...stroke}>
       <line x1="3" y1="6" x2="21" y2="6" />

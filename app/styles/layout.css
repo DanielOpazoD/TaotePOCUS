@@ -2,7 +2,14 @@
 .layout {
   max-width: var(--max-page);
   margin: 0 auto;
-  padding: var(--space-8);
+  /* May-2026 compactness pass: top/bottom padding dropped from
+     --space-8 (40px) to --space-5 (24px). The horizontal padding
+     stays at --space-8 because it sets the page gutter (content
+     vs viewport edge) which has a different visual role than the
+     vertical breathing room above the section-head. Net: 32px of
+     vertical real estate reclaimed between the header chrome and
+     the first content row. */
+  padding: var(--space-5) var(--space-8);
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: 48px;
@@ -91,7 +98,7 @@
   .layout {
     grid-template-columns: 1fr;
     gap: var(--space-6);
-    padding: var(--space-5);
+    padding: var(--space-4) var(--space-5);
   }
   /* Sidebar lives only on desktop. The mobile drawer takes over
      for nav + filters. Section accents still apply (the layout

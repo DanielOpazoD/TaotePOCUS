@@ -30,15 +30,64 @@
     animation: none;
   }
 }
+
+/* =================== CATALOG HEADER =================== */
+/*
+ * Two-column grid that hosts the section-head (crumb + h1) on the
+ * LEFT and the toolbar (saved-views + sort) on the RIGHT of the
+ * same row. Before May-2026 these were stacked vertical bands; the
+ * toolbar's own padding+margin+border stacked ~50px of empty
+ * chrome between the h1 and the first card row. Inlining them
+ * eliminates the toolbar as a vertical band entirely, letting the
+ * case grid sit ~40px higher than the prior layout.
+ *
+ * `align-items: end` lines the toolbar's controls baseline against
+ * the h1's baseline (the section-head's flex `align-items: end`
+ * already aligns inner content to its bottom edge). `gap` provides
+ * horizontal breathing room between the title and the right cluster.
+ *
+ * On narrow viewports the grid columns collapse: the toolbar wraps
+ * to the next row under the h1 because `auto`-sized columns + the
+ * 1fr left column force the right one off-row when there isn't
+ * enough horizontal room. Then it occupies the same vertical
+ * footprint as the older stacked layout — acceptable since at
+ * tablet-and-down the chrome density isn't where the perceived-
+ * spaciness problem was. */
+.catalog-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: var(--space-4);
+  /* The catalog-header owns the gap to the case grid below.
+     --space-3 (14px) is a comfortable rest without competing with
+     the grid's own internal rhythm. */
+  margin-bottom: var(--space-3);
+}
+/* On narrow viewports stack the toolbar below the h1 (single column
+   grid). 720px chosen because at the layout breakpoint the sidebar
+   disappears at 960 and the toolbar is the next thing to need room. */
+@media (max-width: 720px) {
+  .catalog-header {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* The single section header used across every route. Compact by
    design — see `components/hero/CompactHead.tsx` for the rationale.
    Vertical rhythm chosen so the toolbar + grid below feel like the
-   primary content; the head reads as a quiet label, not a banner. */
+   primary content; the head reads as a quiet label, not a banner.
+
+   May-2026 compactness pass (third iteration): margin-bottom dropped
+   to 0 because `.catalog-header` (see below) is now the wrapper that
+   owns the spacing between the head/toolbar pair and the grid. The
+   section-head still uses its own flex shape internally (the inner
+   crumb+h1 stack sits on the left, optional right slot would float
+   to the end) but no longer pushes any vertical chrome of its own. */
 .section-head {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: 0;
   gap: var(--space-4);
   flex-wrap: wrap;
   /* The section-accent gradient wash (a soft tinted background
@@ -83,7 +132,10 @@
   display: block;
   width: 32px;
   height: 3px;
-  margin-bottom: var(--space-3);
+  /* Tighter gap to the h1 — the bar is a section-identity cue, not
+     a decorative band that needs breathing room. Was --space-3 (14px),
+     now 6px so the bar reads as part of the h1's vertical mass. */
+  margin-bottom: 6px;
   border-radius: 1.5px;
   background: color-mix(in oklch, var(--section-accent, var(--ink)) 70%, transparent);
   /* The crumb above already announces the section in mono caps; the
@@ -257,12 +309,18 @@
   display: flex;
   gap: var(--space-4);
   align-items: center;
-  margin-bottom: var(--space-6);
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--hairline);
+  /* May-2026 compactness pass (third iteration): the toolbar is now
+     the RIGHT SLOT of `.catalog-header` (a grid that pairs hero +
+     toolbar in the same row). All vertical chrome lives on the
+     parent grid; the toolbar itself contributes zero margin/padding
+     above or below. The flex-end remains so internal items (saved-
+     views menu + sort) cluster against the right edge. */
+  margin-bottom: 0;
+  padding-bottom: 0;
   font-size: 13px;
   color: var(--ink-soft);
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .toolbar .results {
   font-family: var(--mono);

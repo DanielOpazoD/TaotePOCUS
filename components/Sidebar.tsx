@@ -48,18 +48,27 @@ export default function Sidebar({
 
   return (
     <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`} aria-label={t("sidebar.aria")}>
-      <button
-        type="button"
-        className="sidebar-toggle"
-        onClick={onToggleCollapsed}
-        aria-label={collapsed ? t("sidebar.expand.aria") : t("sidebar.collapse.aria")}
-        aria-expanded={!collapsed}
-        title={collapsed ? t("sidebar.expand.title") : t("sidebar.collapse.title")}
-      >
-        {collapsed ? Icon.arrowRight() : Icon.arrowLeft()}
-      </button>
       <div className="side-section sidebar-categories">
-        <h4>{t("sidebar.categories")}</h4>
+        {/* The collapse toggle now lives INSIDE the section header,
+            in the same row as the categories label. Pre-May-2026 it
+            floated above the h4 as a circular standalone button — the
+            user feedback was that it read as a UI dev placeholder
+            (ugly + ordinary), not as an integrated control. Inline
+            with the label, sized as ghost chrome, the toggle becomes
+            part of the panel rather than a sticker on top of it. */}
+        <div className="side-section-header">
+          <h4>{t("sidebar.categories")}</h4>
+          <button
+            type="button"
+            className="sidebar-toggle"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? t("sidebar.expand.aria") : t("sidebar.collapse.aria")}
+            aria-expanded={!collapsed}
+            title={collapsed ? t("sidebar.expand.title") : t("sidebar.collapse.title")}
+          >
+            {collapsed ? Icon.chevronRight() : Icon.chevronLeft()}
+          </button>
+        </div>
         <ul className="cat-list">
           <li>
             <button
