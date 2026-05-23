@@ -7,8 +7,13 @@
 #     for most projects.
 #   - GitHub Actions: same cadence. Action versions don't change often
 #     but pinning matters for CI integrity.
-#   - Grouping: minor + patch updates per ecosystem ship as ONE PR
-#     per week rather than N. Major version bumps still arrive as
+#   - Grouping: patch and minor updates ship as SEPARATE grouped PRs
+#     per week. The split matters because patches are AUTO-MERGED by
+#     `.github/workflows/dependabot-auto-merge.yml` when CI is green —
+#     mixing them with minors would either block patch auto-merge
+#     (waiting for human review of the minors) or auto-merge minors by
+#     accident (risking the kind of unexpected breakage that "1.4 →
+#     1.5" sometimes carries). Major version bumps still arrive as
 #     individual PRs because they often need manual intervention.
 #   - `assignees` / `reviewers` left empty intentionally — the repo
 #     has one maintainer; Dependabot's default behaviour (no assignee)
@@ -28,12 +33,17 @@ updates:
       timezone: "America/Santiago"
     open-pull-requests-limit: 5
     groups:
-      # Minor + patch bumps batched into one weekly PR per ecosystem.
-      # Majors (potentially breaking) still come as individual PRs.
-      minor-and-patch:
+      # Patches batched into one PR — auto-merged when CI is green
+      # (see `.github/workflows/dependabot-auto-merge.yml`).
+      npm-patch:
+        update-types:
+          - "patch"
+      # Minors batched into a separate PR — requires manual review
+      # because minor bumps sometimes introduce subtle behavior
+      # changes even when SemVer-compliant.
+      npm-minor:
         update-types:
           - "minor"
-          - "patch"
     labels:
       - "dependencies"
     commit-message:
