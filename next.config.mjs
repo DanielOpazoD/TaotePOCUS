@@ -2,6 +2,17 @@ import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 import withSerwistInit from "@serwist/next";
 
+// Dev-mode script directives. Next.js's dev server (Turbopack + React
+// Fast Refresh) uses `eval()` to compile + hot-swap modules, and
+// React's dev build uses eval for stack-frame reconstruction. So
+// `'unsafe-eval'` MUST be in the CSP during dev or every save
+// triggers a violation that looks like a real error.
+//
+// Production builds don't need it — Next.js's compiled output is
+// static and our deps (Sentry, Clerk, Firebase, Serwist) all avoid
+// eval/new Function() at runtime. So the prod CSP stays tight.
+const DEV_SCRIPT_DIRECTIVE = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
+
 // Security headers applied to all routes. Tuned for a public, mostly-
 // static educational site — strict CSP, no third-party iframes, deny
 // embedding, no MIME sniffing. Hosts allowed in connect-src cover
@@ -22,13 +33,16 @@ const securityHeaders = [
       // 'unsafe-inline' stays for the pre-paint theme script and
       // for Next.js's small inline bootstrappers. Replacing it with
       // nonces would require middleware on EVERY response (kills
-      // static optimization on a primarily-static site). Tightened
-      // by dropping 'unsafe-eval': Next.js prod builds don't need
-      // it, our deps (Sentry, Clerk, Firebase, Serwist) don't use
-      // eval/new Function() at runtime. Reduces the JIT-injection
-      // attack surface without breaking anything.
+      // static optimization on a primarily-static site).
+      //
+      // 'unsafe-eval' is conditional on NODE_ENV (see
+      // `DEV_SCRIPT_DIRECTIVE` above): present in dev (React Fast
+      // Refresh + Turbopack module hot-swap both need eval),
+      // absent in prod (compiled output is static, no runtime
+      // eval). This keeps the JIT-injection attack surface tight
+      // in prod while letting dev work without overlay errors.
       [
-        "script-src 'self' 'unsafe-inline'",
+        `script-src 'self' 'unsafe-inline'${DEV_SCRIPT_DIRECTIVE}`,
         // Clerk JS bundles + per-instance subdomains (dev / staging / prod
         // all share the same wildcard).
         "https://*.clerk.com",

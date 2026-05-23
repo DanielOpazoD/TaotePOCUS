@@ -37,7 +37,14 @@ export default function CompactHead({ head, cat }: Props) {
           )}
         </div>
         <h1>{head.title}</h1>
-        <p>{head.sub}</p>
+        {/* Subtitle (head.sub) was removed in the May-2026 minimalist
+            pass. The crumb above already declares "TAOTE POCUS · ATLAS
+            POCUS · <CATEGORY>", so a sub of "Atlas POCUS · Cardíaco"
+            was the same information stated twice with different
+            capitalization — visual noise without an information gain.
+            The `head.sub` field stays in `PageHead` because route
+            metadata (og:description, meta description) still consumes
+            it server-side. */}
       </div>
     </div>
   );
