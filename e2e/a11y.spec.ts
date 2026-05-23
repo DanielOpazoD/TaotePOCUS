@@ -284,7 +284,9 @@ test.describe("Accessibility (axe-core)", () => {
     await page.waitForFunction(() => document.readyState === "complete");
     const firstCard = page.locator(".case-card").first();
     await expect(firstCard).toBeVisible({ timeout: 15_000 });
-    await firstCard.click();
+    // Click the anchor element directly — see note in `home.spec.ts`
+    // about the play-button overlay capturing `.case-card`-center clicks.
+    await page.locator(".case-card-link").first().click();
     await expect(page.getByRole("dialog")).toBeVisible();
     // Give the focus-trap mount + initial render a beat to settle.
     // Without this, axe occasionally scans before the dialog's
