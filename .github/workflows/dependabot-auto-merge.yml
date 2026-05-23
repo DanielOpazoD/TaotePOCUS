@@ -1,0 +1,108 @@
+# Auto-merge Dependabot patch PRs when CI is green.
+#
+# Background: a steady stream of "1.2.3 → 1.2.4" PRs is rote work — by
+# SemVer contract patches don't introduce behavior changes, and the
+# repo's CI gates (typecheck, lint, tests, build, coverage delta,
+# Lighthouse, e2e) catch the rare ones that do. Manually clicking
+# "approve + merge" on every patch PR is human-time burned for no
+# signal, and it lets security patches sit pending for days.
+#
+# This workflow squeezes patches into a one-shot dispatch:
+#
+#   1. Dependabot opens a patch PR (grouped via the `npm-patch` /
+#      `npm-minor` split in `dependabot.yml`).
+#   2. The PR's normal CI runs (Lint · Typecheck · Test · Build,
+#      Playwright e2e, Lighthouse, bundle budget, coverage delta).
+#   3. This workflow fires on the same PR event, reads the update
+#      metadata, and — IF the update is a patch AND the package is
+#      not in the high-stakes deny list below — enables GitHub's
+#      native auto-merge.
+#   4. When every required check turns green, GitHub auto-merges
+#      the PR. If a check fails, the PR stays open for human review;
+#      nothing is force-merged.
+#
+# Auto-merge is opt-OUT, not opt-in. Three categories stay manual:
+#
+#   - **Minor / major updates**: SemVer says no breaking changes
+#     under SemVer, but minors sometimes ship subtle behavior shifts
+#     (a new default value, a deprecation warning that lints). Cost
+#     of a one-minute review > cost of a Saturday-morning rollback.
+#
+#   - **High-stakes packages** (deny list below): Next.js, React,
+#     Clerk, Sentry, Serwist. A patch on any of these can change
+#     runtime behavior in ways the test suite can't fully cover
+#     (Clerk session edge cases, Next.js streaming changes, Sentry
+#     instrumentation drift). One human eye remains the policy.
+#
+#   - **Anything that touches the lockfile in unexpected ways**:
+#     covered indirectly — the CI gate runs `npm ci` which fails
+#     on lockfile/manifest mismatch.
+
+name: Dependabot auto-merge (patches only)
+
+on: pull_request_target
+
+permissions:
+  # Auto-merge needs write to PRs (to enable the auto-merge flag)
+  # and contents (the merge itself goes through the GitHub API).
+  pull-requests: write
+  contents: write
+
+jobs:
+  auto-merge:
+    name: Auto-merge if patch + safe package
+    runs-on: ubuntu-latest
+    # Only run for Dependabot's own PRs — anything else (a contributor
+    # PR that happens to bump deps) goes through the regular review
+    # path.
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Read Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The deny list below catches packages whose patch updates we
+      # want a human to skim — see header comment. The match is case-
+      # insensitive substring on the dependency name.
+      - name: Detect high-stakes packages in this PR
+        id: gate
+        env:
+          DENY_LIST: "next,react,react-dom,@clerk/,@sentry/,serwist,@serwist/"
+          DEPS: ${{ steps.meta.outputs.dependency-names }}
+        run: |
+          IFS=',' read -ra DEPS_ARR <<< "${DEPS,,}"
+          IFS=',' read -ra DENY_ARR <<< "${DENY_LIST,,}"
+          hit=""
+          for dep in "${DEPS_ARR[@]}"; do
+            dep_trim=$(echo "$dep" | xargs)
+            [ -z "$dep_trim" ] && continue
+            for pat in "${DENY_ARR[@]}"; do
+              if [[ "$dep_trim" == *"$pat"* ]]; then
+                hit="$dep_trim (matched $pat)"
+                break 2
+              fi
+            done
+          done
+          if [ -n "$hit" ]; then
+            echo "High-stakes package in PR: $hit — skipping auto-merge."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enable auto-merge for patch updates
+        if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch'
+          && steps.gate.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "Enabling auto-merge for: $PR_URL"
+          # `--auto`: GitHub holds the merge until all required checks
+          # pass. `--squash`: matches the repo's existing merge style
+          # (every PR landed via `gh pr merge --squash` in this
+          # codebase — see git log).
+          gh pr merge --auto --squash "$PR_URL"
