@@ -1,0 +1,112 @@
+/* =================== APP SHELL =================== */
+/*
+ * Static silhouette rendered as the `<Suspense fallback>` for every
+ * page hosting `<App />`. SSR-only. The shell occupies the same
+ * vertical + horizontal space as the real layout so the swap from
+ * fallback → real tree is a content swap, not a reflow.
+ *
+ * Dimensions intentionally mirror the live `.layout` + `.app-header`
+ * + `.case-grid` rules (see `layout.css`, `header.css`, `cards.css`).
+ * If those change height/width, the shell needs the matching bump or
+ * CLS will reappear.
+ *
+ * See `components/AppShell.tsx` for the why + the long history.
+ */
+
+/* Outer container: no display / positioning of its own — just hosts
+   the header strip + the layout grid as direct children, the same
+   way `<App />` does. */
+.app-shell {
+  /* No visual treatment — the children carry it. */
+}
+
+/* Header strip — `.app-shell-header` reuses the `.app-header` class
+   so it inherits the sticky positioning, background tone, and bottom
+   hairline. The `.app-shell-` modifier only exists for diagnostic
+   selectors (e.g. visual snapshots, devtools) — no override styling. */
+.app-shell-header-inner {
+  /* Same flex row as `.header-inner`. The brand sigil + wordmark
+     occupy the left edge; the middle is the nav placeholder; the
+     right edge is the search + lang + theme + user-menu cluster.
+     We render brand + two empty spacers so the right edge gets
+     pushed to the same horizontal position the real Header lands. */
+}
+.app-shell-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+/* `.app-shell-nav` is a flexible spacer that pushes the right cluster
+   to the far edge — same behavior as the real `<nav>` element which
+   has `flex: 1` from `.header-inner > nav`. We don't render the nav
+   text because (a) it'd be wrong below the fold of i18n init and
+   (b) text would re-render and shift on hydration. Empty silhouette
+   is honest about "this is a placeholder." */
+.app-shell-nav {
+  flex: 1;
+}
+/* Right-side cluster placeholder — sized to roughly match the
+   combined width of header-search + lang switch + theme toggle +
+   avatar so the brand doesn't visually shift right when the real
+   Header lands. */
+.app-shell-right {
+  width: 280px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+/* Sidebar silhouette — only shown on desktop where the real
+   `.sidebar` element occupies the first column of the grid. The
+   `.layout` rule already hides the sidebar slot below 960px (via
+   `.layout > .sidebar { display: none }`); we use the same selector
+   shape here so the column collapses identically. */
+.app-shell-sidebar {
+  /* Same width contract as `.sidebar` (the real sidebar). The
+     `.layout` grid template (240px 1fr) reserves the column whether
+     we render content or not, so we just need to fill the visible
+     area with a silhouette that reads as "filters loading." */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-2);
+}
+.app-shell-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.app-shell-sidebar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Hide the sidebar silhouette below the same 960px breakpoint the
+   real layout uses (`@media (max-width: 959.98px)` in `layout.css`).
+   Without this the shell would show a stranded skeleton column on
+   tablet/phone where the real sidebar is hidden by the drawer. */
+@media (max-width: 959.98px) {
+  .app-shell-sidebar {
+    display: none;
+  }
+}
+
+/* Main column silhouette — section-head block above the grid. */
+.app-shell-main {
+  min-width: 0; /* Allow the case-grid below to shrink — without
+                    this, long skeleton-line elements would force the
+                    column to overflow. */
+}
+.app-shell-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--hairline);
+}
