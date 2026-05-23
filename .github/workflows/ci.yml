@@ -81,6 +81,43 @@ jobs:
           path: coverage/
           retention-days: 14
 
+      # ─── Coverage delta gate (PR-only) ───
+      # The absolute thresholds in vitest.config catch CATASTROPHIC
+      # regressions but tolerate the slow grind. Between April and
+      # May-2026 lib/** drifted 7pp downward across ~20 PRs that each
+      # individually passed the absolute floor. This step flips the
+      # contract: every PR has to NOT drop main's coverage by more
+      # than 0.5pp on any metric. The absolute thresholds stay as
+      # the floor; this step prevents quiet sliding toward it.
+      #
+      # On a `push` to main: only the coverage artifact gets uploaded
+      # (above). No delta check because there's no PR baseline.
+      #
+      # On a `pull_request`: download the latest successful main
+      # coverage artifact, place it at `.coverage-baseline/`, and
+      # run `scripts/coverage-delta.mjs`. If the artifact is missing
+      # (first run after a retention expiry, or main itself failed
+      # CI), the script exits 0 with a one-line note — the absolute
+      # thresholds still apply, so a missing baseline isn't a
+      # blocker.
+      - name: Download main coverage baseline (PR-only)
+        if: github.event_name == 'pull_request'
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          workflow: ci.yml
+          name: coverage
+          branch: main
+          event: push
+          workflow_conclusion: success
+          path: .coverage-baseline
+          # Don't fail the step if no artifact is found — the script
+          # tolerates a missing baseline.
+          if_no_artifact_found: warn
+
+      - name: Coverage delta vs main (PR-only)
+        if: github.event_name == 'pull_request'
+        run: node scripts/coverage-delta.mjs
+
       - name: Coverage summary in job log
         if: always()
         run: |
