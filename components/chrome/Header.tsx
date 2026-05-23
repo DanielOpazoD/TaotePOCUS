@@ -130,7 +130,7 @@ export default function Header({
             on the right already surfaces the same code with its own
             label, and two static "ES" pills 30px apart read as a
             broken duplicate to first-time visitors. */}
-        <TransitionLink className="brand" href="/">
+        <TransitionLink className="brand" href="/" aria-label="Taote POCUS — inicio">
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
               {/* Outer ring: ultrasound field. `pathLength={100}`

@@ -67,6 +67,18 @@ export default defineConfig({
         // Excluding here keeps the lib/** aggregate honest about
         // logic coverage rather than typedef-counting.
         "lib/ai/provider.ts",
+        // Service Worker bridge for the selective-offline media
+        // feature. Every function in this file is either a thin
+        // `navigator.serviceWorker.controller.postMessage` round-
+        // trip with a MessageChannel reply, or a synchronous
+        // localStorage shim (the bootstrap read for first paint).
+        // The contract that matters is the message-shape agreement
+        // with `app/sw.ts` — unit-testing this side in isolation
+        // mostly mocks the ServiceWorker API surface back at us.
+        // The integration is exercised by the offline-cases e2e
+        // ("save case while online, navigate offline, confirm video
+        // plays from cache") in `tests/e2e/offline.spec.ts`.
+        "lib/offline-cases.ts",
       ],
       // Per-glob thresholds. CI fails if a PR drops coverage below these
       // without justification — keeps the unit-test contract real.
