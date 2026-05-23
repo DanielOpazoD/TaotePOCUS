@@ -397,13 +397,14 @@ textarea.admin-input {
 /* Loading-state skeleton rendered by Next.js's `dynamic()` while
    the AdminPanel chunk is in flight. Three placeholders mirror the
    real panel's layout (status row → tab bar → content area) so the
-   landing transition doesn't reflow the page. The neutral surface
-   tones keep the skeleton from competing visually with the real
-   content once it arrives.
+   landing transition doesn't reflow the page.
 
-   Pulse animation: opacity 0.4 ↔ 0.7 at 1.6s linear (restraint-pass
-   aesthetic — no horizontal shimmer). Disabled for users on
-   `prefers-reduced-motion`. */
+   Visual treatment (background tone + gradient sweep + reduced-
+   motion handling) is owned by `skeleton.css` — these classes are
+   in its shimmer-family `:where()` list. Local rules below only
+   set dimensions / border-radius / display so the silhouettes
+   match the real layout. See the top of `skeleton.css` for the
+   two-family canon (shimmer vs. spin). */
 .admin-panel--loading {
   /* Reserves vertical space close to the typical AdminPanel content
      height so the page doesn't shrink on chunk landing. The exact
@@ -422,8 +423,6 @@ textarea.admin-input {
   width: 180px;
   height: 28px;
   border-radius: 999px;
-  background: var(--surface-2);
-  animation: admin-skeleton-pulse var(--duration-shimmer) ease-in-out infinite;
 }
 .admin-skeleton-tabs {
   display: flex;
@@ -436,8 +435,6 @@ textarea.admin-input {
   width: 90px;
   height: 32px;
   border-radius: var(--radius-sm, 6px);
-  background: var(--surface-2);
-  animation: admin-skeleton-pulse var(--duration-shimmer) ease-in-out infinite;
 }
 .admin-skeleton-content {
   width: 100%;
@@ -446,25 +443,6 @@ textarea.admin-input {
      it up as the candidate. */
   height: 320px;
   border-radius: var(--radius-md);
-  background: var(--surface-2);
-  animation: admin-skeleton-pulse var(--duration-shimmer) ease-in-out infinite;
-}
-@keyframes admin-skeleton-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .admin-skeleton-chip,
-  .admin-skeleton-tab,
-  .admin-skeleton-content {
-    animation: none;
-    opacity: 0.55;
-  }
 }
 
 /* Tab strip across the top of the admin panel — switches between

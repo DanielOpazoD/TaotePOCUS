@@ -1,21 +1,73 @@
-/* =================== TYPOGRAPHIC SKELETONS ===================
+/* =================== LOADING-STATE CANON ===================
  *
- * Skeletons that mimic the silhouette of real content. Heights match
- * the actual line-heights of titles / meta in production so the page
- * doesn't reflow when the real data swaps in.
+ * Two unified families of motion vocab across the app:
  *
- * Shimmer is a subtle gradient sweep, not a flashing pulse — the
- * latter is exhausting to look at. Respects reduced-motion.
+ *   1. SHIMMER (this file)
+ *      A subtle horizontal gradient sweep over a neutral surface.
+ *      Used for *content placeholders* — silhouettes of cards, table
+ *      rows, lists, and panels while their data hydrates. Says
+ *      "the shape of the thing is here, just not the pixels yet".
+ *
+ *      Owners (all share the rule below via `:where()`):
+ *        .skeleton-line          — generic content bar (titles, meta)
+ *        .skeleton-thumb         — square thumbnail placeholder
+ *        .skeleton-thumb-sm      — 40px thumbnail (BulkEditTable rows)
+ *        .admin-skeleton-chip    — pill placeholder (admin status row)
+ *        .admin-skeleton-tab     — tab strip placeholder
+ *        .admin-skeleton-content — large body placeholder
+ *
+ *      The admin-* trio lives in `admin.css` for their dimensions,
+ *      but the shimmer treatment (surface tone + sweep + reduced-
+ *      motion handling) is owned right here so the visual identity
+ *      can't drift. Before the May-2026 unification, admin had its
+ *      own `admin-skeleton-pulse` opacity-flicker — fine in isolation
+ *      but read as "different vendor" next to the gradient-sweep
+ *      cards on the home page. Now it's one family.
+ *
+ *   2. SPIN (cine.css + modals.css)
+ *      A 360° rotating ring. Used for *operations in progress* —
+ *      video buffering, save buttons, offline toggles. Says "a
+ *      thing is being done right now, please wait". Reduced-motion
+ *      falls back to an opacity pulse so vestibular-sensitive users
+ *      still get a "we're working on it" cue without the rotation.
+ *
+ *      Owners: `.cine-spinner-dot`, `.cine-play-button[data-buffering]`,
+ *      `.modal-action-spinner`.
+ *
+ * Tokens (defined in `tokens.css`):
+ *   --duration-shimmer   1.6s   sweep period
+ *   --duration-spinner   0.85s  rotation period
+ *   --duration-pulse     1.4s   reduced-motion fallback for spinners
+ *
+ * Shimmer here also respects `prefers-reduced-motion`: animation
+ * stops, gradient stays at 50% opacity so the silhouette is still
+ * obviously a placeholder, not "real but missing".
  */
 
-.skeleton-line {
-  display: block;
-  background: var(--surface-2);
-  border-radius: 3px;
+/* The shimmer surface — neutral base + horizontal gradient sweep.
+   `:where()` keeps specificity at zero so per-element rules below
+   (and `admin-skeleton-*` over in admin.css) can layer dimensions /
+   border-radius / display on top without specificity wars. */
+:where(
+  .skeleton-line,
+  .skeleton-thumb,
+  .skeleton-thumb-sm,
+  .admin-skeleton-chip,
+  .admin-skeleton-tab,
+  .admin-skeleton-content
+) {
   position: relative;
   overflow: hidden;
+  background: var(--surface-2);
 }
-.skeleton-line::after {
+:where(
+  .skeleton-line,
+  .skeleton-thumb,
+  .skeleton-thumb-sm,
+  .admin-skeleton-chip,
+  .admin-skeleton-tab,
+  .admin-skeleton-content
+)::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -34,11 +86,24 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-line::after {
+  :where(
+    .skeleton-line,
+    .skeleton-thumb,
+    .skeleton-thumb-sm,
+    .admin-skeleton-chip,
+    .admin-skeleton-tab,
+    .admin-skeleton-content
+  )::after {
     animation: none;
     opacity: 0.5;
     transform: none;
   }
+}
+
+/* ---------- generic line ---------- */
+.skeleton-line {
+  display: block;
+  border-radius: 3px;
 }
 
 /* ---------- card ---------- */
@@ -53,22 +118,6 @@
 .skeleton-thumb {
   aspect-ratio: 1 / 1;
   width: 100%;
-  background: var(--surface-2);
-  position: relative;
-  overflow: hidden;
-}
-.skeleton-thumb::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--ink) 4%, transparent) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: skeleton-shimmer var(--duration-shimmer) linear infinite;
 }
 .skeleton-card-body {
   padding: var(--space-4) var(--space-4) var(--space-3);
@@ -168,20 +217,4 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  position: relative;
-  overflow: hidden;
-}
-.skeleton-thumb-sm::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--ink) 4%, transparent) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: skeleton-shimmer var(--duration-shimmer) linear infinite;
 }
