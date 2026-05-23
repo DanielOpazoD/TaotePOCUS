@@ -33,12 +33,17 @@
 /* The single section header used across every route. Compact by
    design — see `components/hero/CompactHead.tsx` for the rationale.
    Vertical rhythm chosen so the toolbar + grid below feel like the
-   primary content; the head reads as a quiet label, not a banner. */
+   primary content; the head reads as a quiet label, not a banner.
+   May-2026 compactness pass: bottom margin dropped from --space-4
+   to --space-3 to tighten the gap before the toolbar. The
+   accumulated vertical space between the h1 and the first card
+   row was eating ~110px of above-the-fold real estate — moving
+   the grid up brings two extra rows into view at a 1080p height. */
 .section-head {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   gap: var(--space-4);
   flex-wrap: wrap;
   /* The section-accent gradient wash (a soft tinted background
@@ -257,8 +262,17 @@
   display: flex;
   gap: var(--space-4);
   align-items: center;
-  margin-bottom: var(--space-6);
-  padding-bottom: 16px;
+  /* May-2026 compactness pass: the gap between the toolbar and the
+     grid below was eating ~33px (margin-bottom --space-6) + 16px
+     (padding-bottom) + 1px (border) = 50px of pure whitespace. The
+     toolbar reads as the LABEL of the grid right under it, not as
+     its own section, so the visual breathing room above the grid
+     felt magazine-y in a working-catalog product. Tightened to
+     --space-3 (14px) margin + 10px padding for half the gap. The
+     hairline border stays — keeps the toolbar legible as a row
+     against the grid surface. */
+  margin-bottom: var(--space-3);
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--hairline);
   font-size: 13px;
   color: var(--ink-soft);
