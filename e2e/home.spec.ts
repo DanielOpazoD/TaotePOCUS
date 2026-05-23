@@ -45,7 +45,14 @@ test.describe("Home page", () => {
 
   test("opens a case modal and closes it with Esc", async ({ page }) => {
     await page.goto("/");
-    const firstCard = page.locator(".case-card").first();
+    // Click the anchor (`.case-card-link`) directly. The card uses an
+    // `::after` anchor-cover pattern so clicking anywhere on the card
+    // works in real-user mouse + keyboard input, but Playwright's
+    // `.click()` on `.case-card` resolves to the visible center which
+    // can land on the play-button overlay (which has its own onClick
+    // that stops propagation). Targeting the anchor element is more
+    // robust + closer to the keyboard-activation path.
+    const firstCard = page.locator(".case-card-link").first();
     await firstCard.click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page).toHaveURL(/caso=/);

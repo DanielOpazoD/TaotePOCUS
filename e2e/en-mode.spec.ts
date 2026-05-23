@@ -189,7 +189,9 @@ test.describe("EN-mode public chrome", () => {
     await page.goto("/?lang=en");
     const firstCard = page.locator(".case-card").first();
     await expect(firstCard).toBeVisible({ timeout: 10_000 });
-    await firstCard.click();
+    // Click the anchor element directly — see note in `home.spec.ts`
+    // about the play-button overlay capturing `.case-card`-center clicks.
+    await page.locator(".case-card-link").first().click();
     await expect(page.getByRole("dialog")).toBeVisible();
     // The close button's aria-label comes from `modal.close.aria` —
     // a residue here would mean someone reverted the existing dict

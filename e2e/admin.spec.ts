@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test";
 
+// Helper: open the avatar UserMenu so the "Administrar" / "Salir" rows
+// are exposed. Centralised because every admin assertion below depends
+// on it — the UserMenu refactor (PR #117) moved every admin nav action
+// behind the avatar dropdown, so tests can no longer expect them at
+// the top level.
+async function openUserMenu(page: import("@playwright/test").Page) {
+  await page.getByRole("button", { name: /Abrir menú de la cuenta/ }).click();
+}
+
 test.describe("Admin flow", () => {
   test("admin can log in and reach the panel", async ({ page }) => {
     await page.goto("/");
@@ -9,9 +18,15 @@ test.describe("Admin flow", () => {
     await dialog.getByLabel("Correo").fill("admin@taote.pocus");
     await dialog.getByLabel("Contraseña").fill("admin123");
     await dialog.getByRole("button", { name: "Entrar" }).click();
-    // Admin nav appears once logged in.
-    await expect(page.getByRole("link", { name: "Administrar" })).toBeVisible();
-    await expect(page.getByText("ADMIN", { exact: true })).toBeVisible();
+    // Admin signal at the top level: the "+New case" button only
+    // renders when `isAdmin === true` (Header.tsx). Doesn't require
+    // opening a dropdown — fastest possible admin-state check.
+    await expect(page.getByRole("button", { name: "Nuevo caso" })).toBeVisible();
+    // The Administrar link itself lives inside the UserMenu dropdown
+    // since the May-2026 UserMenu refactor (PR #117) — open the menu
+    // first so the link is in the visible tree.
+    await openUserMenu(page);
+    await expect(page.getByRole("menuitem", { name: "Administrar" })).toBeVisible();
   });
 
   test("non-admin email creates a regular session, no admin nav", async ({ page }) => {
@@ -21,9 +36,12 @@ test.describe("Admin flow", () => {
     await dialog.getByLabel("Correo").fill("dr.maria@example.com");
     await dialog.getByLabel("Contraseña").fill("anything");
     await dialog.getByRole("button", { name: "Entrar" }).click();
-    // No "Administrar" link; the Salir button is present.
-    await expect(page.getByRole("link", { name: "Administrar" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+    // No top-level "+New case" button (admin-only).
+    await expect(page.getByRole("button", { name: "Nuevo caso" })).toHaveCount(0);
+    // Open UserMenu: Salir is present but Administrar is not (non-admin).
+    await openUserMenu(page);
+    await expect(page.getByRole("menuitem", { name: "Salir" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Administrar" })).toHaveCount(0);
   });
 
   test("rejects wrong admin password with a clear error", async ({ page }) => {
@@ -34,7 +52,8 @@ test.describe("Admin flow", () => {
     await dialog.getByLabel("Contraseña").fill("wrongpass");
     await dialog.getByRole("button", { name: "Entrar" }).click();
     await expect(dialog.getByRole("alert")).toContainText(/Credenciales/);
-    await expect(page.getByRole("link", { name: "Administrar" })).toHaveCount(0);
+    // No admin state change: the +New case button stays absent.
+    await expect(page.getByRole("button", { name: "Nuevo caso" })).toHaveCount(0);
   });
 
   // ─── End-to-end smoke ───────────────────────────────────────────
@@ -57,10 +76,11 @@ test.describe("Admin flow", () => {
     await dialog.getByLabel("Correo").fill("admin@taote.pocus");
     await dialog.getByLabel("Contraseña").fill("admin123");
     await dialog.getByRole("button", { name: "Entrar" }).click();
-    await expect(page.getByRole("link", { name: "Administrar" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Nuevo caso" })).toBeVisible();
 
-    // 2. Navigate to /admin
-    await page.getByRole("link", { name: "Administrar" }).click();
+    // 2. Navigate to /admin via the UserMenu's Administrar row.
+    await openUserMenu(page);
+    await page.getByRole("menuitem", { name: "Administrar" }).click();
     await expect(page).toHaveURL(/\/admin/);
 
     // 3. Default tab is "Mis casos" — the stats grid is its
