@@ -63,6 +63,51 @@ describe("pickMediaCandidates", () => {
     expect(pickMediaCandidates("1234.webm", "*/*")).toEqual(["1234.webm"]);
   });
 
+  // ─── ADR-0012: server-side video posters ────────────────────────
+  // A video URL fetched as `<video poster>` / `<img src>` sends
+  // `Accept: image/...` and gets the poster JPG sibling first; same
+  // URL fetched as `<video src>` sends `Accept: */*` (no `image/`)
+  // and keeps the original video stream. Test both shapes.
+
+  it("prepends the poster JPG for videos when client wants an image (mp4)", () => {
+    // Browser fetching `<video poster="/api/media/1234.mp4">`.
+    expect(
+      pickMediaCandidates("1234.mp4", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"),
+    ).toEqual(["1234.poster.jpg", "1234.mp4"]);
+  });
+
+  it("prepends the poster JPG for videos when client wants an image (webm)", () => {
+    expect(pickMediaCandidates("clip.webm", "image/avif,*/*")).toEqual([
+      "clip.poster.jpg",
+      "clip.webm",
+    ]);
+  });
+
+  it("prepends the poster JPG for videos when client wants an image (mov)", () => {
+    expect(pickMediaCandidates("clip.mov", "image/webp,*/*")).toEqual([
+      "clip.poster.jpg",
+      "clip.mov",
+    ]);
+  });
+
+  it("does NOT touch video keys when Accept is just `*/*` (video src request)", () => {
+    // The `<video src="…">` element sends `Accept: */*` (no
+    // `image/`). Adding a poster candidate here would serve a JPEG
+    // to the video element, which can't play it — regression risk.
+    expect(pickMediaCandidates("1234.mp4", "*/*")).toEqual(["1234.mp4"]);
+    expect(pickMediaCandidates("1234.mp4", null)).toEqual(["1234.mp4"]);
+  });
+
+  it("does NOT touch video keys when Accept is a video MIME explicitly", () => {
+    // Belt-and-suspenders for clients that DO advertise video types.
+    expect(pickMediaCandidates("1234.mp4", "video/mp4,video/*,*/*")).toEqual(["1234.mp4"]);
+  });
+
+  it("does NOT prepend a poster for GIFs (animated, no still poster)", () => {
+    // GIFs are their own animation; they don't get a poster sibling.
+    expect(pickMediaCandidates("1234.gif", "image/avif,*/*")).toEqual(["1234.gif"]);
+  });
+
   it("returns single-entry list for GIFs (frame data, no re-encode)", () => {
     // GIFs ship raw — the import pipeline doesn't generate AVIF/WebP
     // for animated content (lossy compression would freeze the
