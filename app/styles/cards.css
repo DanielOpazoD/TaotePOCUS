@@ -613,9 +613,6 @@
   .case-card .case-title {
     font-size: 14px;
   }
-  .case-card .case-cat {
-    font-size: 10px;
-  }
 }
 .case-card:hover {
   transform: translateY(var(--hover-lift));
@@ -1152,22 +1149,10 @@
   align-items: center;
   gap: 6px;
 }
-.case-cat-glyph {
-  display: inline-grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  /* Neutral ink (May-2026 restraint pass) — was tied to the
-     section accent, but with seven sections that meant seven
-     different small icon colors in the same scroll. Now sits
-     in the muted ink palette so the cards read as one set. */
-  color: var(--ink-mute);
-  flex-shrink: 0;
-}
-.case-cat-glyph svg {
-  width: 14px;
-  height: 14px;
-}
+/* `.case-cat-glyph` was removed in May-2026 along with the catalog
+   card's small icon+category line — see `CaseCard.tsx`. The base
+   `.case-cat` rule above still applies to the Featured row, admin
+   form header, and case modal, none of which carry the glyph. */
 .case-title {
   /* May-2026 "Reference moderna" pass: card titles switch from
      Newsreader serif to Plex Sans 600. Reference products (Stripe,
@@ -1513,6 +1498,7 @@
     transform: none;
   }
 }
-.case-cat--skeleton {
-  visibility: hidden;
-}
+/* `.case-cat--skeleton` was removed in May-2026 alongside the
+   corresponding line in `<CaseCardSkeleton>`. The catalog card no
+   longer carries `.case-cat`, so the skeleton dropped its placeholder
+   row to keep the two pixel-identical on swap-in. */
