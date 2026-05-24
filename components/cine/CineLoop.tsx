@@ -500,18 +500,38 @@ export default function CineLoop({
       // Snapshot the current frame off `<video>` into a JPEG data
       // URL, persist to IDB, and feed it back as state so the
       // `poster=` attribute updates on the next render. Idempotent
-      // per-src via `captureAttemptedRef` — `loadedmetadata` and
-      // `loadeddata` both fire for the same load, and we only need
-      // the first usable frame. Bails silently on CORS-tainted
-      // canvas (cross-origin video without crossOrigin attr),
-      // zero-dimensional metadata events (Firefox sometimes fires
-      // `loadedmetadata` before videoWidth/Height are populated),
-      // and quota errors — the cache is best-effort.
+      // per-src via `captureAttemptedRef`.
+      //
+      // MUST be called from `loadeddata` or later — not from
+      // `loadedmetadata`. The earlier event guarantees dimensions
+      // and duration but NOT decoded pixel data; `drawImage(video)`
+      // at that point paints an all-black frame that compresses to
+      // a ~1.5 KB JPEG. We learned this the hard way in #145: the
+      // bad frames got cached into IDB and made every second-visit
+      // thumbnail render as a black square (the poster attribute
+      // wins over the native metadata-frame paint). `loadeddata`
+      // bumps readyState to `HAVE_CURRENT_DATA` (2), meaning the
+      // frame at currentTime=0 is decoded and drawable. The
+      // pixel-content guard below catches the few engines that
+      // still mis-report (e.g., dropping a tainted-but-drawable
+      // canvas with no actual pixels).
+      //
+      // Bails silently on:
+      //   - CORS-tainted canvas (cross-origin video without
+      //     `crossOrigin` attr — `getImageData`/`toDataURL` throw
+      //     SecurityError)
+      //   - zero-dimensional metadata (defensive)
+      //   - all-black sample (pre-decode race, see above)
+      //   - quota errors during IDB write
       const tryCapturePoster = (v: HTMLVideoElement) => {
         const src = media.src;
         if (!src) return;
         if (captureAttemptedRef.current === src) return;
         if (v.videoWidth === 0 || v.videoHeight === 0) return;
+        // Spec: `loadeddata` fires when readyState reaches
+        // `HAVE_CURRENT_DATA` (2). Lower than that means no frame
+        // is drawable yet — capture would emit a black JPEG.
+        if (v.readyState < 2) return;
         try {
           // 320 px max dimension keeps the data URL small (~5–8 KB
           // JPEG) and still upscales acceptably to the largest
@@ -528,6 +548,27 @@ export default function CineLoop({
           const ctx = canvas.getContext("2d");
           if (!ctx) return;
           ctx.drawImage(v, 0, 0, w, h);
+          // Pixel-content guard. Sample a center patch and abort
+          // the save if everything is near-black — the engine
+          // claimed `HAVE_CURRENT_DATA` but the canvas came up
+          // empty. Better to bail and let a later seek/canplay
+          // event try again than to poison the cache with a black
+          // poster that will override future native paints. The
+          // sample is small (10×10 stride) so the cost is < 1 ms.
+          const cx = Math.max(0, Math.floor((w - 60) / 2));
+          const cy = Math.max(0, Math.floor((h - 60) / 2));
+          const sw = Math.min(60, w);
+          const sh = Math.min(60, h);
+          const px = ctx.getImageData(cx, cy, sw, sh).data;
+          let nonBlack = 0;
+          // RGBA stride of 4; sample every 16 pixels.
+          for (let i = 0; i < px.length; i += 64) {
+            const r = px[i] ?? 0;
+            const g = px[i + 1] ?? 0;
+            const b = px[i + 2] ?? 0;
+            if (r + g + b > 30) nonBlack++;
+          }
+          if (nonBlack < 3) return; // ~all-black sample → bail, don't mark attempted
           // Quality 0.6 balances size vs. perceived sharpness — the
           // frames are diagnostic ultrasound (grayscale, soft
           // gradients), which compress well; AA tests on a sample
@@ -537,8 +578,9 @@ export default function CineLoop({
           setCachedPoster(dataUrl);
           void setPoster(src, dataUrl);
         } catch {
-          // Mark attempted so we don't retry the same failing path
-          // on every subsequent loaded* event.
+          // `getImageData` / `toDataURL` throw SecurityError on a
+          // tainted canvas. Mark attempted so we don't retry the
+          // failing path on every subsequent loaded* event.
           captureAttemptedRef.current = src;
         }
       };
@@ -617,13 +659,15 @@ export default function CineLoop({
               // The play button overlay below carries the "click to
               // play" affordance from here on.
               setMetadataLoaded(true);
-              // Capture the first frame into IDB. Idempotent per-src
-              // (see `tryCapturePoster` above). On most engines
-              // `loadedmetadata` fires with the frame already
-              // decoded; the `loadeddata` handler below is the
-              // fallback for engines that defer pixel data to that
-              // event.
-              tryCapturePoster(v);
+              // NOTE: do NOT call `tryCapturePoster(v)` here. The
+              // `loadedmetadata` event fires with dimensions known
+              // but pixel data NOT yet decoded — `drawImage` would
+              // paint a black frame and `toDataURL` would emit a
+              // ~1.5 KB JPEG of solid black that then overrides
+              // the native paint on subsequent visits. Capture
+              // happens on `loadeddata` instead (handler below),
+              // where `readyState >= HAVE_CURRENT_DATA` guarantees
+              // a drawable frame.
               // Persist into the session cache so a remount (filter
               // change → card unmounted → card remounted) skips the
               // skeleton entirely. The aspect is also cached so the
@@ -638,11 +682,14 @@ export default function CineLoop({
             // for the poster view.
             onLoadedData={(e) => {
               setLoaded(true);
-              // Second-chance capture: Safari and some Chromium
-              // builds populate `videoWidth`/`videoHeight` at
-              // `loadeddata`, not `loadedmetadata`. The guard inside
-              // `tryCapturePoster` makes this a no-op if the
-              // metadata path already captured.
+              // Sole capture site. `loadeddata` is the first event
+              // where `readyState >= HAVE_CURRENT_DATA` (2) is
+              // guaranteed — the frame at currentTime=0 is decoded
+              // and `drawImage(video)` paints actual pixels. The
+              // guard inside `tryCapturePoster` further validates
+              // that the captured patch isn't all-black before
+              // committing to IDB, so the cache only ever holds
+              // posters we've verified are visually meaningful.
               tryCapturePoster(e.currentTarget);
               if (media.src) markMediaLoaded(media.src);
             }}

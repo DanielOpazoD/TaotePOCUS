@@ -43,7 +43,19 @@
  * without it.
  */
 
-const DB_NAME = "pocus_v1";
+// Bumped from `pocus_v1` to `pocus_v2` in May-2026 to invalidate the
+// first wave of cached posters. The v1 captures fired on
+// `onLoadedMetadata` — that event is dispatched as soon as the
+// browser knows dimensions + duration, BEFORE the first frame has
+// actually been decoded. `drawImage(video)` at that point paints a
+// black frame, which compressed to ~1.5 KB JPEGs and persisted into
+// IDB. On subsequent visits the bad poster overrode the native
+// metadata-frame paint, so users saw black squares. Bumping the DB
+// name makes the old DB unused (browsers keep it around but the new
+// code never opens it), and the empty `pocus_v2` repopulates with
+// good frames as users navigate. See `CineLoop.tsx` for the
+// matching capture-on-`loadeddata` rule + pixel-quality guard.
+const DB_NAME = "pocus_v2";
 const STORE = "video_posters";
 const VERSION = 1;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
