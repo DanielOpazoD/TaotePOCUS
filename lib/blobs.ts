@@ -63,6 +63,19 @@ export function metricsStore() {
 const OPTIMIZABLE_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png"]);
 
 /**
+ * Video extensions that may have a server-generated poster JPG sibling
+ * (`<base>.poster.jpg`) in the blob store. See ADR-0012. When a
+ * request for one of these arrives with an image-y `Accept` header
+ * (i.e. the browser is fetching this URL as a `<video poster>` /
+ * `<img src>` rather than as the actual video source), the candidate
+ * list prepends the poster JPG so the server-pre-generated frame
+ * wins. A missing poster returns to the original video stream — the
+ * `<video>` element ignores video MIME on its `poster` attribute and
+ * falls back to native behaviour, which matches the pre-PR state.
+ */
+const POSTERABLE_VIDEO_EXTS = new Set([".mp4", ".webm", ".mov"]);
+
+/**
  * Pick which blob keys to probe (in order) when serving a media
  * request, based on what formats the client says it accepts.
  *
@@ -99,10 +112,31 @@ export function pickMediaCandidates(id: string, accept: string | null): string[]
   const lower = id.toLowerCase();
   const dot = lower.lastIndexOf(".");
   const ext = dot >= 0 ? lower.slice(dot) : "";
+  const acceptStr = accept ?? "";
+  // EXPLICIT image preference — must contain `image/` somewhere in
+  // the Accept header. Critical that we do NOT match `*/*` alone:
+  // when a `<video src="…">` element fetches its source the browser
+  // sends `Accept: */*`, and prepending an `.poster.jpg` candidate
+  // for that request would serve a JPEG to the video element, which
+  // can't play it. Image-y Accept means "I want a picture" (poster,
+  // <img>) → poster wins; ambiguous Accept stays on the original
+  // candidate path.
+  const acceptsImageExplicitly = acceptStr.includes("image/");
+
+  // Video keys with an image-accepting client: prepend the server-
+  // generated poster JPG sibling (see ADR-0012). When the poster
+  // hasn't been generated yet the fallback IS the original video
+  // — `<video poster="…">` ignores non-image MIME and the browser
+  // falls back to native first-frame behaviour, matching the
+  // pre-PR state. Cheap, additive, zero-risk on the negative path.
+  if (POSTERABLE_VIDEO_EXTS.has(ext) && acceptsImageExplicitly) {
+    const base = id.slice(0, dot);
+    return [`${base}.poster.jpg`, id];
+  }
+
   if (!OPTIMIZABLE_IMAGE_EXTS.has(ext)) return [id];
 
   const base = id.slice(0, dot);
-  const acceptStr = accept ?? "";
   const candidates: string[] = [];
   if (acceptStr.includes("image/avif")) candidates.push(`${base}.avif`);
   if (acceptStr.includes("image/webp")) candidates.push(`${base}.webp`);
