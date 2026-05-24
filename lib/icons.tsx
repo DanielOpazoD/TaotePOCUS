@@ -174,6 +174,19 @@ export const Icon = {
   ),
 };
 
+// Anatomy-first category glyphs (May-2026 visual refresh, V2 of the
+// "Reference moderna" pass). Each icon trades the prior abstract
+// pictogram for a more organ-/instrument-suggestive line drawing
+// while staying within the unified grammar: 24×24, stroke-width
+// 1.5, round caps, currentColor. Tested at 14 px (sidebar) and at
+// 20 px (modal title row) for legibility.
+//
+// Kept the cardiac ECG trace as-is — POCUS practitioners read it
+// instantly as both "heart" and "the modality"; replacing it with
+// a heart silhouette would lose that double meaning AND clash with
+// `Icon.heart` (favorites). The bolt for `fast` stays for the same
+// signal-density reason — FAST exam ↔ rapid/emergent, the bolt is
+// the established shorthand in trauma curricula.
 export const CategoryGlyph: Record<string, ReactElement> = {
   cardiac: (
     <svg viewBox="0 0 24 24" {...stroke}>
@@ -181,16 +194,26 @@ export const CategoryGlyph: Record<string, ReactElement> = {
     </svg>
   ),
   lung: (
+    // Two lobes with a clearer central trachea + carina (the Y where
+    // the trachea splits into the main bronchi). The old icon was a
+    // single vertical line through the lobes; this version reads
+    // explicitly as airway anatomy, which is what POCUS lung studies
+    // actually trace.
     <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M12 4v9" />
-      <path d="M8 21c-2.5 0-4-2-4-5V11c0-2 1-4 3-5l1 8c0 4-1 7-2 7z" />
-      <path d="M16 21c2.5 0 4-2 4-5V11c0-2-1-4-3-5l-1 8c0 4 1 7 2 7z" />
+      <path d="M12 4v6" />
+      <path d="M12 10c-1.5-.7-2.8-.3-4 1-2 2.2-2.5 6-1.5 8.5.6 1.5 2.2 1.5 3-.5 1.3-3.2 2-6 2.5-9z" />
+      <path d="M12 10c1.5-.7 2.8-.3 4 1 2 2.2 2.5 6 1.5 8.5-.6 1.5-2.2 1.5-3-.5-1.3-3.2-2-6-2.5-9z" />
     </svg>
   ),
   abdominal: (
+    // Liver-leaning silhouette: an asymmetric organ shape that sits
+    // toward the right (anatomically the liver dominates the RUQ
+    // POCUS view), with an interior chord hinting at the gallbladder
+    // / portal vein landmark. Reads as "abdomen" without being a
+    // generic capsule.
     <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M5 9c0-3 3-5 7-5s7 2 7 5v6c0 3-3 5-7 5s-7-2-7-5z" />
-      <path d="M9 12h6M9 16h6" />
+      <path d="M3 7c0-1.5 1.5-3 4-3h10c2.5 0 3 1.5 3 3v6c0 4-3 7-7 7H7c-2.5 0-4-1.5-4-3z" />
+      <path d="M9 13c2 0 4-1 4-3" />
     </svg>
   ),
   fast: (
@@ -199,9 +222,15 @@ export const CategoryGlyph: Record<string, ReactElement> = {
     </svg>
   ),
   vascular: (
+    // Bifurcation: a single vessel splitting into two — the iconic
+    // gesture of vascular imaging (aortic / carotid / femoral
+    // branching). Previous double-wave was abstract; this version
+    // explicitly draws a Y, which is the diagnostic shape vascular
+    // POCUS chases.
     <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M4 12c4 0 4-6 8-6s4 6 8 6" />
-      <path d="M4 18c4 0 4-6 8-6s4 6 8 6" />
+      <path d="M3 12h6" />
+      <path d="M9 12c2-3 4-4 6-4h6" />
+      <path d="M9 12c2 3 4 4 6 4h6" />
     </svg>
   ),
   ob: (
@@ -211,15 +240,25 @@ export const CategoryGlyph: Record<string, ReactElement> = {
     </svg>
   ),
   ms: (
+    // Stylized long bone — two condylar heads connected by a shaft.
+    // The earlier icon was an abstract chain of joints; this one is
+    // recognizable as a bone at small sizes, which is the
+    // foundational MSK landmark (cortex + medullary canal).
     <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M5 5c0 2 1 3 2 3 0 2 1 3 2 3l5 5c0 1 1 2 3 2s2 1 2 3" />
-      <path d="M3 7c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zM17 19c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2z" />
+      <path d="M6.5 4c-1.5 0-2.5 1-2.5 2.5 0 1 .5 1.7 1.2 2.1L7 10.5l6.5 6.5 1.9 1.8c.4.7 1.1 1.2 2.1 1.2 1.5 0 2.5-1 2.5-2.5 0-1-.5-1.7-1.2-2.1L17 13.5 10.5 7 8.6 5.2C8.2 4.5 7.5 4 6.5 4z" />
     </svg>
   ),
   proc: (
+    // Ultrasound-guided needle: angled shaft entering from the
+    // upper-right at the canonical procedure angle (~45°), with a
+    // hub at the entry point. Replaces the wrench-like motif that
+    // didn't communicate "needle insertion under US guidance" —
+    // which is what every POCUS procedure case is.
     <svg viewBox="0 0 24 24" {...stroke}>
-      <path d="M18 2 22 6M14 6l6 6-3 3-9-3-3-9 3-3z" />
-      <path d="m8 16-6 6" />
+      <path d="M19 3l2 2" />
+      <path d="M20 4 6 18" />
+      <path d="M6 18v3l3-1" />
+      <path d="M13 7l-2 2" />
     </svg>
   ),
 };
