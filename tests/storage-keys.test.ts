@@ -23,6 +23,7 @@ describe("storage-keys", () => {
         "focusDefaults": "pocus_focus_defaults",
         "hiddenCategoryIds": "hiddenCategoryIds",
         "hiddenSectionIds": "hiddenSectionIds",
+        "hiddenTags": "hiddenTags",
         "lang": "pocus_lang",
         "lastBackupAt": "pocus_last_backup_at",
         "preferences": "pocus_preferences",

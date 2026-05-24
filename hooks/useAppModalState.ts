@@ -58,6 +58,12 @@ export interface AppModalState {
   /** Command palette (Cmd+K / Ctrl+K). */
   paletteOpen: boolean;
   setPaletteOpen: (open: boolean) => void;
+
+  /** Tag explorer modal — opens from the sidebar's "Ver todas"
+   *  link or future palette commands. Lists every tag, supports
+   *  search + click-to-filter; admin sees per-tag delete + restore. */
+  tagExplorerOpen: boolean;
+  setTagExplorerOpen: (open: boolean) => void;
 }
 
 export function useAppModalState(): AppModalState {
@@ -68,6 +74,7 @@ export function useAppModalState(): AppModalState {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tagExplorerOpen, setTagExplorerOpen] = useState(false);
 
   return {
     authOpen,
@@ -84,5 +91,7 @@ export function useAppModalState(): AppModalState {
     setSettingsOpen,
     paletteOpen,
     setPaletteOpen,
+    tagExplorerOpen,
+    setTagExplorerOpen,
   };
 }

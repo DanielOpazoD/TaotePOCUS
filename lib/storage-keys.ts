@@ -78,6 +78,15 @@ export const STORAGE_KEYS = {
    *  hiddenCategoryIds — public nav filter, deep links still work. */
   hiddenSectionIds: "hiddenSectionIds",
 
+  /** Admin-hidden tag strings (`string[]`). The tag stays on every
+   *  case's `tags` array (no destructive mutation of the corpus),
+   *  but filters drop it from the sidebar cloud, the tag explorer
+   *  modal (public view), the case-card chip strip, the case modal,
+   *  and the tag-suggestions in admin search. The admin can restore
+   *  any time from the "Etiquetas ocultas" section in the tag
+   *  explorer. Persists locally + travels via the backup envelope. */
+  hiddenTags: "hiddenTags",
+
   /** Admin-renamed section labels (`Record<SectionId, string>`).
    *  Pure cosmetic; ids and URL paths are unchanged. SEO surfaces
    *  (sitemap, OG metadata) keep using the static defaults. */

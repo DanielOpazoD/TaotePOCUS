@@ -35,6 +35,14 @@ interface Args {
    *  it; without this, custom ids were silently dropped from the
    *  facet computation. */
   categories?: Category[];
+  /** Tags the admin has marked as hidden (see `useTagVisibility`).
+   *  When provided, these are stripped from `sectionTags` so the
+   *  sidebar cloud + the public tag explorer never surface them.
+   *  Per-card / per-modal chip strips do their own filter via the
+   *  same hook so a card can show "tag X" while the cloud hides
+   *  it — but practically both paths read the same Set, so the
+   *  views stay consistent. Defaults to an empty Set when omitted. */
+  hiddenTags?: Set<string>;
 }
 
 interface Result {
@@ -79,6 +87,7 @@ export function useCaseFilters({
   sort,
   difficulty,
   categories,
+  hiddenTags,
 }: Args): Result {
   const { lang } = useLanguage();
   const categoryUniverse = categories ?? CATEGORIES;
@@ -129,14 +138,21 @@ export function useCaseFilters({
     // shows the EN tags when the user is in EN mode, but still
     // surfaces ES tags from un-translated cases so the catalog
     // stays browseable mid-rollout.
+    //
+    // Admin-hidden tags (see `useTagVisibility`) are filtered out
+    // here so they never appear in the sidebar cloud, the
+    // explorer modal's "all tags" view, or any downstream
+    // consumer that reads `sectionTags`. The tag stays on each
+    // case's tags array — the filter is purely on the projection.
     const counts: Record<string, number> = {};
     scopedCases.forEach((c) => {
       getCaseTags(c, lang).tags.forEach((t) => {
+        if (hiddenTags?.has(t)) return;
         counts[t] = (counts[t] ?? 0) + 1;
       });
     });
     return Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
-  }, [scopedCases, lang]);
+  }, [scopedCases, lang, hiddenTags]);
 
   const filtered = useMemo(
     // Delegate to the pure pipeline so the same logic feeds the

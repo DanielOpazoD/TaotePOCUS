@@ -109,6 +109,21 @@ export const DICT_ES = {
   "sidebar.categories": "Categorías",
   "sidebar.todos": "Todos",
   "sidebar.tags": "Etiquetas",
+  "sidebar.tags.seeAll": "Ver las {count} etiquetas →",
+
+  // ─── Tag explorer modal ────────────────────────────────────────
+  "tagExplorer.title": "Todas las etiquetas",
+  "tagExplorer.summary": "{count} etiquetas en uso en el catálogo actual",
+  "tagExplorer.search.placeholder": "Buscar entre las etiquetas…",
+  "tagExplorer.search.aria": "Buscar etiquetas",
+  "tagExplorer.empty": "Ninguna etiqueta coincide con la búsqueda",
+  "tagExplorer.close.aria": "Cerrar explorador de etiquetas",
+  "tagExplorer.close.title": "Cerrar (Esc)",
+  "tagExplorer.delete.aria": "Ocultar la etiqueta {tag} en todos los casos",
+  "tagExplorer.delete.title": "Ocultar etiqueta",
+  "tagExplorer.restore.aria": "Restaurar la etiqueta {tag}",
+  "tagExplorer.restore.title": "Restaurar etiqueta",
+  "tagExplorer.hidden.heading": "Etiquetas ocultas ({count})",
 
   // ─── Toolbar (filters above the grid) ──────────────────────────
   // Pluralization is handled at the callsite (it's a single

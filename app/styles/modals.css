@@ -1052,3 +1052,207 @@ button:hover > .kbd-hint {
     transition: none;
   }
 }
+
+/* =================== TAG EXPLORER MODAL ====================
+   Full-list view of every tag in the catalog (paired sidebar
+   shows only the top 14). Triggered from the "Ver las N
+   etiquetas →" link. Search box on top, scrollable list of
+   chips with counts, optional admin row-actions (delete +
+   restore). Mirrors the case-modal's `.modal` panel shape so
+   the dismissal grammar (Esc, ✕, swipe-down) carries over. */
+.modal.modal--tag-explorer {
+  max-width: 640px;
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(80vh, 720px);
+  padding: 36px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow: hidden;
+}
+.tag-explorer-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 48px; /* room for the close button */
+}
+.tag-explorer-head h2 {
+  font-family: var(--serif);
+  font-variation-settings: var(--serif-h2);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.tag-explorer-sub {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin: 0;
+}
+.tag-explorer-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.tag-explorer-search-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-mute);
+  pointer-events: none;
+}
+.tag-explorer-search-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.tag-explorer-search-input {
+  width: 100%;
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  padding: 10px 12px 10px 38px;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+.tag-explorer-search-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+.tag-explorer-empty {
+  font-size: 14px;
+  color: var(--ink-mute);
+  text-align: center;
+  padding: 24px 0;
+  margin: 0;
+}
+.tag-explorer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+  overflow-y: auto;
+  /* Account for max-height of the modal + the header + search
+     bar above; the list scrolls internally so the dismiss UI
+     stays visible. */
+  min-height: 0;
+  flex: 1;
+  padding: 2px;
+}
+.tag-explorer-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+.tag-explorer-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+  text-align: left;
+}
+.tag-explorer-chip:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--section-accent, var(--accent)) 8%, var(--surface));
+  border-color: color-mix(in oklch, var(--section-accent, var(--accent)) 45%, var(--hairline));
+}
+.tag-explorer-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.tag-explorer-chip.is-active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.tag-explorer-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.tag-explorer-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  flex-shrink: 0;
+}
+.tag-explorer-chip.is-active .tag-explorer-count {
+  color: color-mix(in oklch, var(--bg) 70%, transparent);
+}
+.tag-explorer-chip--hidden {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  cursor: default;
+  border-style: dashed;
+}
+.tag-explorer-row-action {
+  flex: 0 0 32px;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+.tag-explorer-row-action svg {
+  width: 14px;
+  height: 14px;
+}
+.tag-explorer-row-action--delete:hover {
+  background: color-mix(in oklch, var(--crit, oklch(0.55 0.18 25)) 12%, var(--surface));
+  color: var(--crit, oklch(0.55 0.18 25));
+  border-color: color-mix(in oklch, var(--crit, oklch(0.55 0.18 25)) 40%, var(--hairline));
+}
+.tag-explorer-row-action--restore:hover {
+  background: color-mix(in oklch, var(--accent) 12%, var(--surface));
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--hairline));
+}
+.tag-explorer-hidden {
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tag-explorer-hidden-heading {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0;
+}
+@media (max-width: 639.98px) {
+  .modal.modal--tag-explorer {
+    max-height: 100dvh;
+    border-radius: 0;
+    padding: 28px 16px 16px;
+  }
+  .tag-explorer-list {
+    grid-template-columns: 1fr;
+  }
+}

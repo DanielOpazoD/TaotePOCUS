@@ -37,6 +37,10 @@ const CaseForm = dynamic(() => import("./admin/CaseForm"), { ssr: false });
 const PresentationMode = dynamic(() => import("./cine/PresentationMode"), { ssr: false });
 const ConfirmDialog = dynamic(() => import("./modals/ConfirmDialog"), { ssr: false });
 const ShortcutsModal = dynamic(() => import("./modals/ShortcutsModal"), { ssr: false });
+// Tag explorer — lazy because most sessions never open it. The
+// component is ~6 KB compiled (small, but no reason to ship it
+// eagerly when only the sidebar "Ver todas" link triggers it).
+const TagExplorerModal = dynamic(() => import("./modals/TagExplorerModal"), { ssr: false });
 const CommandPalette = dynamic(() => import("./modals/CommandPalette"), { ssr: false });
 const PWAStatus = dynamic(() => import("./chrome/PWAStatus"), { ssr: false });
 // AuthModal embeds Clerk's `<SignIn />` widget which pulls a ~120KB
@@ -154,6 +158,16 @@ interface Props {
   onCaseNext?: () => void;
   hasCasePrev?: boolean;
   hasCaseNext?: boolean;
+  /** Tag explorer payload — full list of tags + counts, plus the
+   *  currently-hidden tag list (admin) and the per-tag handlers.
+   *  Optional so non-public surfaces (admin form, etc.) can mount
+   *  AppModals without wiring the explorer. */
+  tagExplorerTags?: { tag: string; count: number }[];
+  tagExplorerHidden?: string[];
+  tagExplorerActiveTags?: string[];
+  onSelectTagFromExplorer?: (tag: string) => void;
+  onHideTagFromExplorer?: (tag: string) => void;
+  onRestoreTagFromExplorer?: (tag: string) => void;
 
   // Presentation — URL-state-backed (`?presenting=<id>`), not in `modals`.
   presentingCase: CaseRecord | null;
@@ -245,6 +259,12 @@ export default function AppModals(props: Props) {
     onCaseNext,
     hasCasePrev,
     hasCaseNext,
+    tagExplorerTags,
+    tagExplorerHidden,
+    tagExplorerActiveTags,
+    onSelectTagFromExplorer,
+    onHideTagFromExplorer,
+    onRestoreTagFromExplorer,
     presentingCase,
     presentationCases,
     onClosePresentation,
@@ -268,6 +288,7 @@ export default function AppModals(props: Props) {
   const closeAuth = () => modals.setAuthOpen(false);
   const closeSettings = () => modals.setSettingsOpen(false);
   const closeShortcuts = () => modals.setShortcutsOpen(false);
+  const closeTagExplorer = () => modals.setTagExplorerOpen(false);
   const closePalette = () => modals.setPaletteOpen(false);
   // CaseForm cancel does two things — close the form AND clear the
   // editingCase pointer — so it's worth its own named helper.
@@ -386,6 +407,27 @@ export default function AppModals(props: Props) {
       />
 
       <ShortcutsModal open={modals.shortcutsOpen} onClose={closeShortcuts} />
+
+      {/* Tag explorer — opened from the sidebar's "Ver todas {N}
+          etiquetas" link. Lazy-loaded since most sessions never
+          touch it. Admin sees per-tag delete + restore affordances
+          when the parent threads `onHideTagFromExplorer` /
+          `onRestoreTagFromExplorer`; public visitors get just the
+          search + click-to-filter view. */}
+      {modals.tagExplorerOpen && tagExplorerTags && (
+        <TagExplorerModal
+          tags={tagExplorerTags}
+          hiddenTags={tagExplorerHidden ?? []}
+          activeTags={tagExplorerActiveTags ?? []}
+          onSelectTag={(tag) => {
+            onSelectTagFromExplorer?.(tag);
+            closeTagExplorer();
+          }}
+          onHideTag={onHideTagFromExplorer}
+          onRestoreTag={onRestoreTagFromExplorer}
+          onClose={closeTagExplorer}
+        />
+      )}
 
       {/* Cmd+K command palette. Mounts conditionally because the
           lazy import shouldn't ship until the user actually opens
