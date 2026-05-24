@@ -23,6 +23,7 @@ import { useUserCases } from "@/hooks/useUserCases";
 import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useSeenCases } from "@/hooks/useSeenCases";
 import { useCaseOverrides } from "@/hooks/useCaseOverrides";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
@@ -114,6 +115,23 @@ function AppInner() {
     notify: showToast,
   });
   const userCases = useUserCases(user, hydrated, { notify: showToast });
+  // Per-device "vistos" tracker. Auto-marks a case as seen when the
+  // user opens its modal (debounced 1 s below to forgive accidental
+  // open-close ticks), surfaces a subtle indicator on the card, and
+  // powers the toolbar's "Solo no vistos" filter. localStorage-only —
+  // seen-state is personal, never shared via URL. `clear` + `isSeen`
+  // accessors are not used here yet (the Set is consumed directly via
+  // `.has`); they're reserved for a future Settings "borrar historial"
+  // row + any callers that prefer the predicate over the Set.
+  const { seen: seenCases, markSeen } = useSeenCases();
+  // Filter toggle for the toolbar's "Solo no vistos" checkbox.
+  // Persisted via the same `usePersistedState` pattern as the sidebar
+  // collapse so the preference survives a reload. NOT URL-synced for
+  // the same reason `seenCases` itself isn't: it's per-device.
+  const [unseenOnly, setUnseenOnly] = usePersistedState(STORAGE_KEYS.unseenOnly, false, {
+    serialize: (v) => (v ? "1" : "0"),
+    deserialize: (raw) => (raw === "1" ? true : raw === "0" ? false : undefined),
+  });
   // Sidebar collapse — persisted via usePersistedState. Compact "1"/"0"
   // serialization keeps the localStorage value short and grep-friendly.
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState(
@@ -214,6 +232,31 @@ function AppInner() {
     openCaseId,
     presentingId,
   });
+
+  // Apply the per-device "Solo no vistos" filter on top of the base
+  // filter pipeline. Kept OUT of `useCaseFilters` because that hook
+  // is the URL-state-driven projection (`cat`, `tags`, `query`,
+  // `sort`, `difficulty`) — adding a localStorage-backed input
+  // there would muddy the contract. As an outer wrapper here, the
+  // toggle composes cleanly: identity is preserved when off (no
+  // new array), and when on we just `.filter` the same shape.
+  const visibleFiltered = useMemo(() => {
+    if (!unseenOnly) return filtered;
+    return filtered.filter((c) => !seenCases.has(c.id));
+  }, [filtered, unseenOnly, seenCases]);
+
+  // Auto-mark the open case as seen 1 s after the modal mounts.
+  // The delay gives the user a grace window — opening a card and
+  // immediately closing it (misclick, taste check) doesn't count.
+  // The effect runs again whenever `openCaseId` changes, so
+  // navigating between cases via deep-link / prev-next still
+  // accumulates seen marks correctly.
+  useEffect(() => {
+    if (!openCaseId) return;
+    const id = openCaseId;
+    const timer = setTimeout(() => markSeen(id), 1000);
+    return () => clearTimeout(timer);
+  }, [openCaseId, markSeen]);
 
   // Per-filter relaxation suggestions for the EmptyState chip rail.
   // Computed lazily — we only invoke the pipeline (which iterates
@@ -534,6 +577,8 @@ function AppInner() {
                 query={query}
                 sort={sort}
                 difficulty={difficulty}
+                unseenOnly={unseenOnly}
+                onToggleUnseenOnly={() => setUnseenOnly((v) => !v)}
                 onReplace={replacePatch}
                 // Full ViewState so the saved-views menu can capture
                 // every filter (cat, tags, query, sort, difficulty,
@@ -600,7 +645,8 @@ function AppInner() {
               tags={tags}
               query={query}
               isAdmin={isAdmin}
-              filtered={filtered}
+              filtered={visibleFiltered}
+              seenIds={seenCases}
               allCases={allCases}
               userCases={userCases}
               trashedImports={trashedImports}
@@ -677,6 +723,16 @@ function AppInner() {
         isOffline={openCase ? offlineCases.isSaved(openCase.id) : false}
         offlinePending={offlineCases.pending}
         onToggleOffline={() => openCase && offlineCases.toggle(openCase.id)}
+        // Tag chip → catalog filter. Closes the modal AND replaces
+        // the active tag filter set with just the clicked tag. The
+        // single-tag replace (rather than append) mirrors the
+        // "explore similar" intent: clicking "B-líneas" inside a
+        // case should land on the B-líneas catalog view, not on
+        // "everything I was filtering by, plus B-líneas". Users who
+        // want to combine tags do so from the sidebar's tag rail
+        // (which `toggleTag`s with append semantics) or by
+        // re-clicking another tag from the next case modal.
+        onSelectTag={(tag) => replacePatch({ caso: null, tags: [tag] })}
         // Mirror the grid's search highlight inside the modal —
         // when the user deep-linked from a query, the matched
         // substrings in the case title + description get the same

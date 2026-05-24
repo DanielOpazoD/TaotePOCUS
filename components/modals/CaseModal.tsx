@@ -47,6 +47,12 @@ interface Props {
   /** Toggle the offline state. Hidden entirely when not provided
    *  (admin contexts that don't wire this up keep the old footer). */
   onToggleOffline?: () => void;
+  /** Click handler for a tag chip. When provided, the chips render
+   *  as `<button>` elements that close the modal AND apply the tag
+   *  as the active filter on the catalog. Without it the chips
+   *  stay as decorative `<span>`s (backward-compat for tests /
+   *  contexts that don't have URL state to mutate). */
+  onSelectTag?: (tag: string) => void;
   // Admin-only chrome (edit / restore / mark reviewed / soft-delete /
   // permanent-delete) used to live as text buttons in the modal
   // footer. They were removed in May-2026 because the footer was
@@ -68,6 +74,7 @@ export default function CaseModal({
   isOffline = false,
   offlinePending = false,
   onToggleOffline,
+  onSelectTag,
 }: Props) {
   const { lang, t } = useLanguage();
   // Modal opens with the video paused — play-on-demand means we
@@ -303,11 +310,29 @@ export default function CaseModal({
                 )}
               </h5>
               <div className="modal-tags">
-                {tagsRead.tags.map((tag) => (
-                  <span key={tag} className="tag-chip">
-                    {tag}
-                  </span>
-                ))}
+                {tagsRead.tags.map((tag) =>
+                  onSelectTag ? (
+                    // Clickable variant — turns the chip into a
+                    // navigation surface that closes the modal and
+                    // applies the tag as the active filter on the
+                    // catalog. The hover/focus styling lives on
+                    // `.tag-chip--clickable` in `modals.css` so the
+                    // decorative `<span>` fallback (no handler
+                    // threaded) keeps its quieter look.
+                    <button
+                      key={tag}
+                      type="button"
+                      className="tag-chip tag-chip--clickable"
+                      onClick={() => onSelectTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ) : (
+                    <span key={tag} className="tag-chip">
+                      {tag}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
             {/* Footer actions — icon-only chip cluster. Three universal

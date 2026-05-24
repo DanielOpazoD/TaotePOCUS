@@ -105,6 +105,13 @@ export const STORAGE_KEYS = {
   /** Sidebar "Etiquetas" accordion open flag (`boolean`). */
   sidebarTagsOpen: "sidebarTagsOpen",
 
+  /** Toolbar "Solo no vistos" filter toggle (`"1" | "0"`). Paired
+   *  with `useSeenCases` (see `pocus.seenCases.v1` in that hook).
+   *  When set, the grid hides cases the user has already opened.
+   *  NOT URL-synced: seen-state is personal / per-device, so
+   *  shareability is meaningless for this filter. */
+  unseenOnly: "pocus_unseen_only",
+
   /** Last successful backup timestamp (ISO string). Surfaced in
    *  the BackupPanel as a "última copia" hint. */
   lastBackupAt: "pocus_last_backup_at",

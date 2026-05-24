@@ -26,6 +26,12 @@ import type { CaseRecord, Category, FocusDefaults } from "@/lib/types";
 interface Props {
   caso: CaseRecord;
   isFav: boolean;
+  /** True when the user has opened this case at least once on the
+   *  current device (tracked via `useSeenCases` in App.tsx). Adds a
+   *  `data-seen="true"` attribute the card uses for a subtle muted
+   *  treatment — title color shifts to `--ink-soft`. Defaults to
+   *  false for tests / consumers that don't track seen state. */
+  isSeen?: boolean;
   onFav: (caso: CaseRecord) => void;
   onOpen: (caso: CaseRecord) => void;
   /** Admin only: soft-delete the case. When provided, a trash chip
@@ -61,6 +67,7 @@ interface Props {
 function CaseCardImpl({
   caso,
   isFav,
+  isSeen = false,
   onFav,
   onOpen,
   onDelete,
@@ -206,6 +213,15 @@ function CaseCardImpl({
     // on the modal-open URL state.
     <article
       className="case-card"
+      // `data-seen` flips when the user has opened this case at least
+      // once on the current device. CSS reads it (see cards.css) to
+      // mute the title color from `--ink` → `--ink-soft`. Subtle on
+      // purpose — the card stays usable; the cue is "you've been
+      // here". When `isSeen` is false we OMIT the attribute (vs.
+      // setting `data-seen="false"`) so the CSS selector
+      // `.case-card[data-seen]` cleanly targets only the truthy
+      // state without needing `[data-seen="true"]`.
+      {...(isSeen ? { "data-seen": "true" } : {})}
       onPointerEnter={prefetch.onPointerEnter}
       onPointerLeave={prefetch.onPointerLeave}
     >

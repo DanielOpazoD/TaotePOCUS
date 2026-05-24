@@ -33,6 +33,7 @@ describe("storage-keys", () => {
         "sidebarCollapsed": "sidebarCollapsed",
         "sidebarTagsOpen": "sidebarTagsOpen",
         "theme": "pocus_theme",
+        "unseenOnly": "pocus_unseen_only",
         "user": "pocus_user",
         "userCases": "pocus_user_cases",
       }

@@ -343,6 +343,37 @@
   letter-spacing: 0.08em;
   cursor: pointer;
 }
+/* "Solo no vistos" toggle in the toolbar's right cluster. Same
+   visual weight as `.sort-select` so the two read as a pair of
+   controls, NOT a "soft control vs primary control" split. Active
+   state borrows the section-accent ring used elsewhere on the
+   page (sidebar active button, card hover) so the feedback is
+   recognizable rather than introducing a new affordance language. */
+.toolbar-toggle {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+.toolbar-toggle:hover {
+  border-color: var(--ink-mute);
+}
+.toolbar-toggle.is-active {
+  background: color-mix(in oklch, var(--section-accent, var(--accent)) 12%, var(--surface));
+  border-color: color-mix(in oklch, var(--section-accent, var(--accent)) 55%, transparent);
+  color: var(--ink);
+}
+.toolbar-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 /* `.toolbar-difficulty` + `.diff-chip` were the styles for the
    difficulty toggle row removed from the public toolbar in
    May-2026. The rules are gone to keep the bundle tight — the

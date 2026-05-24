@@ -120,6 +120,11 @@ export const DICT_ES = {
   "toolbar.sort.recent": "Más recientes",
   "toolbar.sort.featured": "Destacados",
   "toolbar.sort.title": "Alfabético",
+  "toolbar.unseenOnly.label": "Solo no vistos",
+  "toolbar.unseenOnly.activeTitle":
+    "Mostrando solo casos sin abrir. Pulsa para volver a mostrar todos.",
+  "toolbar.unseenOnly.inactiveTitle":
+    "Ocultar los casos que ya abriste. La lista se guarda en este dispositivo.",
   // Difficulty rail label (announced to screen readers as the
   // grouping for the three Básico / Intermedio / Avanzado chips).
   // The chip labels themselves reuse the existing
