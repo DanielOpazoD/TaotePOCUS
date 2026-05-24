@@ -617,11 +617,33 @@
 .case-card:hover {
   transform: translateY(var(--hover-lift));
 }
+/* Gentle media zoom inside the thumbnail on hover. The `.case-thumb`
+   has `overflow: hidden`, so scaling `.cine-wrap` (the cine-loop's
+   own wrapper) gives a "step into the case" feel that doesn't bleed
+   past the card edges. 1.04 is the smallest scale that registers as
+   intentional without crossing into "windowed motion" — anything
+   higher reads as TikTok-energy on a medical reference site.
+   `--ease-emphasized` matches the broader UI tempo. The `.cine-wrap`
+   already has its own `transform` reserved for the inline focus-zoom
+   (`focus.scale`), but that lives on the child `<video>` / `<img>`
+   (`mediaStyle` in `CineLoop.tsx`), so the two scale axes compose
+   cleanly — wrap scale × media scale, no conflict. */
+.case-card .case-thumb .cine-wrap {
+  transition: transform 0.32s var(--ease-emphasized);
+}
+.case-card:hover .case-thumb .cine-wrap {
+  transform: scale(1.04);
+}
 @media (prefers-reduced-motion: reduce) {
   .case-card {
     transition: none;
   }
   .case-card:hover {
+    transform: none;
+  }
+  .case-card .case-thumb .cine-wrap,
+  .case-card:hover .case-thumb .cine-wrap {
+    transition: none;
     transform: none;
   }
 }
@@ -641,6 +663,24 @@
   box-shadow:
     var(--shadow-1),
     0 0 0 2px color-mix(in oklch, var(--section-accent, var(--accent)) 55%, transparent);
+}
+/* Title gets a hair more weight on hover — not a color change
+   (the restraint pass keeps active accent off card meta), just a
+   subtle letter-spacing tighten that reads as "this card is
+   selected for reading next". The transition pairs with the
+   thumbnail's lift so the entire card feels like one surface. */
+.case-card .case-title {
+  transition: letter-spacing 0.22s var(--ease-emphasized);
+}
+.case-card:hover .case-title {
+  letter-spacing: -0.012em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-card .case-title,
+  .case-card:hover .case-title {
+    transition: none;
+    letter-spacing: -0.005em;
+  }
 }
 /* `.case-thumb-overlay` was removed in May-2026 alongside its
    hover-only `.case-thumb-preview` companion — the gradient
