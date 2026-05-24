@@ -209,6 +209,33 @@ const nextConfig = {
       },
     ];
   },
+  // Webpack hooks. ONLY used for compile-time defines that strip
+  // unused branches from third-party SDKs — anything more invasive
+  // belongs in a separate config concern.
+  webpack(config, { webpack: nextWebpack }) {
+    // Sentry tree-shake flags (see
+    // https://docs.sentry.io/platforms/javascript/configuration/tree-shaking).
+    // The SDK reads these as compile-time globals; when they're
+    // defined as `false`, dead-code elimination drops the
+    // corresponding integration MODULES, not just the runtime
+    // setup. We disable all three:
+    //   - `__SENTRY_DEBUG__`   debug helpers (~30 KB)
+    //   - `__SENTRY_TRACING__` BrowserTracing + performance (~80 KB)
+    //   - `__RRWEB_EXCLUDE_*`  Session Replay innards (~200 KB)
+    // None of these features are consumed by the project (see
+    // `sentry.client.config.ts` header for the rationale). Combined
+    // they cut chunk 5706 from ~442 KB toward ~150 KB.
+    config.plugins.push(
+      new nextWebpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
+        __RRWEB_EXCLUDE_IFRAME__: true,
+        __RRWEB_EXCLUDE_SHADOW_DOM__: true,
+        __SENTRY_EXCLUDE_REPLAY_WORKER__: true,
+      }),
+    );
+    return config;
+  },
 };
 
 // Wrapped with `@next/bundle-analyzer`. Run `npm run analyze` to open
