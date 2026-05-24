@@ -212,40 +212,18 @@ export default function CaseModal({
         >
           {Icon.close()}
         </button>
-        {/* Prev / next navigation between cases in the current
-            filtered set. Buttons render only when the parent threads
-            BOTH a handler AND the `hasPrev`/`hasNext` boundary flag
-            (so the chrome only appears when navigation is actually
-            available). ArrowLeft / ArrowRight keys bind to the
-            same handlers via `useModalShortcuts`. The buttons sit
-            inside the modal panel (top-left of the body column) so
-            they remain reachable on mobile where the dialog goes
-            full-bleed — outside-the-panel chevrons would be
-            invisible there. */}
-        {(hasPrev || hasNext) && (
-          <div className="modal-nav" aria-label={t("modal.nav.aria")}>
-            <button
-              type="button"
-              className="modal-nav-btn modal-nav-btn--prev"
-              onClick={onPrev}
-              disabled={!hasPrev}
-              aria-label={t("modal.nav.prev.aria")}
-              title={t("modal.nav.prev.title")}
-            >
-              {Icon.arrowLeft()}
-            </button>
-            <button
-              type="button"
-              className="modal-nav-btn modal-nav-btn--next"
-              onClick={onNext}
-              disabled={!hasNext}
-              aria-label={t("modal.nav.next.aria")}
-              title={t("modal.nav.next.title")}
-            >
-              {Icon.arrowRight()}
-            </button>
-          </div>
-        )}
+        {/* Prev / next navigation: the VISIBLE on-screen ← → chips
+            were removed in May-2026 after user feedback that they
+            crowded the top-left corner of the modal panel. The
+            KEYBOARD bindings stay (ArrowLeft / ArrowRight in
+            `useModalShortcuts`) so power users keep the step-through
+            affordance — the discoverability cost is acceptable
+            because the modal close button (×) and the swipe-to-
+            dismiss gesture remain the primary "exit this case"
+            signals; arrow keys are a tertiary "next case"
+            keyboard-power-user feature. Re-add the chips if a usage
+            metric ever shows desktop users wanting visible
+            navigation. */}
         <div className="modal-grid">
           <div className="modal-loop">
             <ModalLoopMedia
