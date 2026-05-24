@@ -79,6 +79,19 @@ export default function TagExplorerModal({
 
   const [query, setQuery] = useState("");
   const trimmed = query.trim().toLowerCase();
+  // Collapsible "etiquetas ocultas" section. Default CLOSED so the
+  // active list (the primary surface) stays above the fold even
+  // when there are many hidden tags. The header row remains visible
+  // as a count summary; click expands. PR #156 shipped this section
+  // always-open which pushed the active list off-screen once the
+  // admin hid >15 tags.
+  const [hiddenExpanded, setHiddenExpanded] = useState(false);
+  // Inline confirm step before destroying the tag's visibility
+  // across every case. Stores the pending tag id; the row morphs
+  // to "¿Confirmar? Sí | Cancelar" while pending. One pending row
+  // at a time — clicking a different row's delete cancels the
+  // previous pending state.
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   // Filtered view of the public tag list. Case-insensitive substring
   // match against the tag string; counts stay attached so the chip
@@ -148,6 +161,44 @@ export default function TagExplorerModal({
           <ul className="tag-explorer-list">
             {visible.map(({ tag, count }) => {
               const isActive = activeTags.includes(tag);
+              const isPending = pendingDelete === tag;
+              if (isPending && onHideTag) {
+                // Inline confirm — the row morphs into a destructive
+                // prompt so the admin acknowledges that hiding the
+                // tag cascades to every case using it. One click
+                // away from a real cross-corpus change.
+                return (
+                  <li key={tag} className="tag-explorer-row tag-explorer-row--confirm">
+                    <span
+                      className="tag-explorer-confirm-message"
+                      title={t("tagExplorer.deleteConfirm.title", { tag })}
+                    >
+                      {t("tagExplorer.deleteConfirm.message", { tag })}
+                    </span>
+                    <button
+                      type="button"
+                      className="tag-explorer-row-action tag-explorer-row-action--confirm-yes"
+                      onClick={() => {
+                        onHideTag(tag);
+                        setPendingDelete(null);
+                      }}
+                      aria-label={t("tagExplorer.deleteConfirm.yes.aria")}
+                      title={t("tagExplorer.deleteConfirm.yes.title")}
+                    >
+                      {t("tagExplorer.deleteConfirm.yes.label")}
+                    </button>
+                    <button
+                      type="button"
+                      className="tag-explorer-row-action tag-explorer-row-action--confirm-no"
+                      onClick={() => setPendingDelete(null)}
+                      aria-label={t("tagExplorer.deleteConfirm.no.aria")}
+                      title={t("tagExplorer.deleteConfirm.no.title")}
+                    >
+                      {t("tagExplorer.deleteConfirm.no.label")}
+                    </button>
+                  </li>
+                );
+              }
               return (
                 <li key={tag} className="tag-explorer-row">
                   <button
@@ -158,16 +209,19 @@ export default function TagExplorerModal({
                     <span className="tag-explorer-name">{tag}</span>
                     <span className="tag-explorer-count tnum">{count}</span>
                   </button>
-                  {/* Admin-only delete button. Stops propagation so
-                      the click doesn't also trigger the filter chip
-                      next to it. */}
+                  {/* Admin-only delete button. Doesn't fire the
+                      destructive op directly — it sets the row's
+                      `pendingDelete` state so the row morphs into
+                      a confirm prompt (above). The two-step ack
+                      protects against accidental clicks on a
+                      cascade-destructive control. */}
                   {onHideTag && (
                     <button
                       type="button"
                       className="tag-explorer-row-action tag-explorer-row-action--delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onHideTag(tag);
+                        setPendingDelete(tag);
                       }}
                       aria-label={t("tagExplorer.delete.aria", { tag })}
                       title={t("tagExplorer.delete.title")}
@@ -183,32 +237,45 @@ export default function TagExplorerModal({
 
         {/* Admin "hidden-tags" section — only renders when the
             admin has actually hidden at least one tag AND we have a
-            restore handler. Sits below the main list with a divider
-            so admins can review what's been pruned and undo
-            individually. */}
+            restore handler. Default COLLAPSED so the active list
+            (the primary surface) stays above the fold even with
+            many hidden tags. The header doubles as the toggle so
+            a curious admin can expand it; the count summary stays
+            visible regardless. */}
         {showHiddenSection && (
-          <section className="tag-explorer-hidden">
-            <h3 className="tag-explorer-hidden-heading">
-              {t("tagExplorer.hidden.heading", { count: hiddenTags.length })}
-            </h3>
-            <ul className="tag-explorer-list">
-              {hiddenTags.map((tag) => (
-                <li key={tag} className="tag-explorer-row tag-explorer-row--hidden">
-                  <span className="tag-explorer-chip tag-explorer-chip--hidden">
-                    <span className="tag-explorer-name">{tag}</span>
-                  </span>
-                  <button
-                    type="button"
-                    className="tag-explorer-row-action tag-explorer-row-action--restore"
-                    onClick={() => onRestoreTag?.(tag)}
-                    aria-label={t("tagExplorer.restore.aria", { tag })}
-                    title={t("tagExplorer.restore.title")}
-                  >
-                    {Icon.plus()}
-                  </button>
-                </li>
-              ))}
-            </ul>
+          <section className={`tag-explorer-hidden${hiddenExpanded ? " is-expanded" : ""}`}>
+            <button
+              type="button"
+              className="tag-explorer-hidden-heading"
+              onClick={() => setHiddenExpanded((v) => !v)}
+              aria-expanded={hiddenExpanded}
+              aria-controls="tag-explorer-hidden-list"
+            >
+              <span className="tag-explorer-hidden-chevron" aria-hidden="true">
+                {hiddenExpanded ? "▾" : "▸"}
+              </span>
+              <span>{t("tagExplorer.hidden.heading", { count: hiddenTags.length })}</span>
+            </button>
+            {hiddenExpanded && (
+              <ul className="tag-explorer-list" id="tag-explorer-hidden-list">
+                {hiddenTags.map((tag) => (
+                  <li key={tag} className="tag-explorer-row tag-explorer-row--hidden">
+                    <span className="tag-explorer-chip tag-explorer-chip--hidden">
+                      <span className="tag-explorer-name">{tag}</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="tag-explorer-row-action tag-explorer-row-action--restore"
+                      onClick={() => onRestoreTag?.(tag)}
+                      aria-label={t("tagExplorer.restore.aria", { tag })}
+                      title={t("tagExplorer.restore.title")}
+                    >
+                      {Icon.plus()}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
       </div>

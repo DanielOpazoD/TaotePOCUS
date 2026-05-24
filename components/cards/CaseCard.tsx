@@ -5,6 +5,7 @@ import { CineLoop } from "../cine";
 import AdminThumbMenu from "./AdminThumbMenu";
 import FallbackBadge from "./FallbackBadge";
 import { Icon } from "@/lib/icons";
+import { isMediaVideo } from "@/lib/media-kind";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
 import { useTagVisibility } from "@/hooks/useTagVisibility";
@@ -118,6 +119,64 @@ function CaseCardImpl({
   // still appear in `caso.tags` and renders like any other chip.
   const [bursting, setBursting] = useState(false);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Two-stage click behaviour for video cards (user feedback,
+  // May-2026): first click on a video thumb starts playback in
+  // place; subsequent clicks fall through to the anchor cover and
+  // open the modal. PR G's `playable={true}` on `<CineLoop>` does
+  // this in theory (the play button at z-3 absorbs the first click,
+  // then unmounts at `isPlaying=true` so the second click lands on
+  // the anchor) — but production reports showed clicks landing
+  // straight on the modal anyway. Most likely cause: the
+  // `userPrefs.autoplay` preference makes the video auto-play on
+  // visible, which leaves `isPlaying=true` from the start →
+  // play button never mounts → every click goes straight to the
+  // modal. This explicit gate on the article wraps the
+  // implicit z-index dance: a video card swallows the FIRST
+  // pointer click inside the thumb area and routes it to a play
+  // call, regardless of the CineLoop's internal state. Image
+  // cards short-circuit (their primary action IS opening the
+  // modal). Per-card state, reset on `media.src` change.
+  const isVideoCard = useMemo(() => isMediaVideo(caso.media), [caso.media]);
+  const [videoTouched, setVideoTouched] = useState(false);
+  const thumbRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    setVideoTouched(false);
+  }, [caso.media?.src]);
+  const handleArticleClickCapture = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      // Image cards keep the existing "click anywhere → open modal"
+      // contract. Only videos get the two-stage interception.
+      if (!isVideoCard) return;
+      if (videoTouched) return;
+      // Modifier-key clicks must fall through (Cmd-click opens in
+      // a new tab, Shift-click opens in a new window) — those are
+      // power-user shortcuts the anchor cover provides and we
+      // shouldn't suppress them.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      // The click must originate inside the thumb area (the video).
+      // Clicks on the title / summary / tag chips are explicit
+      // "I want the modal" gestures — let those through.
+      const target = e.target as Node | null;
+      const thumb = thumbRef.current;
+      if (!thumb || !target || !thumb.contains(target)) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      setVideoTouched(true);
+      // Locate the underlying `<video>` element (CineLoop owns it)
+      // and call `.play()` directly. Wrapped in a try / catch
+      // because some browsers reject autoplay-promise resolution
+      // when the gesture isn't recognised as user-initiated
+      // (rare, but cheap to swallow).
+      const video = thumb.querySelector("video");
+      if (video) {
+        void video.play().catch(() => {
+          /* swallow — visual state stays as poster */
+        });
+      }
+    },
+    [isVideoCard, videoTouched],
+  );
   // Relative date as the visible label, absolute date as the tooltip
   // hover. Older publications fall back to absolute automatically —
   // see lib/relative-date.ts for the rules.
@@ -235,8 +294,16 @@ function CaseCardImpl({
       {...(isSeen ? { "data-seen": "true" } : {})}
       onPointerEnter={prefetch.onPointerEnter}
       onPointerLeave={prefetch.onPointerLeave}
+      // Capture-phase click router. For video cards, the FIRST click
+      // inside the thumb is intercepted: we preventDefault + play
+      // the video in place. Subsequent clicks (or any click on a
+      // non-video card) fall through to the anchor cover → modal
+      // opens. Image cards bypass this entirely. See the
+      // `handleArticleClickCapture` definition above for the full
+      // rationale (autoplay-pref override, modifier-key exceptions).
+      onClickCapture={handleArticleClickCapture}
     >
-      <div className="case-thumb">
+      <div className="case-thumb" ref={thumbRef}>
         <CineLoop
           kind={caso.loop}
           aspect="1/1"
