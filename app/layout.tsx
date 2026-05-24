@@ -40,7 +40,16 @@ const newsreader = Newsreader({
 });
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  // Weights 400 / 500 / 600 / 700. Dropped 300 in May-2026 — a
+  // grep across the entire codebase (`app/styles/**`,
+  // `components/**`) found zero `font-weight: 300` / `wght: 300`
+  // usages, so the woff2 file (~25 KB) was pure dead weight on
+  // every first paint. Each `next/font/google` weight ships as
+  // its own woff2; trimming an unused weight is a precise,
+  // measured cut. If a future style needs Light, add 300 back
+  // here AND keep the corresponding `--font-weight-light` token
+  // in tokens.css for traceability.
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-plex-sans",
 });
