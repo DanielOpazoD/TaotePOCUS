@@ -5,7 +5,7 @@
 // `roundValue`, `doNotTrackEnabled`) are pure / DOM-free except
 // for viewport bucket — that one stubs `window.innerWidth`.
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { __test } from "@/lib/rum";
 
 const { normalizeRoute, viewportBucket, roundValue, doNotTrackEnabled, captureLcpElement } = __test;
