@@ -27,6 +27,25 @@ interface MockStore {
   failTransactions: boolean;
   /** When set, `indexedDB.open()` rejects with `onerror`. */
   failOpen: boolean;
+  /** When set, `indexedDB.open()` fires `onblocked` (another tab holds
+   *  the previous version open). Exercises the third terminal branch
+   *  of `openDb()`. */
+  blockOpen: boolean;
+  /** When set, `indexedDB.open()` throws synchronously — mirrors
+   *  older Safari private-mode behavior. */
+  throwOpen: boolean;
+  /** When set, the next `objectStore.get()` request fires `onerror`. */
+  failNextGet: boolean;
+  /** When set, the next `objectStore.put()` request fires `onerror`
+   *  (mirrors a quota-exceeded write). */
+  failNextPut: boolean;
+  /** When set, the next `objectStore.delete()` request fires `onerror`. */
+  failNextDelete: boolean;
+  /** Controls the `objectStoreNames.contains()` return value. Default
+   *  `true` so most tests skip the create branch in
+   *  `onupgradeneeded`; flipping to `false` exercises
+   *  `createObjectStore`. */
+  storeExists: boolean;
 }
 
 // One module-level store so tests can seed / inspect entries between
@@ -34,7 +53,17 @@ interface MockStore {
 let mockStore: MockStore;
 
 function installMockIDB() {
-  mockStore = { data: new Map(), failTransactions: false, failOpen: false };
+  mockStore = {
+    data: new Map(),
+    failTransactions: false,
+    failOpen: false,
+    blockOpen: false,
+    throwOpen: false,
+    failNextGet: false,
+    failNextPut: false,
+    failNextDelete: false,
+    storeExists: true,
+  };
 
   function makeReq<T>(resolveValue: T, fail = false): IDBRequest<T> {
     // IDB callbacks are async — defer to microtask so the awaiter
@@ -58,30 +87,49 @@ function installMockIDB() {
 
   const makeObjectStore = () => ({
     get(key: string) {
-      return makeReq<MockEntry | undefined>(mockStore.data.get(key));
+      const fail = mockStore.failNextGet;
+      mockStore.failNextGet = false;
+      return makeReq<MockEntry | undefined>(mockStore.data.get(key), fail);
     },
     put(entry: MockEntry) {
-      mockStore.data.set(entry.url, entry);
-      return makeReq<string>(entry.url);
+      const fail = mockStore.failNextPut;
+      mockStore.failNextPut = false;
+      if (!fail) mockStore.data.set(entry.url, entry);
+      return makeReq<string>(entry.url, fail);
     },
     delete(key: string) {
-      mockStore.data.delete(key);
-      return makeReq<undefined>(undefined);
+      const fail = mockStore.failNextDelete;
+      mockStore.failNextDelete = false;
+      if (!fail) mockStore.data.delete(key);
+      return makeReq<undefined>(undefined, fail);
     },
   });
 
+  const createdStores: string[] = [];
   const fakeDb: Partial<IDBDatabase> = {
     objectStoreNames: {
-      contains: () => true,
+      contains: () => mockStore.storeExists,
     } as unknown as DOMStringList,
+    createObjectStore: ((name: string) => {
+      createdStores.push(name);
+      return {} as IDBObjectStore;
+    }) as IDBDatabase["createObjectStore"],
     transaction(_name: string | string[]) {
       if (mockStore.failTransactions) throw new Error("transaction blocked");
       return { objectStore: makeObjectStore } as unknown as IDBTransaction;
     },
   };
+  // Expose for inspection by tests that exercise the create branch.
+  (mockStore as MockStore & { createdStores: string[] }).createdStores = createdStores;
 
   const fakeIndexedDB = {
     open(_name: string, _version?: number) {
+      if (mockStore.throwOpen) {
+        // Mirrors the synchronous DOMException Safari private mode
+        // sometimes throws from `indexedDB.open()`. The module wraps
+        // the call in try/catch.
+        throw new Error("private mode");
+      }
       const req: Partial<IDBOpenDBRequest> & {
         onsuccess: ((this: IDBRequest, ev: Event) => unknown) | null;
         onerror: ((this: IDBRequest, ev: Event) => unknown) | null;
@@ -100,10 +148,16 @@ function installMockIDB() {
           req.onerror?.call(req as unknown as IDBRequest, new Event("error"));
           return;
         }
-        // Fire upgradeneeded once (first open) then success. The
-        // module only checks `objectStoreNames.contains` and creates
-        // on miss; `contains: () => true` short-circuits the create
-        // path, which is fine since the data lives in our Map.
+        if (mockStore.blockOpen) {
+          // `onblocked` fires when another tab holds an older DB
+          // version open. The module short-circuits to a null
+          // connection in that case.
+          req.onblocked?.call(req as unknown as IDBRequest, new Event("blocked"));
+          return;
+        }
+        // Fire upgradeneeded once (first open) then success. When
+        // `storeExists` is false the module's handler takes the
+        // create branch (covered by the dedicated test below).
         req.onupgradeneeded?.call(req as unknown as IDBRequest, new Event("upgradeneeded"));
         req.onsuccess?.call(req as unknown as IDBRequest, new Event("success"));
       });
@@ -175,5 +229,64 @@ describe("poster-cache", () => {
     mockStore.failTransactions = true;
     await expect(getPoster("https://example.com/x.mp4")).resolves.toBeNull();
     await expect(setPoster("https://example.com/x.mp4", TINY_PNG)).resolves.toBeUndefined();
+  });
+
+  it("falls back gracefully when indexedDB.open() throws synchronously", async () => {
+    // Older Safari private mode throws synchronously rather than
+    // firing `onerror`. The module wraps the `indexedDB.open()`
+    // call in try/catch to handle that path.
+    mockStore.throwOpen = true;
+    await expect(getPoster("https://example.com/x.mp4")).resolves.toBeNull();
+    await expect(setPoster("https://example.com/x.mp4", TINY_PNG)).resolves.toBeUndefined();
+  });
+
+  it("falls back gracefully when the IDB open() request is blocked", async () => {
+    // Another tab holds an older DB version open. IDB fires
+    // `onblocked` and we treat it the same as a failed open.
+    mockStore.blockOpen = true;
+    await expect(getPoster("https://example.com/x.mp4")).resolves.toBeNull();
+    await expect(setPoster("https://example.com/x.mp4", TINY_PNG)).resolves.toBeUndefined();
+  });
+
+  it("creates the object store on first open (upgradeneeded path)", async () => {
+    mockStore.storeExists = false;
+    // Round-trip still works — the upgradeneeded handler calls
+    // `createObjectStore("video_posters")` and `setPoster` then
+    // persists into the mock store.
+    await setPoster("https://example.com/upgrade.mp4", TINY_PNG);
+    // Inspect the createdStores escape hatch.
+    const created = (mockStore as MockStore & { createdStores: string[] }).createdStores;
+    expect(created).toContain("video_posters");
+  });
+
+  it("returns null when the underlying get() request errors", async () => {
+    // QuotaExceeded or transient IDB error on the read side. The
+    // module's `req.onerror` handler maps that to `null`.
+    mockStore.failNextGet = true;
+    await expect(getPoster("https://example.com/x.mp4")).resolves.toBeNull();
+  });
+
+  it("resolves cleanly when the underlying put() request errors", async () => {
+    // Quota-exceeded write — the cache is best-effort, so we
+    // swallow the error and the caller continues without a poster.
+    mockStore.failNextPut = true;
+    await expect(setPoster("https://example.com/quota.mp4", TINY_PNG)).resolves.toBeUndefined();
+    // And the value did NOT land in the mock store (mock honors
+    // failNextPut by skipping the set).
+    expect(mockStore.data.has("https://example.com/quota.mp4")).toBe(false);
+  });
+
+  it("tolerates a delete() error during stale-entry eviction", async () => {
+    // The internal eviction path (called from a stale `getPoster`)
+    // is fire-and-forget. Even if the delete request errors, the
+    // main read must still resolve to null without surfacing the
+    // failure to the caller.
+    mockStore.data.set("https://example.com/stale-err.mp4", {
+      url: "https://example.com/stale-err.mp4",
+      dataUrl: TINY_PNG,
+      capturedAt: Date.now() - 31 * 24 * 60 * 60 * 1000,
+    });
+    mockStore.failNextDelete = true;
+    await expect(getPoster("https://example.com/stale-err.mp4")).resolves.toBeNull();
   });
 });
