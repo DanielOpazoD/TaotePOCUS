@@ -26,11 +26,16 @@ const baseCase = caseFactory({
 });
 
 describe("CaseCard", () => {
-  it("renders the case title, category, byline and tags", () => {
+  it("renders the case title, byline and tags", () => {
     render(<CaseCard caso={baseCase} isFav={false} onFav={vi.fn()} onOpen={vi.fn()} />);
     // Default render is in Spanish; the title resolves to the ES slot.
     expect(screen.getByText(baseCase.title.es)).toBeTruthy();
-    expect(screen.getByText("Pulmonar")).toBeTruthy(); // category label
+    // The small category icon+label under the thumbnail was removed
+    // in May-2026 — inside a section view the category was redundant
+    // with the URL (e.g. everything under /pulmonary is pulmonary)
+    // and the chip drew the eye away from the title. The category
+    // still drives filters; only the per-card visual was cut.
+    expect(screen.queryByText("Pulmonar")).toBeNull();
     expect(screen.getByText(baseCase.author)).toBeTruthy();
     expect(screen.getByText("B-líneas")).toBeTruthy();
     // "Crítico" was demoted in May-2026 — the red pulsing badge was
