@@ -221,60 +221,10 @@ button:hover > .kbd-hint {
   color: var(--ink);
   box-shadow: var(--shadow-2);
 }
-/* Prev / next case navigation. Two arrow chips top-left of the
-   modal panel, mirroring the close button's chrome style for a
-   coherent triangle of controls (← → ✕). Same `.modal-close`
-   surface treatment (white circle, soft shadow) so the three
-   pieces of chrome read as one set. Disabled state stays
-   visible — the boundary cue ("you're at the end") is the
-   point. */
-.modal-nav {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  display: flex;
-  gap: var(--space-2);
-  z-index: var(--z-modal-chrome);
-}
-.modal-nav-btn {
-  width: 36px;
-  height: 36px;
-  background: oklch(1 0 0 / 0.95);
-  border: none;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--ink);
-  box-shadow: var(--shadow-2);
-  cursor: pointer;
-  transition:
-    transform var(--duration-fast) ease,
-    background var(--duration-fast) ease;
-}
-.modal-nav-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: oklch(1 0 0);
-}
-.modal-nav-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.modal-nav-btn svg {
-  width: 18px;
-  height: 18px;
-}
-.modal-nav-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-@media (max-width: 639.98px) {
-  /* Phone full-bleed: keep the nav buttons but tighten the chrome
-     to match the close button's smaller hit area. */
-  .modal-nav {
-    top: 16px;
-    left: 16px;
-  }
-}
+/* `.modal-nav` / `.modal-nav-btn` rules removed in May-2026 — the
+   visible ← → chips were taken off the modal per user feedback.
+   The keyboard ArrowLeft / ArrowRight bindings stay live (see
+   `useModalShortcuts`); only the on-screen affordance is gone. */
 .modal-grid {
   display: grid;
   grid-template-columns: 1.25fr 1fr;
