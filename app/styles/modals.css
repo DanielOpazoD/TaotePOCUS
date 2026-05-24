@@ -490,7 +490,11 @@ button:hover > .kbd-hint {
 }
 
 .modal-body {
-  padding: 36px 36px 32px;
+  /* May-2026 V1 editorial pass: a touch more breathing room at the
+     top (44 vs. 36) so the title gets a "magazine spread" inset
+     instead of crowding the close-button corner. Side + bottom
+     stay at 36 to keep the side rhythm intact. */
+  padding: 44px 36px 32px;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
@@ -499,6 +503,10 @@ button:hover > .kbd-hint {
 }
 .modal-body .case-cat {
   font-size: 12px;
+  /* Tighter letter-spacing on the category line so the small-caps
+     read as label-text-on-rail (matches the catalog crumb) rather
+     than a generic chip. */
+  letter-spacing: 0.06em;
 }
 .modal-body h2 {
   font-family: var(--serif);
@@ -511,6 +519,31 @@ button:hover > .kbd-hint {
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin: 0;
+  /* V1 editorial pass: a hairline accent rule above the title,
+     matching the catalog `section-head h1::before`. Same visual
+     idiom — one short tinted bar that anchors the headline as
+     "the start of a piece of writing". The bar is positioned via
+     a pseudo-element + relative parent so the underlying
+     `<h2>` keeps its semantic + ARIA shape. */
+  position: relative;
+}
+.modal-body h2::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: var(--section-accent, var(--accent));
+  margin-bottom: 14px;
+  border-radius: 1px;
+}
+/* Tighten the author bar: remove the top hairline so the title's
+   accent rule + meta pills form an uninterrupted editorial cluster
+   (rule → cat → h2 → pills → author divider). The bottom hairline
+   keeps acting as the divider between the headline cluster and the
+   body sections below. */
+.modal-body .modal-author {
+  border-top: none;
+  padding-top: 6px;
 }
 /* Editorial metadata pills above the author bar in the modal:
    difficulty, reading time, "actualizado" stamp. Compact and color-
