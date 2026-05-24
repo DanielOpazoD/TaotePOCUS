@@ -1169,19 +1169,18 @@
   height: 14px;
 }
 .case-title {
-  font-family: var(--serif);
-  font-weight: 480;
-  /* Card titles sit at 18px in the default grid layout — small
-     enough that Newsreader's TEXT drawing reads better than its
-     display drawing. `opsz: 18` pins the optical-size axis to the
-     rendered size (no auto-mapping mismatch), `wght: 480` gives a
-     touch more presence than 460 since the cell is dense. */
-  font-variation-settings:
-    "opsz" 18,
-    "wght" 480;
-  font-size: 18px;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  /* May-2026 "Reference moderna" pass: card titles switch from
+     Newsreader serif to Plex Sans 600. Reference products (Stripe,
+     Linear, Notion) all use a single sans for dense card grids —
+     the serif title was the last vestige of the "editorial-paper"
+     aesthetic that the redesign moved away from. The h1 keeps the
+     serif because it's a once-per-page hero element where the
+     editorial drawing still earns its keep. */
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
   color: var(--ink);
   margin: 0;
 }

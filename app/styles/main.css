@@ -101,17 +101,19 @@
 }
 .section-head h1 {
   font-family: var(--serif);
-  font-weight: 460;
-  /* Tighter Newsreader axis tuning: at the 24-30px hero scale the
-     `opsz: 26` setting paired with `wght: 460` lands on the
-     transition between Newsreader's text drawing and display
-     drawing — more elegant, less corporate than the previous
-     `--serif-h2` (which targets 26px+ headlines that need more
-     weight). `letter-spacing -0.02em` was already there and pairs
-     well with the new axis values. */
+  font-weight: 480;
+  /* May-2026 "Reference moderna" axis tuning. The redesign pushed the
+     h1 toward a more confident reference-product feel:
+       opsz 28 → 30 (slightly more display-drawing weight)
+       wght 440 → 480 (bumps the optical weight without losing the
+                       Newsreader elegance — sits at the edge of the
+                       text/display axis split, where the letterforms
+                       still read editorially but anchor the page).
+     Pairs with the new clinical-blue --accent below the h1 (the
+     32×3px rule). Letter-spacing stays at -0.02em. */
   font-variation-settings:
-    "opsz" 28,
-    "wght" 440;
+    "opsz" 30,
+    "wght" 480;
   /* Drops from the legacy hero scale (38px) to a compact display
      size that still reads as a section title but yields ~30vh of
      extra real estate above the fold for the case grid. */

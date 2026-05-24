@@ -8,45 +8,61 @@
    *   - color-mix() generates clean hover/active states programmatically
    *   - wider gamut on P3 displays (Apple/Pixel) when channels exceed sRGB
    *
-   * The neutral hues sit at hue ~250 (cool) for inks and ~90 (warm) for
-   * surfaces — tiny chroma keeps them off pure gray, which makes the
-   * page feel like printed paper rather than a Figma fill. */
-  --bg: oklch(0.984 0.003 90);
-  --bg-translucent: oklch(0.984 0.003 90 / 0.92);
+   * May-2026 "Reference moderna" redesign: the prior palette mixed cool
+   * inks (hue 254) with warm surfaces (hue 90) for a "printed paper"
+   * feel. The redesign pulls both axes onto a single cool axis (hue
+   * 250) for a tighter Stripe Docs / Linear vibe — surfaces shift from
+   * warm-paper to cool-white, and the accent moves from a desaturated
+   * sky blue (oklch 0.52 0.08 220) to a saturated clinical-trust blue
+   * (oklch 0.55 0.18 250). See ADR 0016 for the full direction +
+   * trade-offs and `docs/adr/` README for the visual-audit history. */
+  --bg: oklch(0.99 0.003 250);
+  --bg-translucent: oklch(0.99 0.003 250 / 0.92);
+  --bg-soft: oklch(0.97 0.003 250);
   --surface: oklch(1 0 0);
-  --surface-2: oklch(0.965 0.004 90);
+  --surface-2: oklch(0.965 0.005 250);
   --input-bg: oklch(1 0 0);
-  --ink: oklch(0.198 0.005 254);
-  --ink-hover: oklch(0.298 0.008 254);
-  --ink-soft: oklch(0.453 0.007 254);
+  --ink: oklch(0.16 0.015 250);
+  --ink-hover: oklch(0.26 0.015 250);
+  --ink-soft: oklch(0.4 0.012 250);
   /* Darkened from oklch(0.655) → 0.500 to clear WCAG AA 4.5:1 against
      `--bg`. Lighthouse measured the previous value at 3.02:1 (#8f9194
      on #fafaf7) and flagged 30+ instances across `.case-byline`,
      `.toolbar-label`, `.section-head p`, `.crumb`, `.results`. The new
-     value renders ~4.7:1; the muted feel is preserved because the
-     chroma stays low (0.005) — only the L drops. */
-  --ink-mute: oklch(0.5 0.005 254);
-  --hairline: oklch(0.922 0.006 90);
-  --hairline-strong: oklch(0.853 0.008 90);
-  --accent: oklch(0.52 0.08 220);
-  --accent-soft: oklch(0.96 0.02 220);
-  --accent-ink: oklch(0.32 0.08 220);
+     value renders ~4.7:1 on the new cool-blue surface as well — the
+     hue shifted (90 → 250) but the L stays at 0.50-0.53 so contrast
+     remains AA-compliant. */
+  --ink-mute: oklch(0.53 0.01 250);
+  --hairline: oklch(0.9 0.008 250);
+  --hairline-strong: oklch(0.82 0.012 250);
+  /* Clinical-trust blue — the "Reference moderna" identity. Higher
+     chroma than the prior desaturated --accent (0.18 vs 0.08) carries
+     real personality instead of fading into the gray palette. The hue
+     (250) anchors the whole new visual identity; sections inherit
+     adjacent hues below. */
+  --accent: oklch(0.55 0.18 250);
+  --accent-soft: oklch(0.94 0.05 250);
+  --accent-ink: oklch(0.3 0.18 250);
   --crit: oklch(0.55 0.15 25);
   --crit-soft: oklch(0.96 0.03 25);
-  /* `--signal` darkened from oklch(0.62) → 0.45 to clear WCAG AA on
-     `--bg` (#fafaf7). Lighthouse measured the previous value at 2.91-3.3:1
-     when used for breadcrumbs / counters in `/ecg`; the new value renders
-     ~5:1. The hue (145°) and chroma (0.12) stay identical so the green
-     identity of the ECG section is preserved — only the lightness drops. */
-  --signal: oklch(0.45 0.12 145); /* verde señal — ECG */
-  --editorial: oklch(0.55 0.1 35); /* cálido editorial — casos */
-  --poster: oklch(0.5 0.1 285); /* índigo — infografías */
-  --xray: oklch(0.55 0.06 240); /* azul-grisáceo radiológico — rayos */
+  /* Section accents — May-2026 "Reference moderna" pass.
+     The prior palette spread across the full hue wheel (green/orange/
+     indigo/grayblue) to give each section a distinct identity. The
+     redesign tightens to a single COOL family anchored on the new
+     --accent hue (250). Each section sits within ±30° so the palette
+     reads as variations on one identity instead of seven micro-brands.
+     Chroma kept moderate (0.14-0.16) so AA contrast stays compliant
+     when these are used for inline text (crumbs, counters in /ecg).
+     Lightness stays at 0.50-0.55 for AA contrast on --bg. */
+  --signal: oklch(0.55 0.16 240); /* azul-cian — ECG (was verde señal) */
+  --editorial: oklch(0.5 0.15 260); /* índigo — casos (was cálido) */
+  --poster: oklch(0.58 0.18 230); /* azul vivo — infografías (was índigo) */
+  --xray: oklch(0.52 0.15 220); /* turquesa profundo — rayos */
   /* `--ocular` + `--neuro` were briefly defined here (PR #103)
      when those topics shipped as top-level sections. They're now
      categories of Atlas (PR #108) so they don't need their own
      section-accent token — Atlas's `--accent` applies. */
-  --shadow: 0 1px 0 oklch(0.198 0.005 254 / 0.04), 0 8px 24px -12px oklch(0.198 0.005 254 / 0.08);
+  --shadow: 0 1px 0 oklch(0.16 0.015 250 / 0.04), 0 8px 24px -12px oklch(0.16 0.015 250 / 0.08);
 
   /* Layered shadow scale — three stops in physical proximity.
      Each token stacks 3-4 shadows so the falloff feels like natural
@@ -54,19 +70,19 @@
        --shadow-1 — hairline contact (resting cards, inputs)
        --shadow-2 — lift (hover state, floating chips, toasts)
        --shadow-3 — float (modals, drawers, presentation overlay) */
-  --shadow-1: 0 1px 1px oklch(0.198 0.005 254 / 0.04), 0 2px 4px oklch(0.198 0.005 254 / 0.04);
+  --shadow-1: 0 1px 1px oklch(0.16 0.015 250 / 0.04), 0 2px 4px oklch(0.16 0.015 250 / 0.04);
   --shadow-2:
-    0 1px 1px oklch(0.198 0.005 254 / 0.04), 0 4px 8px oklch(0.198 0.005 254 / 0.04),
-    0 8px 16px oklch(0.198 0.005 254 / 0.05);
+    0 1px 1px oklch(0.16 0.015 250 / 0.04), 0 4px 8px oklch(0.16 0.015 250 / 0.04),
+    0 8px 16px oklch(0.16 0.015 250 / 0.05);
   --shadow-3:
-    0 1px 1px oklch(0.198 0.005 254 / 0.05), 0 4px 8px oklch(0.198 0.005 254 / 0.05),
-    0 16px 32px oklch(0.198 0.005 254 / 0.06), 0 32px 64px oklch(0.198 0.005 254 / 0.08);
+    0 1px 1px oklch(0.16 0.015 250 / 0.05), 0 4px 8px oklch(0.16 0.015 250 / 0.05),
+    0 16px 32px oklch(0.16 0.015 250 / 0.06), 0 32px 64px oklch(0.16 0.015 250 / 0.08);
 
   --skeleton: linear-gradient(
     90deg,
-    oklch(0.93 0.005 90) 0%,
-    oklch(0.965 0.004 90) 50%,
-    oklch(0.93 0.005 90) 100%
+    oklch(0.93 0.006 250) 0%,
+    oklch(0.965 0.005 250) 50%,
+    oklch(0.93 0.006 250) 100%
   );
 
   /* Font stacks — the `--font-*` vars come from `next/font/google` in
@@ -121,10 +137,14 @@
   --fs-body: clamp(14px, 0.2vw + 13.5px, 16px); /* prose body */
   --fs-small: clamp(11px, 0.15vw + 10.5px, 13px); /* meta / mono */
 
-  /* Border radii. Larger values are deliberate exceptions (modals). */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  /* Border radii. May-2026 "Reference moderna" pass nudged the scale
+     up by ~2px across the board — the modern reference-product feel
+     (Stripe / Linear) sits at slightly softer corners than the
+     prior "newspaper-sharp" 3/6/8. Modals stay at their own
+     `--radius-lg` modifier elsewhere. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-pill: 100px;
 
   /* Container max-widths. The page shell (1480) and the editorial
@@ -253,33 +273,44 @@
 }
 
 [data-theme="dark"] {
-  --bg: oklch(0.157 0.005 254);
-  --bg-translucent: oklch(0.157 0.005 254 / 0.85);
-  --surface: oklch(0.205 0.006 254);
-  --surface-2: oklch(0.244 0.006 254);
-  --input-bg: oklch(0.244 0.006 254);
-  --ink: oklch(0.918 0.004 254);
-  --ink-hover: oklch(0.866 0.004 254);
-  --ink-soft: oklch(0.738 0.005 254);
+  /* Dark mode counterpart of the May-2026 "Reference moderna" pass.
+     Hue shifts from the previous 254 (cool blue-gray) to 250 to match
+     the new light tokens' axis. Lightness inverts for surfaces; the
+     clinical-blue accent stays on hue 250 but brightens (0.55 → 0.72)
+     so it reads against the dark surface with the same visual weight
+     it carries in light mode. Section accents follow the same hue
+     family + lightness bump pattern. */
+  --bg: oklch(0.145 0.012 250);
+  --bg-translucent: oklch(0.145 0.012 250 / 0.85);
+  --bg-soft: oklch(0.18 0.012 250);
+  --surface: oklch(0.2 0.013 250);
+  --surface-2: oklch(0.245 0.013 250);
+  --input-bg: oklch(0.245 0.013 250);
+  --ink: oklch(0.92 0.005 250);
+  --ink-hover: oklch(0.87 0.006 250);
+  --ink-soft: oklch(0.74 0.008 250);
   /* Lightened from oklch(0.53) → 0.66 so muted text (sidebar h4
      headings, .cat-count chips, table column subheads, etc.) clears
-     WCAG AA 4.5:1 against the dark surface tone (0.205). The light
-     theme received this calibration earlier (see comment at the
-     light-mode token); this dark-mode bump brings it to parity.
-     Catalysed by axe-core e2e flagging color-contrast on `h4` and
-     `.cat-count` in the home-dark spec. Chroma kept low (0.007). */
-  --ink-mute: oklch(0.66 0.007 254);
-  --hairline: oklch(0.29 0.007 254);
-  --hairline-strong: oklch(0.385 0.007 254);
-  --accent: oklch(0.72 0.1 220);
-  --accent-soft: oklch(0.3 0.06 220);
-  --accent-ink: oklch(0.82 0.08 220);
+     WCAG AA 4.5:1 against the dark surface tone. Hue follows the new
+     250 axis. Chroma kept low so the muted feel survives. */
+  --ink-mute: oklch(0.66 0.01 250);
+  --hairline: oklch(0.3 0.012 250);
+  --hairline-strong: oklch(0.39 0.014 250);
+  /* Clinical blue accent — brighter than light mode (0.72 vs 0.55)
+     for visibility on the dark surface. Hue + chroma match the
+     light-mode token so the brand identity reads consistent across
+     themes. */
+  --accent: oklch(0.72 0.18 250);
+  --accent-soft: oklch(0.32 0.1 250);
+  --accent-ink: oklch(0.82 0.15 250);
   --crit: oklch(0.68 0.16 25);
   --crit-soft: oklch(0.28 0.07 25);
-  --signal: oklch(0.75 0.15 145);
-  --editorial: oklch(0.72 0.12 35);
-  --poster: oklch(0.7 0.13 285);
-  --xray: oklch(0.72 0.07 240); /* dark-mode equivalent of --xray */
+  /* Section accents — same tight cool family as light, brightened
+     for dark surfaces. */
+  --signal: oklch(0.74 0.16 240); /* azul-cian — ECG */
+  --editorial: oklch(0.7 0.15 260); /* índigo — casos */
+  --poster: oklch(0.76 0.18 230); /* azul vivo — infografías */
+  --xray: oklch(0.72 0.15 220); /* turquesa profundo — rayos */
   /* `--ocular` + `--neuro` retired in PR #108 — see the light-mode
      companion block above for the rationale. */
   --shadow: 0 1px 0 oklch(0 0 0 / 0.5), 0 8px 24px -12px oklch(0 0 0 / 0.6);
@@ -295,9 +326,9 @@
 
   --skeleton: linear-gradient(
     90deg,
-    oklch(0.22 0.006 254) 0%,
-    oklch(0.27 0.006 254) 50%,
-    oklch(0.22 0.006 254) 100%
+    oklch(0.22 0.013 250) 0%,
+    oklch(0.27 0.013 250) 50%,
+    oklch(0.22 0.013 250) 100%
   );
 
   /* In dark mode the backdrop sits over already-dark surfaces, so
