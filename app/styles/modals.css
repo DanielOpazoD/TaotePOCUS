@@ -1152,6 +1152,15 @@ button:hover > .kbd-hint {
 }
 .tag-explorer-chip {
   flex: 1;
+  /* `min-width: 0` on the flex CHILD itself (not just on the inner
+     `.tag-explorer-name`) is what lets the text actually truncate
+     instead of forcing the chip wider than its grid cell. Without
+     this, a long tag name ("engrosamiento parietal") pushes the
+     chip past the column boundary and squeezes the trash button
+     into invisibility on the next column. Flex items default to
+     `min-width: auto` (their content's min size) — only an
+     explicit `min-width: 0` allows shrink-below-content. */
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1245,6 +1254,72 @@ button:hover > .kbd-hint {
   text-transform: uppercase;
   color: var(--ink-mute);
   margin: 0;
+  /* Heading doubles as the collapse toggle. Strip the default
+     button surface so it reads as a label, not a button — the
+     chevron is the affordance cue. */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.tag-explorer-hidden-heading:hover {
+  color: var(--ink);
+}
+.tag-explorer-hidden-heading:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.tag-explorer-hidden-chevron {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-mute);
+  width: 10px;
+  text-align: center;
+}
+
+/* Inline confirm prompt — replaces the chip + trash combo when
+   the admin clicks delete. Two-step ack: the destructive action
+   cascades to every case using the tag, so a "are you sure?"
+   layer in-row is cheaper UX than an extra modal stack. */
+.tag-explorer-row--confirm {
+  background: color-mix(in oklch, var(--crit, oklch(0.55 0.18 25)) 8%, var(--surface));
+  border: 1px solid color-mix(in oklch, var(--crit, oklch(0.55 0.18 25)) 35%, var(--hairline));
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+}
+.tag-explorer-confirm-message {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.3;
+  /* Allow wrap so the question reads as a full sentence on
+     narrow widths. */
+  white-space: normal;
+}
+.tag-explorer-row-action--confirm-yes,
+.tag-explorer-row-action--confirm-no {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-explorer-row-action--confirm-yes {
+  color: oklch(1 0 0);
+  background: var(--crit, oklch(0.55 0.18 25));
+  border-color: var(--crit, oklch(0.55 0.18 25));
+}
+.tag-explorer-row-action--confirm-yes:hover {
+  background: color-mix(in oklch, var(--crit, oklch(0.55 0.18 25)) 85%, black);
+  color: oklch(1 0 0);
+}
+.tag-explorer-row-action--confirm-no {
+  color: var(--ink);
 }
 @media (max-width: 639.98px) {
   .modal.modal--tag-explorer {
