@@ -111,6 +111,10 @@ export const DICT_EN: Dict = {
   "toolbar.sort.recent": "Most recent",
   "toolbar.sort.featured": "Featured",
   "toolbar.sort.title": "Alphabetical",
+  "toolbar.unseenOnly.label": "Only unseen",
+  "toolbar.unseenOnly.activeTitle": "Showing only cases you haven't opened. Click to show all.",
+  "toolbar.unseenOnly.inactiveTitle":
+    "Hide cases you've already opened. List stays on this device.",
   "toolbar.difficulty.label": "Difficulty",
 
   // ─── Saved views (filter presets) ──────────────────────────────

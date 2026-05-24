@@ -23,6 +23,14 @@ interface Props {
    *  filter. Multi-select / OR-combined (any-of) — matches the user's
    *  mental model of "show me Basic OR Intermediate". */
   difficulty: Difficulty[];
+  /** "Solo no vistos" filter state — when true, the grid hides cases
+   *  the user has already opened (tracked via `useSeenCases` in
+   *  App.tsx). Local / per-device state, NOT URL-synced — sharing
+   *  "your unseen cases" is meaningless. Optional so older callers
+   *  / tests can omit the prop. */
+  unseenOnly?: boolean;
+  /** Flip the unseen-only state. Bound at the App level. */
+  onToggleUnseenOnly?: () => void;
   /** Patch the URL with new filter values (replace, not push). */
   onReplace: (
     patch: Partial<{
@@ -65,6 +73,8 @@ export default function Toolbar({
   onReplace,
   viewState,
   notify,
+  unseenOnly,
+  onToggleUnseenOnly,
 }: Props) {
   const { t } = useLanguage();
   // The `clearShaking` wink-animation state + `hasFilters` derived flag
@@ -105,6 +115,26 @@ export default function Toolbar({
         </div>
       )}
       <div className="toolbar-right">
+        {/* "Solo no vistos" toggle — first in the right cluster
+            because it's the most personal filter and reads best on
+            its own. Renders only when the App threads the handler
+            (older callers / focused tests can stay minimal). Pure
+            visual button; the state is per-device localStorage,
+            never URL-synced. See `useSeenCases` for the storage
+            schema. */}
+        {onToggleUnseenOnly && (
+          <button
+            type="button"
+            className={`toolbar-toggle${unseenOnly ? " is-active" : ""}`}
+            onClick={onToggleUnseenOnly}
+            aria-pressed={unseenOnly}
+            title={t(
+              unseenOnly ? "toolbar.unseenOnly.activeTitle" : "toolbar.unseenOnly.inactiveTitle",
+            )}
+          >
+            {t("toolbar.unseenOnly.label")}
+          </button>
+        )}
         {/* Saved-views dropdown sits left of the sort select so the
             cluster reads as "your shortcuts → ordering". Only mount
             when the parent threads the full ViewState through; older

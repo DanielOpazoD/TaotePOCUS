@@ -421,3 +421,22 @@
   color: var(--bg);
   border-color: var(--ink);
 }
+/* Clickable variant used inside the case modal — visually identical
+   at rest to the decorative `<span>` but with a section-accent
+   hover state that reads as "this chip will take you somewhere"
+   without introducing a louder color in the resting view. Reuses
+   the same accent-soft mix as the toolbar's "Solo no vistos"
+   toggle so the page's interactive affordances stay consistent. */
+.tag-chip--clickable {
+  /* Strip the `<button>` element's user-agent gradient/border. */
+  font: inherit;
+}
+.tag-chip--clickable:hover {
+  background: color-mix(in oklch, var(--section-accent, var(--accent)) 10%, var(--surface));
+  border-color: color-mix(in oklch, var(--section-accent, var(--accent)) 55%, transparent);
+  color: var(--ink);
+}
+.tag-chip--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

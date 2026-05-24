@@ -139,6 +139,11 @@ interface Props {
   offlinePending: boolean;
   /** Flip the offline state for the open case. */
   onToggleOffline: () => void;
+  /** Apply a tag as the active catalog filter and close the modal.
+   *  Threaded from App.tsx → CaseModal so a click inside the modal's
+   *  tag chip can both pop the modal stack and reshape the grid in
+   *  one gesture. */
+  onSelectTag: (tag: string) => void;
 
   // Presentation — URL-state-backed (`?presenting=<id>`), not in `modals`.
   presentingCase: CaseRecord | null;
@@ -225,6 +230,7 @@ export default function AppModals(props: Props) {
     isOffline,
     offlinePending,
     onToggleOffline,
+    onSelectTag,
     presentingCase,
     presentationCases,
     onClosePresentation,
@@ -291,6 +297,7 @@ export default function AppModals(props: Props) {
             isOffline={isOffline}
             offlinePending={offlinePending}
             onToggleOffline={onToggleOffline}
+            onSelectTag={onSelectTag}
           />
         </ErrorBoundary>
       )}

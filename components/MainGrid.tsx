@@ -108,6 +108,11 @@ interface Props {
   notify?: (msg: string) => void;
   /** Favorites set for star-marking in the grid. */
   favs: string[];
+  /** Set of case ids the current user has opened at least once on
+   *  this device. Drives the subtle "seen" indicator on each
+   *  `<CaseCard>`. Defaults to an empty Set when omitted so older
+   *  callers (focused tests) don't need to thread it. */
+  seenIds?: Set<string>;
 
   onOpen: (c: CaseRecord) => void;
   onToggleFav: (c: CaseRecord) => void;
@@ -218,6 +223,7 @@ export default function MainGrid({
   currentEmail,
   notify,
   favs,
+  seenIds,
   onOpen,
   onToggleFav,
   onEdit,
@@ -422,6 +428,7 @@ export default function MainGrid({
             key={c.id}
             caso={c}
             isFav={favSet.has(c.id)}
+            isSeen={seenIds?.has(c.id) ?? false}
             onFav={onToggleFav}
             onOpen={onOpen}
             onDelete={cardOnDelete}

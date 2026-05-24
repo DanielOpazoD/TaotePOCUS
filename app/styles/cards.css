@@ -1209,6 +1209,17 @@
   color: var(--ink);
   margin: 0;
 }
+/* "Vistos" — cards the user has opened at least once on this device
+   (see `useSeenCases` + `data-seen` attribute on `<article>`). Subtle
+   mute on the title color only; the thumbnail and meta stay full-
+   strength. The cue is "you've been here", not "this is dimmer
+   content" — the rest of the card needs to remain legible because
+   the user might re-open for revision. Selector uses the bare
+   `[data-seen]` (no value) because the JSX omits the attribute
+   entirely in the unseen state. */
+.case-card[data-seen] .case-title {
+  color: var(--ink-soft);
+}
 .case-byline {
   font-size: 12px;
   color: var(--ink-mute);
