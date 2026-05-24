@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   listOfflineUrls,
-  postToSW,
   readSavedCaseIds,
   removeCaseOffline,
   saveCaseOffline,

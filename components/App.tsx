@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "./Sidebar";
 import SectionHero from "./SectionHero";
@@ -399,14 +399,24 @@ function AppInner() {
   // memo deps below. Without stable identity the palette catalog
   // would invalidate on every render, throwing the user's query +
   // selectedIndex.
+  // The `modals` setters are stable React setState references (the
+  // `useAppModalState` hook returns the raw setters), so including
+  // them in the dep array is correct AND identity-stable — the
+  // callback won't be re-created on every render. Earlier this
+  // had `[]` deps which produced a `react-hooks/exhaustive-deps`
+  // warning; documenting + listing the deps clears the lint
+  // without changing behavior.
   const onNewCase = useCallback(() => {
     modals.setEditingCase(null);
     modals.setFormOpen(true);
-  }, []);
-  const onEditCase = useCallback((c: CaseRecord) => {
-    modals.setEditingCase(c);
-    modals.setFormOpen(true);
-  }, []);
+  }, [modals]);
+  const onEditCase = useCallback(
+    (c: CaseRecord) => {
+      modals.setEditingCase(c);
+      modals.setFormOpen(true);
+    },
+    [modals],
+  );
 
   // Stable per-card callbacks for the catalog grid + FeaturedRow.
   // SAME function identity per render is the contract that lets

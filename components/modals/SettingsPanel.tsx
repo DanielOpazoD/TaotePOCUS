@@ -12,13 +12,13 @@
 // third reads from the existing `useOfflineCases()` plumbing (PR
 // #112) — no new persistence layer, the dialog is purely a surface.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@/lib/icons";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useNativeDialog } from "@/hooks/useNativeDialog";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { usePreferences } from "@/hooks/usePreferences";
-import { purgeAllOffline, readStorageEstimate, removeCaseOffline } from "@/lib/offline-cases";
+import { purgeAllOffline, readStorageEstimate } from "@/lib/offline-cases";
 import { getCaseTitle } from "@/lib/case-localized";
 import { isMediaVideo } from "@/lib/media-kind";
 import type { CaseRecord } from "@/lib/types";
