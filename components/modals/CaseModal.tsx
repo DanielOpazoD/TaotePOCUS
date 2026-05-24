@@ -53,6 +53,16 @@ interface Props {
    *  stay as decorative `<span>`s (backward-compat for tests /
    *  contexts that don't have URL state to mutate). */
   onSelectTag?: (tag: string) => void;
+  /** Step to the previous case in the navigable set (typically the
+   *  current filtered catalog list). Renders a left-arrow control
+   *  outside the modal panel; also binds ArrowLeft via
+   *  `useModalShortcuts`. Both gate on `hasPrev`. When omitted the
+   *  arrow control is hidden and the key falls through. */
+  onPrev?: () => void;
+  /** Step to the next case. Symmetric to `onPrev`. */
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
   // Admin-only chrome (edit / restore / mark reviewed / soft-delete /
   // permanent-delete) used to live as text buttons in the modal
   // footer. They were removed in May-2026 because the footer was
@@ -75,6 +85,10 @@ export default function CaseModal({
   offlinePending = false,
   onToggleOffline,
   onSelectTag,
+  onPrev,
+  onNext,
+  hasPrev = false,
+  hasNext = false,
 }: Props) {
   const { lang, t } = useLanguage();
   // Modal opens with the video paused — play-on-demand means we
@@ -137,7 +151,7 @@ export default function CaseModal({
   // listener and ignores text-input targets + chorded modifiers. The
   // ←/→ stepper between cases was removed in Apr-2026 along with the
   // visible prev/next arrows — the reader now navigates via the grid.
-  useModalShortcuts({ onClose, onFav, onShare, onPresent });
+  useModalShortcuts({ onClose, onFav, onShare, onPresent, onPrev, onNext, hasPrev, hasNext });
 
   // Click on the dialog element itself = backdrop click = close.
   const onClickDialog = (e: React.MouseEvent<HTMLDialogElement>) => {
@@ -198,6 +212,40 @@ export default function CaseModal({
         >
           {Icon.close()}
         </button>
+        {/* Prev / next navigation between cases in the current
+            filtered set. Buttons render only when the parent threads
+            BOTH a handler AND the `hasPrev`/`hasNext` boundary flag
+            (so the chrome only appears when navigation is actually
+            available). ArrowLeft / ArrowRight keys bind to the
+            same handlers via `useModalShortcuts`. The buttons sit
+            inside the modal panel (top-left of the body column) so
+            they remain reachable on mobile where the dialog goes
+            full-bleed — outside-the-panel chevrons would be
+            invisible there. */}
+        {(hasPrev || hasNext) && (
+          <div className="modal-nav" aria-label={t("modal.nav.aria")}>
+            <button
+              type="button"
+              className="modal-nav-btn modal-nav-btn--prev"
+              onClick={onPrev}
+              disabled={!hasPrev}
+              aria-label={t("modal.nav.prev.aria")}
+              title={t("modal.nav.prev.title")}
+            >
+              {Icon.arrowLeft()}
+            </button>
+            <button
+              type="button"
+              className="modal-nav-btn modal-nav-btn--next"
+              onClick={onNext}
+              disabled={!hasNext}
+              aria-label={t("modal.nav.next.aria")}
+              title={t("modal.nav.next.title")}
+            >
+              {Icon.arrowRight()}
+            </button>
+          </div>
+        )}
         <div className="modal-grid">
           <div className="modal-loop">
             <ModalLoopMedia

@@ -258,6 +258,24 @@ function AppInner() {
     return () => clearTimeout(timer);
   }, [openCaseId, markSeen]);
 
+  // Prev / next navigation within the current filtered set. The
+  // "navigable pool" is `visibleFiltered` — i.e. respects every
+  // active filter (cat / tags / query / sort / Solo no vistos), so
+  // arrowing through the modal feels like reading through "the
+  // catalog I see right now" instead of jumping to unrelated cases.
+  // When the open case isn't in the pool (e.g., the user opened it
+  // by deep-link AND the URL filter excludes it), both flags are
+  // false and the chrome hides — no half-functional navigation.
+  const caseNav = useMemo(() => {
+    if (!openCaseId) return { prevId: null as string | null, nextId: null as string | null };
+    const idx = visibleFiltered.findIndex((c) => c.id === openCaseId);
+    if (idx < 0) return { prevId: null, nextId: null };
+    return {
+      prevId: idx > 0 ? (visibleFiltered[idx - 1]?.id ?? null) : null,
+      nextId: idx < visibleFiltered.length - 1 ? (visibleFiltered[idx + 1]?.id ?? null) : null,
+    };
+  }, [openCaseId, visibleFiltered]);
+
   // Per-filter relaxation suggestions for the EmptyState chip rail.
   // Computed lazily — we only invoke the pipeline (which iterates
   // through `scopedCases` once per active filter) when the user is
@@ -733,6 +751,14 @@ function AppInner() {
         // (which `toggleTag`s with append semantics) or by
         // re-clicking another tag from the next case modal.
         onSelectTag={(tag) => replacePatch({ caso: null, tags: [tag] })}
+        // Prev / next case stepping. The handlers `replacePatch`
+        // the `caso` URL param so deep-linking + browser history
+        // both stay coherent — using prev / next is identical to
+        // closing the modal and opening the neighbor's card.
+        onCasePrev={caseNav.prevId ? () => replacePatch({ caso: caseNav.prevId }) : undefined}
+        onCaseNext={caseNav.nextId ? () => replacePatch({ caso: caseNav.nextId }) : undefined}
+        hasCasePrev={caseNav.prevId !== null}
+        hasCaseNext={caseNav.nextId !== null}
         // Mirror the grid's search highlight inside the modal —
         // when the user deep-linked from a query, the matched
         // substrings in the case title + description get the same
