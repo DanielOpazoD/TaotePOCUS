@@ -144,6 +144,16 @@ interface Props {
    *  tag chip can both pop the modal stack and reshape the grid in
    *  one gesture. */
   onSelectTag: (tag: string) => void;
+  /** Step to the previous case in the current filtered set.
+   *  Computed in App.tsx against `visibleFiltered` so the
+   *  navigation respects the user's active filters (cat, tags,
+   *  query, sort, "Solo no vistos"). Undefined / no-op when the
+   *  open case is at the start of the set. */
+  onCasePrev?: () => void;
+  /** Step to the next case in the current filtered set. */
+  onCaseNext?: () => void;
+  hasCasePrev?: boolean;
+  hasCaseNext?: boolean;
 
   // Presentation — URL-state-backed (`?presenting=<id>`), not in `modals`.
   presentingCase: CaseRecord | null;
@@ -231,6 +241,10 @@ export default function AppModals(props: Props) {
     offlinePending,
     onToggleOffline,
     onSelectTag,
+    onCasePrev,
+    onCaseNext,
+    hasCasePrev,
+    hasCaseNext,
     presentingCase,
     presentationCases,
     onClosePresentation,
@@ -298,6 +312,10 @@ export default function AppModals(props: Props) {
             offlinePending={offlinePending}
             onToggleOffline={onToggleOffline}
             onSelectTag={onSelectTag}
+            onPrev={onCasePrev}
+            onNext={onCaseNext}
+            hasPrev={hasCasePrev}
+            hasNext={hasCaseNext}
           />
         </ErrorBoundary>
       )}

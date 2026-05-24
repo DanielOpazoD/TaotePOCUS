@@ -226,6 +226,11 @@ export const DICT_EN: Dict = {
   // ─── Case modal chrome (close, play/pause, sections, actions) ──
   "modal.close.aria": "Close case",
   "modal.close.title": "Close (Esc)",
+  "modal.nav.aria": "Case navigation",
+  "modal.nav.prev.aria": "Previous case",
+  "modal.nav.prev.title": "Previous (←)",
+  "modal.nav.next.aria": "Next case",
+  "modal.nav.next.title": "Next (→)",
   "modal.play.aria": "Play",
   "modal.pause.aria": "Pause",
   "modal.readingTime.title": "Estimated reading time",
