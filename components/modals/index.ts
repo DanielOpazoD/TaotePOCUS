@@ -4,3 +4,4 @@
 export { default as CaseModal } from "./CaseModal";
 export { default as AuthModal } from "./AuthModal";
 export { default as ConfirmDialog } from "./ConfirmDialog";
+export { default as TagExplorerModal } from "./TagExplorerModal";

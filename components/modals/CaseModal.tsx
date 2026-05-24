@@ -7,6 +7,7 @@ import { Icon } from "@/lib/icons";
 import { CATEGORIES } from "@/lib/data";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useTagVisibility } from "@/hooks/useTagVisibility";
 import { useSwipeToClose } from "@/hooks/useSwipeToClose";
 import { useNativeDialog } from "@/hooks/useNativeDialog";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
@@ -120,6 +121,15 @@ export default function CaseModal({
   const titleRead = useMemo(() => getCaseTitle(caso, lang), [caso, lang]);
   const descRead = useMemo(() => getCaseDescription(caso, lang), [caso, lang]);
   const tagsRead = useMemo(() => getCaseTags(caso, lang), [caso, lang]);
+  // Drop admin-hidden tags from the modal chip strip — same rule
+  // as the catalog card. The tag stays on the underlying case
+  // record so SEO keywords + future restores work; the visibility
+  // filter is purely on the rendered chip set.
+  const { isHidden: isTagHidden } = useTagVisibility();
+  const visibleTags = useMemo(
+    () => tagsRead.tags.filter((tg) => !isTagHidden(tg)),
+    [tagsRead.tags, isTagHidden],
+  );
 
   // Unified media list for this case. May be empty (case has only the
   // synthetic cine-loop) or contain one or more uploaded items. The
@@ -331,12 +341,12 @@ export default function CaseModal({
             <div className="modal-section">
               <h5>
                 {t("modal.section.tags")}
-                {tagsRead.isFallback && tagsRead.tags.length > 0 && (
+                {tagsRead.isFallback && visibleTags.length > 0 && (
                   <FallbackBadge read={{ value: "", isFallback: true, source: tagsRead.source }} />
                 )}
               </h5>
               <div className="modal-tags">
-                {tagsRead.tags.map((tag) =>
+                {visibleTags.map((tag) =>
                   onSelectTag ? (
                     // Clickable variant — turns the chip into a
                     // navigation surface that closes the modal and

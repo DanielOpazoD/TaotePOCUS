@@ -1,12 +1,13 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "./AdminThumbMenu";
 import FallbackBadge from "./FallbackBadge";
 import { Icon } from "@/lib/icons";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
+import { useTagVisibility } from "@/hooks/useTagVisibility";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import { highlight } from "@/lib/highlight";
@@ -92,6 +93,16 @@ function CaseCardImpl({
   const titleRead = getCaseTitle(caso, lang);
   const descRead = getCaseDescription(caso, lang);
   const tagsRead = getCaseTags(caso, lang);
+  // Drop admin-hidden tags from the rendered chip strip. The tag
+  // stays on the case data (no destructive mutation); we just don't
+  // surface it in the card. Computed inline against the visibility
+  // hook's Set so the strip re-renders automatically when the admin
+  // toggles a tag from the explorer.
+  const { isHidden: isTagHidden } = useTagVisibility();
+  const visibleTags = useMemo(
+    () => tagsRead.tags.filter((tg) => !isTagHidden(tg)),
+    [tagsRead.tags, isTagHidden],
+  );
   // Live-preview focus while the FocusEditor is open. Falls back to
   // the resolved focus (per-case override → category default →
   // section default → global default → undefined / hardcoded
@@ -327,12 +338,12 @@ function CaseCardImpl({
           </time>
         </div>
         <div className="case-tags">
-          {tagsRead.tags.slice(0, 3).map((t) => (
-            <span key={t} className="case-tag-mini">
-              {searchQuery ? highlight(t, searchQuery) : t}
+          {visibleTags.slice(0, 3).map((tg) => (
+            <span key={tg} className="case-tag-mini">
+              {searchQuery ? highlight(tg, searchQuery) : tg}
             </span>
           ))}
-          {tagsRead.isFallback && tagsRead.tags.length > 0 && (
+          {tagsRead.isFallback && visibleTags.length > 0 && (
             <FallbackBadge read={{ value: "", isFallback: true, source: "es" }} />
           )}
         </div>

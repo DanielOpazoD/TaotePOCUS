@@ -18,6 +18,11 @@ interface Props {
   /** Collapse the sidebar to a thin rail. Persisted by the parent. */
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  /** Open the tag-explorer modal — surfaces ALL tags (not just the
+   *  top 14 shown in the sidebar cloud) with search + per-tag count
+   *  + admin delete affordance. Mounted at the App level so other
+   *  surfaces can also open it (palette command, deep-link). */
+  onOpenTagExplorer?: () => void;
 }
 
 const TAGS_OPEN_KEY = STORAGE_KEYS.sidebarTagsOpen;
@@ -32,6 +37,7 @@ export default function Sidebar({
   tags,
   collapsed,
   onToggleCollapsed,
+  onOpenTagExplorer,
 }: Props) {
   const { lang, t } = useLanguage();
   // Tags section collapse state. Default open on first visit so
@@ -131,17 +137,32 @@ export default function Sidebar({
           </span>
         </button>
         {effectivelyOpen && (
-          <div className="tags-cloud" id="sidebar-tags-cloud">
-            {tags.slice(0, 14).map((t) => (
-              <button
-                key={t}
-                className={`tag-chip ${activeTags.includes(t) ? "active" : ""}`}
-                onClick={() => toggleTag(t)}
-              >
-                {t}
+          <>
+            <div className="tags-cloud" id="sidebar-tags-cloud">
+              {tags.slice(0, 14).map((tg) => (
+                <button
+                  key={tg}
+                  className={`tag-chip ${activeTags.includes(tg) ? "active" : ""}`}
+                  onClick={() => toggleTag(tg)}
+                >
+                  {tg}
+                </button>
+              ))}
+            </div>
+            {/* "Ver todas" link — only render when there's something
+                more to see beyond the 14 chips shown above AND the
+                parent threaded the open-explorer callback. The link
+                opens the tag explorer modal (`<TagExplorerModal>`)
+                which lists every tag with its case count, a search
+                box, and (for admins) per-tag delete/restore actions.
+                The 14-chip cap stays as the "quick scan" view inline;
+                the modal is the "I want to drill in" surface. */}
+            {onOpenTagExplorer && tags.length > 14 && (
+              <button type="button" className="sidebar-tags-see-all" onClick={onOpenTagExplorer}>
+                {t("sidebar.tags.seeAll", { count: tags.length })}
               </button>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </aside>

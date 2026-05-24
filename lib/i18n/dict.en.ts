@@ -102,6 +102,21 @@ export const DICT_EN: Dict = {
   "sidebar.categories": "Categories",
   "sidebar.todos": "All",
   "sidebar.tags": "Tags",
+  "sidebar.tags.seeAll": "See all {count} tags →",
+
+  // ─── Tag explorer modal ────────────────────────────────────────
+  "tagExplorer.title": "All tags",
+  "tagExplorer.summary": "{count} tags in use across the current catalog",
+  "tagExplorer.search.placeholder": "Search tags…",
+  "tagExplorer.search.aria": "Search tags",
+  "tagExplorer.empty": "No tags match your search",
+  "tagExplorer.close.aria": "Close tag explorer",
+  "tagExplorer.close.title": "Close (Esc)",
+  "tagExplorer.delete.aria": "Hide the tag {tag} across every case",
+  "tagExplorer.delete.title": "Hide tag",
+  "tagExplorer.restore.aria": "Restore the tag {tag}",
+  "tagExplorer.restore.title": "Restore tag",
+  "tagExplorer.hidden.heading": "Hidden tags ({count})",
 
   // ─── Toolbar (filters above the grid) ──────────────────────────
   "toolbar.results.one": "{count} case",

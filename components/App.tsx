@@ -24,6 +24,7 @@ import { useCaseFilters } from "@/hooks/useCaseFilters";
 import { useShortcuts } from "@/hooks/useShortcuts";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useSeenCases } from "@/hooks/useSeenCases";
+import { useTagVisibility } from "@/hooks/useTagVisibility";
 import { useCaseOverrides } from "@/hooks/useCaseOverrides";
 import { useMergedCatalog } from "@/hooks/useMergedCatalog";
 import { useAdminPipeline } from "@/hooks/useAdminPipeline";
@@ -124,6 +125,13 @@ function AppInner() {
   // `.has`); they're reserved for a future Settings "borrar historial"
   // row + any callers that prefer the predicate over the Set.
   const { seen: seenCases, markSeen } = useSeenCases();
+  // Per-tag visibility overrides. The admin can hide tags from the
+  // public surfaces (sidebar cloud, card chip strip, case modal,
+  // explorer); the tag stays on each case's tags array but every
+  // consumer reads `hiddenSet` and filters. Reversible — the admin
+  // sees a "Etiquetas ocultas" section inside the explorer modal
+  // with one-click restore per tag. See `useTagVisibility`.
+  const tagVisibility = useTagVisibility();
   // Filter toggle for the toolbar's "Solo no vistos" checkbox.
   // Persisted via the same `usePersistedState` pattern as the sidebar
   // collapse so the preference survives a reload. NOT URL-synced for
@@ -219,6 +227,12 @@ function AppInner() {
     // sidebar as soon as a case is assigned to it. Without this, the
     // hook fell back to the built-in 8 and silently dropped customs.
     categories: config.categories,
+    // Admin-hidden tags get filtered out of `sectionTags` so the
+    // sidebar cloud + tag explorer's "all tags" view both honour
+    // the visibility setting. Per-card / per-modal chip strips do
+    // their own filter via the same hook (same Set reference, same
+    // result).
+    hiddenTags: tagVisibility.hiddenSet,
   });
 
   // Derived projections off the merged catalog: filter sectionCategories
@@ -275,6 +289,35 @@ function AppInner() {
       nextId: idx < visibleFiltered.length - 1 ? (visibleFiltered[idx + 1]?.id ?? null) : null,
     };
   }, [openCaseId, visibleFiltered]);
+
+  // Tag explorer payload — a full counted list of tags in the active
+  // scope (i.e., the view-scoped case set, NOT the filtered one).
+  // Computed lazily-ish here, separate from `sectionTags` because
+  // the explorer needs counts (sectionTags is just sorted strings),
+  // and because the explorer surfaces ALL tags including the
+  // currently-hidden ones (the admin needs visibility into what was
+  // hidden so they can restore). Public viewers see only the
+  // non-hidden subset; admin gets the full list + the hidden list
+  // separately for the restore panel.
+  const tagExplorerPayload = useMemo(() => {
+    const counts: Record<string, number> = {};
+    scopedCases.forEach((c) => {
+      // `getCaseTags` is imported lazily here via the localized
+      // module to avoid an import in this orchestrator file. Inline
+      // a small reader.
+      const tagList = c.tags?.[lang] ?? c.tags?.es ?? [];
+      tagList.forEach((tg) => {
+        counts[tg] = (counts[tg] ?? 0) + 1;
+      });
+    });
+    const visible: { tag: string; count: number }[] = [];
+    for (const [tag, count] of Object.entries(counts)) {
+      if (tagVisibility.hiddenSet.has(tag)) continue;
+      visible.push({ tag, count });
+    }
+    visible.sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    return visible;
+  }, [scopedCases, lang, tagVisibility.hiddenSet]);
 
   // Per-filter relaxation suggestions for the EmptyState chip rail.
   // Computed lazily — we only invoke the pipeline (which iterates
@@ -569,6 +612,7 @@ function AppInner() {
             tags={sectionTags}
             collapsed={sidebarCollapsed}
             onToggleCollapsed={toggleSidebar}
+            onOpenTagExplorer={() => modals.setTagExplorerOpen(true)}
           />
         </ErrorBoundary>
 
@@ -759,6 +803,22 @@ function AppInner() {
         onCaseNext={caseNav.nextId ? () => replacePatch({ caso: caseNav.nextId }) : undefined}
         hasCasePrev={caseNav.prevId !== null}
         hasCaseNext={caseNav.nextId !== null}
+        // Tag explorer wiring. Public viewers see only the
+        // counted list + click-to-filter; admin gets the per-tag
+        // delete + restore handlers (so the explorer renders the
+        // trash button next to each row AND the "Etiquetas
+        // ocultas" panel at the bottom). Filter clicks reuse the
+        // same URL contract as the in-modal tag chips
+        // (`onSelectTag` above): close the explorer, replace the
+        // tag filter with just the picked tag.
+        tagExplorerTags={tagExplorerPayload}
+        tagExplorerHidden={isAdmin ? tagVisibility.hiddenList : []}
+        tagExplorerActiveTags={tags}
+        onSelectTagFromExplorer={(tag) => replacePatch({ tags: [tag] })}
+        onHideTagFromExplorer={isAdmin ? (tag) => tagVisibility.setHidden(tag, true) : undefined}
+        onRestoreTagFromExplorer={
+          isAdmin ? (tag) => tagVisibility.setHidden(tag, false) : undefined
+        }
         // Mirror the grid's search highlight inside the modal —
         // when the user deep-linked from a query, the matched
         // substrings in the case title + description get the same
