@@ -613,9 +613,6 @@
   .case-card .case-title {
     font-size: 14px;
   }
-  .case-card .case-cat {
-    font-size: 10px;
-  }
 }
 .case-card:hover {
   transform: translateY(var(--hover-lift));
@@ -1152,36 +1149,23 @@
   align-items: center;
   gap: 6px;
 }
-.case-cat-glyph {
-  display: inline-grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  /* Neutral ink (May-2026 restraint pass) — was tied to the
-     section accent, but with seven sections that meant seven
-     different small icon colors in the same scroll. Now sits
-     in the muted ink palette so the cards read as one set. */
-  color: var(--ink-mute);
-  flex-shrink: 0;
-}
-.case-cat-glyph svg {
-  width: 14px;
-  height: 14px;
-}
+/* `.case-cat-glyph` was removed in May-2026 along with the catalog
+   card's small icon+category line — see `CaseCard.tsx`. The base
+   `.case-cat` rule above still applies to the Featured row, admin
+   form header, and case modal, none of which carry the glyph. */
 .case-title {
-  font-family: var(--serif);
-  font-weight: 480;
-  /* Card titles sit at 18px in the default grid layout — small
-     enough that Newsreader's TEXT drawing reads better than its
-     display drawing. `opsz: 18` pins the optical-size axis to the
-     rendered size (no auto-mapping mismatch), `wght: 480` gives a
-     touch more presence than 460 since the cell is dense. */
-  font-variation-settings:
-    "opsz" 18,
-    "wght" 480;
-  font-size: 18px;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  /* May-2026 "Reference moderna" pass: card titles switch from
+     Newsreader serif to Plex Sans 600. Reference products (Stripe,
+     Linear, Notion) all use a single sans for dense card grids —
+     the serif title was the last vestige of the "editorial-paper"
+     aesthetic that the redesign moved away from. The h1 keeps the
+     serif because it's a once-per-page hero element where the
+     editorial drawing still earns its keep. */
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
   color: var(--ink);
   margin: 0;
 }
@@ -1514,6 +1498,7 @@
     transform: none;
   }
 }
-.case-cat--skeleton {
-  visibility: hidden;
-}
+/* `.case-cat--skeleton` was removed in May-2026 alongside the
+   corresponding line in `<CaseCardSkeleton>`. The catalog card no
+   longer carries `.case-cat`, so the skeleton dropped its placeholder
+   row to keep the two pixel-identical on swap-in. */

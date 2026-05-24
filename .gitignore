@@ -70,3 +70,4 @@ public/swe-worker-*.js
 .stryker-tmp/
 /reports/mutation/
 
+.audit-screenshots/

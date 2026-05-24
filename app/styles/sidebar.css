@@ -286,11 +286,20 @@
   font-weight: 500;
   border-left-color: var(--section-accent, var(--ink));
 }
-.cat-list button.active .cat-count {
-  color: var(--section-accent-ink, var(--ink-soft));
+.cat-list button.active .cat-count,
+.cat-list button.active .cat-glyph {
+  /* Was `var(--section-accent-ink, var(--ink-soft))`. On sections
+     whose accent shares luminance with the soft-accent background
+     (notably /ecg, where `--signal` and its 12%-alpha tint both sit
+     around L≈0.55/0.94), the accent ink on the soft bg only hit
+     3.83:1 — under the WCAG AA 4.5:1 floor and a real axe violation.
+     Neutral `--ink-soft` (L≈0.4) clears the threshold on every
+     section, keeps the count visually subordinate to the active
+     label (`--ink`, L≈0.16), and aligns with the "one accent per
+     page" restraint pass documented in `layout.css`. */
+  color: var(--ink-soft);
 }
 .cat-list button.active .cat-glyph {
-  color: var(--section-accent-ink, var(--ink-soft));
   opacity: 1;
 }
 .cat-count {

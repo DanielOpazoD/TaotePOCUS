@@ -4,11 +4,9 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { CineLoop } from "../cine";
 import AdminThumbMenu from "./AdminThumbMenu";
 import FallbackBadge from "./FallbackBadge";
-import { Icon, CategoryGlyph, CustomCategoryGlyph } from "@/lib/icons";
-import { CATEGORIES } from "@/lib/data";
+import { Icon } from "@/lib/icons";
 import { absoluteDate, relativeDate } from "@/lib/relative-date";
 import { getCaseDescription, getCaseTags, getCaseTitle } from "@/lib/case-localized";
-import { categoryLabel } from "@/lib/i18n";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useHoverPrefetch } from "@/hooks/useHoverPrefetch";
 import { highlight } from "@/lib/highlight";
@@ -96,7 +94,6 @@ function CaseCardImpl({
   );
   const resolvedFocus = focusDefaults ? resolveFocus(caso, focusDefaults) : caso.focus;
   const effectiveFocus = draftFocus ?? resolvedFocus;
-  const cat = CATEGORIES.find((c) => c.id === caso.category);
   // The "Crítico" red pulsing badge was removed in May-2026 — see the
   // file header for the rationale and the CSS comment in cards.css
   // where `.case-thumb-crit` used to live. The tag string itself can
@@ -279,12 +276,12 @@ function CaseCardImpl({
             modal where it informs the open-state view. */}
       </div>
       <div className="case-meta">
-        <div className="case-cat">
-          <span className="case-cat-glyph" aria-hidden="true">
-            {CategoryGlyph[caso.category] ?? CustomCategoryGlyph}
-          </span>
-          <span>{cat ? categoryLabel(cat, lang) : ""}</span>
-        </div>
+        {/* The small icon + category label that used to live here was
+            removed in May-2026: inside a section view the category was
+            redundant (everything in `/cardiac` is cardiac), and the
+            tiny pill drew the eye away from the title — the actual
+            anchor for navigation. The category data still informs
+            filters and the sidebar; only the per-card visual was cut. */}
         {/* h2 (not h3): the page chrome ships only an h1 (the section
             brand), so the cards must be h2 to keep the heading
             hierarchy contiguous. Lighthouse "heading-order" failed
@@ -326,16 +323,6 @@ function CaseCardImpl({
       </div>
     </article>
   );
-}
-
-/** First sentence of a body string, with a trailing period. Returns
- *  an empty string when the input is empty so the hover preview can
- *  render conditionally. */
-function firstSentence(text: string): string {
-  if (!text) return "";
-  const head = text.split(/\.\s+/)[0]?.trim() ?? "";
-  if (!head) return "";
-  return head.endsWith(".") ? head : `${head}.`;
 }
 
 /**

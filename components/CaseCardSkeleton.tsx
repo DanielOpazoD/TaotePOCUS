@@ -38,9 +38,10 @@ export function CaseCardSkeleton() {
     <div className="case-card case-card--skeleton" aria-hidden="true">
       <div className="case-thumb case-thumb--skeleton" />
       <div className="case-meta">
-        <div className="case-cat case-cat--skeleton">
-          <span className="skeleton-line skeleton-line--cat" />
-        </div>
+        {/* The cat-label skeleton line was removed in May-2026 in
+            lockstep with `<CaseCard>` dropping the `.case-cat` block.
+            Keeping it here would have re-introduced a one-line layout
+            shift the moment the real card swapped in. */}
         <div className="skeleton-line skeleton-line--title" />
         <div className="skeleton-line skeleton-line--meta" />
       </div>

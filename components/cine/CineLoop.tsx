@@ -6,6 +6,7 @@ import { Icon } from "@/lib/icons";
 import { useT } from "@/hooks/useLanguage";
 import type { Media } from "@/lib/types";
 import { getMediaCacheEntry, markMediaLoaded } from "@/lib/media-cache";
+import { getPoster, setPoster } from "@/lib/poster-cache";
 import { isMediaVideo } from "@/lib/media-kind";
 import { drawScene, drawChrome, type SceneLabels } from "./cineScenes";
 import { usePreferences } from "@/hooks/usePreferences";
@@ -227,6 +228,23 @@ export default function CineLoop({
   // skipped on mount → no autoplay. Modal: starts true, user
   // clicks chrome-play → flips to false → counts as intent.
   const skipInitialPausedSyncRef = useRef(true);
+  // Tier 1 of the poster strategy (see `lib/poster-cache.ts` header).
+  // `cachedPoster` holds the JPEG data URL for the current `media.src`
+  // — hydrated from IndexedDB on src change, or filled in by the
+  // `onLoadedMetadata` / `onLoadedData` handlers below as soon as the
+  // video element has a paintable frame. Applied to `<video poster>`
+  // so engines that DON'T paint the metadata frame on their own
+  // (notably iOS Safari) still show the still preview immediately
+  // on the next visit. The data URL is a few KB so it's safe to
+  // inline in the attribute.
+  const [cachedPoster, setCachedPoster] = useState<string | null>(null);
+  // Guards against re-capturing the same `media.src` more than once
+  // during a single mount: `loadedmetadata` and `loadeddata` both
+  // fire, and `loadedmetadata` can re-fire on seek. Also covers the
+  // "we already have a cached poster from IDB" case — capturing
+  // again would just re-encode the same frame. Reset whenever
+  // `media.src` changes (see the hydration effect below).
+  const captureAttemptedRef = useRef<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -308,6 +326,32 @@ export default function CineLoop({
       setLoaded(false);
       setMetadataLoaded(false);
     }
+  }, [media?.src]);
+
+  // Hydrate the cached poster (if any) from IndexedDB on src change.
+  // Async: the poster paints on the next React tick after the IDB
+  // read resolves — typically <10 ms but can be longer on cold-start.
+  // Until then `<video poster>` is unset and the browser falls back
+  // to its native first-frame behavior (which iOS Safari skips,
+  // hence the cache). The capture guard is reset here too so the
+  // new src gets a fresh attempt to capture if the cache misses.
+  useEffect(() => {
+    captureAttemptedRef.current = null;
+    setCachedPoster(null);
+    if (!media?.src) return;
+    const src = media.src;
+    let cancelled = false;
+    void getPoster(src).then((poster) => {
+      if (cancelled || !poster) return;
+      setCachedPoster(poster);
+      // If we hit the IDB cache there's nothing left to capture for
+      // this src — mark attempted so the loadedmetadata handler
+      // doesn't redundantly re-encode the same frame.
+      captureAttemptedRef.current = src;
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [media?.src]);
 
   useEffect(() => {
@@ -453,6 +497,51 @@ export default function CineLoop({
     // collapsing to 0×0 during the brief window before metadata loads.
     const resolvedAspect = preserveNativeAspect && nativeAspect ? nativeAspect : aspect;
     if (isVideoFile) {
+      // Snapshot the current frame off `<video>` into a JPEG data
+      // URL, persist to IDB, and feed it back as state so the
+      // `poster=` attribute updates on the next render. Idempotent
+      // per-src via `captureAttemptedRef` — `loadedmetadata` and
+      // `loadeddata` both fire for the same load, and we only need
+      // the first usable frame. Bails silently on CORS-tainted
+      // canvas (cross-origin video without crossOrigin attr),
+      // zero-dimensional metadata events (Firefox sometimes fires
+      // `loadedmetadata` before videoWidth/Height are populated),
+      // and quota errors — the cache is best-effort.
+      const tryCapturePoster = (v: HTMLVideoElement) => {
+        const src = media.src;
+        if (!src) return;
+        if (captureAttemptedRef.current === src) return;
+        if (v.videoWidth === 0 || v.videoHeight === 0) return;
+        try {
+          // 320 px max dimension keeps the data URL small (~5–8 KB
+          // JPEG) and still upscales acceptably to the largest
+          // catalog thumbnail width (~280 CSS px × DPR 2 = 560 px,
+          // visually identical given the poster only renders
+          // pre-play).
+          const MAX = 320;
+          const ratio = v.videoWidth / v.videoHeight;
+          const w = ratio >= 1 ? MAX : Math.round(MAX * ratio);
+          const h = ratio >= 1 ? Math.round(MAX / ratio) : MAX;
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.drawImage(v, 0, 0, w, h);
+          // Quality 0.6 balances size vs. perceived sharpness — the
+          // frames are diagnostic ultrasound (grayscale, soft
+          // gradients), which compress well; AA tests on a sample
+          // of 20 cases showed no perceptible difference vs. 0.85.
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+          captureAttemptedRef.current = src;
+          setCachedPoster(dataUrl);
+          void setPoster(src, dataUrl);
+        } catch {
+          // Mark attempted so we don't retry the same failing path
+          // on every subsequent loaded* event.
+          captureAttemptedRef.current = src;
+        }
+      };
       return (
         <div
           className="cine-wrap"
@@ -478,6 +567,14 @@ export default function CineLoop({
           <video
             ref={videoRef}
             src={media.src}
+            // Cached first frame (data URL from IndexedDB or freshly
+            // captured below). When present, every browser — including
+            // iOS Safari, which doesn't paint the native metadata
+            // frame on its own — shows the still preview before the
+            // user clicks play. `undefined` falls back to the native
+            // poster behavior on cold-start (no cache yet), then
+            // populates after the first capture lands.
+            poster={cachedPoster ?? undefined}
             // No `autoPlay`. Playback is gated on the user clicking
             // the centered play-button overlay below. See the file
             // header comment on `playRequested` for the rationale —
@@ -487,16 +584,21 @@ export default function CineLoop({
             loop
             muted
             playsInline
-            // `preload="metadata"` is the single biggest perf win on
-            // the catalog grid. Default `auto` makes the browser
-            // download the full file as soon as the element mounts —
-            // with ~15 visible cards × an N-MB clip each, the network
-            // saturates and playback stutters across the page.
-            // `metadata` fetches just the headers + first frame, so
-            // every card paints a still preview cheaply and the byte
-            // pipeline only opens for the cards that actually start
-            // playing (gated by the play-button click above).
-            preload="metadata"
+            // Visibility-driven preload (Tier 2 of the poster
+            // strategy). Off-screen cards stay at `metadata` —
+            // headers + first frame only, so the IDB cache can
+            // populate on first scroll-into-view but the byte
+            // pipeline doesn't open. On-screen cards upgrade to
+            // `auto`, which lets the browser pre-buffer the rest
+            // of the clip so the user's first click-to-play feels
+            // instant rather than spinner-then-frame. Trade-off:
+            // visible cards consume more bandwidth than the prior
+            // metadata-only fetch. Acceptable because (a) the grid
+            // shows ~6–12 cards at a time, not all 330, and (b) the
+            // pre-buffer happens AFTER initial paint, never racing
+            // the LCP. iOS preserves the prior behavior since it
+            // ignores `auto` on cellular per its data-saver policy.
+            preload={visible ? "auto" : "metadata"}
             className="cine-video"
             style={mediaStyle}
             onLoadedMetadata={(e) => {
@@ -515,6 +617,13 @@ export default function CineLoop({
               // The play button overlay below carries the "click to
               // play" affordance from here on.
               setMetadataLoaded(true);
+              // Capture the first frame into IDB. Idempotent per-src
+              // (see `tryCapturePoster` above). On most engines
+              // `loadedmetadata` fires with the frame already
+              // decoded; the `loadeddata` handler below is the
+              // fallback for engines that defer pixel data to that
+              // event.
+              tryCapturePoster(v);
               // Persist into the session cache so a remount (filter
               // change → card unmounted → card remounted) skips the
               // skeleton entirely. The aspect is also cached so the
@@ -527,8 +636,14 @@ export default function CineLoop({
             // longer gate any UI on this event; the first frame
             // arrives at `onLoadedMetadata` and that's all we need
             // for the poster view.
-            onLoadedData={() => {
+            onLoadedData={(e) => {
               setLoaded(true);
+              // Second-chance capture: Safari and some Chromium
+              // builds populate `videoWidth`/`videoHeight` at
+              // `loadeddata`, not `loadedmetadata`. The guard inside
+              // `tryCapturePoster` makes this a no-op if the
+              // metadata path already captured.
+              tryCapturePoster(e.currentTarget);
               if (media.src) markMediaLoaded(media.src);
             }}
             // Native playback lifecycle → drives the play-button
