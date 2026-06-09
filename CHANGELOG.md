@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- chore(eslint): migrate `boundaries/element-types` (deprecated) + legacy flat selectors to v6 `boundaries/dependencies` with object-based `{ from: { type }, allow: { to: { type } } }` syntax. Removes deprecation warnings from every `npm run lint` and CI.
+- refactor(hooks): consolidate transient gesture state (`offset` + `dragging`) into a single `gesture` object in `useSwipeToClose`. Addresses react-doctor "no-cascading-set-state" finding for the hook; behavior and public API unchanged.
+- fix(admin): add `suppressHydrationWarning` on the dynamic restore timestamp in BackupPanel confirm dialog. Silences repeated react-doctor hydration-mismatch warnings for an intentional client-only post-interaction value.
+
 ### Added
 
 - **Firebase Auth + Firestore backend, feature-flagged.** Six `NEXT_PUBLIC_FIREBASE_*` env vars switch the repo facade from localStorage to Firebase without a code change. Local dev stays on localStorage by default. See [ADR-0004](./docs/adr/0004-firebase-as-primary-persistence.md).
@@ -14,17 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Netlify deploy config (`netlify.toml`)** with `@netlify/plugin-nextjs`, security headers, and legacy query-param redirects.
 - **Lighthouse CI** (`.lighthouserc.json` + `npm run lighthouse`) with budgets enforced on every push to `main`: Performance ≥ 0.85, Accessibility ≥ 0.95, Best Practices ≥ 0.9, SEO ≥ 0.95, CLS ≤ 0.1.
 - Project foundation files: `LICENSE`, `CHANGELOG.md`, `.editorconfig`, `.nvmrc`, `.env.example`.
-- `docs/ARCHITECTURE.md` and Architecture Decision Records (`docs/adr/`).
+- `docs/ARCHITECTURE.md` and Architecture Decision Records (`docs/adr/`). 
 - GitHub templates: `pull_request_template.md`, `ISSUE_TEMPLATE/{bug,feature}.md`.
 - Typed environment access via `lib/env.ts` — admin credentials configurable via `NEXT_PUBLIC_ADMIN_EMAIL` / `NEXT_PUBLIC_ADMIN_PASSWORD`. Firebase + Sentry config also typed.
 - Error hierarchy in `lib/errors.ts`: `AuthError`, `StorageError`, `Result<T,E>`.
 - Prettier config + `format` / `format:check` scripts.
 - Husky pre-commit hook + `lint-staged` for format/lint/typecheck on staged files.
 - Vitest setup file with `matchMedia` / `IntersectionObserver` polyfills.
-- Coverage thresholds (≥ 90% statements, ≥ 80% branches in `lib/`).
+- Coverage thresholds (≥ 90% statements, ≥ 80% branches in `lib/`). 
 - Bundle analyzer: `npm run analyze`.
 - JSDoc on all public exports of `lib/*` and `hooks/*`.
-- Component reorganization by responsibility (`chrome/`, `cards/`, `modals/`, `cine/`, `admin/`).
+- Component reorganization by responsibility (`chrome/`, `cards/`, `modals/`, `cine/`, `admin/`). 
 
 ### Changed
 

@@ -359,7 +359,7 @@ export default function BackupPanel({ currentEmail, notify }: Props) {
         <div className="backup-confirm" role="alertdialog" aria-modal="true">
           <div className="backup-confirm-card">
             <h3>{t("backup.confirm.restore.title")}</h3>
-            <p>
+            <p suppressHydrationWarning>
               {/* Body has a `<strong>{date}</strong>` insert + an
                   optional " · {exportedBy}" suffix; we render the
                   three slots inline rather than concatenating in JS
