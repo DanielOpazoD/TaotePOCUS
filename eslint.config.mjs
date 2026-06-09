@@ -152,11 +152,20 @@ export default tseslint.config(
           default: "disallow",
           rules: [
             // app/ can import from anywhere below + server-actions
-            { from: { type: "app" }, allow: { to: { type: ["app", "components", "hooks", "lib", "server-actions"] } } },
+            {
+              from: { type: "app" },
+              allow: { to: { type: ["app", "components", "hooks", "lib", "server-actions"] } },
+            },
             // components/ can import from peers + lower + server-actions
-            { from: { type: "components" }, allow: { to: { type: ["components", "hooks", "lib", "server-actions"] } } },
+            {
+              from: { type: "components" },
+              allow: { to: { type: ["components", "hooks", "lib", "server-actions"] } },
+            },
             // hooks/ can import from peers + lower + server-actions
-            { from: { type: "hooks" }, allow: { to: { type: ["hooks", "lib", "server-actions"] } } },
+            {
+              from: { type: "hooks" },
+              allow: { to: { type: ["hooks", "lib", "server-actions"] } },
+            },
             // lib/ can import from peers + server-actions (the server-
             // action wire is the only "upward" import lib is allowed —
             // dual-write delegates through it to the DB).
