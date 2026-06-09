@@ -81,12 +81,6 @@ function CaseCardImpl({
   focusDefaults,
 }: Props) {
   const { lang, t } = useLanguage();
-  // Pointer-enter handlers that kick off a background fetch of this
-  // case's media after 150ms of hover (the "intent" threshold). By
-  // the time the user actually clicks, the asset is in the HTTP cache
-  // so the modal mounts with the cine-loop ready to paint instead of
-  // showing the spinner. No-op when the case has no real media.
-  const prefetch = useHoverPrefetch(caso.media);
   // Resolve every translatable field once per render; reuse below.
   // The `isFallback` flag from each helper feeds the `<FallbackBadge>`
   // that renders next to the affected text when the user picked EN
@@ -142,6 +136,58 @@ function CaseCardImpl({
   useEffect(() => {
     setVideoTouched(false);
   }, [caso.media?.src]);
+
+  // Pointer-enter handlers that kick off a background fetch of this
+  // case's media after 150ms of hover (the "intent" threshold). By
+  // the time the user actually clicks, the asset is in the HTTP cache
+  // so the modal mounts with the cine-loop ready to paint instead of
+  // showing the spinner. No-op when the case has no real media.
+  //
+  // Fase 1: we also wire a lightweight "sustained visible" trigger
+  // (combined prefetch) so slow scrollers without hover still get
+  // the media warmed. The hook returns onVisible for this purpose.
+  const prefetch = useHoverPrefetch(caso.media);
+  const onVisibleForPrefetch = prefetch.onVisible;
+
+  // Fase 1 combined prefetch: a cheap per-card IntersectionObserver
+  // that calls the hook's onVisible after the card has been in view
+  // for a short sustained window. Complements hover intent for users
+  // who mostly scroll. The observer is lightweight and disconnected
+  // on unmount; it only cares about prefetch, not rendering (CineLoop
+  // has its own more aggressive IO for playback gating).
+  //
+  // Defensive: timer is cleared on unmount / media change (same
+  // pattern used for videoTouched and other card-local timers).
+  useEffect(() => {
+    const el = thumbRef.current;
+    if (!el || !onVisibleForPrefetch || typeof IntersectionObserver === "undefined") return;
+
+    let visibleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          if (visibleTimer) clearTimeout(visibleTimer);
+          visibleTimer = setTimeout(() => {
+            onVisibleForPrefetch?.();
+            visibleTimer = null;
+          }, 320);
+        } else if (visibleTimer) {
+          clearTimeout(visibleTimer);
+          visibleTimer = null;
+        }
+      },
+      { rootMargin: "100px" },
+    );
+
+    io.observe(el);
+
+    return () => {
+      io.disconnect();
+      if (visibleTimer) clearTimeout(visibleTimer);
+    };
+  }, [onVisibleForPrefetch, caso.media?.src]); // re-arm when the media changes
   const handleArticleClickCapture = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
       // Image cards keep the existing "click anywhere → open modal"

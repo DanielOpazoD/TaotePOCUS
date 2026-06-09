@@ -90,6 +90,10 @@ function prefetchMedia(url: string): void {
 export interface HoverPrefetchHandlers {
   onPointerEnter: () => void;
   onPointerLeave: () => void;
+  /** Optional: call when the card becomes (sustained) visible in the
+   *  viewport. Enables "combined" prefetch (hover intent + visible
+   *  for a while) as part of Fase 1 fluidity improvements. */
+  onVisible?: () => void;
 }
 
 /**
@@ -124,7 +128,7 @@ export function useHoverPrefetch(media: Media | undefined, delayMs = 150): Hover
     };
   }, []);
 
-  const onPointerEnter = useCallback(() => {
+  const schedulePrefetch = useCallback(() => {
     const src = media?.src;
     if (!src) return;
     if (prefetchedUrls.has(src)) return;
@@ -135,6 +139,10 @@ export function useHoverPrefetch(media: Media | undefined, delayMs = 150): Hover
     }, delayMs);
   }, [media?.src, delayMs]);
 
+  const onPointerEnter = useCallback(() => {
+    schedulePrefetch();
+  }, [schedulePrefetch]);
+
   const onPointerLeave = useCallback(() => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
@@ -142,7 +150,25 @@ export function useHoverPrefetch(media: Media | undefined, delayMs = 150): Hover
     }
   }, []);
 
-  return { onPointerEnter, onPointerLeave };
+  // Fase 1: combined prefetch — if the card stays visible for the
+  // delay window, warm the media. This catches users who scroll
+  // slowly without hovering (common on mobile/tablet).
+  const onVisible = useCallback(() => {
+    // Use a slightly longer delay for visibility-based to avoid
+    // prefetching every card that briefly scrolls into view.
+    const src = media?.src;
+    if (!src || prefetchedUrls.has(src)) return;
+    if (timerRef.current !== null) return; // hover timer wins if active
+    timerRef.current = setTimeout(
+      () => {
+        timerRef.current = null;
+        prefetchMedia(src);
+      },
+      Math.max(delayMs, 320),
+    );
+  }, [media?.src, delayMs]);
+
+  return { onPointerEnter, onPointerLeave, onVisible };
 }
 
 // Exported for unit tests so the dedupe Set can be reset between

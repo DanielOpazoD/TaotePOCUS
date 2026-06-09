@@ -107,7 +107,8 @@ export type AdminActionKind =
   | "user_case_restored"
   | "import_purged"
   | "bulk_imported"
-  | "focus_defaults_updated";
+  | "focus_defaults_updated"
+  | "media_uploaded";
 
 /**
  * Append a row to `admin_actions`. Best-effort: a failure to insert

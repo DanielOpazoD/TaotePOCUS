@@ -99,6 +99,13 @@ export interface Media {
   name?: string;
   type?: string;
   modality?: string;
+  /**
+   * Optional tiny LQIP (Low Quality Image Placeholder) data URL (e.g. 32px wide JPEG base64).
+   * Used by CineLoop to render a blurred background immediately while the real asset loads.
+   * Populated by the optimize-media script (or admin upload flow) for real media.
+   * Synthetic loops and cases without it simply skip the LQIP layer.
+   */
+  placeholder?: string;
 }
 
 /**
