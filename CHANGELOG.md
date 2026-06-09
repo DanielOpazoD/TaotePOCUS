@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- chore(eslint): migrate `boundaries/element-types` (deprecated) + legacy flat selectors to v6 `boundaries/dependencies` with object-based `{ from: { type }, allow: { to: { type } } }` syntax. Removes deprecation warnings from every `npm run lint` and CI.
+- refactor(hooks): consolidate transient gesture state (`offset` + `dragging`) into a single `gesture` object in `useSwipeToClose`. Addresses react-doctor "no-cascading-set-state" finding for the hook; behavior and public API unchanged.
+- fix(admin): add `suppressHydrationWarning` on the dynamic restore timestamp in BackupPanel confirm dialog. Silences repeated react-doctor hydration-mismatch warnings for an intentional client-only post-interaction value.
+
 ### Added
 
 - **Firebase Auth + Firestore backend, feature-flagged.** Six `NEXT_PUBLIC_FIREBASE_*` env vars switch the repo facade from localStorage to Firebase without a code change. Local dev stays on localStorage by default. See [ADR-0004](./docs/adr/0004-firebase-as-primary-persistence.md).
