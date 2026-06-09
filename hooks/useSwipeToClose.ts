@@ -64,13 +64,19 @@ export function useSwipeToClose<T extends HTMLElement>({
   enabled = true,
 }: Options) {
   const ref = useRef<T | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [dragging, setDragging] = useState(false);
+  // Consolidated transient gesture state (was 2 separate useState + 4
+  // set* calls inside the effect). The doctor flagged the multiple
+  // setState pattern; a single object update keeps behavior identical
+  // while reducing the "cascading setState" surface. Timing/position
+  // tracking stays in refs (no render cost, only for velocity math).
+  const [gesture, setGesture] = useState({ offset: 0, dragging: false });
   const startPos = useRef(0);
   const startTime = useRef(0);
   const lastPos = useRef(0);
   const lastTime = useRef(0);
   const tracking = useRef(false);
+
+  const { offset, dragging } = gesture;
 
   useEffect(() => {
     if (!enabled) return;
@@ -101,19 +107,18 @@ export function useSwipeToClose<T extends HTMLElement>({
       startTime.current = now;
       lastPos.current = pos;
       lastTime.current = now;
-      setDragging(true);
+      setGesture({ offset: 0, dragging: true });
     };
     const onPointerMove = (e: PointerEvent) => {
       if (!tracking.current) return;
       const pos = axisOf(e);
       lastPos.current = pos;
       lastTime.current = e.timeStamp;
-      setOffset(closeMagnitude(pos, startPos.current));
+      setGesture(g => ({ ...g, offset: closeMagnitude(pos, startPos.current) }));
     };
     const onPointerUp = (e: PointerEvent) => {
       if (!tracking.current) return;
       tracking.current = false;
-      setDragging(false);
       const totalDistance = closeMagnitude(lastPos.current, startPos.current);
       // Velocity from the LAST recorded move (not the total mean) so
       // a slow drag followed by a quick flick at the end still
@@ -127,8 +132,10 @@ export function useSwipeToClose<T extends HTMLElement>({
       const flick = velocity >= flickVelocity && totalDistance > 10;
       if (totalDistance > threshold || flick) {
         onClose();
+        // Reset after close so the next mount starts clean.
+        setGesture({ offset: 0, dragging: false });
       } else {
-        setOffset(0);
+        setGesture({ offset: 0, dragging: false });
       }
     };
 
