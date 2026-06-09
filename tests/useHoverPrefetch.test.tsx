@@ -149,4 +149,41 @@ describe("useHoverPrefetch", () => {
     });
     expect(fetch).toHaveBeenCalledTimes(258);
   });
+
+  it("exposes onVisible for sustained visibility prefetch (Fase 1 combined prefetch)", () => {
+    const { result } = renderHook(() => useHoverPrefetch(SAMPLE_VIDEO));
+    expect(result.current.onVisible).toBeTypeOf("function");
+  });
+
+  it("onVisible fires fetch after the visibility threshold (longer than hover to avoid scroll spam)", () => {
+    const { result } = renderHook(() => useHoverPrefetch(SAMPLE_VIDEO));
+    act(() => {
+      result.current.onVisible?.();
+    });
+    // visible path uses Math.max(delayMs, 320)
+    expect(fetch).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect((fetch as ReturnType<typeof vi.fn>).mock.calls[0]![0]).toBe(SAMPLE_VIDEO.src);
+  });
+
+  it("onVisible is deduped (no double fetch on repeated visible)", () => {
+    const { result } = renderHook(() => useHoverPrefetch(SAMPLE_VIDEO));
+    act(() => {
+      result.current.onVisible?.();
+      vi.advanceTimersByTime(400);
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    act(() => {
+      result.current.onVisible?.();
+      vi.advanceTimersByTime(400);
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
 });
