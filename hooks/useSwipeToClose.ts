@@ -114,7 +114,7 @@ export function useSwipeToClose<T extends HTMLElement>({
       const pos = axisOf(e);
       lastPos.current = pos;
       lastTime.current = e.timeStamp;
-      setGesture(g => ({ ...g, offset: closeMagnitude(pos, startPos.current) }));
+      setGesture((g) => ({ ...g, offset: closeMagnitude(pos, startPos.current) }));
     };
     const onPointerUp = (e: PointerEvent) => {
       if (!tracking.current) return;
