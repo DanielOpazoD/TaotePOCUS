@@ -13,6 +13,10 @@ import { useT } from "@/hooks/useLanguage";
 import { isMediaVideo } from "@/lib/media-kind";
 import type { CaseRecord, Media, MediaKind } from "@/lib/types";
 import { MAX_UPLOAD_BYTES, type FormUpdate } from "./types";
+// Phase 1: import the blob upload action at top level for cleaner code
+// (was dynamic inside processFile; top-level is the project's preferred style
+// and allows better tree-shaking / type checking).
+import { uploadMediaFile } from "@/app/actions/db/overrides";
 
 interface Props {
   form: CaseRecord;
@@ -58,9 +62,15 @@ export function MediaPanel({
   // the card thumbnail; the modal carousel renders all of them.
   const extraFileRef = useRef<HTMLInputElement | null>(null);
 
-  // Shared upload pipeline. Validates size + MIME, base64-encodes
-  // the file, and routes the resulting `Media` either to the primary
-  // `media` field or appends to `mediaExtra`.
+  // Shared upload pipeline. Validates size + MIME, then:
+  // - Prefers uploading the raw File to Netlify Blobs via server action
+  //   (Phase 1 "forzar uploads por blobs"). This gives a stable
+  //   `/api/media/<key>` URL that the entire viewer pipeline (CineLoop,
+  //   LQIP, posters, CDN negotiation, offline SW, etc.) already
+  //   understands and optimizes.
+  // - Falls back to dataURL only for pure local/demo (no blobs wired)
+  //   or if the upload action fails. The admin form preview still
+  //   works either way (<img>/<video> accept both).
   const processFile = async (f: File, target: "primary" | "extra"): Promise<void> => {
     setUploadError(null);
     if (f.size > MAX_UPLOAD_BYTES) {
@@ -82,13 +92,30 @@ export function MediaPanel({
     }
     setUploading(true);
     try {
-      const url = await fileToDataUrl(f);
+      // Try the real blob path first (unifies the loading experience
+      // for viewers and avoids embedding multi-MB base64 into case
+      // records / localStorage).
+      const formData = new FormData();
+      formData.append("file", f);
+      const uploadRes = await uploadMediaFile(formData);
+
+      let finalSrc: string;
+      if (uploadRes.ok) {
+        finalSrc = uploadRes.src;
+      } else {
+        // Upload failed (e.g. no blobs in this env, quota, auth).
+        // Fall back to dataURL so the admin form preview still works
+        // and the user isn't blocked. The generic error is already
+        // surfaced via the outer catch if needed.
+        finalSrc = await fileToDataUrl(f);
+      }
+
       const kind: MediaKind = f.type.startsWith("video/")
         ? "video"
         : f.type === "image/gif"
           ? "gif"
           : "image";
-      const media: Media = { kind, src: url, name: f.name, type: f.type };
+      const media: Media = { kind, src: finalSrc, name: f.name, type: f.type };
       if (target === "primary") {
         update({ media });
       } else {

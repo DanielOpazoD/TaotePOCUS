@@ -610,13 +610,11 @@ export default function CineLoop({
             ref={videoRef}
             src={media.src}
             // Cached first frame (data URL from IndexedDB or freshly
-            // captured below). When present, every browser — including
-            // iOS Safari, which doesn't paint the native metadata
-            // frame on its own — shows the still preview before the
-            // user clicks play. `undefined` falls back to the native
-            // poster behavior on cold-start (no cache yet), then
-            // populates after the first capture lands.
-            poster={cachedPoster ?? undefined}
+            // captured below) or LQIP placeholder as ultimate cold-start
+            // fallback. This is part of Fase 1 fluidity improvements:
+            // the placeholder (tiny data URL) gives an immediate blurred
+            // preview even before any network for the real poster/asset.
+            poster={cachedPoster ?? media.placeholder ?? undefined}
             // No `autoPlay`. Playback is gated on the user clicking
             // the centered play-button overlay below. See the file
             // header comment on `playRequested` for the rationale —
@@ -753,23 +751,24 @@ export default function CineLoop({
                   e.stopPropagation();
                   setPlayRequested(true);
                   setBuffering(true);
-                  // Inform the parent that we're starting playback,
-                  // so its `paused` state (e.g. modal chrome toggle)
-                  // can stay in sync. The reconciler effect above
-                  // would otherwise see `paused=true` from the
-                  // parent and pause() right after our play().
+                  // Immediate visual feedback: the state update + data attr
+                  // makes the CSS spinner replace the play icon right away
+                  // (before the video element even starts its network work).
+                  // This is the Phase-1 "instant click response" improvement.
                   onPlayRequest?.();
                   // Don't call play() directly here — the parent
                   // will flip `paused` to false on the next render,
                   // and the reconciler effect (which is the single
                   // source of truth for whether play() runs) handles
-                  // it from there. Calling here would race the
-                  // reconciler and could fire play→pause→play in
-                  // the same tick.
+                  // it from there.
                 }}
               >
                 <span className="cine-play-button-badge" aria-hidden="true">
-                  <span className="cine-play-button-icon">{Icon.play()}</span>
+                  {buffering ? (
+                    <span className="cine-spinner-dot" aria-hidden="true" />
+                  ) : (
+                    <span className="cine-play-button-icon">{Icon.play()}</span>
+                  )}
                 </span>
               </button>
             ) : (
@@ -798,6 +797,22 @@ export default function CineLoop({
         ref={wrapRef}
         data-loaded={loaded}
       >
+        {/* LQIP (Phase 1 fluidity): if a tiny `placeholder` data URL is
+            present on the Media (populated by optimize script or future
+            admin upload), render it immediately as a heavily blurred
+            low-res layer. It gives instant visual content under the
+            skeleton while the real high-quality asset streams in.
+            Fades out naturally when the main <Image> paints (`loaded`). */}
+        {media.placeholder && !loaded && (
+          <img
+            src={media.placeholder}
+            alt=""
+            className="cine-lqip"
+            style={mediaStyle}
+            aria-hidden="true"
+          />
+        )}
+
         {/* `<Image fill>` paired with the absolute-positioned wrapper
             lets the optimizer pick a width based on the actual cell
             size (via the `sizes` hint) without forcing us to pass
@@ -846,7 +861,7 @@ export default function CineLoop({
           // doesn't fight the LCP cards for bandwidth.
           priority={priority || quality === "full"}
           className="cine-video"
-          style={mediaStyle}
+          style={{ ...mediaStyle, position: "relative", zIndex: 1 }}
           onLoad={(e) => {
             const im = e.currentTarget as HTMLImageElement;
             const resolvedAspectStr =

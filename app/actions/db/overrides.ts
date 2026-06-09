@@ -155,3 +155,58 @@ export async function dbDeleteMedia(key: string): Promise<ActionResult> {
     }
   });
 }
+
+/**
+ * Upload a media file (image/video) from the admin form directly into
+ * the Netlify Blobs media store. Returns a stable public `/api/media/<key>`
+ * URL that the viewer pipeline (CineLoop, CDN negotiation, posters, etc.)
+ * already knows how to consume.
+ *
+ * This is the Phase 1 "forzar uploads por blobs" change: new admin-created
+ * cases no longer embed giant data: URLs. The admin preview in the form
+ * still works because we can keep a local object URL or the returned src
+ * works for <img>/<video> too.
+ *
+ * The key is returned so callers can also record it for later purge.
+ */
+export async function uploadMediaFile(
+  formData: FormData,
+): Promise<{ ok: true; src: string; key: string } | { ok: false; error: string }> {
+  const inner = await withAdmin("uploadMedia", async (session) => {
+    const file = formData.get("file") as File | null;
+    if (!file) {
+      return { ok: false as const, error: "no-file" };
+    }
+    // Produce a stable, unique key. The /api/media route will serve it
+    // with the right content-type and 1-year immutable cache.
+    const safeName = file.name.replace(/[^a-z0-9.-]/gi, "_");
+    const key = `admin-${Date.now()}-${safeName}`;
+
+    try {
+      // Pass the original File (Blob subclass) — the store accepts it
+      // directly. Content type is best-effort from the File itself.
+      await mediaStore().set(key, file);
+
+      const src = `/api/media/${encodeURIComponent(key)}`;
+
+      // Audit (best effort, like other media operations).
+      await recordAdminAction("media_uploaded", session.email, key, {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      return { ok: true as const, src, key };
+    } catch (err) {
+      console.error("[uploadMediaFile] failed", err);
+      return { ok: false as const, error: "upload-failed" };
+    }
+  });
+
+  // withAdmin can return its own failure shape ({ok:false, reason}).
+  // Normalize to our simpler {error} shape for the form caller.
+  if ("reason" in inner) {
+    return { ok: false, error: inner.reason };
+  }
+  return inner;
+}
