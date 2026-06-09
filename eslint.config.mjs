@@ -1,7 +1,4 @@
-// Flat ESLint config. Next.js 16 removed `next lint`, so this is the
-// project's own setup. Kept intentionally minimal — only rules that
-// catch real bugs or enforce hooks correctness. No stylistic rules
-// (Prettier territory).
+// Flat ESLint config. Next.js 16 removed `next lint`, so this is the project's own setup. Kept intentionally minimal — only rules that catch real bugs or enforce hooks correctness. No stylistic rules (Prettier territory).
 
 import js from "@eslint/js";
 import react from "eslint-plugin-react";
@@ -146,28 +143,28 @@ export default tseslint.config(
       },
     },
     rules: {
-      "boundaries/element-types": [
+      // v6+ rule name + object-based selector syntax (migrated from the
+      // deprecated "boundaries/element-types" + legacy flat selectors).
+      // See eslint-plugin-boundaries v5→v6 migration guide.
+      "boundaries/dependencies": [
         "error",
         {
           default: "disallow",
           rules: [
             // app/ can import from anywhere below + server-actions
-            { from: "app", allow: ["app", "components", "hooks", "lib", "server-actions"] },
+            { from: { type: "app" }, allow: { to: { type: ["app", "components", "hooks", "lib", "server-actions"] } } },
             // components/ can import from peers + lower + server-actions
-            {
-              from: "components",
-              allow: ["components", "hooks", "lib", "server-actions"],
-            },
+            { from: { type: "components" }, allow: { to: { type: ["components", "hooks", "lib", "server-actions"] } } },
             // hooks/ can import from peers + lower + server-actions
-            { from: "hooks", allow: ["hooks", "lib", "server-actions"] },
+            { from: { type: "hooks" }, allow: { to: { type: ["hooks", "lib", "server-actions"] } } },
             // lib/ can import from peers + server-actions (the server-
             // action wire is the only "upward" import lib is allowed —
             // dual-write delegates through it to the DB).
-            { from: "lib", allow: ["lib", "server-actions"] },
+            { from: { type: "lib" }, allow: { to: { type: ["lib", "server-actions"] } } },
             // server-actions can only depend on lib (no React, no
             // hooks, no components — they're pure server-side
             // entrypoints into the algorithmic core).
-            { from: "server-actions", allow: ["lib"] },
+            { from: { type: "server-actions" }, allow: { to: { type: ["lib"] } } },
           ],
         },
       ],
