@@ -102,7 +102,7 @@ jobs:
       # blocker.
       - name: Download main coverage baseline (PR-only)
         if: github.event_name == 'pull_request'
-        uses: dawidd6/action-download-artifact@v11
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: ci.yml
           name: coverage
